@@ -17,6 +17,14 @@ export interface IAnalysisInput extends ISeoRuleInput {
 export interface IPageAnalysis {
   keywords: ISelectedKeyword[];
   issues: TSeoIssue[];
+  /**
+   * How many catalogue checks could be judged on this page, and how many of them failed.
+   * Produced by the same pass that produced the issues, because applicability is only
+   * knowable while the parsed page is in hand — the stored row holds no canonical, no
+   * Open Graph and no JSON-LD, so it cannot be recovered later.
+   */
+  checksApplicable: number;
+  checksFailed: number;
 }
 
 /**
@@ -31,7 +39,7 @@ export class PageAnalysisService {
     const keywords = extractKeywords(pages, siteKey);
     return pages.map((page, i) => ({
       keywords: keywords[i],
-      issues: evaluateSeoRules(page),
+      ...evaluateSeoRules(page),
     }));
   }
 }

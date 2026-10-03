@@ -1,4 +1,4 @@
-import type { TSeoRuleGroup } from '../../seo-rule.interface';
+import { fails, PASS, type TSeoRuleGroup } from '../../seo-rule.interface';
 
 /**
  * Google's documented article types and the subtypes a blog realistically emits. A page
@@ -18,6 +18,6 @@ const ARTICLE_TYPES = new Set([
 export const STRUCTURED_DATA_RULES: TSeoRuleGroup<'STRUCTURED_DATA_MISSING'> = {
   STRUCTURED_DATA_MISSING: ({ parsed }) =>
     parsed.jsonLd.types.some((type) => ARTICLE_TYPES.has(type))
-      ? null
-      : { types: parsed.jsonLd.types },
+      ? PASS
+      : fails({ types: parsed.jsonLd.types }),
 };

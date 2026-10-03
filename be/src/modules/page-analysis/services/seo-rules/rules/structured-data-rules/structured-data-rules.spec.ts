@@ -1,3 +1,4 @@
+import { failsWith, PASSES } from '../../_testing/expect-verdict';
 import { makeRuleInput } from '../../_testing/make-rule-input';
 import { STRUCTURED_DATA_RULES } from './structured-data-rules';
 
@@ -10,7 +11,7 @@ describe('STRUCTURED_DATA_RULES', () => {
     (type) => {
       expect(
         STRUCTURED_DATA_RULES.STRUCTURED_DATA_MISSING(withTypes([type])),
-      ).toBeNull();
+      ).toEqual(PASSES);
     },
   );
 
@@ -19,7 +20,7 @@ describe('STRUCTURED_DATA_RULES', () => {
       STRUCTURED_DATA_RULES.STRUCTURED_DATA_MISSING(
         withTypes(['Organization', 'BreadcrumbList', 'Article']),
       ),
-    ).toBeNull();
+    ).toEqual(PASSES);
   });
 
   it('fails on a page declaring only Organization', () => {
@@ -27,12 +28,13 @@ describe('STRUCTURED_DATA_RULES', () => {
       STRUCTURED_DATA_RULES.STRUCTURED_DATA_MISSING(
         withTypes(['Organization', 'BreadcrumbList']),
       ),
-    ).toEqual({ types: ['Organization', 'BreadcrumbList'] });
+    ).toEqual(failsWith({ types: ['Organization', 'BreadcrumbList'] }));
   });
 
+  // Always applicable: "declares nothing" is the finding, not a reason to skip the check.
   it('fails on a page with no JSON-LD at all', () => {
     expect(
       STRUCTURED_DATA_RULES.STRUCTURED_DATA_MISSING(withTypes([])),
-    ).toEqual({ types: [] });
+    ).toEqual(failsWith({ types: [] }));
   });
 });
