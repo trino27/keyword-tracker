@@ -36,6 +36,7 @@ export class ClientsService {
   async listClients(scope: IUserScope): Promise<IClient[]> {
     const owned = await this.clients.listOwned(scope);
     const summaries = await this.runs.summariesForClients(
+      scope,
       owned.map((client) => client.id),
     );
     return owned.map((client) => toClient(client, summaries.get(client.id)!));
@@ -50,7 +51,7 @@ export class ClientsService {
   async getClient(scope: IUserScope, clientId: number): Promise<IClient> {
     const client = await this.clients.findOwned(scope, clientId);
     if (!client) throw new ClientNotFoundException({ clientId });
-    const summaries = await this.runs.summariesForClients([client.id]);
+    const summaries = await this.runs.summariesForClients(scope, [client.id]);
     return toClient(client, summaries.get(client.id)!);
   }
 
@@ -126,7 +127,7 @@ export class ClientsService {
   ): Promise<ICrawlRunDetail> {
     const run = await this.runs.findOwned(scope, runId);
     if (!run) throw new CrawlRunNotFoundException({ runId });
-    const items = await this.items.listByRun(run.id);
+    const items = await this.items.listByRun(scope, run.id);
     return {
       ...toCrawlRunSummary(run),
       clientId: run.clientId,

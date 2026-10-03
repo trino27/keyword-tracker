@@ -1,19 +1,25 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import {
   DATABASE_CONNECTION,
   type Database,
 } from '@persistence/connections/postgres/database-provider/database.provider';
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
+import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRunItems } from '@persistence/schema/tables/crawl-run-items/crawl-run-items.schema';
+import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
+import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { ICrawlRunItemRecord } from '../../interfaces/client-record.interface';
 
 @Injectable()
 export class CrawlRunItemsRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
 
-  /** A run's log in sitemap order. The caller has already checked ownership of the run. */
-  listByRun(runId: number): Promise<ICrawlRunItemRecord[]> {
+  /**
+   * A run's log in sitemap order, for a run the scope's user owns. The caller checks
+   * ownership too; this join is what keeps that true when a second caller appears.
+   */
+  listByRun(scope: IUserScope, runId: number): Promise<ICrawlRunItemRecord[]> {
     return this.db
       .select({
         sitemapPosition: crawlRunItems.sitemapPosition,
@@ -24,6 +30,14 @@ export class CrawlRunItemsRepository {
         pageId: crawlRunItems.pageId,
       })
       .from(crawlRunItems)
+      .innerJoin(crawlRuns, eq(crawlRuns.id, crawlRunItems.runId))
+      .innerJoin(
+        clients,
+        and(
+          eq(clients.id, crawlRuns.clientId),
+          eq(clients.userId, scope.userId),
+        ),
+      )
       .where(eq(crawlRunItems.runId, runId))
       .orderBy(asc(crawlRunItems.sitemapPosition));
   }
