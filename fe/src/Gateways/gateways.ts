@@ -1,3 +1,4 @@
+import { ClientGateway } from "./ClientGateway/ClientGateway";
 import { SessionGateway } from "./SessionGateway/SessionGateway";
 
 /**
@@ -8,4 +9,5 @@ import { SessionGateway } from "./SessionGateway/SessionGateway";
  */
 export const gateways = {
 	session: new SessionGateway(),
+	clients: new ClientGateway(),
 };
