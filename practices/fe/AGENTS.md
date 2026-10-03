@@ -2,7 +2,7 @@
 
 Conventions that belong to a **frontend technology rather than to one app**. Today the only
 frontend is `fe`: a React 19 + Vite single-page app behind a login, built as MVVM: zustand
-ViewModels, gateway classes, TanStack Router, zod, CSS Modules and Vitest.
+ViewModels, gateway classes, TanStack Router, zod, SCSS modules and Vitest.
 
 ## The rule for putting something here
 

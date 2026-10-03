@@ -10,7 +10,7 @@
 		"typecheck": "tsc -b",
 		"lint": "eslint . --max-warnings=0",
 		"lint:fix": "eslint . --fix",
-		"format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+		"format": "prettier --write \"src/**/*.{ts,tsx,scss}\"",
 		"test": "vitest",
 		"test:ci": "vitest run"
 	},

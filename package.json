@@ -33,7 +33,7 @@
     "be/**/*.ts": [
       "pnpm --filter be exec prettier --write"
     ],
-    "fe/**/*.{ts,tsx,json,css}": [
+    "fe/**/*.{ts,tsx,json,scss}": [
       "pnpm --filter fe exec prettier --write"
     ],
     "packages/**/src/**/*.ts": [

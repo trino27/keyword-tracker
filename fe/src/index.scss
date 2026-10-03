@@ -1,0 +1,12 @@
+// Global styles. Mantine owns colours, type and spacing (Core/Configs/theme.ts) and exposes
+// them as --mantine-* variables; component styles live in *.module.scss beside each one.
+
+body {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+// Positions and counts line up in tables and cards.
+.tabular {
+	font-variant-numeric: tabular-nums;
+}
