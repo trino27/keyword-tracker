@@ -24,3 +24,6 @@ export * from './domain/crawl/crawl-item-status.enum.js';
 export * from './domain/crawl/crawl-limits.constant.js';
 export * from './domain/crawl/crawl-run-error.constant.js';
 export * from './domain/crawl/crawl-run.interface.js';
+export * from './domain/seo/seo-issue-severity.enum.js';
+export * from './domain/seo/seo-issue-catalogue.constant.js';
+export * from './domain/seo/seo-issue.interface.js';
