@@ -67,6 +67,11 @@ describe('nameScoreOf', () => {
     ['https://a.example/blog-tags.xml', 0],
     ['https://a.example/sitemap.xml', 0],
     ['https://a.example/products-pages-sitemap.xml', -3],
+    // The platforms' own names: Shopify, Ghost, WordPress core, Wix.
+    ['https://a.example/sitemap_blogs_1.xml', 3],
+    ['https://a.example/sitemap-posts.xml', 2],
+    ['https://a.example/wp-sitemap-posts-post-1.xml', 2],
+    ['https://a.example/blog-posts-sitemap.xml', 3],
   ])('%s scores %d', (url, score) => {
     expect(nameScoreOf(url).score).toBe(score);
   });
@@ -91,6 +96,18 @@ describe('scoreGroup — the §10.1 expectations', () => {
         new Set(),
       ).score,
     ).toBe(2);
+  });
+
+  it('a Shopify blog sitemap: /blogs/<handle>/ posts are a blog section', () => {
+    expect(
+      scoreGroup(
+        group(
+          'https://a.example/sitemap_blogs_1.xml',
+          posts('/blogs/news/', 20),
+        ),
+        new Set(),
+      ).score,
+    ).toBe(6);
   });
 
   it('a pages-only sitemap.xml scores 0', () => {
