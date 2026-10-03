@@ -9,3 +9,5 @@ import { assertTestDatabase } from './assert-test-database/assert-test-database'
 process.env.DATABASE_URL = assertTestDatabase(process.env.TEST_DATABASE_URL);
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL ??= 'silent';
+// Tests drive the crawl with `CrawlWorker.runOnce()`; a background loop would race them.
+process.env.CRAWL_WORKER_ENABLED = 'false';

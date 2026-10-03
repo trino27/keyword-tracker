@@ -16,6 +16,7 @@ import {
   CRAWL_FETCH_CONCURRENCY,
   HTML_CONTENT_TYPES,
   LISTING_SCHEMA_TYPES,
+  MAX_PAGE_URL_LENGTH,
   NON_HTML_EXTENSIONS,
 } from '../../constants/post-selection.constant';
 import type {
@@ -155,6 +156,11 @@ export class PostSelectionService {
     url: string,
     input: IPostSelectionInput,
   ): TItemWithoutPosition | null {
+    if (url.length > MAX_PAGE_URL_LENGTH)
+      return skip(
+        'failed',
+        `URL longer than ${MAX_PAGE_URL_LENGTH} characters`,
+      );
     if (!isSameSite(url, input.siteKey))
       return skip('skipped_other_site', 'Belongs to another site');
     const path = new URL(url).pathname;

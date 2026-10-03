@@ -42,3 +42,6 @@ export const HTML_CONTENT_TYPES: ReadonlySet<string> = new Set([
   'text/html',
   'application/xhtml+xml',
 ]);
+
+/** The width of a stored page URL; a longer sitemap entry cannot become a page. */
+export const MAX_PAGE_URL_LENGTH = 2048;

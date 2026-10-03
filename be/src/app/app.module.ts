@@ -8,6 +8,8 @@ import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/lo
 import { DatabaseModule } from '@persistence/connections/postgres/database.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { ClientsModule } from '@modules/clients/clients.module';
+import { CrawlModule } from '@modules/crawl/crawl.module';
+import { PagesModule } from '@modules/pages/pages.module';
 import { PER_MINUTE_THROTTLE } from '@core/constants/throttle.constant';
 import { HealthModule } from '@modules/health/health.module';
 
@@ -32,6 +34,8 @@ import { HealthModule } from '@modules/health/health.module';
     HealthModule,
     AuthModule,
     ClientsModule,
+    PagesModule,
+    CrawlModule,
   ],
   providers: [...APP_GLOBAL_PROVIDERS],
 })
