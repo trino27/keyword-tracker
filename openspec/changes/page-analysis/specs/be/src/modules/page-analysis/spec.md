@@ -4,7 +4,17 @@
 
 Every SEO issue MUST carry a code defined in `SEO_ISSUE_CATALOGUE` in `@app/contracts`, with the
 severity the catalogue gives it; every catalogued code MUST have exactly one rule, and a page MUST
-have at most one issue per code.
+have at most one issue per code. What a rule may RETURN is decided by the code: a code whose
+catalogue entry declares a bound returns a measurement — the value as found and the bounds it was
+judged against — and every other code returns details.
+
+AMENDED during implementation (`seo-check-catalogue-correction`, task 5.1): this requirement said
+a rule's outcome was "details or null". That was true of a catalogue in which every finding was
+shaped alike. It is not true once a threshold rule has to explain the verdict it reached: the
+bounds are snapshotted into the row at crawl time, so an old finding still reads correctly after
+the catalogue's numbers move. The sentence above now says which shape belongs to which code, and
+the mapped type `{ [K in TSeoIssueCode]: TSeoRule<K> }` is what makes returning the other one
+fail to compile.
 
 #### Scenario: analysing every fixture page
 - **WHEN** the analyser runs over every recorded and synthetic fixture page
@@ -14,20 +24,46 @@ have at most one issue per code.
 - **WHEN** a code is added to the catalogue and no rule is registered for it
 - **THEN** `pnpm typecheck` fails
 
+#### Scenario: a threshold rule returning loose details
+- **WHEN** a rule for a bounded code returns anything but `{ value, min?, max? }`
+- **THEN** `pnpm typecheck` fails
+
 ### Requirement: ANALYSIS-002 — the SEO rules and their thresholds
 
 The analyser MUST report: TITLE_MISSING (error); TITLE_LENGTH below 30 or above 60 characters
-(warning); META_DESCRIPTION_MISSING (warning); META_DESCRIPTION_LENGTH below 70 or above 160
+(notice); META_DESCRIPTION_MISSING (warning); META_DESCRIPTION_LENGTH below 70 or above 160
 (notice); H1_MISSING (error); H1_MULTIPLE (warning); HEADING_SKIP (notice); CANONICAL_MISSING
 (warning); CANONICAL_MISMATCH (notice); NOINDEX by meta robots or `X-Robots-Tag` (error);
 IMAGES_MISSING_ALT (warning); THIN_CONTENT below 300 words (warning); LANG_MISSING (notice);
-OG_TAGS_MISSING (notice); NOT_HTTPS (error); REDIRECTED (notice); SLOW_RESPONSE above 1.5 s to the
-first byte (notice); LARGE_PAGE above 1 MB of HTML (notice); KEYWORD_NOT_IN_TITLE (notice, after
-keywords). Each issue's details MUST say what exactly is wrong.
+OG_TAGS_MISSING (notice); NOT_HTTPS (error); REDIRECTED (notice); LARGE_PAGE above 1 MB of HTML
+(notice); STRUCTURED_DATA_MISSING when the page declares no `Article` or `BlogPosting` type
+(notice). Each issue's details MUST say what exactly is wrong.
+
+AMENDED during implementation (`seo-check-catalogue-correction`, task 5.1): this requirement
+listed nineteen codes, two of which the field study of 2026-10-03
+(`practices/search-engines/references/field-study-2026-10.md`) falsified by measurement.
+
+  * SLOW_RESPONSE measured the crawler's network position, not the page — the same site answered
+    in 41 ms and 1728 ms minutes apart (finding 3). The number stays, as a stated fact of the
+    crawl on the detail screen; the check does not.
+  * KEYWORD_NOT_IN_TITLE could not fail by construction and fired 0 of 15 (finding 4): title
+    presence is the largest field weight in keyword scoring, so the top keyword is nearly always
+    a title term.
+  * STRUCTURED_DATA_MISSING replaces them because it is the one uncovered check that actually
+    varied on real data (finding 8), and `jsonLd.types` was already extracted and discarded.
+  * TITLE_LENGTH moves from warning to notice: the research confirmed the numbers and showed
+    that exceeding them is not a breakage.
+
+The scenario's details also moved from `{ length: … }` to the measurement shape ANALYSIS-001 now
+requires. Eighteen codes.
 
 #### Scenario: a 61-character title
 - **WHEN** a page's title is 61 characters
-- **THEN** TITLE_LENGTH is reported as a warning with details `{ length: 61, min: 30, max: 60 }`
+- **THEN** TITLE_LENGTH is reported as a notice with details `{ value: 61, min: 30, max: 60 }`
+
+#### Scenario: a page declaring only Organization
+- **WHEN** a page's JSON-LD declares `Organization` and `BreadcrumbList` and no article type
+- **THEN** STRUCTURED_DATA_MISSING is reported as a notice
 
 #### Scenario: a decorative image
 - **WHEN** an image in the main content has `alt=""`
