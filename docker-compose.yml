@@ -47,6 +47,8 @@ services:
     environment:
       <<: *be-env
       PORT: "3000"
+      # The API process also executes crawl runs (two at a time) from the crawl_runs queue.
+      CRAWL_WORKER_ENABLED: "true"
     depends_on:
       migrate:
         condition: service_completed_successfully
