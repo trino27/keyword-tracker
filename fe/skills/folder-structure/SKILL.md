@@ -12,7 +12,7 @@ Physical structure only: where files live and what they are called. Layering and
 ```
 fe/src/
 ├── main.tsx                         mounts the app: RouterProvider
-├── index.css                        CSS custom-property tokens and resets
+├── index.scss                       global tokens and resets (Mantine supplies the rest)
 ├── App/
 │   ├── Router/router.tsx            route tree: root -> pathless `app` layout route -> screens; type registration
 │   └── Guards/                      beforeLoad guards, e.g. requireSession.ts (calls the session ViewModel)
@@ -37,7 +37,7 @@ fe/src/
 └── Modules/
     ├── <Feature>/
     │   ├── <Feature>Screen.tsx      the screen
-    │   ├── <Feature>Screen.module.css
+    │   ├── <Feature>Screen.module.scss
     │   └── <Piece>/<Piece>.tsx      components only this screen uses
     └── _Shared/<Name>/              shared UI, e.g. AppLayout/AppLayout.tsx
 ```
@@ -63,7 +63,7 @@ A collection screen that needs several stores keeps them in `ViewModels/<Entity>
 | Pure helper used by two or more ViewModels or by a view | `Core/Helpers/<Name>/` |
 | Env-derived config, base URLs | `Core/Configs/` |
 | A value or enum used by both `be` and `fe` | `packages/contracts` (`@app/contracts`), never declared twice |
-| Styles | a CSS Module beside the component; tokens in `index.css` |
+| Styles | Mantine props first; anything else an SCSS module (`*.module.scss`) beside the component; global tokens in `index.scss`. No plain `.css` files |
 | A test | beside the unit, `<name>.test.ts(x)` |
 
 ## Rules
@@ -83,7 +83,7 @@ A collection screen that needs several stores keeps them in `ViewModels/<Entity>
 | --- | --- | --- |
 | Layer folders | PascalCase | `ViewModels/`, `Gateways/` |
 | Entity folders | `<Entity>ViewModel`, `<Entity>Gateway` | `PagesViewModel/`, `PageGateway/` |
-| Component, screen, their folder and style | PascalCase | `PageTable/PageTable.tsx`, `PageTable.module.css` |
+| Component, screen, their folder and style | PascalCase | `PageTable/PageTable.tsx`, `PageTable.module.scss` |
 | A folder wrapping one function | PascalCase folder, camelCase file | `DescribeError/describeError.ts` |
 | Store hook | `use<Entity>ViewModel` | `usePagesViewModel` |
 | Store interface | `I<Entity>ViewModel` | `IPagesViewModel` |

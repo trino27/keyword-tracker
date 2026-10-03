@@ -1,8 +1,11 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import type { IHealthResponse } from '@app/contracts';
+import { Public } from '@core/decorators/public/public.decorator';
 import { HealthCheckService } from '../../services/business/health-check/health-check.service';
 
+// Public: the container healthcheck and Caddy probe it without a session.
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(private readonly healthCheck: HealthCheckService) {}

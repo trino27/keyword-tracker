@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://pages-only.example/sitemap.xml

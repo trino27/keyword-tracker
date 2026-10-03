@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	 xmlns:media="http://search.yahoo.com/mrss/" >
+<channel>
+	<title>Yoast</title>
+	<atom:link href="https://yoast.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://yoast.com/</link>
+	<lastBuildDate>Thu, 01 Oct 2026 12:32:12 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.2</generator>
+<image>
+	<url>https://yoast.com/app/uploads/2025/12/favicon-40x40.png</url>
+	<title>Yoast</title>
+	<link>https://yoast.com/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Introducing Yoast SEO AI+ for Shopify</title>
+		<link>https://yoast.com/yoast-seo-for-shopify-oct-1-2026/</link>
+					<comments>https://yoast.com/yoast-seo-for-shopify-oct-1-2026/#respond</comments>
+		<dc:creator><![CDATA[Beth Parker]]></dc:creator>
+		<pubDate>Thu, 01 Oct 2026 12:30:58 +0000</pubDate>
+				<category><![CDATA[Software updates]]></category>
+		<category><![CDATA[Yoast SEO for Shopify]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4739089</guid>
+					<wfw:commentRss>https://yoast.com/yoast-seo-for-shopify-oct-1-2026/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/10/ai-chat-mockup-of-product-recommendations-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/10/ai-chat-mockup-of-product-recommendations.png" medium="image">
+			<media:title type="html">AI chat mockup of product recommendations</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/10/ai-chat-mockup-of-product-recommendations-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>1 billion downloads: The people and stories behind Yoast SEO</title>
+		<link>https://yoast.com/one-billion-downloads-user-stories/</link>
+					<comments>https://yoast.com/one-billion-downloads-user-stories/#respond</comments>
+		<dc:creator><![CDATA[Ahad Qureshi]]></dc:creator>
+		<pubDate>Thu, 01 Oct 2026 11:42:14 +0000</pubDate>
+				<category><![CDATA[Yoast SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4740105</guid>
+					<wfw:commentRss>https://yoast.com/one-billion-downloads-user-stories/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+	</item>
+		<item>
+		<title>Turn your AI tools from spectators into collaborators with Yoast</title>
+		<link>https://yoast.com/yoast-seo-sept-29-2026/</link>
+					<comments>https://yoast.com/yoast-seo-sept-29-2026/#respond</comments>
+		<dc:creator><![CDATA[Beth Parker]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2026 07:12:01 +0000</pubDate>
+				<category><![CDATA[Software updates]]></category>
+		<category><![CDATA[Software releases and updates]]></category>
+		<category><![CDATA[Technical SEO]]></category>
+		<category><![CDATA[WordPress]]></category>
+		<category><![CDATA[Yoast SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4708425</guid>
+					<wfw:commentRss>https://yoast.com/yoast-seo-sept-29-2026/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/09/screenshot-2026-09-28-at-15.10.44-edited-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/09/screenshot-2026-09-28-at-15.10.44-edited.png" medium="image">
+			<media:title type="html">Screenshot 2026-09-28 at 15.10.44</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/09/screenshot-2026-09-28-at-15.10.44-edited-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>A prompting guide for AI website builders</title>
+		<link>https://yoast.com/prompting-guide-ai-website-builders/</link>
+		<dc:creator><![CDATA[Camille Cunningham]]></dc:creator>
+		<pubDate>Thu, 17 Sep 2026 12:51:25 +0000</pubDate>
+				<category><![CDATA[AI and SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4723839</guid>
+	</item>
+		<item>
+		<title>Prompts to programming: Vibe coding vs. traditional coding a website</title>
+		<link>https://yoast.com/traditional-coding-vs-vibe-coding-website/</link>
+		<dc:creator><![CDATA[Ahad Qureshi]]></dc:creator>
+		<pubDate>Wed, 02 Sep 2026 13:46:42 +0000</pubDate>
+				<guid isPermaLink="false">https://yoast.com/?p=4708119</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/09/what_can_you_build_vibecoding-1-180x114.jpg" />
+		<media:content url="https://yoast.com/app/uploads/2026/09/what_can_you_build_vibecoding-1.jpg" medium="image">
+			<media:title type="html">what_can_you_build_vibecoding (1)</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/09/what_can_you_build_vibecoding-1-180x114.jpg" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/09/image.png" medium="image">
+			<media:title type="html">image</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/09/image-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/09/claude-code-screen-scaled.png" medium="image">
+			<media:title type="html">claude-code-screen</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/09/claude-code-screen-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/09/doom_loop.png" medium="image">
+			<media:title type="html">doom_loop</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/09/doom_loop-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>The August 2026 SEO Update by Yoast recap</title>
+		<link>https://yoast.com/the-august-2026-seo-update-by-yoast-recap/</link>
+		<dc:creator><![CDATA[Edwin Toonen]]></dc:creator>
+		<pubDate>Wed, 02 Sep 2026 10:00:15 +0000</pubDate>
+				<guid isPermaLink="false">https://yoast.com/?p=4700817</guid>
+	</item>
+		<item>
+		<title>What&#8217;s new in Yoast SEO 28.4: find, fix, and generate at scale</title>
+		<link>https://yoast.com/yoast-seo-sept-1-2026/</link>
+		<dc:creator><![CDATA[Beth Parker]]></dc:creator>
+		<pubDate>Tue, 01 Sep 2026 08:53:20 +0000</pubDate>
+				<category><![CDATA[Software updates]]></category>
+		<category><![CDATA[Software releases and updates]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4699876</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/08/select-from-a-selection-by-missining-metadata-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/08/select-from-a-selection-by-missining-metadata-scaled.png" medium="image">
+			<media:title type="html">Select from a selection by missining metadata</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/08/select-from-a-selection-by-missining-metadata-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/08/select-your-posts-pages-or-products-to-use-the-bulk-editor-shortcut-scaled.png" medium="image">
+			<media:title type="html">Select your posts, pages or products to use the Bulk Editor shortcut</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/08/select-your-posts-pages-or-products-to-use-the-bulk-editor-shortcut-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>What are YMYL websites? How does Google evaluate these?</title>
+		<link>https://yoast.com/what-are-ymyl-websites/</link>
+		<dc:creator><![CDATA[Edwin Toonen]]></dc:creator>
+		<pubDate>Tue, 04 Aug 2026 11:02:00 +0000</pubDate>
+				<category><![CDATA[Content SEO]]></category>
+		<category><![CDATA[Google algorithm]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=3572281</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2023/10/investopedia-2026-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2023/10/investopedia-2026.png" medium="image">
+			<media:title type="html">investopedia 2026</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/10/investopedia-2026-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2023/10/healthline-content-policy-2026.png" medium="image">
+			<media:title type="html">healthline content policy 2026</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/10/healthline-content-policy-2026-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2023/10/yoast-seo-site-policies-2026.png" medium="image">
+			<media:title type="html">yoast seo site policies 2026</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/10/yoast-seo-site-policies-2026-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>How long does it really take to build a website with AI?</title>
+		<link>https://yoast.com/how-long-it-takes-to-build-website-with-ai/</link>
+		<dc:creator><![CDATA[Ahad Qureshi]]></dc:creator>
+		<pubDate>Mon, 27 Jul 2026 10:22:28 +0000</pubDate>
+				<category><![CDATA[AI and SEO]]></category>
+		<category><![CDATA[User eXperience (UX)]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4667169</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/07/bluehots-ai-website-builder-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/07/bluehots-ai-website-builder.png" medium="image">
+			<media:title type="html">bluehots-ai-website-builder</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/07/bluehots-ai-website-builder-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2021/03/yoast-seo-structured-data-faq-block-example.png" medium="image">
+			<media:title type="html">yoast seo structured data faq block example</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2021/03/yoast-seo-structured-data-faq-block-example-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>New in the Yoast SEO Bulk Editor: filters, focus keyphrases, and AI drafts</title>
+		<link>https://yoast.com/yoast-seo-july-21-2026/</link>
+		<dc:creator><![CDATA[Beth Parker]]></dc:creator>
+		<pubDate>Tue, 21 Jul 2026 07:30:46 +0000</pubDate>
+				<category><![CDATA[Software updates]]></category>
+		<category><![CDATA[Software releases and updates]]></category>
+		<category><![CDATA[Yoast SEO]]></category>
+		<category><![CDATA[Yoast SEO AI+]]></category>
+		<category><![CDATA[Yoast SEO Premium]]></category>
+		<category><![CDATA[Yoast WooCommerce SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4656934</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/07/bulk-editor-search-features-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/07/bulk-editor-search-features.png" medium="image">
+			<media:title type="html">Bulk editor search features</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/07/bulk-editor-search-features-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/07/bulk-editor-ai-drafting-scaled.png" medium="image">
+			<media:title type="html">Bulk editor ai drafting</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/07/bulk-editor-ai-drafting-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>Hosting guide: How to pick the right host for your site</title>
+		<link>https://yoast.com/hosting-guide-how-to-pick-the-right-host-for-your-site/</link>
+		<dc:creator><![CDATA[Camille Cunningham]]></dc:creator>
+		<pubDate>Mon, 20 Jul 2026 09:45:11 +0000</pubDate>
+				<category><![CDATA[Technical SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=3226099</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2025/08/bluehost-ai-website-builder-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2025/08/bluehost-ai-website-builder-scaled.png" medium="image">
+			<media:title type="html">bluehost ai website builder</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2025/08/bluehost-ai-website-builder-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>SEO for musicians: get found, grow fans, increase streams</title>
+		<link>https://yoast.com/seo-tip-for-musicians/</link>
+		<dc:creator><![CDATA[Ahad Qureshi]]></dc:creator>
+		<pubDate>Tue, 14 Jul 2026 10:30:08 +0000</pubDate>
+				<category><![CDATA[Content SEO]]></category>
+		<category><![CDATA[SEO]]></category>
+		<category><![CDATA[SEO basics]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4654927</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/07/lyrics-search-google-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/07/lyrics-search-google.png" medium="image">
+			<media:title type="html">lyrics-search-google</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/07/lyrics-search-google-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/07/maroon-5-example.png" medium="image">
+			<media:title type="html">maroon-5-example</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/07/maroon-5-example-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2025/05/carolyn.png" medium="image">
+			<media:title type="html">carolyn</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2025/05/carolyn-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2025/05/carolyn.png" medium="image">
+			<media:title type="html">carolyn</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2025/05/carolyn-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2025/05/carolyn.png" medium="image">
+			<media:title type="html">carolyn</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2025/05/carolyn-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>The complete guide to building a website with AI: From prompt to publish</title>
+		<link>https://yoast.com/building-a-website-with-ai-guide/</link>
+		<dc:creator><![CDATA[Ahad Qureshi]]></dc:creator>
+		<pubDate>Wed, 08 Jul 2026 07:52:33 +0000</pubDate>
+				<category><![CDATA[AI and SEO]]></category>
+		<category><![CDATA[Site structure]]></category>
+		<category><![CDATA[User eXperience (UX)]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4648497</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/07/step-1-free-trial-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/07/step-1-free-trial.png" medium="image">
+			<media:title type="html">step-1-free-trial</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/07/step-1-free-trial-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/07/image.png" medium="image">
+			<media:title type="html">image</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/07/image-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>Got an old website? Update it and refresh your SEO</title>
+		<link>https://yoast.com/old-website-update-and-refresh-seo/</link>
+		<dc:creator><![CDATA[Camille Cunningham]]></dc:creator>
+		<pubDate>Mon, 06 Jul 2026 12:46:52 +0000</pubDate>
+				<category><![CDATA[Technical SEO]]></category>
+		<category><![CDATA[Website Maintenance]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=3030158</guid>
+	</item>
+		<item>
+		<title>Yoast SEO now works with Elementor&#8217;s new atomic editor</title>
+		<link>https://yoast.com/yoast-seo-july-6-2026/</link>
+		<dc:creator><![CDATA[Beth Parker]]></dc:creator>
+		<pubDate>Mon, 06 Jul 2026 08:52:07 +0000</pubDate>
+				<category><![CDATA[Software updates]]></category>
+		<category><![CDATA[Software releases and updates]]></category>
+		<category><![CDATA[Yoast SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4644012</guid>
+	</item>
+		<item>
+		<title>The June 2026 SEO Update by Yoast recap</title>
+		<link>https://yoast.com/the-june-2026-seo-update-by-yoast-recap/</link>
+		<dc:creator><![CDATA[Edwin Toonen]]></dc:creator>
+		<pubDate>Wed, 01 Jul 2026 15:02:35 +0000</pubDate>
+				<guid isPermaLink="false">https://yoast.com/?p=4641604</guid>
+	</item>
+		<item>
+		<title>New: Yoast releases performance optimizations for larger websites</title>
+		<link>https://yoast.com/yoast-seo-june-12-2026/</link>
+		<dc:creator><![CDATA[Leonidas Milosis]]></dc:creator>
+		<pubDate>Fri, 12 Jun 2026 11:03:34 +0000</pubDate>
+				<category><![CDATA[Software updates]]></category>
+		<category><![CDATA[Development]]></category>
+		<category><![CDATA[Software releases and updates]]></category>
+		<category><![CDATA[Yoast SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4618447</guid>
+	</item>
+		<item>
+		<title>What is agentic commerce? A peek into the future of buying (with caveats)</title>
+		<link>https://yoast.com/what-is-agentic-commerce/</link>
+		<dc:creator><![CDATA[Ahad Qureshi]]></dc:creator>
+		<pubDate>Mon, 08 Jun 2026 11:55:36 +0000</pubDate>
+				<category><![CDATA[AI and SEO]]></category>
+		<category><![CDATA[Ecommerce SEO]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=4613331</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/06/tofu-search-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/06/tofu-search.png" medium="image">
+			<media:title type="html">tofu-search</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/06/tofu-search-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/06/image-1.png" medium="image">
+			<media:title type="html">image</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/06/image-1-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/06/representation_of_agentic_commerce_working.png" medium="image">
+			<media:title type="html">Representation_of_agentic_commerce_working</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/06/representation_of_agentic_commerce_working-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/06/google-checkout.gif" medium="image">
+			<media:title type="html">google-checkout</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/06/google-checkout-180x114.gif" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2026/06/image-2.png" medium="image">
+			<media:title type="html">image</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/06/image-2-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>How to get blog post ideas: Tips to find inspiration</title>
+		<link>https://yoast.com/tips-for-blog-ideas/</link>
+		<dc:creator><![CDATA[Edwin Toonen]]></dc:creator>
+		<pubDate>Thu, 04 Jun 2026 14:26:16 +0000</pubDate>
+				<category><![CDATA[Blog SEO]]></category>
+		<category><![CDATA[Blogging]]></category>
+		<category><![CDATA[Content SEO]]></category>
+		<category><![CDATA[SEO copywriting]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=558094</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2026/05/content-planner-suggestion-list-1176x660-1-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2026/05/content-planner-suggestion-list-1176x660-1.png" medium="image">
+			<media:title type="html">content-planner-suggestion-list-1176&#215;660</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2026/05/content-planner-suggestion-list-1176x660-1-180x114.png" />
+		</media:content>
+	</item>
+		<item>
+		<title>What is SEO (Search Engine Optimization)?</title>
+		<link>https://yoast.com/what-is-seo/</link>
+		<dc:creator><![CDATA[Camille Cunningham]]></dc:creator>
+		<pubDate>Mon, 01 Jun 2026 14:15:44 +0000</pubDate>
+				<category><![CDATA[Google algorithm]]></category>
+		<category><![CDATA[Holistic SEO]]></category>
+		<category><![CDATA[SEO basics]]></category>
+		<guid isPermaLink="false">https://yoast.com/?p=850561</guid>
+		<media:thumbnail url="https://yoast.com/app/uploads/2023/08/avatar_alexmoss_green-180x114.png" />
+		<media:content url="https://yoast.com/app/uploads/2023/08/avatar_alexmoss_green.png" medium="image">
+			<media:title type="html">avatar_alex+moss_green</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/08/avatar_alexmoss_green-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2023/10/results-search-query-sustainable-phone-case.jpg" medium="image">
+			<media:title type="html">Results-search-query-sustainable-phone-case</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/10/results-search-query-sustainable-phone-case-180x114.jpg" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2023/10/3-pillars-seo.png" medium="image">
+			<media:title type="html">3-pillars-SEO</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/10/3-pillars-seo-180x114.png" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2023/10/ai-overview-for-search-query-site-structure.jpg" medium="image">
+			<media:title type="html">AI-overview-for-search-query-site-structure</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/10/ai-overview-for-search-query-site-structure-180x114.jpg" />
+		</media:content>
+		<media:content url="https://yoast.com/app/uploads/2023/08/avatar_carolynshelby_yoast_purple.png" medium="image">
+			<media:title type="html">avatar_carolynshelby_yoast_purple</media:title>
+			<media:thumbnail url="https://yoast.com/app/uploads/2023/08/avatar_carolynshelby_yoast_purple-180x114.png" />
+		</media:content>
+	</item>
+	</channel>
+</rss>

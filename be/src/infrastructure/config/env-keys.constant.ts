@@ -9,6 +9,7 @@ export const EnvKeys = {
   PORT: 'PORT',
   LOG_LEVEL: 'LOG_LEVEL',
   DATABASE_URL: 'DATABASE_URL',
+  CRAWL_WORKER_ENABLED: 'CRAWL_WORKER_ENABLED',
 } as const;
 
 export type TEnvKey = (typeof EnvKeys)[keyof typeof EnvKeys];

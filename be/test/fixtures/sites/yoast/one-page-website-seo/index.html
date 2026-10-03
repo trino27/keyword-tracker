@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="color-scheme" content="only light">
+	<title>Optimizing a single page: One page website SEO &#8226; Yoast</title>
+		<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+	<!-- This site is optimized with the Yoast SEO Premium plugin v28.7-RC1 (Yoast SEO v28.7-RC1) - https://yoast.com/product/yoast-seo-premium-wordpress/ -->
+	<meta name="description" content="Do you really need that single page website? One page website SEO is hard, and if you optimize per page on your multi-page website, you&#039;ll have so much more focus in your optimization. Read more on our website..." />
+	<link rel="canonical" href="https://yoast.com/one-page-website-seo/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Optimizing a single page: One page website SEO" />
+	<meta property="og:description" content="Do you really need that single page website? One page website SEO is hard, and if you optimize per page on your multi-page website, you&#039;ll have so much more focus in your optimization. Read more on our website..." />
+	<meta property="og:url" content="https://yoast.com/one-page-website-seo/" />
+	<meta property="og:site_name" content="Yoast" />
+	<meta property="article:publisher" content="https://www.facebook.com/yoast" />
+	<meta property="article:author" content="https://www.facebook.com/michielheijmans" />
+	<meta property="article:published_time" content="2018-03-21T14:45:49+00:00" />
+	<meta property="article:modified_time" content="2019-03-08T10:21:10+00:00" />
+	<meta property="og:image" content="https://yoast.com/app/uploads/2018/03/one_page_website_seo_fb.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="628" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta name="author" content="Michiel Heijmans" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:creator" content="@michielheijmans" />
+	<meta name="twitter:site" content="@yoast" />
+	<meta name="twitter:label1" content="Written by" />
+	<meta name="twitter:data1" content="Michiel Heijmans" />
+	<meta name="twitter:label2" content="Est. reading time" />
+	<meta name="twitter:data2" content="4 minutes" />
+	<script type="application/ld+json">{"@context":"https:\/\/schema.org","@graph":[{"@type":"Article","@id":"https:\/\/yoast.com\/one-page-website-seo\/#article","isPartOf":{"@id":"https:\/\/yoast.com\/one-page-website-seo\/"},"author":{"name":"Michiel Heijmans","@id":"https:\/\/yoast.com\/#\/schema\/person\/9be7d05c19d075919e42ab50f0b34f24"},"headline":"Optimizing a single page: One page website SEO","datePublished":"2018-03-21T14:45:49+00:00","dateModified":"2019-03-08T10:21:10+00:00","mainEntityOfPage":{"@id":"https:\/\/yoast.com\/one-page-website-seo\/"},"wordCount":805,"commentCount":18,"publisher":{"@id":"https:\/\/yoast.com\/#organization"},"image":{"@id":"https:\/\/yoast.com\/one-page-website-seo\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2017\/07\/Site_goal_FI.png","keywords":["Technical SEO"],"inLanguage":"en-US","potentialAction":[{"@type":"CommentAction","name":"Comment","target":["https:\/\/yoast.com\/one-page-website-seo\/#respond"]}],"copyrightYear":"2018","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"}},{"@type":"WebPage","@id":"https:\/\/yoast.com\/one-page-website-seo\/","url":"https:\/\/yoast.com\/one-page-website-seo\/","name":"Optimizing a single page: One page website SEO &#8226; Yoast","isPartOf":{"@id":"https:\/\/yoast.com\/#website"},"primaryImageOfPage":{"@id":"https:\/\/yoast.com\/one-page-website-seo\/#primaryimage"},"image":{"@id":"https:\/\/yoast.com\/one-page-website-seo\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2017\/07\/Site_goal_FI.png","datePublished":"2018-03-21T14:45:49+00:00","dateModified":"2019-03-08T10:21:10+00:00","description":"Do you really need that single page website? One page website SEO is hard, and if you optimize per page on your multi-page website, you'll have so much more focus in your optimization. Read more on our website...","breadcrumb":{"@id":"https:\/\/yoast.com\/one-page-website-seo\/#breadcrumb"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https:\/\/yoast.com\/one-page-website-seo\/"]}]},{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/one-page-website-seo\/#primaryimage","url":"https:\/\/yoast.com\/app\/uploads\/2017\/07\/Site_goal_FI.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2017\/07\/Site_goal_FI.png","width":1200,"height":628,"caption":"seo for architects"},{"@type":"BreadcrumbList","@id":"https:\/\/yoast.com\/one-page-website-seo\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/yoast.com\/"},{"@type":"ListItem","position":2,"name":"SEO blog","item":"https:\/\/yoast.com\/seo-blog\/"},{"@type":"ListItem","position":3,"name":"Technical SEO","item":"https:\/\/yoast.com\/tag\/technical-seo\/"},{"@type":"ListItem","position":4,"name":"Optimizing a single page: One page website SEO"}]},{"@type":"WebSite","@id":"https:\/\/yoast.com\/#website","url":"https:\/\/yoast.com\/","name":"Yoast","description":"SEO for everyone","publisher":{"@id":"https:\/\/yoast.com\/#organization"},"potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/yoast.com\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-US","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"}},{"@type":["Organization","Brand"],"@id":"https:\/\/yoast.com\/#organization","name":"Yoast","url":"https:\/\/yoast.com\/","logo":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/","url":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","width":500,"height":500,"caption":"Yoast"},"image":{"@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/"},"sameAs":["https:\/\/www.facebook.com\/yoast","https:\/\/x.com\/yoast","https:\/\/www.instagram.com\/yoast\/","https:\/\/www.linkedin.com\/company\/1414157\/","https:\/\/www.pinterest.com\/yoast\/","https:\/\/www.youtube.com\/yoast","https:\/\/en.wikipedia.org\/wiki\/Yoast","https:\/\/www.tiktok.com\/@yoastseo","https:\/\/g.co\/kgs\/4H5sG2","https:\/\/g.co\/kgs\/a9XfUu"],"numberOfEmployees":81,"founder":{"@type":"Person","name":"Joost de Valk","sameAs":"https:\/\/en.wikipedia.org\/wiki\/Joost_de_Valk"},"foundingDate":"2010-05-01","slogan":"SEO for Everyone","description":"Yoast helps you with your website optimization, whether it be through our widely used SEO software or our online SEO courses: we&#039;re here to help.","legalName":"Yoast BV","parentOrganization":{"@type":"Organization","name":"Newfold Digital","description":"Newfold Digital is a leading web presence solutions provider serving millions of small-to-medium businesses globally.","url":"https:\/\/newfold.com\/","sameAs":["https:\/\/newfold.com\/"],"logo":"https:\/\/yoast.com\/app\/uploads\/2022\/01\/newfold-logo.png"},"memberOf":{"@type":"Organization","name":"World Wide Web Consortium (W3C)","description":"The World Wide Web Consortium (W3C) is an international community that develops open standards to ensure the long-term growth of the Web.","url":"https:\/\/w3.org\/","sameAs":["https:\/\/w3.org\/"],"logo":"https:\/\/www.w3.org\/Icons\/w3c_main.png"}},{"@type":"Person","@id":"https:\/\/yoast.com\/#\/schema\/person\/9be7d05c19d075919e42ab50f0b34f24","name":"Michiel Heijmans","image":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/app\/uploads\/2019\/04\/avatar_user_131_1555417549-96x96.jpg","url":"https:\/\/yoast.com\/app\/uploads\/2019\/04\/avatar_user_131_1555417549-96x96.jpg","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2019\/04\/avatar_user_131_1555417549-96x96.jpg","caption":"Michiel Heijmans"},"description":"Michiel was one of our very first employees and used to be a partner at Yoast. Kick start your site optimization with his articles!","sameAs":["https:\/\/yoast.com\/","https:\/\/www.facebook.com\/michielheijmans","http:\/\/www.linkedin.com\/in\/michielheijmans","http:\/\/pinterest.com\/michielheijmans\/","https:\/\/x.com\/michielheijmans","https:\/\/profiles.wordpress.org\/michielatyoast"]}]}</script>
+	<!-- / Yoast SEO Premium plugin. -->
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel="alternate" type="application/rss+xml" title="Yoast &raquo; Feed" href="https://yoast.com/feed/" />
+<link rel="stylesheet" id="address-autocomplete-billing-block-css" href="https://yoast.com/app/plugins/address-autocomplete/build/style-address-autocomplete-billing-block.css?ver=1.1.2" media="all" />
+<link rel="stylesheet" id="daexthefup-google-font-css" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&#038;&#038;ver=1.14#038;display=swap" media="all" />
+<link rel="stylesheet" id="daexthefup-general-css" href="https://yoast.com/app/plugins/helpful-pro/public/assets/css/general.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="daexthefup-custom-css" href="https://yoast.com/app/uploads/daexthefup_uploads/custom-1.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="select2-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/select2.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-wcaf-css" href="https://yoast.com/app/plugins/yith-woocommerce-affiliates-premium/assets/css/yith-wcaf.min.css?ver=3.12.0" media="all" />
+<link rel="stylesheet" id="brands-styles-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/brands.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-plugin-fw-icon-font-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/plugin-fw/assets/css/yith-icon.css?ver=4.6.5" media="all" />
+<link rel="stylesheet" id="yith-wcmcs-shortcodes-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/assets/css/shortcodes.css?ver=1.36.1-beta-1" media="all" />
+<link rel="stylesheet" id="yoast-com-menu-css" href="https://yoast.com/app/themes/yoast-theme/css/templates/menu.min.css?ver=1782129058" media="all" />
+<link rel="stylesheet" id="yoast-siteheader-css" href="https://yoast.com/app/themes/yoast-com/assets/css/siteheader.min.css?ver=1774510573" media="all" />
+<link rel="stylesheet" id="yoast-com-css" href="https://yoast.com/app/themes/yoast-theme/css/style.min.css?ver=1782290502" media="all" />
+<link rel="stylesheet" id="new-post-css" href="https://yoast.com/app/themes/yoast-theme/css/4-pages/new-post.min.css?ver=1776675829" media="all" />
+<!-- Stream WordPress user activity plugin v4.3.0 -->
+<link rel="manifest" href="/manifest.json" />
+<!-- Google AdSense meta tags added by Site Kit -->
+<meta name="google-adsense-platform-account" content="ca-host-pub-2644536267352236">
+<meta name="google-adsense-platform-domain" content="sitekit.withgoogle.com">
+<!-- End Google AdSense meta tags added by Site Kit -->
+<link rel="icon" href="https://yoast.com/images/yoast_icon_32x32.ico" sizes="any">
+<link rel="icon" href="https://yoast.com/images/yoast_icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://yoast.com/images/yoast_icon_180x180.png">
+</head>
+<body>
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NHRB36F" height="0" width="0"></iframe></noscript>
+		<header>
+	<a id="yoast-skip-link"
+		href="#content">Skip to content</a>
+		<div><button id="close-mobile-search-menu" aria-label="Close"><i aria-hidden="true"></i></button><form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-1" >What are you looking for?</label><div ><input id="wp-block-search__input-1" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form></div><div>
+	<a href="/">
+		<picture>
+			<img id="sticky-menu-logo" width="90" height="40" src="https://yoast.com/app/themes/yoast-theme/images/logo-diap.svg"
+				alt="Yoast - SEO for everyone">
+		</picture>
+	</a>
+			<nav aria-label="Main menu">
+			<div id="main-menu">
+				<ul id="menu-main-menu"><li id="menu-item-3251820"><a href="https://yoast.com/shop/">Plans &amp; pricing</a>
+<ul>
+	<li id="menu-item-4246533"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO: #1 WordPress SEO plugin</span><span>Essential SEO tools for your site</span></span></a></li>
+	<li id="menu-item-4246543"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast WooCommerce SEO</span><span>SEO that scales with your product catalog</span></span></a></li>
+	<li id="menu-item-4256677"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO AI+</span><span>Your complete search visibility package</span></span></a></li>
+	<li id="menu-item-4189500"><a href="https://yoast.com/product/yoast-seo-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Easy SEO, now with AI insights</span></span></a></li>
+	<li id="menu-item-4140280"><a href="https://yoast.com/product/google-docs-addon/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Google Docs Add-On</span><span>Create better content in Google Docs</span></span></a></li>
+	<li id="menu-item-4634954"><a href="https://yoast.com/yoast-partners/resellers/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Get a custom quote</span><span>Got multiple sites? Let's talk</span></span></a></li>
+	<li id="menu-item-4246550"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Premium</span><span>Advanced SEO with real-time guidance and built-in AI</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251898"><a href="https://yoast.com/academy/">Learn SEO</a>
+<ul>
+	<li id="menu-item-3251899"><a href="https://yoast.com/academy/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Academy</span><span>Practical SEO training, from beginner to advanced</span></span></a></li>
+	<li id="menu-item-3251901"><a href="https://yoast.com/academy/free-seo-training-seo-for-beginners/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO for beginners (free course)</span><span>Start developing your SEO skills today</span></span></a></li>
+	<li id="menu-item-3251903"><a href="https://yoast.com/tag/seo-basics/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO basics</span><span>Read up on the basic concepts of SEO</span></span></a></li>
+	<li id="menu-item-3251905"><a href="https://yoast.com/must-reads-for-website-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Ultimate SEO guides</span><span>In-depth articles on core SEO themes</span></span></a></li>
+	<li id="menu-item-4546254"><a href="https://yoast.com/podcasts/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Podcasts</span><span>Stay up to date with expert insights on SEO news and trends</span></span></a></li>
+	<li id="menu-item-3251936"><a href="https://yoast.com/webinar/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Webinars</span><span>Your go-to for expert SEO insights, live and on demand</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251982"><a href="https://yoast.com/seo-blog/">Blog</a>
+<ul>
+	<li id="menu-item-3251980"><a href="https://yoast.com/tag/content-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Content SEO</span><span>Learn about content SEO on our blog</span></span></a></li>
+	<li id="menu-item-3251983"><a href="https://yoast.com/tag/technical-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Technical SEO</span><span>Learn about technical SEO on our blog</span></span></a></li>
+	<li id="menu-item-4634523"><a href="https://yoast.com/developer-blog/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer blog</span><span>Built by engineers, written for engineers</span></span></a></li>
+	<li id="menu-item-4517726"><a href="https://yoast.com/tag/release-post/page/2/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast software news</span><span>Browse our latest product and feature releases</span></span></a></li>
+	<li id="menu-item-3251992"><a href="https://yoast.com/newsletter/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Newsletter</span><span>Sign up for the latest news from Yoast</span><span>Sign up now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252004"><a href="https://yoast.com/help/">Help</a>
+<ul>
+	<li id="menu-item-3252005"><a href="https://yoast.com/help/support/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>WordPress plugins</span><span>Get help with our WordPress plugins</span></span></a></li>
+	<li id="menu-item-3252007"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Get help with Yoast SEO for Shopify</span></span></a></li>
+	<li id="menu-item-3252008"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Help center</span><span>Find out how to use our products</span></span></a></li>
+	<li id="menu-item-3252009"><a href="https://developer.yoast.com/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer resources</span><span>Advanced documentation and product changelogs</span></span></a></li>
+	<li id="menu-item-3252010"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>24/7 support</span><span>Premium support whenever you need</span><span>Get support now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252063"><a href="https://yoast.com/about-us/">About us</a>
+<ul>
+	<li id="menu-item-3929595"><a href="https://yoast.com/about-us/core-values/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Company culture</span><span>Equality, inclusiveness, and empowerment</span></span></a></li>
+	<li id="menu-item-3929607"><a href="https://yoast.com/jobs/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Careers</span><span>Join Yoast, make an impact</span></span></a></li>
+	<li id="menu-item-3252060"><a href="https://yoast.com/about-us/community/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Community</span><span>Giving back to our community</span></span></a></li>
+	<li id="menu-item-4634516"><a href="https://yoast.com/case-studies"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Case studies</span><span>Growth stories from brands like yours</span></span></a></li>
+	<li id="menu-item-3252069"><a href="https://yoast.com/wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast and WordPress</span><span>Yoast in the WordPress ecosystem</span></span></a></li>
+	<li id="menu-item-4627269"><a href="https://yoast.com/about-us/events/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Events</span><span>Network, learn, grow</span></span></a></li>
+	<li id="menu-item-3929437"><a href="https://yoast.com/about-us/team/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Team and leadership</span><span>Meet the Yoasters</span></span></a></li>
+</ul>
+</li>
+<li><div>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+</div></li></ul>			</div>
+		</nav>
+					<div>
+				<a
+					href="https://yoast.com/download-yoast-seo/">
+					Download FREE<img src="https://yoast.com/app/uploads/2025/11/download_icon.svg" alt="">				</a>
+			</div>
+<ul>
+	<li>
+		<button id="main-menu-search-container"
+				aria-label="Open search box"><i
+			></i></button>
+		<div>
+			<div>
+				<form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-2" >What are you looking for?</label><div ><input id="wp-block-search__input-2" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form>			</div>
+		</div>
+	</li>
+	<li>
+		<a href="https://my.yoast.com/"
+			aria-label="">
+			<i></i>
+			<span>Login</span>
+		</a>
+			</li>
+		<li>
+			<a href="https://yoast.com/checkout/"
+				aria-label="Cart">
+				<i></i>
+				<span>Cart</span>
+				<div>
+					<span></span>
+				</div>
+			</a>
+		</li>
+	<li>
+		<button type="button"
+			 aria-expanded="false">
+			<span>Search</span>
+			<span aria-hidden="true">
+				<i></i>
+			</span>
+		</button>
+	</li>
+	<li>
+		<button type="button"
+			 id="mobile-show-nav" aria-expanded="false">
+			<span>Navigation menu</span>
+			<span aria-hidden="true">
+				<span></span>
+				<span></span>
+				<span></span>
+			</span>
+		</button>
+	</li>
+</ul>
+</div>
+		<div>
+			<div></div>
+			<div></div>
+		</div>
+	</header>
+<div></div>
+	<div>
+		<main id="content">
+	<nav aria-label="You are here:">
+		<ol><li><a href="https://yoast.com/" aria-label="Home"><i aria-hidden="true"></i></a></li>  <li><a href="https://yoast.com/seo-blog/">SEO blog</a></li>  <li><a href="https://yoast.com/tag/technical-seo/">Technical SEO</a></li>  <li aria-current="page">Optimizing a single page: One page website SEO</li></ol>	</nav>
+			<article>
+				<header>
+<h1>
+	<em>Optimizing a single page:</em> One page website SEO</h1>
+					<div>
+							<span>Mar 21, 2018</span>
+		<span>
+		<a href="https://yoast.com/one-page-website-seo/#comments">18</a>
+	</span>
+	<span>
+		<a href="https://yoast.com/tag/technical-seo/" rel="tag">Technical SEO</a>	</span>
+							<span>Michiel Heijmans</span>
+												</div>
+						<picture>
+		<img
+		fetchpriority="high"
+		width="400"
+		height="210"
+		decoding="async"
+		loading="eager"
+		sizes="(max-width: 1012px) 100vw, 1012px"
+		src="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=scale-down%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png"
+		srcset="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 400w, https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 800w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 600w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 1200w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 800w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 1600w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 1012w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2017/07/Site_goal_FI.png 2024w"
+		alt=""
+		>
+	</picture>
+					</header>
+				<div>
+					<aside>
+<div>
+			<figure>
+		<img src="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg" srcset="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 75w, https://yoast.com/cdn-cgi/image/width=150,height=150,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 150w" width="75" height="75" alt="" loading="lazy" decoding="async" fetchpriority="low" sizes="(min-width: 1321px) 75px" />		</figure>
+	<h2>Get Yoast SEO Premium</h2>
+	<p>Drive <strong>more traffic </strong>to your site. Use <strong>AI to save time</strong> doing SEO tasks. Make <strong>SEO easier</strong>. And get <strong>24/7 support.</strong></p>
+<p><strong>Includes Local SEO, Video SEO &amp; News SEO.</strong></p>
+<p>&nbsp;</p>
+				<div>
+			<span><strong><span><span>&#036;</span>118.80</span></strong>&nbsp;<small>/ year (ex. VAT)</small></span>
+		</div>
+		<div><a href="https://yoast.com/cart/?add-to-cart=4113952" rel="nofollow">Get Yoast SEO Premium&nbsp;<span aria-hidden="true">&raquo;</span></a></div>		<div>
+		<div><a href="https://www.trustpilot.com/review/yoast.com" target="_blank"><h3>Reviews from real users</h3><span>Rated 4.6 stars by 819 users</span><div aria-hidden="true"><div><div></div></div> 4.6 / 5 </div><span> (opens in a new tab)</span></a></div>		</div>
+		</div>
+					</aside>
+<p>One page websites have been popular for some time now. Basically, it&#8217;s your entire website on your homepage. It&#8217;s fancy, it&#8217;s streamlined. By dividing your homepage into multiple sections, and adding a menu that allows visitors to jump to the section they want to visit, you create an entire website experience on that one single page. Having just one single page also means that you probably need to rank that page for multiple keywords. And that&#8217;s where one page website SEO differs from regular website SEO: there are just fewer things you can optimize.</p>
+<h2>Why use a one page website?</h2>
+<p>Truth be told: I don&#8217;t like&nbsp;one page websites. There are a lot of people that like all their content crammed into one page, but I just can&#8217;t see the benefit of it. The page loads slower, there is less focus, I detest loading the&nbsp;JavaScript/CSS scripts that make unnecessary visual movements or automatic scrolling possible. Don&#8217;t get me wrong: there&#8217;s nothing against having long pages. I love &#8217;em and write &#8217;em. But I&#8217;d like to keep these pages focused on <strong>one</strong> subject.</p>
+<h2>One page website SEO tips and tricks</h2>
+<p> Is there anything you can do to optimize your one page website for SEO? Of course, there is. There always is. I&#8217;m just not sure you&#8217;ll enjoy that single page website for your company in the long run. One page website SEO is tough. I think the only reason you&#8217;d want a website like that, is when you need to set up a quick promotional site. Say for a particular product&nbsp;or a temporary collaboration with another brand. In that case, you&#8217;ll be driving traffic from flyers, TV ads and the works, and are less dependent on search engines.</p>
+<p>If you insist on using a single page website, you need to pay attention to the way you set things up.</p>
+<h3>Optimize per section</h3>
+<p>Before starting to write your content, you need to do some keyword mapping. As you have only one page to tell your story, group related content. Create a <code>&lt;div&gt;</code> or <code>&lt;section&gt;</code> for each keyword and assign a proper ID to it. If a section is about trimming hairy dogs, use trim-hairy-dogs as the ID, as this will be like the <a href="https://yoast.com/slug/">slug</a> of that particular section. Your internal links on that page will link to example.com/#trim-hairy-dogs. Choose that slug wisely.</p>
+<p>That section needs content and a heading and as we think of all these sections as &#8220;pages&#8221;, you should add an <code>&lt;h1&gt;</code> tag to these sections. That indeed means multiple H1s per page, but hey, you wanted an unfocused website.</p>
+<p>If you use images, <a href="https://yoast.com/image-seo/">optimize image file names and ALT tags</a> per section as well.</p>
+<h3>Optimize page speed</h3>
+<p>This one is vital for your one page website SEO: optimize <a href="https://yoast.com/page-speed-ranking-factor/">page speed</a>. It&#8217;s even more critical if you have a page like that since you are serving all kinds of different sections with possibly all types of different layouts and design elements, so your page&nbsp;doesn&#8217;t look like a Word document, right? Most of these elements simply take time to load, and you want to optimize that. Here are some articles that will <a href="https://yoast.com/tag/site-speed/">help you optimize speed</a>.</p>
+<div><figure><img fetchpriority="high" decoding="async" width="600" height="314" src="https://yoast.com/app/uploads/2016/10/Fresh_content_FI-600x314.png" alt="One page website SEO: Add fresh content" srcset="https://yoast.com/app/uploads/2016/10/Fresh_content_FI-600x314.png 600w, https://yoast.com/app/uploads/2016/10/Fresh_content_FI-250x131.png 250w, https://yoast.com/app/uploads/2016/10/Fresh_content_FI-768x402.png 768w, https://yoast.com/app/uploads/2016/10/Fresh_content_FI.png 1200w" sizes="(max-width: 600px) 100vw, 600px" /></figure></div>
+<h3>Fresh content for the win</h3>
+<p>You are probably still not convinced that you&#8217;d better create multiple pages on your website. But you will understand single page website SEO is pretty hard and limited. You have one page in search result pages, one canonical link, one page that needs to rank for everything you want to rank for. <a href="https://yoast.com/keep-your-content-fresh-and-up-to-date/">Fresh content</a>, dynamic content, is always a good idea and it is possible on a one page website. Rewrite your sections now and then to align them with current events, for instance. If your website is set up once, and never changes, you have this one static page that needs to do all the work. Changing its content from time to time will certainly help.</p>
+<h3>One more thing: Analytics</h3>
+<p>It is possible to track internal links on that page: track per section. But that&#8217;s fairly hard for the average <a href="https://yoast.com/tracking-seo-google-analytics/">Google Analytics</a>&nbsp;user. And Google would rather track per page as well, judging from <a href="https://developers.google.com/analytics/devguides/collection/analyticsjs/single-page-applications#handling_multiple_urls_for_the_same_resource">this article</a>. This is yet another reason why I don&#8217;t like one page website SEO. It&#8217;s harder to implement SEO recommendations and harder to analyze your efforts.</p>
+<p>Come to think of it; it&#8217;s probably your PR agency or sales department that likes that one page website so much. So please, please reconsider setting up a page like this. It&#8217;ll make your SEO so much easier.</p>
+<p>Read more: <a href="https://yoast.com/yoast-seo-everywhere/">Why every website needs Yoast SEO &raquo;</a></p>
+						<div>
+		<p>Share this post</p>
+		<a
+			rel="nofollow"
+			href="https://twitter.com/share?url=https%3A%2F%2Fyoast.com%2Fone-page-website-seo%2F&#038;via=yoast&#038;text=Optimizing%20a%20single%20page%3A%20One%20page%20website%20SEO%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on X"
+			aria-label="Share on X"
+		>
+			<span>Share on X</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://www.linkedin.com/shareArticle?url=https%3A%2F%2Fyoast.com%2Fone-page-website-seo%2F&#038;title=Optimizing%20a%20single%20page%3A%20One%20page%20website%20SEO%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on LinkedIn"
+			aria-label="Share on LinkedIn"
+		>
+			<span>Share on LinkedIn</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://wa.me/?text=Optimizing%20a%20single%20page%3A%20One%20page%20website%20SEO%20by%20Yoast%20-%20https%3A%2F%2Fyoast.com%2Fone-page-website-seo%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on WhatsApp"
+			aria-label="Share on WhatsApp"
+		>
+			<span>Share on WhatsApp</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://telegram.me/share/url?url=https%3A%2F%2Fyoast.com%2Fone-page-website-seo%2F&#038;text=Optimizing%20a%20single%20page%3A%20One%20page%20website%20SEO%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Telegram"
+			aria-label="Share on Telegram"
+		>
+			<span>Share on Telegram</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://mastodonshare.com/?text=Optimizing%20a%20single%20page%3A%20One%20page%20website%20SEO%20by%20Yoast&#038;url=https%3A%2F%2Fyoast.com%2Fone-page-website-seo%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Mastodon"
+			aria-label="Share on Mastodon"
+		>
+			<span>Share on Mastodon</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			title="Copy to clipboard"
+			aria-label="Copy to clipboard"
+		>
+			<span>Copy to clipboard</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			aria-label="Share"
+		>
+			<i aria-hidden="true"></i>
+			<span>Share</span>
+		</a>
+	</div>
+					<div>
+						<div>
+	<figure><img srcset="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,dpr=2,onerror=redirect/app/uploads/2019/04/michiel-heijmans-yoast-articles-avatar-250x285.png 2x, https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2019/04/michiel-heijmans-yoast-articles-avatar-250x285.png 1x" src="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2019/04/michiel-heijmans-yoast-articles-avatar-250x285.png" width="75" height="85" alt="Avatar of Michiel Heijmans" loading="lazy" decoding="async" fetchpriority="low" /></figure>	<div>
+					<span>Michiel Heijmans</span>
+					<p>Michiel was one of our very first employees and used to be a partner at Yoast. Kick start your site optimization with his articles!</p>
+			</div>
+</div>
+<hr/>
+					</div>
+							<div id="comments">
+			<h3>Discussion (18)</h3>
+			<div>
+	<ol>
+			<li		id="comment-798304">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='jesimandro' src='https://secure.gravatar.com/avatar/2935aaf1a3c1b41598bbb4d267580be1d4f380a304882319431551eba2c15d1e?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/2935aaf1a3c1b41598bbb4d267580be1d4f380a304882319431551eba2c15d1e?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>jesimandro</span>
+				<span>Mar. 28, 2018</span>
+			</div>
+			<div>
+				<p>This is really awesome.Useful information thank you</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-798102">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='depobola' src='https://secure.gravatar.com/avatar/d5966d1fbadb847ab305954a336f4d37f09fcc1ba2c81bd513b2619683e10c27?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d5966d1fbadb847ab305954a336f4d37f09fcc1ba2c81bd513b2619683e10c27?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>depobola</span>
+				<span>Mar. 28, 2018</span>
+			</div>
+			<div>
+				<p>Hi Michiel..</p>
+<p>Thank you for sharing with us this great information, I am using yoast plugin for all of my website,, I don&#8217;t say it&#8217;s easy to rank with it but didn&#8217;t that hard either.. Well i do really loves using Yoast seo plugin..</p>
+<p>Based on my experience from these past years, the on page seo content by yoast are extreamly powerful..</p>
+<p>One question Michiel, can you give us your thought about the new SEO update by google.. Is there any mayor changes? Thank you so much,</p>
+<p>Regards, Andrew</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-794193">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Bhawna' src='https://secure.gravatar.com/avatar/fe7352332a55dd48007512b620f86639312f1d1820d9fafc9c914a250378b657?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/fe7352332a55dd48007512b620f86639312f1d1820d9fafc9c914a250378b657?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Bhawna</span>
+				<span>Mar. 26, 2018</span>
+			</div>
+			<div>
+				<p>I am using Yoast plugin which always helps me with the on-page seo.<br />
+I dont write about technical stuff and kind of response I got from the plugin is great.<br />
+So far I have learned that if the content is unique and it has some meaning to it. It can rank way better on the search engine.<br />
+Thanks for this in-depth article.<br />
+Keep up the good work.  :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-793120">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Cody Kitaura' src='https://secure.gravatar.com/avatar/efe7579cb9ce68a51ed57b3ff8cdb6f0181f2dd465910b5d2a6f03207acfbea9?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/efe7579cb9ce68a51ed57b3ff8cdb6f0181f2dd465910b5d2a6f03207acfbea9?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Cody Kitaura</span>
+				<span>Mar. 25, 2018</span>
+			</div>
+			<div>
+				<p>This is making me want to redesign my one-page portfolio website. I guess it was due for a change, anyway. Thanks for the tips.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-793771">
+		<div>
+			<div>
+				<figure>
+					<img alt='Willemien Hallebeek' src='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-70x70.png' srcset='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Willemien Hallebeek</span>
+				<span>Mar. 26, 2018</span>
+			</div>
+			<div>
+				<p>You&#8217;re welcome and good luck, Cody!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-793041">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Felix Schmidt' src='https://secure.gravatar.com/avatar/c1c7a4f85c1a4e964e86cd932d6e879d0771b78f44a7b391292b83fd981cb5ae?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c1c7a4f85c1a4e964e86cd932d6e879d0771b78f44a7b391292b83fd981cb5ae?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Felix Schmidt</span>
+				<span>Mar. 25, 2018</span>
+			</div>
+			<div>
+				<p>Hi Michiel, </p>
+<p>i partly disagree: </p>
+<p>1) Most one-pages aren&#8217;t real one-pagers because often there is an additional blog etc. </p>
+<p>2) In local SEO when the website offers one special service (e.g. gardener) and your site won&#8217;t outrank big competitors on a non-local level &#8211; then a one-page-website might be the fitting solution. &#8211;&gt; Do you agree?</p>
+<p>Felix</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-793790">
+		<div>
+			<div>
+				<figure>
+					<img alt='Michiel Heijmans' src='https://yoast.com/app/uploads/2019/04/avatar_user_131_1555417549-70x70.jpg' srcset='https://yoast.com/app/uploads/2019/04/avatar_user_131_1555417549-140x140.jpg 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Michiel Heijmans</span>
+				<span>Mar. 26, 2018</span>
+			</div>
+			<div>
+				<p>Hi Felix,<br />
+Thanks for your comment.<br />
+1) So that depends on the definition of a one-page website, right? If a so-called one-page website contains blocks that link to separate pages containing more information on a specific subject, some call it a one-page site, but in fact, it&#8217;s not and a perfectly workable approach. For just the blog, I&#8217;d say that depends on the way you optimize your blog for keywords.<br />
+2) That would almost make it a promotional page for a specified target audience (local), which makes sense, especially when you also promote that page (heavily) offline.</p>
+<p>I don&#8217;t think we disagree that much :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-792140">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Cristina Valle' src='https://secure.gravatar.com/avatar/4d698a928784cebbb55aa81afda8a765807a6bb2ddb5d625db9f256f2b177af9?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/4d698a928784cebbb55aa81afda8a765807a6bb2ddb5d625db9f256f2b177af9?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Cristina Valle</span>
+				<span>Mar. 24, 2018</span>
+			</div>
+			<div>
+				<p>Yoast Seo transforms novices like me into SEO professionals ∞</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-793772">
+		<div>
+			<div>
+				<figure>
+					<img alt='Willemien Hallebeek' src='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-70x70.png' srcset='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Willemien Hallebeek</span>
+				<span>Mar. 26, 2018</span>
+			</div>
+			<div>
+				<p>That&#8217;s awesome, Cristina!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-791580">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Aarusys' src='https://secure.gravatar.com/avatar/65674ff251548fa38a2361aed7177f61a5b45ed83c547164fe924ec3ff9f3192?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/65674ff251548fa38a2361aed7177f61a5b45ed83c547164fe924ec3ff9f3192?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Aarusys</span>
+				<span>Mar. 24, 2018</span>
+			</div>
+			<div>
+				<p>I&#8217;ll be glad if you tell me. How do you calculate the ROI on SEO?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-793773">
+		<div>
+			<div>
+				<figure>
+					<img alt='Willemien Hallebeek' src='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-70x70.png' srcset='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Willemien Hallebeek</span>
+				<span>Mar. 26, 2018</span>
+			</div>
+			<div>
+				<p>Nice topic for a new post, Aarusys! We&#8217;ll make a note :-)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-788791">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Up SEO' src='https://secure.gravatar.com/avatar/c922d05bc7ad1846f0f22979f783a8826f1e169748020352d57dfd2f5d3e4078?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c922d05bc7ad1846f0f22979f783a8826f1e169748020352d57dfd2f5d3e4078?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Up SEO</span>
+				<span>Mar. 22, 2018</span>
+			</div>
+			<div>
+				<p>The one-page website can be a great solution for one event, or a one service I think. The rules we can use for this type of website:<br />
+&#8211; a great URL<br />
+-title<br />
+-description<br />
+-H1<br />
+-H2<br />
+-great content<br />
+-media(images with a great name and alt, videos)<br />
+-speed<br />
+-backlinks</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-788455">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Freddy G. Cabrera' src='https://secure.gravatar.com/avatar/b8e5687cf2306614483a7b0b616bf75417a68f05ddfaf1b6b5900f2304ffed08?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/b8e5687cf2306614483a7b0b616bf75417a68f05ddfaf1b6b5900f2304ffed08?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Freddy G. Cabrera</span>
+				<span>Mar. 22, 2018</span>
+			</div>
+			<div>
+				<p>Hey Michiel!</p>
+<p>I think it&#8217;s good to know how to do this one-page website SEO. I agree with you, I don&#8217;t see the benefits of a one-page website neither. I don&#8217;t think that is a smart idea. But, to each its own, right.</p>
+<p>Thanks for sharing these tips, though! </p>
+<p>Have a nice weekend! :D</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-790220">
+		<div>
+			<div>
+				<figure>
+					<img alt='Willemien Hallebeek' src='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-70x70.png' srcset='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Willemien Hallebeek</span>
+				<span>Mar. 23, 2018</span>
+			</div>
+			<div>
+				<p>Glad you agree, Freddy! Great weekend to you too</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-788372">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Murat Dilek' src='https://secure.gravatar.com/avatar/3bf104fba8c01144db63d938b86b4a0265d9a6189b0c2783c43c6094cea6aea7?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3bf104fba8c01144db63d938b86b4a0265d9a6189b0c2783c43c6094cea6aea7?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Murat Dilek</span>
+				<span>Mar. 22, 2018</span>
+			</div>
+			<div>
+				<p>Hi, this is Murat from Turkey. In order to use multiple H1s on one page, there can be smart way to optimize all keywords in one H1. Since one page website will be on the same topic, i think it will worth  trying to optimize the topic in one H1. However, if it is not possible, Google also announced that there can be multiple H1s on a page.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-790219">
+		<div>
+			<div>
+				<figure>
+					<img alt='Willemien Hallebeek' src='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-70x70.png' srcset='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Willemien Hallebeek</span>
+				<span>Mar. 23, 2018</span>
+			</div>
+			<div>
+				<p>Hi Murat, You need to have a very focused page to have all your keywords stuffed in one H1 and for it to still be a nice readable, user-oriented heading. Probably multiple H1s makes more sense, which isn&#8217;t best practice though. So this is the dilemma&#8230; As you might have noticed we&#8217;re not really a big fan of one page websites ;-)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-788132">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Bigey Truckh' src='https://secure.gravatar.com/avatar/c83c143b75770b6c59046f945e779a6ef842e0a2d1572c0cf39066762ad7e89a?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c83c143b75770b6c59046f945e779a6ef842e0a2d1572c0cf39066762ad7e89a?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Bigey Truckh</span>
+				<span>Mar. 22, 2018</span>
+			</div>
+			<div>
+				<p>Many changes in SEO community , lots of up and down and I think in 2018 the seo algorithm is going to get more sharper on on page seo. It really matters that website should have well organized article include proper heading and unique content.<br />
+Thanks yoast team for making everything easy from you plugin . Its so so easy to make great one page seo content .Time has gone and now we dont need to think more on link building . Onplage seo more weight than offpage seo.<br />
+Great Article Share Michiel</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-790212">
+		<div>
+			<div>
+				<figure>
+					<img alt='Willemien Hallebeek' src='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-70x70.png' srcset='https://yoast.com/app/uploads/2015/10/Avatar_Willemien_500x500-1-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Willemien Hallebeek</span>
+				<span>Mar. 23, 2018</span>
+			</div>
+			<div>
+				<p>Glad you appreciate our plugin and the article, Bigey!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	</ol>
+</div>
+		</div>
+						</div>
+				<footer id="post__footer">
+					<div>
+<div>
+<div>
+<div>
+<div>
+<div>
+<h2 id="h-want-to-stay-ahead-of-the-seo-game">Want to stay ahead of the SEO game?</h2>
+<p>Subscribe to our newsletter: Get weekly tips to improve your website’s SEO, usability, and conversion!</p>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div><div></div></p>
+<p>We care about the protection of your data. Read our <a href="https://yoast.com/privacy-notice/">privacy policy.</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+				</footer>
+			</article>
+		</main>
+	<div>
+		<div>
+			<hr>
+		</div>
+		<nav id="footer__nav"
+			aria-label="Sitemap">
+			<ul id="menu-footer-menu"><li id="menu-item-1712602"><a href="https://yoast.com">Yoast SEO</a>
+<ul>
+	<li id="menu-item-1712755"><a href="https://yoast.com/about-us/"><span>    </span><span><span>About us</span><span>      </span></span></a></li>
+	<li id="menu-item-1949653"><a href="https://yoast.com/jobs/"><span>    </span><span><span>Careers</span><span>      </span></span></a></li>
+	<li id="menu-item-2318820"><a href="https://yoast.com/werken-bij/"><span>    </span><span><span>Werken bij Yoast (NL)</span><span>      </span></span></a></li>
+	<li id="menu-item-2032798"><a href="https://yoast.com/about-us/community/"><span>    </span><span><span>Community</span><span>      </span></span></a></li>
+	<li id="menu-item-4627270"><a href="https://yoast.com/about-us/events/"><span>    </span><span><span>Events</span><span>      </span></span></a></li>
+	<li id="menu-item-4112861"><a href="https://yoast.com/press/"><span>    </span><span><span>Press</span><span>      </span></span></a></li>
+	<li id="menu-item-3474416"><a href="https://yoast.com/yoast-partners/"><span>    </span><span><span>Become a Yoast partner</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712732"><a href="https://yoast.com/shop/">Products</a>
+<ul>
+	<li id="menu-item-4246977"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span>    </span><span><span>Yoast SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4189497"><a href="https://yoast.com/product/yoast-seo-shopify/"><span>    </span><span><span>Yoast SEO for Shopify</span><span>      </span></span></a></li>
+	<li id="menu-item-1712733"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span>    </span><span><span>Yoast SEO Premium</span><span>      </span></span></a></li>
+	<li id="menu-item-4256701"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span>    </span><span><span>Yoast SEO AI+</span><span>      </span></span></a></li>
+	<li id="menu-item-1712737"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span>    </span><span><span>Yoast WooCommerce SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4140313"><a href="https://yoast.com/product/google-docs-addon/"><span>    </span><span><span>Yoast SEO Google Docs Add-On</span><span>      </span></span></a></li>
+	<li id="menu-item-1712739"><a href="https://yoast.com/yoast-seo-platforms/"><span>    </span><span><span>Other platforms</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712608"><a href="https://yoast.com/help/">Support and Resources</a>
+<ul>
+	<li id="menu-item-3972071"><a href="https://yoast.com/help/support/#email"><span>    </span><span><span>24/7 Premium Support</span><span>      </span></span></a></li>
+	<li id="menu-item-3972064"><a href="https://yoast.com/help/support/"><span>    </span><span><span>Yoast SEO WordPress help</span><span>      </span></span></a></li>
+	<li id="menu-item-3972066"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span>    </span><span><span>Yoast SEO Shopify guide</span><span>      </span></span></a></li>
+	<li id="menu-item-1712749"><a href="https://yoast.com/academy/yoast-seo-wordpress-training/"><span>    </span><span><span>Yoast SEO training</span><span>      </span></span></a></li>
+	<li id="menu-item-1712605"><a href="https://developer.yoast.com/"><span>    </span><span><span>Developer Documentation</span><span>      </span></span></a></li>
+	<li id="menu-item-4116702"><a href="https://yoast.com/tools/seo-checker/"><span>    </span><span><span>SEO Checker</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712746"><a href="https://yoast.com/seo-blog/">Learn SEO</a>
+<ul>
+	<li id="menu-item-1712741"><a href="https://yoast.com/tag/seo-basics/"><span>    </span><span><span>SEO basics</span><span>      </span></span></a></li>
+	<li id="menu-item-2324514"><a href="https://yoast.com/must-reads-for-website-seo/"><span>    </span><span><span>SEO essentials</span><span>      </span></span></a></li>
+	<li id="menu-item-3699893"><a href="https://yoast.com/seo-glossary/"><span>    </span><span><span>SEO glossary</span><span>      </span></span></a></li>
+	<li id="menu-item-3081154"><a href="https://yoast.com/series/seo-news-webinar/"><span>    </span><span><span>SEO news</span><span>      </span></span></a></li>
+	<li id="menu-item-1712747"><a href="https://yoast.com/academy/"><span>    </span><span><span>Yoast SEO Academy</span><span>      </span></span></a></li>
+	<li id="menu-item-3124128"><a href="https://yoast.com/webinar/"><span>    </span><span><span>Webinars</span><span>      </span></span></a></li>
+	<li id="menu-item-3124133"><a href="https://yoast.com/zo-werkt-yoast-seo/"><span>    </span><span><span>Zo werkt Yoast SEO (NL boek)</span><span>      </span></span></a></li>
+</ul>
+</li>
+</ul>		</nav>
+	</div>
+		</div>
+	<footer role="contentinfo">
+		<div>
+			<div>
+				<ul id="menu-legal"><li id="menu-item-1712763"><a href="https://yoast.com/reserved-rights/">Some rights reserved</a></li>
+<li id="menu-item-1712764"><a href="https://newfold.com/privacy-center/privacy">Privacy notice</a></li>
+<li id="menu-item-1712765"><a target="_blank" href="https://yoast.com/terms-of-service/">Terms of service</a></li>
+<li id="menu-item-4555200"><a href="https://legal.newfold.com/TermsOfUse.pdf">Terms of use</a></li>
+<li id="menu-item-3543442"><a target="_blank" href="https://newfold.com/privacy-center/cookie-policy">Cookie notice</a></li>
+<li id="menu-item-1712766"><a href="https://yoast.com/terms-of-service/#h-yoast-refund-policy">Refund policy</a></li>
+<li id="menu-item-3322202"><a href="https://yoast.com/review-notice/">Review notice</a></li>
+<li id="menu-item-4476575"><a href="https://www.newfold.com/abuse">Report abuse</a></li>
+<li id="menu-item-1712767"><a href="https://yoast.com/contact/">Contact us</a></li>
+<li id="menu-item-4452686"><a href="https://www.newfold.com/privacy-center/addendum-for-california-users">Do not sell or share my personal information</a></li>
+</ul>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+			</div>
+			<div>
+				<div>
+					<strong>© 2003-2026 Yoast BV</strong> Yoast is a trademark of Yoast BV				</div>
+				<div>
+												<a href="https://www.facebook.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Facebook</span></a>
+														<a href="https://www.youtube.com/yoast" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Youtube</span></a>
+														<a href="https://www.instagram.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Instagram</span></a>
+														<a href="https://www.linkedin.com/company/yoast-com/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>LinkedIn</span></a>
+											</div>
+			</div>
+		</div>
+			</footer>
+<div>
+	<div id="back-to-top-button__container">
+		<button id="back-to-top-button"><i></i></button>
+	</div>
+</div>
+<link rel="stylesheet" id="newsletter-block-pattern-css" href="https://yoast.com/app/themes/yoast-theme/css/patterns/Newsletter/Newsletter_Block/newsletter-block.min.css?ver=1772455867" media="all" />
+<link rel="stylesheet" id="back-to-top-button-css" href="https://yoast.com/app/themes/yoast-theme/css/includes/back-to-top-button.min.css?ver=1772455867" media="all" />
+</body>
+</html>

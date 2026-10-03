@@ -7,3 +7,7 @@
 *.jpg  binary
 *.ico  binary
 *.woff2 binary
+*.gz   binary
+
+# Recorded responses are kept byte for byte, as the sites served them.
+be/test/fixtures/sites/** -text

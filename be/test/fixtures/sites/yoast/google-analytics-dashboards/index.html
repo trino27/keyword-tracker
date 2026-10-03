@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="color-scheme" content="only light">
+	<title>How to create and use dashboards in Google Analytics &#8226; Yoast</title>
+		<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+	<!-- This site is optimized with the Yoast SEO Premium plugin v28.7-RC1 (Yoast SEO v28.7-RC1) - https://yoast.com/product/yoast-seo-premium-wordpress/ -->
+	<meta name="description" content="Google Analytics dashboards are a great way to present your data in ways you can quickly understand. Learn how to use them!" />
+	<link rel="canonical" href="https://yoast.com/google-analytics-dashboards/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="How to create and use dashboards in Google Analytics" />
+	<meta property="og:description" content="Google Analytics dashboards are a great way to present your data in ways you can quickly understand. Learn how to use them!" />
+	<meta property="og:url" content="https://yoast.com/google-analytics-dashboards/" />
+	<meta property="og:site_name" content="Yoast" />
+	<meta property="article:publisher" content="https://www.facebook.com/yoast" />
+	<meta property="article:published_time" content="2017-04-13T11:42:22+00:00" />
+	<meta property="article:modified_time" content="2018-11-30T09:04:55+00:00" />
+	<meta property="og:image" content="https://yoast.com/app/uploads/2014/10/dashboard-google-analytics-FB.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="628" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta name="author" content="Annelieke van den Berg" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image" content="https://yoast.com/app/uploads/2014/10/dashboard-google-analytics-FB.jpg" />
+	<meta name="twitter:creator" content="@yoast" />
+	<meta name="twitter:site" content="@yoast" />
+	<meta name="twitter:label1" content="Written by" />
+	<meta name="twitter:data1" content="Annelieke van den Berg" />
+	<meta name="twitter:label2" content="Est. reading time" />
+	<meta name="twitter:data2" content="5 minutes" />
+	<script type="application/ld+json">{"@context":"https:\/\/schema.org","@graph":[{"@type":"Article","@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#article","isPartOf":{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/"},"author":{"name":"Annelieke van den Berg","@id":"https:\/\/yoast.com\/#\/schema\/person\/99ffcf717f57bafb21c7669e8dcd7eff"},"headline":"How to create and use dashboards in Google Analytics","datePublished":"2017-04-13T11:42:22+00:00","dateModified":"2018-11-30T09:04:55+00:00","mainEntityOfPage":{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/"},"wordCount":939,"commentCount":13,"publisher":{"@id":"https:\/\/yoast.com\/#organization"},"image":{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2014\/10\/GWT_Search_Appearance_FI-4.png","keywords":["Google Analytics"],"inLanguage":"en-US","potentialAction":[{"@type":"CommentAction","name":"Comment","target":["https:\/\/yoast.com\/google-analytics-dashboards\/#respond"]}],"copyrightYear":"2017","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"},"video":[{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#video"}]},{"@type":"WebPage","@id":"https:\/\/yoast.com\/google-analytics-dashboards\/","url":"https:\/\/yoast.com\/google-analytics-dashboards\/","name":"How to create and use dashboards in Google Analytics &#8226; Yoast","isPartOf":{"@id":"https:\/\/yoast.com\/#website"},"primaryImageOfPage":{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#primaryimage"},"image":{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2014\/10\/GWT_Search_Appearance_FI-4.png","datePublished":"2017-04-13T11:42:22+00:00","dateModified":"2018-11-30T09:04:55+00:00","description":"Google Analytics dashboards are a great way to present your data in ways you can quickly understand. Learn how to use them!","breadcrumb":{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#breadcrumb"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https:\/\/yoast.com\/google-analytics-dashboards\/"]}]},{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#primaryimage","url":"https:\/\/yoast.com\/app\/uploads\/2014\/10\/GWT_Search_Appearance_FI-4.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2014\/10\/GWT_Search_Appearance_FI-4.png","width":1200,"height":628,"caption":"google analytics dashboards"},{"@type":"BreadcrumbList","@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/yoast.com\/"},{"@type":"ListItem","position":2,"name":"SEO blog","item":"https:\/\/yoast.com\/seo-blog\/"},{"@type":"ListItem","position":3,"name":"Google Analytics","item":"https:\/\/yoast.com\/tag\/google-analytics\/"},{"@type":"ListItem","position":4,"name":"How to create and use dashboards in Google Analytics"}]},{"@type":"WebSite","@id":"https:\/\/yoast.com\/#website","url":"https:\/\/yoast.com\/","name":"Yoast","description":"SEO for everyone","publisher":{"@id":"https:\/\/yoast.com\/#organization"},"potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/yoast.com\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-US","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"}},{"@type":["Organization","Brand"],"@id":"https:\/\/yoast.com\/#organization","name":"Yoast","url":"https:\/\/yoast.com\/","logo":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/","url":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","width":500,"height":500,"caption":"Yoast"},"image":{"@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/"},"sameAs":["https:\/\/www.facebook.com\/yoast","https:\/\/x.com\/yoast","https:\/\/www.instagram.com\/yoast\/","https:\/\/www.linkedin.com\/company\/1414157\/","https:\/\/www.pinterest.com\/yoast\/","https:\/\/www.youtube.com\/yoast","https:\/\/en.wikipedia.org\/wiki\/Yoast","https:\/\/www.tiktok.com\/@yoastseo","https:\/\/g.co\/kgs\/4H5sG2","https:\/\/g.co\/kgs\/a9XfUu"],"numberOfEmployees":81,"founder":{"@type":"Person","name":"Joost de Valk","sameAs":"https:\/\/en.wikipedia.org\/wiki\/Joost_de_Valk"},"foundingDate":"2010-05-01","slogan":"SEO for Everyone","description":"Yoast helps you with your website optimization, whether it be through our widely used SEO software or our online SEO courses: we&#039;re here to help.","legalName":"Yoast BV","parentOrganization":{"@type":"Organization","name":"Newfold Digital","description":"Newfold Digital is a leading web presence solutions provider serving millions of small-to-medium businesses globally.","url":"https:\/\/newfold.com\/","sameAs":["https:\/\/newfold.com\/"],"logo":"https:\/\/yoast.com\/app\/uploads\/2022\/01\/newfold-logo.png"},"memberOf":{"@type":"Organization","name":"World Wide Web Consortium (W3C)","description":"The World Wide Web Consortium (W3C) is an international community that develops open standards to ensure the long-term growth of the Web.","url":"https:\/\/w3.org\/","sameAs":["https:\/\/w3.org\/"],"logo":"https:\/\/www.w3.org\/Icons\/w3c_main.png"}},{"@type":"Person","@id":"https:\/\/yoast.com\/#\/schema\/person\/99ffcf717f57bafb21c7669e8dcd7eff","name":"Annelieke van den Berg","image":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/secure.gravatar.com\/avatar\/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=96&d=mm&r=g","url":"https:\/\/secure.gravatar.com\/avatar\/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=96&d=mm&r=g","contentUrl":"https:\/\/secure.gravatar.com\/avatar\/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=96&d=mm&r=g","caption":"Annelieke van den Berg"},"description":"Annelieke is a former employee of Yoast and used to lead the research team at Yoast. She has her Master's degree in Sociology and focuses on all things related to data.","sameAs":["https:\/\/nl.linkedin.com\/in\/anneliekevdberg"]},{"@type":"VideoObject","@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#video","name":"How to create and use dashboards in Google Analytics &#8226; Yoast","isPartOf":{"@id":"https:\/\/yoast.com\/google-analytics-dashboards\/#article"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2014\/10\/q0onexlcvnq.jpg","description":"Google Analytics dashboards are a great way to present your data in ways you can quickly understand. Learn how to use them!","uploadDate":"2017-04-13T13:42:22+00:00","width":480,"height":360,"embedUrl":"https:\/\/www.youtube.com\/embed\/Q0oneXlCvnQ","duration":"PT1M19S","isFamilyFriendly":true,"inLanguage":"en-US"}]}</script>
+	<!-- / Yoast SEO Premium plugin. -->
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel="alternate" type="application/rss+xml" title="Yoast &raquo; Feed" href="https://yoast.com/feed/" />
+<link rel="stylesheet" id="address-autocomplete-billing-block-css" href="https://yoast.com/app/plugins/address-autocomplete/build/style-address-autocomplete-billing-block.css?ver=1.1.2" media="all" />
+<link rel="stylesheet" id="daexthefup-google-font-css" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&#038;&#038;ver=1.14#038;display=swap" media="all" />
+<link rel="stylesheet" id="daexthefup-general-css" href="https://yoast.com/app/plugins/helpful-pro/public/assets/css/general.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="daexthefup-custom-css" href="https://yoast.com/app/uploads/daexthefup_uploads/custom-1.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="select2-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/select2.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-wcaf-css" href="https://yoast.com/app/plugins/yith-woocommerce-affiliates-premium/assets/css/yith-wcaf.min.css?ver=3.12.0" media="all" />
+<link rel="stylesheet" id="brands-styles-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/brands.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-plugin-fw-icon-font-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/plugin-fw/assets/css/yith-icon.css?ver=4.6.5" media="all" />
+<link rel="stylesheet" id="yith-wcmcs-shortcodes-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/assets/css/shortcodes.css?ver=1.36.1-beta-1" media="all" />
+<link rel="stylesheet" id="yoast-com-menu-css" href="https://yoast.com/app/themes/yoast-theme/css/templates/menu.min.css?ver=1782129058" media="all" />
+<link rel="stylesheet" id="yoast-siteheader-css" href="https://yoast.com/app/themes/yoast-com/assets/css/siteheader.min.css?ver=1774510573" media="all" />
+<link rel="stylesheet" id="yoast-com-css" href="https://yoast.com/app/themes/yoast-theme/css/style.min.css?ver=1782290502" media="all" />
+<link rel="stylesheet" id="new-post-css" href="https://yoast.com/app/themes/yoast-theme/css/4-pages/new-post.min.css?ver=1776675829" media="all" />
+<!-- Stream WordPress user activity plugin v4.3.0 -->
+<link rel="manifest" href="/manifest.json" />
+<!-- Google AdSense meta tags added by Site Kit -->
+<meta name="google-adsense-platform-account" content="ca-host-pub-2644536267352236">
+<meta name="google-adsense-platform-domain" content="sitekit.withgoogle.com">
+<!-- End Google AdSense meta tags added by Site Kit -->
+<link rel="icon" href="https://yoast.com/images/yoast_icon_32x32.ico" sizes="any">
+<link rel="icon" href="https://yoast.com/images/yoast_icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://yoast.com/images/yoast_icon_180x180.png">
+</head>
+<body>
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NHRB36F" height="0" width="0"></iframe></noscript>
+		<header>
+	<a id="yoast-skip-link"
+		href="#content">Skip to content</a>
+		<div><button id="close-mobile-search-menu" aria-label="Close"><i aria-hidden="true"></i></button><form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-1" >What are you looking for?</label><div ><input id="wp-block-search__input-1" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form></div><div>
+	<a href="/">
+		<picture>
+			<img id="sticky-menu-logo" width="90" height="40" src="https://yoast.com/app/themes/yoast-theme/images/logo-diap.svg"
+				alt="Yoast - SEO for everyone">
+		</picture>
+	</a>
+			<nav aria-label="Main menu">
+			<div id="main-menu">
+				<ul id="menu-main-menu"><li id="menu-item-3251820"><a href="https://yoast.com/shop/">Plans &amp; pricing</a>
+<ul>
+	<li id="menu-item-4246533"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO: #1 WordPress SEO plugin</span><span>Essential SEO tools for your site</span></span></a></li>
+	<li id="menu-item-4246543"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast WooCommerce SEO</span><span>SEO that scales with your product catalog</span></span></a></li>
+	<li id="menu-item-4256677"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO AI+</span><span>Your complete search visibility package</span></span></a></li>
+	<li id="menu-item-4189500"><a href="https://yoast.com/product/yoast-seo-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Easy SEO, now with AI insights</span></span></a></li>
+	<li id="menu-item-4140280"><a href="https://yoast.com/product/google-docs-addon/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Google Docs Add-On</span><span>Create better content in Google Docs</span></span></a></li>
+	<li id="menu-item-4634954"><a href="https://yoast.com/yoast-partners/resellers/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Get a custom quote</span><span>Got multiple sites? Let's talk</span></span></a></li>
+	<li id="menu-item-4246550"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Premium</span><span>Advanced SEO with real-time guidance and built-in AI</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251898"><a href="https://yoast.com/academy/">Learn SEO</a>
+<ul>
+	<li id="menu-item-3251899"><a href="https://yoast.com/academy/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Academy</span><span>Practical SEO training, from beginner to advanced</span></span></a></li>
+	<li id="menu-item-3251901"><a href="https://yoast.com/academy/free-seo-training-seo-for-beginners/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO for beginners (free course)</span><span>Start developing your SEO skills today</span></span></a></li>
+	<li id="menu-item-3251903"><a href="https://yoast.com/tag/seo-basics/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO basics</span><span>Read up on the basic concepts of SEO</span></span></a></li>
+	<li id="menu-item-3251905"><a href="https://yoast.com/must-reads-for-website-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Ultimate SEO guides</span><span>In-depth articles on core SEO themes</span></span></a></li>
+	<li id="menu-item-4546254"><a href="https://yoast.com/podcasts/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Podcasts</span><span>Stay up to date with expert insights on SEO news and trends</span></span></a></li>
+	<li id="menu-item-3251936"><a href="https://yoast.com/webinar/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Webinars</span><span>Your go-to for expert SEO insights, live and on demand</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251982"><a href="https://yoast.com/seo-blog/">Blog</a>
+<ul>
+	<li id="menu-item-3251980"><a href="https://yoast.com/tag/content-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Content SEO</span><span>Learn about content SEO on our blog</span></span></a></li>
+	<li id="menu-item-3251983"><a href="https://yoast.com/tag/technical-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Technical SEO</span><span>Learn about technical SEO on our blog</span></span></a></li>
+	<li id="menu-item-4634523"><a href="https://yoast.com/developer-blog/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer blog</span><span>Built by engineers, written for engineers</span></span></a></li>
+	<li id="menu-item-4517726"><a href="https://yoast.com/tag/release-post/page/2/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast software news</span><span>Browse our latest product and feature releases</span></span></a></li>
+	<li id="menu-item-3251992"><a href="https://yoast.com/newsletter/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Newsletter</span><span>Sign up for the latest news from Yoast</span><span>Sign up now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252004"><a href="https://yoast.com/help/">Help</a>
+<ul>
+	<li id="menu-item-3252005"><a href="https://yoast.com/help/support/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>WordPress plugins</span><span>Get help with our WordPress plugins</span></span></a></li>
+	<li id="menu-item-3252007"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Get help with Yoast SEO for Shopify</span></span></a></li>
+	<li id="menu-item-3252008"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Help center</span><span>Find out how to use our products</span></span></a></li>
+	<li id="menu-item-3252009"><a href="https://developer.yoast.com/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer resources</span><span>Advanced documentation and product changelogs</span></span></a></li>
+	<li id="menu-item-3252010"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>24/7 support</span><span>Premium support whenever you need</span><span>Get support now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252063"><a href="https://yoast.com/about-us/">About us</a>
+<ul>
+	<li id="menu-item-3929595"><a href="https://yoast.com/about-us/core-values/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Company culture</span><span>Equality, inclusiveness, and empowerment</span></span></a></li>
+	<li id="menu-item-3929607"><a href="https://yoast.com/jobs/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Careers</span><span>Join Yoast, make an impact</span></span></a></li>
+	<li id="menu-item-3252060"><a href="https://yoast.com/about-us/community/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Community</span><span>Giving back to our community</span></span></a></li>
+	<li id="menu-item-4634516"><a href="https://yoast.com/case-studies"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Case studies</span><span>Growth stories from brands like yours</span></span></a></li>
+	<li id="menu-item-3252069"><a href="https://yoast.com/wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast and WordPress</span><span>Yoast in the WordPress ecosystem</span></span></a></li>
+	<li id="menu-item-4627269"><a href="https://yoast.com/about-us/events/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Events</span><span>Network, learn, grow</span></span></a></li>
+	<li id="menu-item-3929437"><a href="https://yoast.com/about-us/team/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Team and leadership</span><span>Meet the Yoasters</span></span></a></li>
+</ul>
+</li>
+<li><div>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+</div></li></ul>			</div>
+		</nav>
+					<div>
+				<a
+					href="https://yoast.com/download-yoast-seo/">
+					Download FREE<img src="https://yoast.com/app/uploads/2025/11/download_icon.svg" alt="">				</a>
+			</div>
+<ul>
+	<li>
+		<button id="main-menu-search-container"
+				aria-label="Open search box"><i
+			></i></button>
+		<div>
+			<div>
+				<form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-2" >What are you looking for?</label><div ><input id="wp-block-search__input-2" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form>			</div>
+		</div>
+	</li>
+	<li>
+		<a href="https://my.yoast.com/"
+			aria-label="">
+			<i></i>
+			<span>Login</span>
+		</a>
+			</li>
+		<li>
+			<a href="https://yoast.com/checkout/"
+				aria-label="Cart">
+				<i></i>
+				<span>Cart</span>
+				<div>
+					<span></span>
+				</div>
+			</a>
+		</li>
+	<li>
+		<button type="button"
+			 aria-expanded="false">
+			<span>Search</span>
+			<span aria-hidden="true">
+				<i></i>
+			</span>
+		</button>
+	</li>
+	<li>
+		<button type="button"
+			 id="mobile-show-nav" aria-expanded="false">
+			<span>Navigation menu</span>
+			<span aria-hidden="true">
+				<span></span>
+				<span></span>
+				<span></span>
+			</span>
+		</button>
+	</li>
+</ul>
+</div>
+		<div>
+			<div></div>
+			<div></div>
+		</div>
+	</header>
+<div></div>
+	<div>
+		<main id="content">
+	<nav aria-label="You are here:">
+		<ol><li><a href="https://yoast.com/" aria-label="Home"><i aria-hidden="true"></i></a></li>  <li><a href="https://yoast.com/seo-blog/">SEO blog</a></li>  <li><a href="https://yoast.com/tag/google-analytics/">Google Analytics</a></li>  <li aria-current="page">How to create and use dashboards in Google Analytics</li></ol>	</nav>
+			<article>
+				<header>
+		<span>
+			<a href="https://yoast.com/series/annelieke-analytics/"
+				title="Annelieke&#039;s Analytics series archive">
+				Annelieke&#039;s Analytics:
+			</a>
+		</span>
+<h1>
+	How to create and use dashboards in Google Analytics</h1>
+					<div>
+							<span>Apr 13, 2017</span>
+		<span>
+		<a href="https://yoast.com/google-analytics-dashboards/#comments">13</a>
+	</span>
+	<span>
+		<a href="https://yoast.com/tag/google-analytics/" rel="tag">Google Analytics</a>	</span>
+							<span>Annelieke van den Berg</span>
+												</div>
+						<picture>
+		<img
+		fetchpriority="high"
+		width="400"
+		height="210"
+		decoding="async"
+		loading="eager"
+		sizes="(max-width: 1012px) 100vw, 1012px"
+		src="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=scale-down%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png"
+		srcset="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 400w, https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 800w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 600w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 1200w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 800w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 1600w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 1012w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2014/10/GWT_Search_Appearance_FI-4.png 2024w"
+		alt=""
+		>
+	</picture>
+					</header>
+				<div>
+					<aside>
+<div>
+			<figure>
+		<img src="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg" srcset="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 75w, https://yoast.com/cdn-cgi/image/width=150,height=150,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 150w" width="75" height="75" alt="" loading="lazy" decoding="async" fetchpriority="low" sizes="(min-width: 1321px) 75px" />		</figure>
+	<h2>Get Yoast SEO Premium</h2>
+	<p>Drive <strong>more traffic </strong>to your site. Use <strong>AI to save time</strong> doing SEO tasks. Make <strong>SEO easier</strong>. And get <strong>24/7 support.</strong></p>
+<p><strong>Includes Local SEO, Video SEO &amp; News SEO.</strong></p>
+<p>&nbsp;</p>
+				<div>
+			<span><strong><span><span>&#036;</span>118.80</span></strong>&nbsp;<small>/ year (ex. VAT)</small></span>
+		</div>
+		<div><a href="https://yoast.com/cart/?add-to-cart=4113952" rel="nofollow">Get Yoast SEO Premium&nbsp;<span aria-hidden="true">&raquo;</span></a></div>		<div>
+		<div><a href="https://www.trustpilot.com/review/yoast.com" target="_blank"><h3>Reviews from real users</h3><span>Rated 4.6 stars by 819 users</span><div aria-hidden="true"><div><div></div></div> 4.6 / 5 </div><span> (opens in a new tab)</span></a></div>		</div>
+		</div>
+					</aside>
+					<p>Google Analytics is a powerful tool. However, it does take quite some time to get used to it, which is why many people are missing out on a lot of functionalities. They simply don&#8217;t know some options exists. So today, I&#8217;ll explain a feature that I find very useful: Google Analytics dashboards. Here, you&#8217;ll read what they are, how to create them and how you could use them. And at the end of this post, there&#8217;s a little surprise ;)</p>
+<h2>What are Google Analytics dashboards?</h2>
+<p>Dashboards in Google Analytics are central spots where you can collect all kind of similar data. You can even decide for yourself how the data is displayed. Let me show you what a dashboard can look like:</p>
+<p><img fetchpriority="high" decoding="async" src="https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-600x454.jpg" alt="Visitor_Insights_Dashboard_by_Yoast_-_Analytics" width="600" height="454" srcset="https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-600x454.jpg 600w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-250x189.jpg 250w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-768x581.jpg 768w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-66x50.jpg 66w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-198x150.jpg 198w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics.jpg 1000w" sizes="(max-width: 600px) 100vw, 600px" /></p>
+<p>Since Google Analytics doesn&#8217;t really have a logical structure, the ability to put similar things together at the same place is a great benefit. This means you&#8217;ll only have to look at a few places for a general overview of how your site&#8217;s doing. Once you set up a great dashboard, there&#8217;s no need to dig through all sections of Google Analytics. And that saves you a lot of time&#8230;.and money. ;</p>
+<h2>How do I get dashboards?</h2>
+<p>There are two ways of getting your own Google Analytics dashboards. The first is to make them yourself. Here&#8217;s a quick video (without sound) explaining how you can add your own dashboards in Google Analytics :</p>
+<div><iframe title="How to create a dashboard in Google Analytics" width="600" height="450" src="https://www.youtube.com/embed/Q0oneXlCvnQ?feature=oembed&amp;modestbranding=1&amp;hd=1&amp;rel=0&amp;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+<p>You can simply play around a bit with adding widgets and creating different layouts for your Google Analytics dashboard. Try to think of a subject and add as much info as you like on that subject in that dashboard. And if you don&#8217;t like the result, you can easily delete the widget or the entire dashboard. No harm done! In the last part of the video, I also show how you can add <a href="https://yoast.com/why-use-segments-in-google-analytics/">segments</a> to your dashboards. Combining a dashboard with a segment, makes your data even more useful!</p>
+<h3>Six ways of showing data</h3>
+<p>There are six ways of representing your data in a dashboard in Google Analytics:</p>
+<p><img decoding="async" src="https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1-550x63.png" alt="Google Analytics Dashboards Presentations" width="550" height="63" srcset="https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1-550x63.png 550w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1-250x28.png 250w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1-180x20.png 180w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1-360x41.png 360w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1-235x27.png 235w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1-470x54.png 470w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics1.png 1120w" sizes="(max-width: 550px) 100vw, 550px" /></p>
+<p>These six representations of your data will look like this:</p>
+<figure id="attachment_252514" aria-describedby="caption-attachment-252514"><img decoding="async" src="https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2-550x299.png" alt="Google Analytics Dashboard repesentations of data" width="550" height="299" srcset="https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2-550x299.png 550w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2-250x136.png 250w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2-180x98.png 180w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2-360x196.png 360w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2-235x128.png 235w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2-470x256.png 470w, https://yoast.com/app/uploads/2014/10/Starter_Dashboard_-_Google_Analytics2.png 1970w" sizes="(max-width: 550px) 100vw, 550px" /><figcaption id="caption-attachment-252514">6 ways to represent your data</figcaption></figure>
+<p>You can even make the pie chart a donut chart and make the bar chart horizontal instead of vertical. You&#8217;ll notice some shortcomings with each representation though. The timeline chart can&#8217;t show a total number of visits, for instance. The bar chart is great for comparisons, but it won&#8217;t show percentages of the total. However, these charts are still very valuable in making a lot of data accessible at a glance.</p>
+<h2>But you don&#8217;t have to do this yourself!</h2>
+<p>That&#8217;s right; you don&#8217;t have to reinvent the wheel! In fact, the dashboards above are based on Google Analytics Dashboards that we&#8217;ve downloaded from other people ourselves. There&#8217;s a huge gallery of existing dashboards you can import when you click on the &#8216;Create&#8217; button. You can adjust these existing dashboards and get them to show the data that you think is most useful. There are two Yoast dashboards we created with a lot of info that I think every website owner should have or at least want.</p>
+<h3>Visitor Insights by Yoast</h3>
+<figure id="attachment_875350" aria-describedby="caption-attachment-875350"><img decoding="async" src="https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-600x454.png" alt="Visitor Insights Dashboard by Yoast" width="600" height="454" srcset="https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-600x454.png 600w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-250x189.png 250w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-768x581.png 768w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-66x50.png 66w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics-198x150.png 198w, https://yoast.com/app/uploads/2017/04/Visitor_Insights_Dashboard_by_Yoast_-_Analytics.png 1376w" sizes="(max-width: 600px) 100vw, 600px" /><figcaption id="caption-attachment-875350">Visitor Insights Dashboard by Yoast</figcaption></figure>
+<p>This dashboard includes all the data on your visitors that I consider to be important. How many visitors do you get, how many of them are new, where are they coming from, what devices and browser are they using, etc. All of the data here is very useful when you&#8217;re curious about your audience (which you should be!).</p>
+<p><a href="https://www.google.com/analytics/web/template?uid=UCsl79NzRaqEF6PasbHt5w">You can download this dashboard here.</a></p>
+<h3>eCommerce Dashboard by Yoast</h3>
+<figure id="attachment_875358" aria-describedby="caption-attachment-875358"><img decoding="async" src="https://yoast.com/app/uploads/2017/04/eCommerce_Dashboard_by_Yoast_-_Analytics-600x493.png" alt="eCommerce Dashboard by Yoast" width="600" height="493" srcset="https://yoast.com/app/uploads/2017/04/eCommerce_Dashboard_by_Yoast_-_Analytics-600x493.png 600w, https://yoast.com/app/uploads/2017/04/eCommerce_Dashboard_by_Yoast_-_Analytics-250x205.png 250w, https://yoast.com/app/uploads/2017/04/eCommerce_Dashboard_by_Yoast_-_Analytics-768x631.png 768w, https://yoast.com/app/uploads/2017/04/eCommerce_Dashboard_by_Yoast_-_Analytics-61x50.png 61w, https://yoast.com/app/uploads/2017/04/eCommerce_Dashboard_by_Yoast_-_Analytics-183x150.png 183w, https://yoast.com/app/uploads/2017/04/eCommerce_Dashboard_by_Yoast_-_Analytics.png 1369w" sizes="(max-width: 600px) 100vw, 600px" /><figcaption id="caption-attachment-875358">eCommerce Dashboard by Yoast</figcaption></figure>
+<p>This Google Analytics dashboard includes everything on your sales performance. It&#8217;ll give you a quick overview of how much money you&#8217;ve made in the selected timeframe, the conversion rate and which acquisition channels and landing pages got you the most money.</p>
+<p>I&#8217;ve now set the tables to sort by revenue, so the landing pages and referrers that have made the most money will show up on top. However, this should be different if you&#8217;re using your Google Analytics, and your dashboards, as a way to spot bottlenecks for your business. In this case, you should sort the top landing pages by the amount of pageviews they&#8217;ve had. The more pageviews, the more money it should have made. If there&#8217;s a discrepancy, you know which page could use some optimization.</p>
+<p>If this is how you use Google Analytics, you&#8217;ll probably find that the representation of the tables are the most valuable. All the charts are great for displaying a lot of information quickly, but they aren&#8217;t able to show you the worst performing parts of your site. With the tables representation you can sort the data the way you like it, so that gives you a bit more flexibility and more insight.</p>
+<p><a href="https://www.google.com/analytics/web/template?uid=74e8sUs8TcWhYzqd0hXHxQ">You can download the eCommerce Dashboard by Yoast here.</a></p>
+<h2>Did you learn something today?</h2>
+<p>Did this post teach you something? Are there any things you&#8217;re missing or like to add? Are you already using some pretty cool dashboards and just want to share them? Let us know in the comments!</p>
+<p>Read more: <a href="https://yoast.com/tracking-seo-google-analytics/">Tracking your SEO with Google Analytics &raquo;</a></p>
+						<div>
+		<p>Share this post</p>
+		<a
+			rel="nofollow"
+			href="https://twitter.com/share?url=https%3A%2F%2Fyoast.com%2Fgoogle-analytics-dashboards%2F&#038;via=yoast&#038;text=How%20to%20create%20and%20use%20dashboards%20in%20Google%20Analytics%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on X"
+			aria-label="Share on X"
+		>
+			<span>Share on X</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://www.linkedin.com/shareArticle?url=https%3A%2F%2Fyoast.com%2Fgoogle-analytics-dashboards%2F&#038;title=How%20to%20create%20and%20use%20dashboards%20in%20Google%20Analytics%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on LinkedIn"
+			aria-label="Share on LinkedIn"
+		>
+			<span>Share on LinkedIn</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://wa.me/?text=How%20to%20create%20and%20use%20dashboards%20in%20Google%20Analytics%20by%20Yoast%20-%20https%3A%2F%2Fyoast.com%2Fgoogle-analytics-dashboards%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on WhatsApp"
+			aria-label="Share on WhatsApp"
+		>
+			<span>Share on WhatsApp</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://telegram.me/share/url?url=https%3A%2F%2Fyoast.com%2Fgoogle-analytics-dashboards%2F&#038;text=How%20to%20create%20and%20use%20dashboards%20in%20Google%20Analytics%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Telegram"
+			aria-label="Share on Telegram"
+		>
+			<span>Share on Telegram</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://mastodonshare.com/?text=How%20to%20create%20and%20use%20dashboards%20in%20Google%20Analytics%20by%20Yoast&#038;url=https%3A%2F%2Fyoast.com%2Fgoogle-analytics-dashboards%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Mastodon"
+			aria-label="Share on Mastodon"
+		>
+			<span>Share on Mastodon</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			title="Copy to clipboard"
+			aria-label="Copy to clipboard"
+		>
+			<span>Copy to clipboard</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			aria-label="Share"
+		>
+			<i aria-hidden="true"></i>
+			<span>Share</span>
+		</a>
+	</div>
+					<div>
+						<div>
+	<figure><img srcset="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,dpr=2,onerror=redirect/app/uploads/2019/04/Annelieke_bubble-250x285.png 2x, https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2019/04/Annelieke_bubble-250x285.png 1x" src="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2019/04/Annelieke_bubble-250x285.png" width="75" height="85" alt="Avatar of Annelieke van den Berg" loading="lazy" decoding="async" fetchpriority="low" /></figure>	<div>
+					<span>Annelieke van den Berg</span>
+					<p>Annelieke is a former employee of Yoast and used to lead the research team at Yoast. She has her Master's degree in Sociology and focuses on all things related to data.</p>
+			</div>
+</div>
+<hr/>
+					</div>
+							<div id="comments">
+			<h3>Discussion (13)</h3>
+			<div>
+	<ol>
+			<li		id="comment-527479">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Phoenix Pop Productions' src='https://secure.gravatar.com/avatar/f39fdff8b508236c2b617f21f0b8112926b364f6dc4615cbff69a3a9c2dec88d?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f39fdff8b508236c2b617f21f0b8112926b364f6dc4615cbff69a3a9c2dec88d?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Phoenix Pop Productions</span>
+				<span>Apr. 27, 2017</span>
+			</div>
+			<div>
+				<p>This is so crucial for any owner or client. Yeah you can use third-party site analytics like Rush, but Google has so much more to offer. It&#8217;s always nice to find someone that is certified and qualified by passing the GAIQ exam.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-527321">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Zee' src='https://secure.gravatar.com/avatar/e4fe3a8b7b7aaffbe23ba7b3a76d5c4af851faa847b19fc4a660a9f3fea1db9e?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e4fe3a8b7b7aaffbe23ba7b3a76d5c4af851faa847b19fc4a660a9f3fea1db9e?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Zee</span>
+				<span>Apr. 18, 2017</span>
+			</div>
+			<div>
+				<p>Mindblowing Yoast excellent I really love to read your blog as well as the examples that you’ve mention. Thank you so much for this helpful contents. I am looking forward to see more example contents like this.If you have time you can also visit this site that I managed to surf in business startups.<a href="http://gohelper.net/" rel="nofollow">Go Helper</a></p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-527295">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Cindy' src='https://secure.gravatar.com/avatar/b2a8afeca34a8b71a60c2f64dae65e12166ee185458bddb383a1582c5e07d7f3?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/b2a8afeca34a8b71a60c2f64dae65e12166ee185458bddb383a1582c5e07d7f3?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Cindy</span>
+				<span>Apr. 18, 2017</span>
+			</div>
+			<div>
+				<p>Thank you for this article.  I tried the download link you offered but it doesn&#8217;t seem to work for me.<br />
+This is what it says.<br />
+A Dashboard configuration was shared with you.<br />
+Please choose a view from your Google Analytics account to import this configuration.<br />
+When I click on the drop down up comes my business name but when I click on it it won&#8217;t do anything.  When I click on save it says I must pick a view?<br />
+Not working for me.  Is there any other way of downloading this?<br />
+Cheers Cindy</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-527300">
+		<div>
+			<div>
+				<figure>
+					<img alt='Annelieke' src='https://secure.gravatar.com/avatar/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Annelieke</span>
+				<span>Apr. 18, 2017</span>
+			</div>
+			<div>
+				<p>Hi Cindy, when you open the dropdown you should be able to select a view by clicking on the downwards arrow and then select one of the views below. If you do that right, the selection will get a check mark, and if you hit create, the dashboard will open. Good luck!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-527288">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Mihir' src='https://secure.gravatar.com/avatar/df2a07a0f52a1d02cc253ea0fd5b02a768255c53329f5a78b4822c2ae0bbf916?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/df2a07a0f52a1d02cc253ea0fd5b02a768255c53329f5a78b4822c2ae0bbf916?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Mihir</span>
+				<span>Apr. 17, 2017</span>
+			</div>
+			<div>
+				<p>Hi, Could you help me.<br />
+if i am checking my google analytic Sitemap on google analytic Dashboard  it showing me a Error &#8220;Your Sitemap appears to be an HTML page. Please use a supported sitemap format instead.&#8221;<br />
+Please help me</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-527285">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Basit Ansari' src='https://secure.gravatar.com/avatar/d2ca78d5fbe3acdec603d2c23f86ff7b9ecc5671d323d2b4dcd74e406fed4951?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d2ca78d5fbe3acdec603d2c23f86ff7b9ecc5671d323d2b4dcd74e406fed4951?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Basit Ansari</span>
+				<span>Apr. 17, 2017</span>
+			</div>
+			<div>
+				<p>Hello Sir,</p>
+<p>Thank you so much to share this post in this I am understand about Google Analytics and once again thank.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-527231">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='kenneth' src='https://secure.gravatar.com/avatar/880655d3135c01d9fbb972e9ebdd1cc6a2952f039591aea50255c57328ad1d48?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/880655d3135c01d9fbb972e9ebdd1cc6a2952f039591aea50255c57328ad1d48?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>kenneth</span>
+				<span>Apr. 14, 2017</span>
+			</div>
+			<div>
+				<p>When I click the download buttons for the dashboards, the browser only opens op my own GA account &#8211; how to download the dashboards?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-527299">
+		<div>
+			<div>
+				<figure>
+					<img alt='Annelieke' src='https://secure.gravatar.com/avatar/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Annelieke</span>
+				<span>Apr. 18, 2017</span>
+			</div>
+			<div>
+				<p>Hi Kenneth, a page should open, showing you a dropdown where you can select the site you&#8217;d like to see this dashboard  for. Just select the site and click create. That should work!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-527220">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Gaurav heera' src='https://secure.gravatar.com/avatar/9e69de7f80d23c1e4c38eaafec0dc8769e976c884da24f2f2f4f65dce408939f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9e69de7f80d23c1e4c38eaafec0dc8769e976c884da24f2f2f4f65dce408939f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Gaurav heera</span>
+				<span>Apr. 14, 2017</span>
+			</div>
+			<div>
+				<p>Hello,<br />
+In this article, I got lots of  good points by which I am going to work on it and in this article, there was lots of content by which we get lots of knowledge about google analytics.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-527218">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Akash Srivastava' src='https://secure.gravatar.com/avatar/77cdc04500b74003ac029d889d24ea060a0e04cfa9dab8560cedfcdfc055451f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/77cdc04500b74003ac029d889d24ea060a0e04cfa9dab8560cedfcdfc055451f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Akash Srivastava</span>
+				<span>Apr. 14, 2017</span>
+			</div>
+			<div>
+				<p>Yes, it&#8217;s useful.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-527213">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Renato Alves' src='https://secure.gravatar.com/avatar/329e1a0d659f71234f33926895d63b7a2a55546219cd4f5a67af50ffde174ff1?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/329e1a0d659f71234f33926895d63b7a2a55546219cd4f5a67af50ffde174ff1?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Renato Alves</span>
+				<span>Apr. 14, 2017</span>
+			</div>
+			<div>
+				<p>Really useful! It saves lots of time just downloading and adding to my dashboards. Thanks for this.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-527301">
+		<div>
+			<div>
+				<figure>
+					<img alt='Annelieke' src='https://secure.gravatar.com/avatar/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Annelieke</span>
+				<span>Apr. 18, 2017</span>
+			</div>
+			<div>
+				<p>You&#8217;re welcome, Renato!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-527208">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Mark Perkins' src='https://secure.gravatar.com/avatar/b8ed1bfd494cd111974f743be37bf427f9b99659a38e03e8a4878bccf12ab237?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/b8ed1bfd494cd111974f743be37bf427f9b99659a38e03e8a4878bccf12ab237?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Mark Perkins</span>
+				<span>Apr. 13, 2017</span>
+			</div>
+			<div>
+				<p>Yes I did learn something today.<br />
+I always thought there was more to GA than met the eye.</p>
+<p>Thank you</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	</ol>
+</div>
+		</div>
+						</div>
+				<footer id="post__footer">
+					<div>
+<div>
+<div>
+<div>
+<div>
+<div>
+<h2 id="h-want-to-stay-ahead-of-the-seo-game">Want to stay ahead of the SEO game?</h2>
+<p>Subscribe to our newsletter: Get weekly tips to improve your website’s SEO, usability, and conversion!</p>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div></div>
+<p>We care about the protection of your data. Read our <a href="https://yoast.com/privacy-notice/">privacy policy.</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+				</footer>
+			</article>
+		</main>
+	<div>
+		<div>
+			<hr>
+		</div>
+		<nav id="footer__nav"
+			aria-label="Sitemap">
+			<ul id="menu-footer-menu"><li id="menu-item-1712602"><a href="https://yoast.com">Yoast SEO</a>
+<ul>
+	<li id="menu-item-1712755"><a href="https://yoast.com/about-us/"><span>    </span><span><span>About us</span><span>      </span></span></a></li>
+	<li id="menu-item-1949653"><a href="https://yoast.com/jobs/"><span>    </span><span><span>Careers</span><span>      </span></span></a></li>
+	<li id="menu-item-2318820"><a href="https://yoast.com/werken-bij/"><span>    </span><span><span>Werken bij Yoast (NL)</span><span>      </span></span></a></li>
+	<li id="menu-item-2032798"><a href="https://yoast.com/about-us/community/"><span>    </span><span><span>Community</span><span>      </span></span></a></li>
+	<li id="menu-item-4627270"><a href="https://yoast.com/about-us/events/"><span>    </span><span><span>Events</span><span>      </span></span></a></li>
+	<li id="menu-item-4112861"><a href="https://yoast.com/press/"><span>    </span><span><span>Press</span><span>      </span></span></a></li>
+	<li id="menu-item-3474416"><a href="https://yoast.com/yoast-partners/"><span>    </span><span><span>Become a Yoast partner</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712732"><a href="https://yoast.com/shop/">Products</a>
+<ul>
+	<li id="menu-item-4246977"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span>    </span><span><span>Yoast SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4189497"><a href="https://yoast.com/product/yoast-seo-shopify/"><span>    </span><span><span>Yoast SEO for Shopify</span><span>      </span></span></a></li>
+	<li id="menu-item-1712733"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span>    </span><span><span>Yoast SEO Premium</span><span>      </span></span></a></li>
+	<li id="menu-item-4256701"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span>    </span><span><span>Yoast SEO AI+</span><span>      </span></span></a></li>
+	<li id="menu-item-1712737"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span>    </span><span><span>Yoast WooCommerce SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4140313"><a href="https://yoast.com/product/google-docs-addon/"><span>    </span><span><span>Yoast SEO Google Docs Add-On</span><span>      </span></span></a></li>
+	<li id="menu-item-1712739"><a href="https://yoast.com/yoast-seo-platforms/"><span>    </span><span><span>Other platforms</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712608"><a href="https://yoast.com/help/">Support and Resources</a>
+<ul>
+	<li id="menu-item-3972071"><a href="https://yoast.com/help/support/#email"><span>    </span><span><span>24/7 Premium Support</span><span>      </span></span></a></li>
+	<li id="menu-item-3972064"><a href="https://yoast.com/help/support/"><span>    </span><span><span>Yoast SEO WordPress help</span><span>      </span></span></a></li>
+	<li id="menu-item-3972066"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span>    </span><span><span>Yoast SEO Shopify guide</span><span>      </span></span></a></li>
+	<li id="menu-item-1712749"><a href="https://yoast.com/academy/yoast-seo-wordpress-training/"><span>    </span><span><span>Yoast SEO training</span><span>      </span></span></a></li>
+	<li id="menu-item-1712605"><a href="https://developer.yoast.com/"><span>    </span><span><span>Developer Documentation</span><span>      </span></span></a></li>
+	<li id="menu-item-4116702"><a href="https://yoast.com/tools/seo-checker/"><span>    </span><span><span>SEO Checker</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712746"><a href="https://yoast.com/seo-blog/">Learn SEO</a>
+<ul>
+	<li id="menu-item-1712741"><a href="https://yoast.com/tag/seo-basics/"><span>    </span><span><span>SEO basics</span><span>      </span></span></a></li>
+	<li id="menu-item-2324514"><a href="https://yoast.com/must-reads-for-website-seo/"><span>    </span><span><span>SEO essentials</span><span>      </span></span></a></li>
+	<li id="menu-item-3699893"><a href="https://yoast.com/seo-glossary/"><span>    </span><span><span>SEO glossary</span><span>      </span></span></a></li>
+	<li id="menu-item-3081154"><a href="https://yoast.com/series/seo-news-webinar/"><span>    </span><span><span>SEO news</span><span>      </span></span></a></li>
+	<li id="menu-item-1712747"><a href="https://yoast.com/academy/"><span>    </span><span><span>Yoast SEO Academy</span><span>      </span></span></a></li>
+	<li id="menu-item-3124128"><a href="https://yoast.com/webinar/"><span>    </span><span><span>Webinars</span><span>      </span></span></a></li>
+	<li id="menu-item-3124133"><a href="https://yoast.com/zo-werkt-yoast-seo/"><span>    </span><span><span>Zo werkt Yoast SEO (NL boek)</span><span>      </span></span></a></li>
+</ul>
+</li>
+</ul>		</nav>
+	</div>
+		</div>
+	<footer role="contentinfo">
+		<div>
+			<div>
+				<ul id="menu-legal"><li id="menu-item-1712763"><a href="https://yoast.com/reserved-rights/">Some rights reserved</a></li>
+<li id="menu-item-1712764"><a href="https://newfold.com/privacy-center/privacy">Privacy notice</a></li>
+<li id="menu-item-1712765"><a target="_blank" href="https://yoast.com/terms-of-service/">Terms of service</a></li>
+<li id="menu-item-4555200"><a href="https://legal.newfold.com/TermsOfUse.pdf">Terms of use</a></li>
+<li id="menu-item-3543442"><a target="_blank" href="https://newfold.com/privacy-center/cookie-policy">Cookie notice</a></li>
+<li id="menu-item-1712766"><a href="https://yoast.com/terms-of-service/#h-yoast-refund-policy">Refund policy</a></li>
+<li id="menu-item-3322202"><a href="https://yoast.com/review-notice/">Review notice</a></li>
+<li id="menu-item-4476575"><a href="https://www.newfold.com/abuse">Report abuse</a></li>
+<li id="menu-item-1712767"><a href="https://yoast.com/contact/">Contact us</a></li>
+<li id="menu-item-4452686"><a href="https://www.newfold.com/privacy-center/addendum-for-california-users">Do not sell or share my personal information</a></li>
+</ul>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+			</div>
+			<div>
+				<div>
+					<strong>© 2003-2026 Yoast BV</strong> Yoast is a trademark of Yoast BV				</div>
+				<div>
+												<a href="https://www.facebook.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Facebook</span></a>
+														<a href="https://www.youtube.com/yoast" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Youtube</span></a>
+														<a href="https://www.instagram.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Instagram</span></a>
+														<a href="https://www.linkedin.com/company/yoast-com/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>LinkedIn</span></a>
+											</div>
+			</div>
+		</div>
+			</footer>
+<div>
+	<div id="back-to-top-button__container">
+		<button id="back-to-top-button"><i></i></button>
+	</div>
+</div>
+<link rel="stylesheet" id="newsletter-block-pattern-css" href="https://yoast.com/app/themes/yoast-theme/css/patterns/Newsletter/Newsletter_Block/newsletter-block.min.css?ver=1772455867" media="all" />
+<link rel="stylesheet" id="back-to-top-button-css" href="https://yoast.com/app/themes/yoast-theme/css/includes/back-to-top-button.min.css?ver=1772455867" media="all" />
+</body>
+</html>

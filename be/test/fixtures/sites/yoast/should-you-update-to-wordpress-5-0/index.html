@@ -1,0 +1,2902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="color-scheme" content="only light">
+	<title>Should you update to WordPress 5.0? &#8226; Yoast</title>
+		<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+	<!-- This site is optimized with the Yoast SEO Premium plugin v28.7-RC1 (Yoast SEO v28.7-RC1) - https://yoast.com/product/yoast-seo-premium-wordpress/ -->
+	<meta name="description" content="This post contains our advice on updating to WordPress 5.0 and which considerations you should make *before* updating." />
+	<link rel="canonical" href="https://yoast.com/should-you-update-to-wordpress-5-0/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Should you update to WordPress 5.0?" />
+	<meta property="og:description" content="This post contains our advice on updating to WordPress 5.0 and which considerations you should make *before* updating." />
+	<meta property="og:url" content="https://yoast.com/should-you-update-to-wordpress-5-0/" />
+	<meta property="og:site_name" content="Yoast" />
+	<meta property="article:publisher" content="https://www.facebook.com/yoast" />
+	<meta property="article:author" content="https://www.facebook.com/jdevalk" />
+	<meta property="article:published_time" content="2018-12-04T10:29:58+00:00" />
+	<meta property="article:modified_time" content="2019-01-25T15:03:58+00:00" />
+	<meta property="og:image" content="https://yoast.com/app/uploads/2018/12/Should-you-update-to-WP-5.0.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="628" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta name="author" content="Joost de Valk" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Should you update to WordPress 5.0?" />
+	<meta name="twitter:creator" content="@jdevalk" />
+	<meta name="twitter:site" content="@yoast" />
+	<meta name="twitter:label1" content="Written by" />
+	<meta name="twitter:data1" content="Joost de Valk" />
+	<meta name="twitter:label2" content="Est. reading time" />
+	<meta name="twitter:data2" content="2 minutes" />
+	<script type="application/ld+json">{"@context":"https:\/\/schema.org","@graph":[{"@type":"Article","@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#article","isPartOf":{"@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/"},"author":{"name":"Joost de Valk","@id":"https:\/\/yoast.com\/#\/schema\/person\/2d72f7859830ea2d4a4911795c69dfbb"},"headline":"Should you update to WordPress 5.0?","datePublished":"2018-12-04T10:29:58+00:00","dateModified":"2019-01-25T15:03:58+00:00","mainEntityOfPage":{"@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/"},"wordCount":438,"commentCount":153,"publisher":{"@id":"https:\/\/yoast.com\/#organization"},"image":{"@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2018\/12\/Gutenberg_toys_FI.png","keywords":["Gutenberg","WordPress"],"inLanguage":"en-US","potentialAction":[{"@type":"CommentAction","name":"Comment","target":["https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#respond"]}],"copyrightYear":"2018","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"}},{"@type":"WebPage","@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/","url":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/","name":"Should you update to WordPress 5.0? &#8226; Yoast","isPartOf":{"@id":"https:\/\/yoast.com\/#website"},"primaryImageOfPage":{"@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#primaryimage"},"image":{"@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2018\/12\/Gutenberg_toys_FI.png","datePublished":"2018-12-04T10:29:58+00:00","dateModified":"2019-01-25T15:03:58+00:00","description":"This post contains our advice on updating to WordPress 5.0 and which considerations you should make *before* updating.","breadcrumb":{"@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#breadcrumb"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/"]}]},{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#primaryimage","url":"https:\/\/yoast.com\/app\/uploads\/2018\/12\/Gutenberg_toys_FI.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2018\/12\/Gutenberg_toys_FI.png","width":1201,"height":628,"caption":"Gutenberg"},{"@type":"BreadcrumbList","@id":"https:\/\/yoast.com\/should-you-update-to-wordpress-5-0\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/yoast.com\/"},{"@type":"ListItem","position":2,"name":"SEO blog","item":"https:\/\/yoast.com\/seo-blog\/"},{"@type":"ListItem","position":3,"name":"WordPress","item":"https:\/\/yoast.com\/tag\/wordpress\/"},{"@type":"ListItem","position":4,"name":"Should you update to WordPress 5.0?"}]},{"@type":"WebSite","@id":"https:\/\/yoast.com\/#website","url":"https:\/\/yoast.com\/","name":"Yoast","description":"SEO for everyone","publisher":{"@id":"https:\/\/yoast.com\/#organization"},"potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/yoast.com\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-US","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"}},{"@type":["Organization","Brand"],"@id":"https:\/\/yoast.com\/#organization","name":"Yoast","url":"https:\/\/yoast.com\/","logo":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/","url":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","width":500,"height":500,"caption":"Yoast"},"image":{"@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/"},"sameAs":["https:\/\/www.facebook.com\/yoast","https:\/\/x.com\/yoast","https:\/\/www.instagram.com\/yoast\/","https:\/\/www.linkedin.com\/company\/1414157\/","https:\/\/www.pinterest.com\/yoast\/","https:\/\/www.youtube.com\/yoast","https:\/\/en.wikipedia.org\/wiki\/Yoast","https:\/\/www.tiktok.com\/@yoastseo","https:\/\/g.co\/kgs\/4H5sG2","https:\/\/g.co\/kgs\/a9XfUu"],"numberOfEmployees":81,"founder":{"@type":"Person","name":"Joost de Valk","sameAs":"https:\/\/en.wikipedia.org\/wiki\/Joost_de_Valk"},"foundingDate":"2010-05-01","slogan":"SEO for Everyone","description":"Yoast helps you with your website optimization, whether it be through our widely used SEO software or our online SEO courses: we&#039;re here to help.","legalName":"Yoast BV","parentOrganization":{"@type":"Organization","name":"Newfold Digital","description":"Newfold Digital is a leading web presence solutions provider serving millions of small-to-medium businesses globally.","url":"https:\/\/newfold.com\/","sameAs":["https:\/\/newfold.com\/"],"logo":"https:\/\/yoast.com\/app\/uploads\/2022\/01\/newfold-logo.png"},"memberOf":{"@type":"Organization","name":"World Wide Web Consortium (W3C)","description":"The World Wide Web Consortium (W3C) is an international community that develops open standards to ensure the long-term growth of the Web.","url":"https:\/\/w3.org\/","sameAs":["https:\/\/w3.org\/"],"logo":"https:\/\/www.w3.org\/Icons\/w3c_main.png"}},{"@type":"Person","@id":"https:\/\/yoast.com\/#\/schema\/person\/2d72f7859830ea2d4a4911795c69dfbb","name":"Joost de Valk","image":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/app\/uploads\/2022\/12\/joost-de-valk-96x96.png","url":"https:\/\/yoast.com\/app\/uploads\/2022\/12\/joost-de-valk-96x96.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2022\/12\/joost-de-valk-96x96.png","caption":"Joost de Valk"},"description":"Joost is an internet entrepreneur and the founder of Yoast. He has a long history in WordPress and digital marketing. On our blog, he has written a lot about SEO in general, technical SEO and important topics related to SEO.","sameAs":["https:\/\/joost.blog\/","https:\/\/www.facebook.com\/jdevalk","https:\/\/www.instagram.com\/joostdevalk\/","http:\/\/www.linkedin.com\/in\/jdevalk","https:\/\/x.com\/jdevalk","https:\/\/en.wikipedia.org\/wiki\/Joost_de_Valk","https:\/\/github.com\/jdevalk","https:\/\/joost.blog\/about-me\/","https:\/\/profiles.wordpress.org\/joostdevalk\/","https:\/\/yoast.com\/about-us\/team\/joost-de-valk\/"],"birthDate":"1982-02-16","gender":"male","knowsAbout":["SEO","digital marketing"],"knowsLanguage":["Dutch","English","French","German","Italian"],"jobTitle":"Founder","worksFor":{"@id":"https:\/\/yoast.com\/#organization"}}]}</script>
+	<!-- / Yoast SEO Premium plugin. -->
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel="alternate" type="application/rss+xml" title="Yoast &raquo; Feed" href="https://yoast.com/feed/" />
+<link rel="stylesheet" id="address-autocomplete-billing-block-css" href="https://yoast.com/app/plugins/address-autocomplete/build/style-address-autocomplete-billing-block.css?ver=1.1.2" media="all" />
+<link rel="stylesheet" id="daexthefup-google-font-css" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&#038;&#038;ver=1.14#038;display=swap" media="all" />
+<link rel="stylesheet" id="daexthefup-general-css" href="https://yoast.com/app/plugins/helpful-pro/public/assets/css/general.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="daexthefup-custom-css" href="https://yoast.com/app/uploads/daexthefup_uploads/custom-1.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="select2-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/select2.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-wcaf-css" href="https://yoast.com/app/plugins/yith-woocommerce-affiliates-premium/assets/css/yith-wcaf.min.css?ver=3.12.0" media="all" />
+<link rel="stylesheet" id="brands-styles-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/brands.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-plugin-fw-icon-font-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/plugin-fw/assets/css/yith-icon.css?ver=4.6.5" media="all" />
+<link rel="stylesheet" id="yith-wcmcs-shortcodes-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/assets/css/shortcodes.css?ver=1.36.1-beta-1" media="all" />
+<link rel="stylesheet" id="yoast-com-menu-css" href="https://yoast.com/app/themes/yoast-theme/css/templates/menu.min.css?ver=1782129058" media="all" />
+<link rel="stylesheet" id="yoast-siteheader-css" href="https://yoast.com/app/themes/yoast-com/assets/css/siteheader.min.css?ver=1774510573" media="all" />
+<link rel="stylesheet" id="yoast-com-css" href="https://yoast.com/app/themes/yoast-theme/css/style.min.css?ver=1782290502" media="all" />
+<link rel="stylesheet" id="new-post-css" href="https://yoast.com/app/themes/yoast-theme/css/4-pages/new-post.min.css?ver=1776675829" media="all" />
+<!-- Stream WordPress user activity plugin v4.3.0 -->
+<link rel="manifest" href="/manifest.json" />
+<!-- Google AdSense meta tags added by Site Kit -->
+<meta name="google-adsense-platform-account" content="ca-host-pub-2644536267352236">
+<meta name="google-adsense-platform-domain" content="sitekit.withgoogle.com">
+<!-- End Google AdSense meta tags added by Site Kit -->
+<link rel="icon" href="https://yoast.com/images/yoast_icon_32x32.ico" sizes="any">
+<link rel="icon" href="https://yoast.com/images/yoast_icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://yoast.com/images/yoast_icon_180x180.png">
+</head>
+<body>
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NHRB36F" height="0" width="0"></iframe></noscript>
+		<header>
+	<a id="yoast-skip-link"
+		href="#content">Skip to content</a>
+		<div><button id="close-mobile-search-menu" aria-label="Close"><i aria-hidden="true"></i></button><form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-1" >What are you looking for?</label><div ><input id="wp-block-search__input-1" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form></div><div>
+	<a href="/">
+		<picture>
+			<img id="sticky-menu-logo" width="90" height="40" src="https://yoast.com/app/themes/yoast-theme/images/logo-diap.svg"
+				alt="Yoast - SEO for everyone">
+		</picture>
+	</a>
+			<nav aria-label="Main menu">
+			<div id="main-menu">
+				<ul id="menu-main-menu"><li id="menu-item-3251820"><a href="https://yoast.com/shop/">Plans &amp; pricing</a>
+<ul>
+	<li id="menu-item-4246533"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO: #1 WordPress SEO plugin</span><span>Essential SEO tools for your site</span></span></a></li>
+	<li id="menu-item-4246543"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast WooCommerce SEO</span><span>SEO that scales with your product catalog</span></span></a></li>
+	<li id="menu-item-4256677"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO AI+</span><span>Your complete search visibility package</span></span></a></li>
+	<li id="menu-item-4189500"><a href="https://yoast.com/product/yoast-seo-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Easy SEO, now with AI insights</span></span></a></li>
+	<li id="menu-item-4140280"><a href="https://yoast.com/product/google-docs-addon/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Google Docs Add-On</span><span>Create better content in Google Docs</span></span></a></li>
+	<li id="menu-item-4634954"><a href="https://yoast.com/yoast-partners/resellers/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Get a custom quote</span><span>Got multiple sites? Let's talk</span></span></a></li>
+	<li id="menu-item-4246550"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Premium</span><span>Advanced SEO with real-time guidance and built-in AI</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251898"><a href="https://yoast.com/academy/">Learn SEO</a>
+<ul>
+	<li id="menu-item-3251899"><a href="https://yoast.com/academy/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Academy</span><span>Practical SEO training, from beginner to advanced</span></span></a></li>
+	<li id="menu-item-3251901"><a href="https://yoast.com/academy/free-seo-training-seo-for-beginners/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO for beginners (free course)</span><span>Start developing your SEO skills today</span></span></a></li>
+	<li id="menu-item-3251903"><a href="https://yoast.com/tag/seo-basics/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO basics</span><span>Read up on the basic concepts of SEO</span></span></a></li>
+	<li id="menu-item-3251905"><a href="https://yoast.com/must-reads-for-website-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Ultimate SEO guides</span><span>In-depth articles on core SEO themes</span></span></a></li>
+	<li id="menu-item-4546254"><a href="https://yoast.com/podcasts/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Podcasts</span><span>Stay up to date with expert insights on SEO news and trends</span></span></a></li>
+	<li id="menu-item-3251936"><a href="https://yoast.com/webinar/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Webinars</span><span>Your go-to for expert SEO insights, live and on demand</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251982"><a href="https://yoast.com/seo-blog/">Blog</a>
+<ul>
+	<li id="menu-item-3251980"><a href="https://yoast.com/tag/content-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Content SEO</span><span>Learn about content SEO on our blog</span></span></a></li>
+	<li id="menu-item-3251983"><a href="https://yoast.com/tag/technical-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Technical SEO</span><span>Learn about technical SEO on our blog</span></span></a></li>
+	<li id="menu-item-4634523"><a href="https://yoast.com/developer-blog/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer blog</span><span>Built by engineers, written for engineers</span></span></a></li>
+	<li id="menu-item-4517726"><a href="https://yoast.com/tag/release-post/page/2/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast software news</span><span>Browse our latest product and feature releases</span></span></a></li>
+	<li id="menu-item-3251992"><a href="https://yoast.com/newsletter/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Newsletter</span><span>Sign up for the latest news from Yoast</span><span>Sign up now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252004"><a href="https://yoast.com/help/">Help</a>
+<ul>
+	<li id="menu-item-3252005"><a href="https://yoast.com/help/support/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>WordPress plugins</span><span>Get help with our WordPress plugins</span></span></a></li>
+	<li id="menu-item-3252007"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Get help with Yoast SEO for Shopify</span></span></a></li>
+	<li id="menu-item-3252008"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Help center</span><span>Find out how to use our products</span></span></a></li>
+	<li id="menu-item-3252009"><a href="https://developer.yoast.com/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer resources</span><span>Advanced documentation and product changelogs</span></span></a></li>
+	<li id="menu-item-3252010"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>24/7 support</span><span>Premium support whenever you need</span><span>Get support now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252063"><a href="https://yoast.com/about-us/">About us</a>
+<ul>
+	<li id="menu-item-3929595"><a href="https://yoast.com/about-us/core-values/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Company culture</span><span>Equality, inclusiveness, and empowerment</span></span></a></li>
+	<li id="menu-item-3929607"><a href="https://yoast.com/jobs/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Careers</span><span>Join Yoast, make an impact</span></span></a></li>
+	<li id="menu-item-3252060"><a href="https://yoast.com/about-us/community/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Community</span><span>Giving back to our community</span></span></a></li>
+	<li id="menu-item-4634516"><a href="https://yoast.com/case-studies"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Case studies</span><span>Growth stories from brands like yours</span></span></a></li>
+	<li id="menu-item-3252069"><a href="https://yoast.com/wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast and WordPress</span><span>Yoast in the WordPress ecosystem</span></span></a></li>
+	<li id="menu-item-4627269"><a href="https://yoast.com/about-us/events/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Events</span><span>Network, learn, grow</span></span></a></li>
+	<li id="menu-item-3929437"><a href="https://yoast.com/about-us/team/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Team and leadership</span><span>Meet the Yoasters</span></span></a></li>
+</ul>
+</li>
+<li><div>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+</div></li></ul>			</div>
+		</nav>
+					<div>
+				<a
+					href="https://yoast.com/download-yoast-seo/">
+					Download FREE<img src="https://yoast.com/app/uploads/2025/11/download_icon.svg" alt="">				</a>
+			</div>
+<ul>
+	<li>
+		<button id="main-menu-search-container"
+				aria-label="Open search box"><i
+			></i></button>
+		<div>
+			<div>
+				<form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-2" >What are you looking for?</label><div ><input id="wp-block-search__input-2" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form>			</div>
+		</div>
+	</li>
+	<li>
+		<a href="https://my.yoast.com/"
+			aria-label="">
+			<i></i>
+			<span>Login</span>
+		</a>
+			</li>
+		<li>
+			<a href="https://yoast.com/checkout/"
+				aria-label="Cart">
+				<i></i>
+				<span>Cart</span>
+				<div>
+					<span></span>
+				</div>
+			</a>
+		</li>
+	<li>
+		<button type="button"
+			 aria-expanded="false">
+			<span>Search</span>
+			<span aria-hidden="true">
+				<i></i>
+			</span>
+		</button>
+	</li>
+	<li>
+		<button type="button"
+			 id="mobile-show-nav" aria-expanded="false">
+			<span>Navigation menu</span>
+			<span aria-hidden="true">
+				<span></span>
+				<span></span>
+				<span></span>
+			</span>
+		</button>
+	</li>
+</ul>
+</div>
+		<div>
+			<div></div>
+			<div></div>
+		</div>
+	</header>
+<div></div>
+	<div>
+		<main id="content">
+	<nav aria-label="You are here:">
+		<ol><li><a href="https://yoast.com/" aria-label="Home"><i aria-hidden="true"></i></a></li>  <li><a href="https://yoast.com/seo-blog/">SEO blog</a></li>  <li><a href="https://yoast.com/tag/wordpress/">WordPress</a></li>  <li aria-current="page">Should you update to WordPress 5.0?</li></ol>	</nav>
+			<article>
+				<header>
+<h1>
+	Should you update to WordPress 5.0?</h1>
+					<div>
+							<span>Dec 4, 2018</span>
+		<span>
+		<a href="https://yoast.com/should-you-update-to-wordpress-5-0/#comments">153</a>
+	</span>
+	<span>
+		<a href="https://yoast.com/tag/gutenberg/" rel="tag">Gutenberg</a>,&nbsp;<a href="https://yoast.com/tag/wordpress/" rel="tag">WordPress</a>	</span>
+									<span><a href="https://yoast.com/about-us/team/joost-de-valk/">Joost de Valk</a></span>
+													</div>
+						<picture>
+		<img
+		fetchpriority="high"
+		width="400"
+		height="210"
+		decoding="async"
+		loading="eager"
+		sizes="(max-width: 1012px) 100vw, 1012px"
+		src="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=scale-down%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png"
+		srcset="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 400w, https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 800w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 600w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 1200w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 800w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 1600w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 1012w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/12/Gutenberg_toys_FI.png 2024w"
+		alt=""
+		>
+	</picture>
+					</header>
+				<div>
+					<aside>
+<div>
+			<figure>
+		<img src="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg" srcset="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 75w, https://yoast.com/cdn-cgi/image/width=150,height=150,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 150w" width="75" height="75" alt="" loading="lazy" decoding="async" fetchpriority="low" sizes="(min-width: 1321px) 75px" />		</figure>
+	<h2>Get Yoast SEO Premium</h2>
+	<p>Drive <strong>more traffic </strong>to your site. Use <strong>AI to save time</strong> doing SEO tasks. Make <strong>SEO easier</strong>. And get <strong>24/7 support.</strong></p>
+<p><strong>Includes Local SEO, Video SEO &amp; News SEO.</strong></p>
+<p>&nbsp;</p>
+				<div>
+			<span><strong><span><span>&#036;</span>118.80</span></strong>&nbsp;<small>/ year (ex. VAT)</small></span>
+		</div>
+		<div><a href="https://yoast.com/cart/?add-to-cart=4113952" rel="nofollow">Get Yoast SEO Premium&nbsp;<span aria-hidden="true">&raquo;</span></a></div>		<div>
+		<div><a href="https://www.trustpilot.com/review/yoast.com" target="_blank"><h3>Reviews from real users</h3><span>Rated 4.6 stars by 819 users</span><div aria-hidden="true"><div><div></div></div> 4.6 / 5 </div><span> (opens in a new tab)</span></a></div>		</div>
+		</div>
+					</aside>
+					<p>WordPress 5.0 is coming out December 6th, or, as I&#8217;m writing this, the day after tomorrow. This came as a surprise to us, as this release date has only been communicated to the community <a href="https://make.wordpress.org/core/2018/12/04/new-5-0-target-date/">today</a>. Given this short notice, we thought it would be wise to give you advice on what you should do. Note that Yoast SEO has been ready for this release for a few weeks.</p>
+<p><strong>Update January 21, 2019: </strong>We&#8217;re happy to announce we feel <a href="https://yoast.com/on-gutenberg-and-wordpress-5-0/">it&#8217;s safe to update to WordPress 5.0 now</a>! Always make sure to <a href="https://yoast.com/how-to-test-wordpress/">test</a>, though.</p>
+<p>There are several decisions you should make <em>before</em> updating to WordPress 5.0:</p>
+<ul>
+<li>Is <em>now</em> the right time to update?</li>
+<li>Can your site work with Gutenberg?</li>
+<li>Do you need it?</li>
+</ul>
+<h2>Is <em>now</em> the right time to update?</h2>
+<p>If you have a holiday coming up, or if this is a busy time in your company&#8217;s or site&#8217;s yearly calendar: postpone updating. Everything in this release will still be there in January. In fact, as multiple patch releases are being planned already, it&#8217;s probably going to be more stable in January.</p>
+<h2>Can your site work with Gutenberg?</h2>
+<p>WordPress 5.0 introduces Gutenberg. Gutenberg changes the way the editor works in WordPress, read <a href="https://yoast.com/what-is-gutenberg/">this post</a> if you don&#8217;t know what it is. Overall, we think it&#8217;s an improvement.</p>
+<p>But not all plugins are ready, and it&#8217;s important to know if the plugins you are using are ready before you hit update. If you only run Yoast SEO, you&#8217;re fine. If you run other plugins that integrate with the editing experience, make sure to check (either by testing or checking the plugins documentation) that they&#8217;re ready for, or at least &#8220;work with&#8221; Gutenberg. If they don&#8217;t, install and activate the <a href="https://wordpress.org/plugins/classic-editor/">Classic editor plugin</a> before updating.</p>
+<h2>Do you need WordPress 5.0?</h2>
+<p>If there is no compelling reason for you to update, our suggestion is going to be: wait. WordPress 5.0 will probably be more stable in January than it is now. Let&#8217;s be clear: we absolutely love Gutenberg and <a href="https://yoast.com/yoast-seo-in-wordpress-5-0/">what Yoast SEO looks like in Gutenberg</a>. The Schema blocks we&#8217;ve added are very cool. Yoast SEO is ready. We don&#8217;t think WordPress 5.0 is as stable as it should be.</p>
+<p><strong>So our advice boils down to: if you <em>can</em> wait, wait. </strong></p>
+<h2>When you upgrade to WordPress 5.0</h2>
+<p>When you upgrade, please, as always: make a backup. If you <em>have</em> a staging environment, please use it. If you don&#8217;t have one, and your site is critical to your business, get one. This goes for every major software release though, not just this one.</p>
+						<div>
+		<p>Share this post</p>
+		<a
+			rel="nofollow"
+			href="https://twitter.com/share?url=https%3A%2F%2Fyoast.com%2Fshould-you-update-to-wordpress-5-0%2F&#038;via=yoast&#038;text=Should%20you%20update%20to%20WordPress%205.0%3F%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on X"
+			aria-label="Share on X"
+		>
+			<span>Share on X</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://www.linkedin.com/shareArticle?url=https%3A%2F%2Fyoast.com%2Fshould-you-update-to-wordpress-5-0%2F&#038;title=Should%20you%20update%20to%20WordPress%205.0%3F%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on LinkedIn"
+			aria-label="Share on LinkedIn"
+		>
+			<span>Share on LinkedIn</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://wa.me/?text=Should%20you%20update%20to%20WordPress%205.0%3F%20by%20Yoast%20-%20https%3A%2F%2Fyoast.com%2Fshould-you-update-to-wordpress-5-0%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on WhatsApp"
+			aria-label="Share on WhatsApp"
+		>
+			<span>Share on WhatsApp</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://telegram.me/share/url?url=https%3A%2F%2Fyoast.com%2Fshould-you-update-to-wordpress-5-0%2F&#038;text=Should%20you%20update%20to%20WordPress%205.0%3F%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Telegram"
+			aria-label="Share on Telegram"
+		>
+			<span>Share on Telegram</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://mastodonshare.com/?text=Should%20you%20update%20to%20WordPress%205.0%3F%20by%20Yoast&#038;url=https%3A%2F%2Fyoast.com%2Fshould-you-update-to-wordpress-5-0%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Mastodon"
+			aria-label="Share on Mastodon"
+		>
+			<span>Share on Mastodon</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			title="Copy to clipboard"
+			aria-label="Copy to clipboard"
+		>
+			<span>Copy to clipboard</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			aria-label="Share"
+		>
+			<i aria-hidden="true"></i>
+			<span>Share</span>
+		</a>
+	</div>
+					<div>
+						<div>
+	<figure><img srcset="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,dpr=2,onerror=redirect/app/uploads/2020/12/joost_bubble-250x281.png 2x, https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2020/12/joost_bubble-250x281.png 1x" src="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2020/12/joost_bubble-250x281.png" width="75" height="85" alt="Avatar of Joost de Valk" loading="lazy" decoding="async" fetchpriority="low" /></figure>	<div>
+					<span>
+				<a href="https://yoast.com/about-us/team/joost-de-valk/">
+					Joost de Valk				</a>
+			</span>
+					<p>Joost is an internet entrepreneur and the founder of Yoast. He has a long history in WordPress and digital marketing. On our blog, he has written a lot about SEO in general, technical SEO and important topics related to SEO.</p>
+			</div>
+</div>
+<hr/>
+					</div>
+							<div id="comments">
+			<h3>Discussion (153)</h3>
+			<div>
+	<ol>
+			<li		id="comment-1328602">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='kenneth65' src='https://secure.gravatar.com/avatar/cc1bd56b4af007fc3762cf1089e5154fd948131c25d0d7d7562c8e058599dcfc?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/cc1bd56b4af007fc3762cf1089e5154fd948131c25d0d7d7562c8e058599dcfc?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>kenneth65</span>
+				<span>Dec. 18, 2018</span>
+			</div>
+			<div>
+				<p>I don&#8217;t know if the mistake is coming from my end, but i could use Yoast when i installed Disable Gutenberg By  Jeff Starr. But when i deactivate the plugin, the active functions of Yoast cease, it just keeps showing the red sign, but in classic editor, i tend to see that my page is optimized with green sign on Readability and SEO. What could the problem? I have also deactivated all plugins temporarily.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1327674">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Kathy Voth' src='https://secure.gravatar.com/avatar/9b0a9c0ff9f583f6d88e6076a0ef7060518a39212bd0c39ab9d9db865e4f0878?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9b0a9c0ff9f583f6d88e6076a0ef7060518a39212bd0c39ab9d9db865e4f0878?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Kathy Voth</span>
+				<span>Dec. 17, 2018</span>
+			</div>
+			<div>
+				<p>I hate WordPress 5.0. I&#8217;m building a brand new site in Gutenberg and the new editing system is  clunky and painful to work with. No, I DON&#8217;T want to have a new section for a title. It was so much easier to just highlight the words I wanted to turn into a title and change them. NO &#8211; I DON&#8217;T want a new section for each paragraph. Just let me hit return and add a paragraph. Adding images has become painful. Before all I had to do was click where I wanted the picture to be and add it in. Now I have to add a new section, put the image in, click up and up and up to position the image, and then click some more to get it to right, left or center justify, and then drag it to the size I need. What a waste of my time!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1325633">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='jan' src='https://secure.gravatar.com/avatar/290786ca49ba23abd43e01196396ba4fd8f308b8742b3cdc66c900e6685a98ad?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/290786ca49ba23abd43e01196396ba4fd8f308b8742b3cdc66c900e6685a98ad?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>jan</span>
+				<span>Dec. 16, 2018</span>
+			</div>
+			<div>
+				<p>I updated to WordPress 5.01 yesterday. Since then i was not able to update my pages anymore. The Editor was not working. I cant switch to visual or text version of editor&#8230;just whitescreen inside page content. I found out that yoast Plugin seemed to cause the issue. As Yoast answered in some comments below here there is a conflict between yoast and other plugins. Yoast by itself works great with wordpress 5.0 or 5.01. At my place it was a conflict with the Typeform Plugin. When i disable Typeform Plugin i can use yoast with wordpress 5.0 again and everything works fine.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1324721">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='GasTheSmall' src='https://secure.gravatar.com/avatar/3cf72c1a4bbba419580553473b56eeb153937d5bff2642acbf00af3df612629f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3cf72c1a4bbba419580553473b56eeb153937d5bff2642acbf00af3df612629f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>GasTheSmall</span>
+				<span>Dec. 15, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the post m8s, thank to my self too for search and read this.<br />
+With all these comments i ll hold my horse who was in hurry to update and i ll go for it at 2020&#8230; at least&#8230;lol<br />
+I had lots of accidents with wordpress and always i have a ready backup not only before a major update but even for a simple plugin update!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1322616">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Stuart Brown' src='https://secure.gravatar.com/avatar/ebb9c18b49f241b51502f0b95bd130b2b5f46554d78232feace7fe1dec2fec77?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ebb9c18b49f241b51502f0b95bd130b2b5f46554d78232feace7fe1dec2fec77?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Stuart Brown</span>
+				<span>Dec. 14, 2018</span>
+			</div>
+			<div>
+				<p>Tried the Gutenberg plug-in a while back, had to uninstall it because I just couldn&#8217;t my head around it, found the site became un-editable.</p>
+<p>I&#8217;m going to take your advice and wait until after the holiday period, then update and install the classic editor plug-in. Gutenberg may be great for website developers but for anyone like myself just wanting to operate a website, it feels like an unnecessary distraction.</p>
+<p>Thanks for another great post.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1321323">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Natalie Hornyak' src='https://secure.gravatar.com/avatar/d3ce357e199df76a792efe733e861a0673be7e0b88c9c724c355b9dd0e1e08a2?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d3ce357e199df76a792efe733e861a0673be7e0b88c9c724c355b9dd0e1e08a2?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Natalie Hornyak</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for the guidance. I&#8217;ve been wary about the 5.0 update myself, not just because I find the Gutenberg experience to be lacking in terms of UX, but also because WP seemed like they rushed this version out the door. I&#8217;m usually aggressive about keeping my software up-to-date for security reasons, but I&#8217;m definitely on the side of &#8220;Wait for further patches&#8221; right now.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1317621">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Lauren' src='https://secure.gravatar.com/avatar/14c741fa6b983f5e55c44b53e38617ac20333c7b4c41b4af0599d7bd731ea64a?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/14c741fa6b983f5e55c44b53e38617ac20333c7b4c41b4af0599d7bd731ea64a?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Lauren</span>
+				<span>Dec. 12, 2018</span>
+			</div>
+			<div>
+				<p>It is SO SLOW! It is taking me forever just to do something as simple as changing paragraph text to header text??!??</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319803">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>Yeah it can be excruciatingly slow. If you install and activate the Gutenberg plugin, version 4.7, you should have a way better experience already. The code in that version will be shipped in WordPress 5.0.2.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1317377">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Nancy Vaughn' src='https://secure.gravatar.com/avatar/dc7dd76a6df41b9c27e767d4b83ce007245b9ec36e1a9ccb42921d235b129c3f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/dc7dd76a6df41b9c27e767d4b83ce007245b9ec36e1a9ccb42921d235b129c3f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Nancy Vaughn</span>
+				<span>Dec. 12, 2018</span>
+			</div>
+			<div>
+				<p>I am a retired person and just going to start learning WordPress to create a website for a non-profit organization. It will have very little blogging on it and be more of a website displaying information about the organization.<br />
+I have read through all your great posts and my question is would you suggest I jump right in and learn Gutenberg or install the Classic Version and learn it instead?<br />
+Thank you for any advice you might provide.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319868">
+		<div>
+			<div>
+				<figure>
+					<img alt='Richard Hamel' src='https://secure.gravatar.com/avatar/526c1d598bb4753e07d844930f10b417f1d3da72bea452bdcbeb83ae53005b0f?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/526c1d598bb4753e07d844930f10b417f1d3da72bea452bdcbeb83ae53005b0f?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Richard Hamel</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>Nancy,<br />
+If you are a novice at website development you&#8217;ll want to look into a theme that does a lot of the heavy lifting for you. Something with a drag-and-drop interface. Then it&#8217;s just a matter of placement and content development.<br />
+Just a couple of days ago I created a post on this topic &#8220;How to Make a Charity Website&#8221;.<br />
+It&#8217;s good that you&#8217;re doing this site for your nonprofit. Best luck to you.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1319802">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>Gutenberg! It&#8217;s the way of the future :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1317164">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Lee-Anne' src='https://secure.gravatar.com/avatar/b809515f5df29ebccbdb42d203173e6fb73d82cf6a686035d9303b8475195415?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/b809515f5df29ebccbdb42d203173e6fb73d82cf6a686035d9303b8475195415?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Lee-Anne</span>
+				<span>Dec. 12, 2018</span>
+			</div>
+			<div>
+				<p>If you rely on Yoast SEO don&#8217;t upgrade to 5.0, wait until they release &#8216;fixes&#8217; versions. I only started my WordPress site 2 weeks ago so Gutenberg is all I know. Yoast came highly recommended so I installed the plugin. The Yoast SEO plugin doesn&#8217;t work with Gutenberg. All my posts are in Gutenberg and switching to classic editor at this stage causes more problems than good.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319801">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>I have to say this surprises me. Yoast SEO really does work very well with Gutenberg, if it doesn&#8217;t, another plugin is preventing it from working well.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1316137">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Adeyemi' src='https://secure.gravatar.com/avatar/3b99a7acc6a87753b112fb745e2b02f6b789cfeebe804181501ff7405dac3c31?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3b99a7acc6a87753b112fb745e2b02f6b789cfeebe804181501ff7405dac3c31?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Adeyemi</span>
+				<span>Dec. 11, 2018</span>
+			</div>
+			<div>
+				<p>I should have read this article before updating to WordPress 5.0. Now yoast seo isn&#8217;t working for me.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319800">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>Yoast SEO should work just fine, if it&#8217;s broken that&#8217;s because of another plugin interacting with it.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1316079">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Shelley' src='https://secure.gravatar.com/avatar/3c174157a013c340c893652fefc1c71f2ae3d7989b29190767ab199001665c6f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3c174157a013c340c893652fefc1c71f2ae3d7989b29190767ab199001665c6f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Shelley</span>
+				<span>Dec. 11, 2018</span>
+			</div>
+			<div>
+				<p>I was having problems with Yoast BEFORE I updated.   In the &#8220;Readability Analysis&#8221; and &#8220;Focus Keyword&#8221; sections there is a green loading circle that keeps swirling but doesn&#8217;t stop.  I am not able to change anything in that area.  Also, my photo sizes can&#8217;t be changed either and when I try to add a link at the bottom of my post, the task bar does not show up unless I scroll up to the top.  Usually, the task bar is seen near where I am trying to add the link.  </p>
+<p>This was happening yesterday before I upgraded to WordPress 5.  I thought maybe that was the problem so I upgraded (keeping the classic style) and it still shows this way.  Help!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319753">
+		<div>
+			<div>
+				<figure>
+					<img alt='Ben Vaassen' src='https://secure.gravatar.com/avatar/c1998212a1e38a9c68fb3b59e7982395ea859f4e22d12a5af7104c9cb69e04ed?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c1998212a1e38a9c68fb3b59e7982395ea859f4e22d12a5af7104c9cb69e04ed?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Ben Vaassen</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>Hi Shelley, </p>
+<p>I’m sorry to hear that. There might be a conflict with another plugin or theme. I’d suggest performing a conflict check with other plugins and your theme. You can use our guide here if you don’t know how: <a href="https://yoast.com/help/how-to-check-for-plugin-conflicts/" rel="ugc">https://yoast.com/help/how-to-check-for-plugin-conflicts/</a>.</p>
+<p>If you need further support, I’d like to refer you to <a href="https://yoa.st/support" rel="nofollow ugc">https://yoa.st/support</a>. Good luck!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1314935">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Christine' src='https://secure.gravatar.com/avatar/ff244f35a3bccebd058d27552588e5ad41a8123dbfb3e814c826189822cf9640?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ff244f35a3bccebd058d27552588e5ad41a8123dbfb3e814c826189822cf9640?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Christine</span>
+				<span>Dec. 11, 2018</span>
+			</div>
+			<div>
+				<p>I just updated to the new version of WordPress, and decided to use the classic editor plugin.  Yoast is the only plugin that is no longer working for me&#8230;super frustrating.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319722">
+		<div>
+			<div>
+				<figure>
+					<img alt='Ben Vaassen' src='https://secure.gravatar.com/avatar/c1998212a1e38a9c68fb3b59e7982395ea859f4e22d12a5af7104c9cb69e04ed?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c1998212a1e38a9c68fb3b59e7982395ea859f4e22d12a5af7104c9cb69e04ed?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Ben Vaassen</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>Hi Christine, </p>
+<p>I’m sorry to hear that. There is probably a conflict with another plugin (we had similar reports with older versions of WPML and Pods – Custom Content Types and Fields). Update them, and if you aren’t using either, I’d suggest performing a conflict check with other plugins and your theme. You can use our guide here if you don’t know how: <a href="https://yoast.com/help/how-to-check-for-plugin-conflicts/" rel="ugc">https://yoast.com/help/how-to-check-for-plugin-conflicts/</a>. </p>
+<p>And for further support, I’d like to refer you to <a href="https://yoa.st/support" rel="nofollow ugc">https://yoa.st/support</a>. Good luck!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1317195">
+		<div>
+			<div>
+				<figure>
+					<img alt='Ashish' src='https://secure.gravatar.com/avatar/a167d479c6b51bae860dfef580b3938ae6debe9ce43e4f6105e9fb8322c15d22?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a167d479c6b51bae860dfef580b3938ae6debe9ce43e4f6105e9fb8322c15d22?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Ashish</span>
+				<span>Dec. 12, 2018</span>
+			</div>
+			<div>
+				<p>Same issue with multiple sites, Yoast is conflicting with WP5.0 or and Page  editor.</p>
+<p>I am using DIVI and DIVI editor is conflicting with yoast, even the normal  classic editor is not working.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1312500">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Hema Magesh' src='https://secure.gravatar.com/avatar/0e80641c65b2ad778a354d1c2c6c47ce897e343acb744ffe39427aa0a39a772f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/0e80641c65b2ad778a354d1c2c6c47ce897e343acb744ffe39427aa0a39a772f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Hema Magesh</span>
+				<span>Dec. 10, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the timely write up.I did not update, though I have the classic editor installed.But I have a lot of plugins on my site, and most of them have released updates with gutenberg compatibility. Without any second thoughts, I have updated them all.Waiting for updates for the remaining plugins as well.So far no problem.But suddenly having a feel that when gutenberg itself is not activated, what will become of the plugins which are updated with gutenberg in mind.Am I doing right? Should I continue to update my plugins, even though I have not activated gutenberg? Or should the plugins also not be updated? Pl guide.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319804">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>We, as Yoast, support both classic and Gutenberg. I think that&#8217;ll go for most major plugins for a while.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1316809">
+		<div>
+			<div>
+				<figure>
+					<img alt='Dragan Blom' src='https://secure.gravatar.com/avatar/89f718179e10e78cbc8334cc7747fa66ca1d186721f007ad4e605e0157a76486?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/89f718179e10e78cbc8334cc7747fa66ca1d186721f007ad4e605e0157a76486?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Dragan Blom</span>
+				<span>Dec. 12, 2018</span>
+			</div>
+			<div>
+				<p>Same here, updated all the plugs but am cautious with 5.0 WP and now the site seems slower than it was.. Should have waited with all the new updates i guess, lesson learned.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1311493">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Escay' src='https://secure.gravatar.com/avatar/a36575cbc1eaff96e91d8af5a3f1340035d2f67bcf593b53c0cfd2002f54954d?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a36575cbc1eaff96e91d8af5a3f1340035d2f67bcf593b53c0cfd2002f54954d?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Escay</span>
+				<span>Dec. 09, 2018</span>
+			</div>
+			<div>
+				<p>Well, luckily for me am coming to WordPress from Joomla! and i landed on WP 4.9.8, which had Gutenberg already. I tried it and loved right way. I only used the classic editor once and the rest of my WordPress time (3 weeks) has been with Gutenberg. And for plugins, they are very few for me and are all alreday compatible. If I delay my upgrade its only because i want the CMS to be more stable. Other wise, i love Gutenberg.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1311264">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Tunde Sanusi (Tuham)' src='https://secure.gravatar.com/avatar/c6ccae5ee24bc9b298b70d19c062bd96520c2c66e781aa49eb7e1ea008d6656b?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c6ccae5ee24bc9b298b70d19c062bd96520c2c66e781aa49eb7e1ea008d6656b?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Tunde Sanusi (Tuham)</span>
+				<span>Dec. 09, 2018</span>
+			</div>
+			<div>
+				<p>WordPress 5.0 i believe is going to pretty cool except that only the Gutenberg..<br />
+ Hopefully one can switch to the Classis editor</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1311301">
+		<div>
+			<div>
+				<figure>
+					<img alt='Richard' src='https://secure.gravatar.com/avatar/ec55616d1f25bc5b50ff39b5dcfbe94bfcd7f77db1971c40ee5f391bbd0a78c2?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ec55616d1f25bc5b50ff39b5dcfbe94bfcd7f77db1971c40ee5f391bbd0a78c2?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Richard</span>
+				<span>Dec. 09, 2018</span>
+			</div>
+			<div>
+				<p>You can switch back to the classic editor by using the classic editor plugin:</p>
+<p><a href="https://wordpress.org/plugins/classic-editor/" rel="nofollow ugc">https://wordpress.org/plugins/classic-editor/</a></p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1311247">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Steve' src='https://secure.gravatar.com/avatar/3fc93ba7984b0c30daa79b38d121b6ee114636b0b2c782aa5f5f920767021476?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3fc93ba7984b0c30daa79b38d121b6ee114636b0b2c782aa5f5f920767021476?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Steve</span>
+				<span>Dec. 09, 2018</span>
+			</div>
+			<div>
+				<p>I had to use a plugin called &#8220;Disable Gutenberg&#8221; to my site back the way it was. Boy was I freaking out.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1311134">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Mediadise' src='https://secure.gravatar.com/avatar/41ade1a27d3b359f8013fba0e58639d997333bab20caff899d1ee31539d7066c?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/41ade1a27d3b359f8013fba0e58639d997333bab20caff899d1ee31539d7066c?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Mediadise</span>
+				<span>Dec. 09, 2018</span>
+			</div>
+			<div>
+				<p>i updated already &#8212; and so far, it&#8217;s been complicated to make a post.<br />
+As a matter of fact I cant &#8212; not because i cant try&#8230; but because its so uninspiring (I mean its scattered!).</p>
+<p>I&#8217;m searching for how to revert to the previous version.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1310499">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Masud Pilot' src='https://secure.gravatar.com/avatar/73abc86082d61ae98e681353b6599553e1c69308140450c71ed3fb3d039896a4?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/73abc86082d61ae98e681353b6599553e1c69308140450c71ed3fb3d039896a4?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Masud Pilot</span>
+				<span>Dec. 09, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for your informative opinion. I think they aren&#8217;t genius except their business. They hadn&#8217;t thought what will happen to millions of websites if they publish this major update, though some events are coming near. There&#8217;s nothing do to except wait until it&#8217;s gonna be stable.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1310376">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Steven' src='https://secure.gravatar.com/avatar/3fc93ba7984b0c30daa79b38d121b6ee114636b0b2c782aa5f5f920767021476?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3fc93ba7984b0c30daa79b38d121b6ee114636b0b2c782aa5f5f920767021476?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Steven</span>
+				<span>Dec. 09, 2018</span>
+			</div>
+			<div>
+				<p>I just updated to 5.0 and it destroyed everything.  All the Microsoft office word docs. the cells, text don&#8217;t line up now.  Everything is jumbled up on the website but in the wordpress work area is all one narrow scrunched up margin. I&#8217;m unable to use those MS word docs now.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1310079">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Charlene' src='https://secure.gravatar.com/avatar/d3fbf7415442e8e57a3abc936f5a5ed1b6a5c74b00d61730c0459bc73b13a58b?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d3fbf7415442e8e57a3abc936f5a5ed1b6a5c74b00d61730c0459bc73b13a58b?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Charlene</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>My site updated automatically and it really screwed things up.  I was almost done preparing for a big Launch and was almost done uploading all my products and new blogs when this happened.   Now I have to restore to my site to where it was over a week ago to reload my old version of WordPress (and disable the automatic updates!!!).   Then start over reloading all my products again.  And re-writing my blogs.  Not happy at all.  You can tell these techie idiots don&#8217;t have to run a business.   To do this right before Christmas was unconscionable.   I am looking at a very long weekend of work to correct this.  :-(  I hate WordPress 5.0.  I hate the format too and had already installed the Classic Edit plugin.  Unfortunately, it didn&#8217;t solve the other conflict issues.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1309937">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='SUMANTA SAHU' src='https://secure.gravatar.com/avatar/1695a952f1b0fe70fcc00f984328b030c4a04fcc7bb66ce9f639201ebca0787f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/1695a952f1b0fe70fcc00f984328b030c4a04fcc7bb66ce9f639201ebca0787f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>SUMANTA SAHU</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>Waoo! Gutenberg brought the new modern life to my site.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1309674">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Jan Jansen' src='https://secure.gravatar.com/avatar/9753a1c37c9dc27f91dada2ed195ff288f417a56cfe5bed2ab20e5ebd088b901?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9753a1c37c9dc27f91dada2ed195ff288f417a56cfe5bed2ab20e5ebd088b901?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Jan Jansen</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>WordPress 5.0 doesn&#8217;t work for me (yet). The nice thing of the WordPress to me is WYSIWYG. Now what you see in the editor is not the same when you publish it. The layout is also too narrow. For instance in the editor you can see 2 images besides each other, whereas when I publish it I see 3 images besides each other.<br />
+And yeah you can you a classic editor but till 2021. Hopefully by then this problem will be resolved.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1309326">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Amit Abhishek' src='https://secure.gravatar.com/avatar/f4dc5e4d9353aa7ddf4af4574fd56ec2d5efefe29450a4a60246a2a10c7b414f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f4dc5e4d9353aa7ddf4af4574fd56ec2d5efefe29450a4a60246a2a10c7b414f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Amit Abhishek</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>I just updated my wordpress to 5.0 and guess what it is way more slow to use specially the editor on my web browser. I don&#8217;t know how to revert to the old one. I hope i could have read the blog before and skip the update but the damage is done. Any help would be very welcome.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1309110">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Elvis Grag' src='https://secure.gravatar.com/avatar/dec03e581f514ce836dd4b2a8702e2a36843ec4f2e8b837d1e73de189260dab8?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/dec03e581f514ce836dd4b2a8702e2a36843ec4f2e8b837d1e73de189260dab8?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Elvis Grag</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>Thank you so much! That was really, really helpful!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1308273">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost' src='https://secure.gravatar.com/avatar/a61a5b52e7ee5730a6872439528119bd7744bbfc5b92af7c76518e6f06bcb8df?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a61a5b52e7ee5730a6872439528119bd7744bbfc5b92af7c76518e6f06bcb8df?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Joost</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>Thanks, I&#8217;ll hold my horse as they say and wait for the new year.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1308242">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Susan' src='https://secure.gravatar.com/avatar/5043aa206a36103682836863f12d9208e49385a6b0dfc88ef17f7adca1fcc106?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5043aa206a36103682836863f12d9208e49385a6b0dfc88ef17f7adca1fcc106?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Susan</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>My hosting company did an automatic update to 5.0 and now I can&#8217;t edit any posts.  Reverted successfully to 4.9.8.  Frustrating.  So, NO, you should not update to 5.9</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1307979">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Sam' src='https://secure.gravatar.com/avatar/6ff7b98ab63ca289258b096821179f5e2321e5a63acd674231f780893631fb38?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/6ff7b98ab63ca289258b096821179f5e2321e5a63acd674231f780893631fb38?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Sam</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>I am not sure why they release such an update just before a busy period for a lot of sites. Not sure if they thought this true. We updated only on our staging site and there are some weird things going on. Luckily, not on the live sit.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1307197">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='alibz' src='https://secure.gravatar.com/avatar/4557d48d4a412e2c86c902f47688bd94f95ac6542114cdcfd109f4c7e7bf88a0?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/4557d48d4a412e2c86c902f47688bd94f95ac6542114cdcfd109f4c7e7bf88a0?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>alibz</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>Yes, I updated, and now I have a very weird problem<br />
+Added a CSS file to the site that has 404 : style.min-rtl.css?ver=5.0</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1323464">
+		<div>
+			<div>
+				<figure>
+					<img alt='Mahmoud Hanafy' src='https://secure.gravatar.com/avatar/f65f4f27b335cd31f2f0edc40cf5b21a5975e999a3dfe52c00e967e3b6cc6dbf?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f65f4f27b335cd31f2f0edc40cf5b21a5975e999a3dfe52c00e967e3b6cc6dbf?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Mahmoud Hanafy</span>
+				<span>Dec. 14, 2018</span>
+			</div>
+			<div>
+				<p>i have the same problem<br />
+if any one can help us in this prob<br />
+i&#8217;ll be very grateful really</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1307037">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Nepal Pyramids' src='https://secure.gravatar.com/avatar/d465cd0b1d7100f2fc59c2a9bedb0c70c69b9f4d25325654a2f660ce9125f61c?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d465cd0b1d7100f2fc59c2a9bedb0c70c69b9f4d25325654a2f660ce9125f61c?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Nepal Pyramids</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>Thank you so much that was really really  helpful &#8212; though i have already downloaded and activated the classical editor plugin yet im not updating to 5.0 &#8212; id rather wait &#8212;<br />
+once gain thanks</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1307036">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Rmaan' src='https://secure.gravatar.com/avatar/a0b81afbf675016db7be5c859f70ea77d6fc3447d44dae80a34e6236f1a6fa8f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a0b81afbf675016db7be5c859f70ea77d6fc3447d44dae80a34e6236f1a6fa8f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Rmaan</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>i was using gutenberg for while and wrote some article with that<br />
+but when update to wp5.0 all my style that gutenberg made to my blocks gone , i activate gutenberg again on wordpress 5.0 !</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1306793">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Muhammad Sajjad' src='https://secure.gravatar.com/avatar/ca9d2389645ceb73a9314123fb521acac42e27961878d1a2059a0d7f30c2beda?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ca9d2389645ceb73a9314123fb521acac42e27961878d1a2059a0d7f30c2beda?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Muhammad Sajjad</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>Very good advice&#8230; we should wait a bit and let all the installed plugins be updated.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1306166">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Ryan Whitley' src='https://secure.gravatar.com/avatar/b11295ce083f092de3f2b9049e58c5a5aca4ea7cd0e329c73d070cd7fbfb8011?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/b11295ce083f092de3f2b9049e58c5a5aca4ea7cd0e329c73d070cd7fbfb8011?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Ryan Whitley</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>So many people complaining bout this update&#8230;boggles my mind a bit why people are freaking out so much. They&#8217;ve made the entire process 100% optional for us. They even threw in the tool of the classic editor plugin so that if we don&#8217;t enjoy the new setup, we can jump back to the old version with a click of a button. If it was a case of being forced to update to 5.0 then i&#8217;d agree with all the negative comments, but if you don&#8217;t enjoy the update- rather than &#8220;snapping&#8221; at the dev team- just install the classic editor plugin and &#8220;walla&#8221; everything back to the way you like it&#8230;</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1313911">
+		<div>
+			<div>
+				<figure>
+					<img alt='Phil McKinney II' src='https://secure.gravatar.com/avatar/5e9bd712c7addc509913cd1d32e8f9048084e61758e52cc877134675f240c50b?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5e9bd712c7addc509913cd1d32e8f9048084e61758e52cc877134675f240c50b?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Phil McKinney II</span>
+				<span>Dec. 11, 2018</span>
+			</div>
+			<div>
+				<p>That&#8217;s the problem &#8211; it is not &#8220;walla&#8221; and back to normal&#8230;</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1307192">
+		<div>
+			<div>
+				<figure>
+					<img alt='ttadminz' src='https://secure.gravatar.com/avatar/3caaedac7cd1f3f5b4d437641e8de9a7a2683055f9d816392c64d772ce446e65?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3caaedac7cd1f3f5b4d437641e8de9a7a2683055f9d816392c64d772ce446e65?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>ttadminz</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>I think that most people dislike the way the Gutenberg editor was introduced. The new editor just came with WP 5.0 even if there are so many open issues and so many plugins/themes that are not compatible. The better way to introduce Gutenberg would be to opt-in and keep the old editor too. So now the users don&#8217;t have a choice and were forced if you want so&#8230;</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1305823">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Alex' src='https://secure.gravatar.com/avatar/60eb92b12cfa59cc4239a2a986fcfae56251bb49be47f2ea18b11ac5b05c17ca?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/60eb92b12cfa59cc4239a2a986fcfae56251bb49be47f2ea18b11ac5b05c17ca?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Alex</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>It is likely really early to upgrade major sites, probably wiser to wait for the next set of releases. Some site authors will be completely confused about the experience as well.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1305740">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Rox' src='https://secure.gravatar.com/avatar/a95483cf11ffea6939a37bf1a60689b7624ab7a336dcd544f194e66c9498b18e?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a95483cf11ffea6939a37bf1a60689b7624ab7a336dcd544f194e66c9498b18e?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Rox</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the advice. It&#8217;s the first time for me to update wordpress and I really appreciate your sincere opinion. I thought about waiting anyway</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1305520">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Susanta Kumar Sahoo' src='https://secure.gravatar.com/avatar/5e76df910c5aaae4bd58bfc74b614a0f2d772e10be254350a17b8000b63f9c57?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5e76df910c5aaae4bd58bfc74b614a0f2d772e10be254350a17b8000b63f9c57?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Susanta Kumar Sahoo</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the post, Joost! I don&#8217;t understand why Matt and his team would be in such a hurry to release &#8220;the BIG update&#8221; when Christmas is around the corner. Thankfully, I have installed the classic editor plugin but I guess I still need to wait until Jan, 2019.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1304498">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='zaffy' src='https://secure.gravatar.com/avatar/9ad6923839fc83090eb9f8cf5bc1a3e2c5b0cc33d315ce73a09ba519dd08f026?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9ad6923839fc83090eb9f8cf5bc1a3e2c5b0cc33d315ce73a09ba519dd08f026?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>zaffy</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Who are the Geniuses who decided to bring a major update that will affect millions of sites before Christmas?<br />
+Who are the Geniuses who believe such big change will be easily applied to millions of small business that will suddenly have to face not only extra costs but also try and explain/teach the new &#8220;editor&#8221; to their users?<br />
+Who are the geniuses who didn&#8217;t set a timeframe for a smooth transition from one version to another?<br />
+I will tell you, they are not geniuses, just self absorbed people who have no clue or do not give a dime how much their actions affect literally millions of people&#8217;s jobs.<br />
+Very very disappointed with WordPress and I am glad I do not use it for big projects.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1307216">
+		<div>
+			<div>
+				<figure>
+					<img alt='Dan' src='https://secure.gravatar.com/avatar/8189043359bc97d025a2dd2089a0be5518c035576090c8715afbcbe442775793?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/8189043359bc97d025a2dd2089a0be5518c035576090c8715afbcbe442775793?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Dan</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>I agree with you 100%. They didn&#8217;t think, they just did it.<br />
+However there is simple plugin &#8220;Classic Editor&#8221; instal it and u have no problems.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1304610">
+		<div>
+			<div>
+				<figure>
+					<img alt='Modial robins' src='https://secure.gravatar.com/avatar/783a08b8f7544c00592129493d7d9cb5149ab886e2c48112052202159710f249?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/783a08b8f7544c00592129493d7d9cb5149ab886e2c48112052202159710f249?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Modial robins</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>You will only be affected if you update &#8230; don&#8217;t update this year and you won&#8217;t be affected&#8230;</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1306018">
+		<div>
+			<div>
+				<figure>
+					<img alt='zaffy' src='https://secure.gravatar.com/avatar/9ad6923839fc83090eb9f8cf5bc1a3e2c5b0cc33d315ce73a09ba519dd08f026?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9ad6923839fc83090eb9f8cf5bc1a3e2c5b0cc33d315ce73a09ba519dd08f026?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>zaffy</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>What about people who are not as prepared or tech savvy as us?<br />
+YOu think every owner of WordPress site knows what the new update brings or how to deal with it?<br />
+Wordpress is popular because it makes users&#8217;s life easy.<br />
+This is not making your users life&#8217;s easy, is about imposing what you think is good in an impossible timeframe while basically forcing your millions of users to extra costs.<br />
+What if a site is not compatible with new wordpress? What about the cost of changing it?<br />
+Not all sites are just blogs.<br />
+When you try to pass WordPress as the ultimate CMS suitable for every kind of site, you also  have to treat your users professionally and think the consequences of your actions to their businesses.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li>	<li		id="comment-1304566">
+		<div>
+			<div>
+				<figure>
+					<img alt='David' src='https://secure.gravatar.com/avatar/ddc95c83057dd8dd7cb1044ca46c7de6508ed46f3adb3e4793c56b5763bec356?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ddc95c83057dd8dd7cb1044ca46c7de6508ed46f3adb3e4793c56b5763bec356?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>David</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>AMEN! I could not have phrased it better do they not realise that some of us even work on Christmas Day!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1304311">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Jasmine Trails' src='https://secure.gravatar.com/avatar/12df66dc10ce3fb4de147e92864c4a0f0605992c206fa3c497a5b5ed1529b0d9?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/12df66dc10ce3fb4de147e92864c4a0f0605992c206fa3c497a5b5ed1529b0d9?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Jasmine Trails</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Joost, thank you very much for sharing this info and more importantly your wise suggestion to wait for a more stable version on WP 5. </p>
+<p>Considering the Gutenberg plugin has 700,000 installs, with a two and a half star rating based on 1634 reviews [ 5 Stars= 349 only, 4 Stars = 87, 3 Stars = 80, 2 Stars = 142 and 1 Star = a staggering 931!! ] </p>
+<p>Given the scary reviews, needless to say most of us were wondering what to do next. Now thanks your wise counsel , we have some direction on the way forward. Thank you once again.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1304076">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Ashish Verma' src='https://secure.gravatar.com/avatar/0282b4d0705584c045c85090ab4636d7d7f23b143d26e33020889952c590d029?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/0282b4d0705584c045c85090ab4636d7d7f23b143d26e33020889952c590d029?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Ashish Verma</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Thanks Joost. Your post is a balanced one but mostly I have read negative comments. Negativity to a point, it sounds, their bread and butter is in danger. Gutenberg seems to be ready, they are not. Why most of the developers out there vehemently opposing it? I am just a blogger, a simple user of wordpress, I just have a feeling that this editor is better than the previous one. Why not contribute to it in a positive way?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1304029">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Kevin McClellan' src='https://secure.gravatar.com/avatar/b1b056aa83f63b299d5a196f025f50f2a71ed0064d25890a4b800a6ffc238695?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/b1b056aa83f63b299d5a196f025f50f2a71ed0064d25890a4b800a6ffc238695?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Kevin McClellan</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Great article with solid advice. Thanks :-)</p>
+<p>I think the Gutenberg/WP 5.0 has been the most heavily tested WordPress update in history. Gutenberg is a great update. I agree the timing is a bit of a putoff but if people already have WP 4.9.8 and ave Gutenberg installed there will be very little else that has changed other than possibly some bug fixes.</p>
+<p>If you install and activate classic editor plugin then it will be just like 4.9.8 without Gutenberg. </p>
+<p>As with any WP update, I suggest taking full file/database backup prior to updating, just in case something happens.</p>
+<p>Comes down to personal preferences. I have been testing Gutenberg for months, and been running WP 5.0RC versions for a little while now so am confident everything will work, but still taking backups. Anything can change last minute.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1303210">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='manni de man' src='https://secure.gravatar.com/avatar/0572685282b9a2b24de38470b2ef27770b1599a395d907095764d128f1441126?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/0572685282b9a2b24de38470b2ef27770b1599a395d907095764d128f1441126?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>manni de man</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I hope that version 4.x  will be maintained &#8211; at least with security updates. I&#8217;ve developed a site based on 4.x and now am a little worried that the site will &#8220;crash and burn&#8221; when WP 5.0 is rolled out</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1304609">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>So far security patches have been backported as far as WP 3.7, so you&#8217;re good for a while longer. I would suggest upgrading though as soon as it&#8217;s stable.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1303063">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Jordy' src='https://secure.gravatar.com/avatar/e3390ad91f7c8ebd4932b7a3bfd1ebbd57c06c160646c0a6cd15f51059b7d21d?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e3390ad91f7c8ebd4932b7a3bfd1ebbd57c06c160646c0a6cd15f51059b7d21d?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Jordy</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>So if i activite the Classic editor first and after hit update tomorow to 5.0 everything Will be fine?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1304611">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>I can&#8217;t guarantee that. I&#8217;d wait a bit to be honest.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1302813">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Jyoti Raghuvanshi' src='https://secure.gravatar.com/avatar/fa8b592fac2eb15cdf94de52e440a927bda80d50c8e39f9468a3688dc73ff880?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/fa8b592fac2eb15cdf94de52e440a927bda80d50c8e39f9468a3688dc73ff880?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Jyoti Raghuvanshi</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for sharing such a valuable information. We all know that WordPress 5.0 will be the big update and many themes/plugin developers working hard to make things as smooth as possible.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1302353">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Benny' src='https://secure.gravatar.com/avatar/85ebb15d00f7763e1c3177971aaf8f8763fd4ef99f4fd99f30e436fd4751a05a?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/85ebb15d00f7763e1c3177971aaf8f8763fd4ef99f4fd99f30e436fd4751a05a?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Benny</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I trust nothing wrong in waiting for a couple of updates, say 5.1 or 5.0.1 or even 5.2.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1302165">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Yanglish' src='https://secure.gravatar.com/avatar/7c76e7859a472f67792cc7b6c7b69684caf7031a0afea4ea4029a8b51b9134c8?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/7c76e7859a472f67792cc7b6c7b69684caf7031a0afea4ea4029a8b51b9134c8?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Yanglish</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for valuable recommendations.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1302151">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Fiorenza Temmel' src='https://yoast.com/app/uploads/sites/3/2018/09/avatar_user_38143_1537713644-100x100.png' srcset='https://yoast.com/app/uploads/sites/3/2018/09/avatar_user_38143_1537713644-200x200.png 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Fiorenza Temmel</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for sharing that Joost! Very helpful!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1301936">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Narmadatech' src='https://secure.gravatar.com/avatar/4e0cc9e83872d896ab77e7925646484a3f7104e3f784b66329f63d388ca408dd?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/4e0cc9e83872d896ab77e7925646484a3f7104e3f784b66329f63d388ca408dd?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Narmadatech</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for sharing this useful information. I have a question which is the best plugin for WordPress site backup.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1301848">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Gents spa Dubai' src='https://secure.gravatar.com/avatar/f5d5fe7fe8417401585733cb931623e523c8d7c22347c67c4ddcb9d980fa3cd7?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f5d5fe7fe8417401585733cb931623e523c8d7c22347c67c4ddcb9d980fa3cd7?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Gents spa Dubai</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Better to wait until it’s more stable, some of my plugins and Newspaper theme.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1301672">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Axency' src='https://secure.gravatar.com/avatar/476d8b4fe9033b044dcafa502b8fb979cfd3d93237d3060c2f1435affc3de59c?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/476d8b4fe9033b044dcafa502b8fb979cfd3d93237d3060c2f1435affc3de59c?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Axency</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Hello and good night,<br />
+Thanks for all the information and recommendations.<br />
+I have a few questions:</p>
+<p>I have 6 posts acceptable and optimized (not Gutenberg)<br />
+And I do have 12 posts without keyword (most of them are Gutenberg)</p>
+<p>I write a keyword target in Gutenberg post but it can not save the snippet or keyword.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303314">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Are you on the latest version of Gutenberg and Yoast SEO? Because&#8230; Well. Stable is not the word we&#8217;re using for these things.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1301669">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Neo A.' src='https://secure.gravatar.com/avatar/9a240444ad1b40baec814f2277e2fd559a828c8784ee6253fd7bd1b72ca2f96b?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9a240444ad1b40baec814f2277e2fd559a828c8784ee6253fd7bd1b72ca2f96b?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Neo A.</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Honestly, Gutenburg is not very friendly for a nerd who likes typing and having a simple workspace. It’s a cheesy downgrade and the annoying HTML comments after each block don’t help uncluttering in the slightest.</p>
+<p>However, it is definitely a useful tool, just not one I feel that I’m ready to use. The classic editor will probably still my go-to tool.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303311">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I honestly kinda like the way it auto parses my markdown writing and does a lot of cool stuff :P</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1301525">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Martin' src='https://secure.gravatar.com/avatar/75a1ecf37665eb9620167b9d9a77a738534a99ab69ed9a64080d9e17f3939e59?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/75a1ecf37665eb9620167b9d9a77a738534a99ab69ed9a64080d9e17f3939e59?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Martin</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Many thanks for this review and advice &#8211; great to have a balanced, pragmatic view after all the rabid pro and con posts on Gutenberg that you see everywhere.</p>
+<p>I&#8217;ve installed the Classic Editor on all client sites, but I won&#8217;t be updating them until 5.0 has settled down and I&#8217;ve had a good look at it on my development sites. There&#8217;s going to be a client education process to go through before I spring it on them, and then a process of changing the Classic Editor settings to allow selective use of Gutenberg before going full on once the clients are comfortable.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303307">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Sounds like a good process.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1301523">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Nikhil Sharma' src='https://secure.gravatar.com/avatar/3234011078318c701f11e5a7e11bd2a5415bac7db74549a54760247113db3fc2?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3234011078318c701f11e5a7e11bd2a5415bac7db74549a54760247113db3fc2?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Nikhil Sharma</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I also think  best to wait. Maybe just try a test platform as end of year, and roll out to new customers after new year. Most themes and plugins my customers take are free, so it will be time before they are updated or changed.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303306">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Some are ready, some will soon be, some will never be. You&#8217;ll have to test them all :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1301106">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Tom Beek' src='https://secure.gravatar.com/avatar/fe68d557872a06aafc187fef45474c525e9db411018b08a817a11b7d49b66679?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/fe68d557872a06aafc187fef45474c525e9db411018b08a817a11b7d49b66679?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Tom Beek</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Great service, thanks</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303305">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Glad you appreciate it Tom!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1301050">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Jon Hill' src='https://secure.gravatar.com/avatar/98dc04c1b14fb544722477e8222831d619b459fb9b136617a6073b2c8cd2c4f0?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/98dc04c1b14fb544722477e8222831d619b459fb9b136617a6073b2c8cd2c4f0?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Jon Hill</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I appreciate this post very much, Joost. Your advice not to take unnecessary chances during the holidays makes very good sense, and it means more coming from someone like yourself who is well-informed regarding the background of this release. And the post comments explained how to be sure that our sites won&#8217;t auto-update. Thank you!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303304">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Whatever we can do to make sure everyone can enjoy their holiday of choice :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300995">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Victor Miller, Sr.' src='https://secure.gravatar.com/avatar/1aea9678ec94236aa4ec55f32abae4d0c0fbe52967f38c50565fec09cc3eea0c?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/1aea9678ec94236aa4ec55f32abae4d0c0fbe52967f38c50565fec09cc3eea0c?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Victor Miller, Sr.</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>How do I switch from automatic updates to manual before 5.0 goes in effect?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1302038">
+		<div>
+			<div>
+				<figure>
+					<img alt='Konrad' src='https://secure.gravatar.com/avatar/944a755d72d33d3100e762ab4ef7a1c8920240f3e82c167923eeb7b7c41d30c2?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/944a755d72d33d3100e762ab4ef7a1c8920240f3e82c167923eeb7b7c41d30c2?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Konrad</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>You probably don&#8217;t need to switch anything. Automatic updates are only for minor releases, for versions with number updated after the second dot (like x.x.0 to x.x.1). I don&#8217;t remember how it is for updates on numbers after the first dot, but for sure updates for &#8220;first&#8221; numbers (4.x.x to 5.x.x) must be done manually.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1301323">
+		<div>
+			<div>
+				<figure>
+					<img alt='Rajeev' src='https://secure.gravatar.com/avatar/7c20ba02a58b687a89fff6de4d56d44f17693b25c68425c89011a057a441cd79?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/7c20ba02a58b687a89fff6de4d56d44f17693b25c68425c89011a057a441cd79?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Rajeev</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Hi Victor,<br />
+Easy way:<br />
+Use a plug in to do so </p>
+<p><a href="https://wordpress.org/plugins/stops-core-theme-and-plugin-updates/" rel="nofollow ugc">https://wordpress.org/plugins/stops-core-theme-and-plugin-updates/</a></p>
+<p>or</p>
+<p>You can disable automatic updates in WordPress by adding this line of code in your wp-config.php file:<br />
+define( &#8216;WP_AUTO_UPDATE_CORE&#8217;, false );</p>
+<p>Hope this helps&#8230;</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1302695">
+		<div>
+			<div>
+				<figure>
+					<img alt='Victor Miller, Sr.' src='https://secure.gravatar.com/avatar/1aea9678ec94236aa4ec55f32abae4d0c0fbe52967f38c50565fec09cc3eea0c?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/1aea9678ec94236aa4ec55f32abae4d0c0fbe52967f38c50565fec09cc3eea0c?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Victor Miller, Sr.</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the info. I&#8217;ve installed the plugin and will configure it shortly</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li>	<li		id="comment-1301155">
+		<div>
+			<div>
+				<figure>
+					<img alt='macangelo' src='https://secure.gravatar.com/avatar/ba81c13d3bc8a26e72b4ba49ae6a91634e23df21dd70e0437c94c6e254d2893f?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ba81c13d3bc8a26e72b4ba49ae6a91634e23df21dd70e0437c94c6e254d2893f?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>macangelo</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>One way would be: add the following line of code to your wp-config.php</p>
+<p>define( &#8216;AUTOMATIC_UPDATER_DISABLED&#8217;, true );</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1301085">
+		<div>
+			<div>
+				<figure>
+					<img alt='Donna Watson' src='https://secure.gravatar.com/avatar/f69fb0405a0ff4493a26cf1a712655e697cd9ca78c60ddfffbb5430a1dcc13a9?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f69fb0405a0ff4493a26cf1a712655e697cd9ca78c60ddfffbb5430a1dcc13a9?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Donna Watson</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I support several clients&#8217; websites and have installed the Easy Updates Manager in order to disable auto updates.  I did have one site that wouldn&#8217;t respond to this plugin supposedly due to an issue presented by another installed plugin, so I installed the WP Disables Updates plugin.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300993">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Nan' src='https://secure.gravatar.com/avatar/febd189938f1751df63c321fe6399984f85ce1e25e5ff9ca0df8b3d6ea6c234f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/febd189938f1751df63c321fe6399984f85ce1e25e5ff9ca0df8b3d6ea6c234f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Nan</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I have a WordPress new site and am only vaguely familiar with Gutenberg-certainly not ready to change over. Plus, I&#8217;ve been considering changing themes and hosts in the not-too-distant future. That&#8217;s a lot of change. I&#8217;m currently using Bluehost, which has an option in the control panel for turning off core WordPress updates, with plug-in and theme updates to continue. I&#8217;m not a techie and would prefer not to deal with WordPress Configuration file if possible. Will the control panel option suffice for now?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303303">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Yes it will. Bluehost won&#8217;t even auto push the update to people in December, they&#8217;ll wait till January.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1306115">
+		<div>
+			<div>
+				<figure>
+					<img alt='Kent' src='https://secure.gravatar.com/avatar/cef750874b4172181ef24ba0193c636ed7b25ebad59e6fd9a1f05bf157c3783c?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/cef750874b4172181ef24ba0193c636ed7b25ebad59e6fd9a1f05bf157c3783c?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Kent</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Bluehost just auto pushed the update to 2 of my sites for 5.0</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1309590">
+		<div>
+			<div>
+				<figure>
+					<img alt='Matt Stephens' src='https://secure.gravatar.com/avatar/3285c0fd9d08c40aaf94cb3f41ca38847323f37f45b12b3df7b56027be0108ae?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3285c0fd9d08c40aaf94cb3f41ca38847323f37f45b12b3df7b56027be0108ae?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Matt Stephens</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>Same here. I woke up and noticed all of my sites with BlueHost were auto-updated to 5.0. Still waiting to observe any likely side-effects.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300700">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Mark Kasiske' src='https://secure.gravatar.com/avatar/781f880107f2099e11f02b55709a44344509b7c11f28bf4f0713254917e27a00?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/781f880107f2099e11f02b55709a44344509b7c11f28bf4f0713254917e27a00?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Mark Kasiske</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Is there an advantage of using Guttenberg over DIVI, when it comes to Yoast, that is?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303302">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I hope all page builder plugins will work on the data API that Gutenberg comes with and allow for more easy interoperability between page builders and plugins like ours. That being said, we quite actively work with the Divi team to make interoperability between our plugins a constant thing.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300425">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Bill Peschel' src='https://secure.gravatar.com/avatar/5856d4e0b8d94b1f53d32a308c4cbf1144b4b98cc998b14bf48bece3f675fd89?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5856d4e0b8d94b1f53d32a308c4cbf1144b4b98cc998b14bf48bece3f675fd89?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Bill Peschel</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I hate Gutenberg with a passion. It degrades my experience and the way I like to write my posts, which is to write in Word and include all my HTML. The explanations I&#8217;ve seen here for its advantages are directed at the more expert WP users and not the end users who are writers first. </p>
+<p>Even now, despite my longtime experience with websites &#8212; building pages in Dreamweaver, building my first site in pmachine and now &#8212; I still don&#8217;t see the advantages. I&#8217;d have to put everything on hold and spend a day at least to delve into the documentation. But I run a business that demands more of my time than dealing with this nonsense.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1301563">
+		<div>
+			<div>
+				<figure>
+					<img alt='Peter Prevos' src='https://secure.gravatar.com/avatar/c1df5b5f30ea24fc9ed76e97453c92dea4b216518f04d3179190458f0c9f03f4?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c1df5b5f30ea24fc9ed76e97453c92dea4b216518f04d3179190458f0c9f03f4?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Peter Prevos</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>You are absolutely right Bill. The online interface is not a good writing tool. A good writing tool has much more functionality. Also, writers don&#8217; t view each paragraph as a separate unit. Might make sense for SEO or html rendering, but not for writing.</p>
+<p>In my workflow, I write posts in Emacs (text editor) and then upload them to the website with a script.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1309065">
+		<div>
+			<div>
+				<figure>
+					<img alt='Richard L' src='https://secure.gravatar.com/avatar/cae991e0104df7154499df12ae212eeb713992575cfb34fbf87173311f03dbda?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/cae991e0104df7154499df12ae212eeb713992575cfb34fbf87173311f03dbda?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Richard L</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>Treating each paragraph as a separate entity is the write way to write markup for the web. If users won&#8217;t write markup sensibly, it&#8217;s best for everybody that Gutenberg will force them to do so.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1303281">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Nobody is forcing you to use Gutenberg, so if you don&#8217;t like it, please don&#8217;t :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300222">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Peter' src='https://secure.gravatar.com/avatar/8c82bf5d53d352598b0bc470cc18f24d2eafd443c5cf35da087c43e1720baa49?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/8c82bf5d53d352598b0bc470cc18f24d2eafd443c5cf35da087c43e1720baa49?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Peter</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I&#8217;ve updated and used Gutenberg months ago, however, I must rollback to classic editor due to the missed feature which I think it&#8217;s one of the most necessary features. That&#8217;s is: &#8220;importing the image from URL&#8221;. Don&#8217;t know if it has this feature on this release.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303291">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I do see an &#8220;Insert from URL&#8221; option in the image block, isn&#8217;t that what you meant?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300170">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Maxime Bouet' src='https://secure.gravatar.com/avatar/23840224861f6716e60c30bf9fcc9270cc61f99e487d3e35dd9594beaf374b15?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/23840224861f6716e60c30bf9fcc9270cc61f99e487d3e35dd9594beaf374b15?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Maxime Bouet</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>All our existing clients will stay with Classic Editor on 4.9 branch or with the plugin, the learning curve for Gutenberg would be too steep for most, who often don’t know anything at all about computers, they just follow their years long same same steps written on a piece of paper to publish a new post or change their weekly menu page or similar. They have no need to change anything, and mostly no budget either.</p>
+<p>For new new clients we tried to consider Gutenberg since a few months, but as it still is far from ready, each test results in most obvious bugs and editor still feels way too slow in browser until today, we can not recommend Gutenberg for now as well. Maybe we will reconsider this mid 2019, not sure yet though.</p>
+<p>So currently also new projects are done with Classic Editor, and will stay in WordPress 4.9 branch for a while, to allow easy migration to Classic Press or similar, if the Gutenberg ship won’t float as expected…</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303293">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I would suggest updating to 5.0 after a while, just because it&#8217;s going to be the better version of WordPress, with or without the classic editor plugin.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300124">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Lauren J' src='https://secure.gravatar.com/avatar/3a121c3e236a0990bdbf5962a6a48dd648c5e7b9e8bed74bd46e6b83b0744f6a?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3a121c3e236a0990bdbf5962a6a48dd648c5e7b9e8bed74bd46e6b83b0744f6a?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Lauren J</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Wait, did you just say Schema blocks? :3</p>
+<p>This happens to be my next big SEO task &#8211; is it on the free or premium version?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303294">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>In free. We&#8217;re going to be building a lot more of them.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300123">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Elaine' src='https://secure.gravatar.com/avatar/5bec70a7d0709f60e0f14d9bfcfaa7819b9b684191820af579583e0050ff5173?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5bec70a7d0709f60e0f14d9bfcfaa7819b9b684191820af579583e0050ff5173?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Elaine</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for the reassurance that it is OK to wait. As I am the Christmas Fairy in our house I have to wave my wand and make it magically happen, while managing two blogs and a &#8220;real life&#8221; job :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303295">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Happy holidays! And have fun playing with Gutenberg after that :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300121">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Doug &quot;Bear&quot; Hazard' src='https://secure.gravatar.com/avatar/c14378e734389c2a3c5d85c6a4085c9390d8e681e8a582f283743fbb90ade1a1?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c14378e734389c2a3c5d85c6a4085c9390d8e681e8a582f283743fbb90ade1a1?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Doug &quot;Bear&quot; Hazard</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>As someone that manages over 200 WP sites, we&#8217;ve actually modified one of our own plugins (a security plugin) and put an alert up for our customers, advising them to hold off on updating to WP 5.0.</p>
+<p>As Joost noted, there are too many unknowns between plugins and themes that may come into play here. While I&#8217;m excited to see movement forward with 5.0; I, too, share the same concerns that this might have been rushed a little too quickly.  While the WP team has to save face (after all, they did promise 5.0 would be released this year, though many of us were anticipating it much earlier in the year), I&#8217;m concerned that not enough due diligence was performed.</p>
+<p>We&#8217;re going to do the updates, on a case by case basis, and absolutely making sure backups are performed for every site beforehand.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303300">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>The WP team is all of us. I would urge you though, after a few weeks maybe even a few months of waiting, to update :) I don&#8217;t like putting out notices like this, I normally urge everyone to update as that is the best thing for the web in general.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300050">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Daniel C. Boswell' src='https://secure.gravatar.com/avatar/5acf6e57b66208bbe7418c82d17c1202cf7b68f4638486c72984dbe94af8d265?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5acf6e57b66208bbe7418c82d17c1202cf7b68f4638486c72984dbe94af8d265?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Daniel C. Boswell</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Seriously, no share buttons Yoast? I think this is really important to get out to the community.</p>
+<p>I think I will be holding off for me and my clients until January at least.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300104">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Our share buttons got like 10 clicks a month. Turns out people have learned how to copy and paste URLs :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300962">
+		<div>
+			<div>
+				<figure>
+					<img alt='Bryce Hanson' src='https://secure.gravatar.com/avatar/46335df3e1be7828f4f734c62e616b1f6a3192fdca00d83fafa724b643519965?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/46335df3e1be7828f4f734c62e616b1f6a3192fdca00d83fafa724b643519965?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Bryce Hanson</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>mic drop</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1300209">
+		<div>
+			<div>
+				<figure>
+					<img alt='Samuel Pedersen' src='https://secure.gravatar.com/avatar/d1404479e35d3d44faf8e876f630ce0210d77fa4a1d3accdbbc776ddd9b3105a?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d1404479e35d3d44faf8e876f630ce0210d77fa4a1d3accdbbc776ddd9b3105a?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Samuel Pedersen</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Does it give a better page speed, removing the share buttons? :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1303301">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Share buttons, especially native ones from twitter and facebook etc, are slow, so: yes.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li>	<li		id="comment-1300131">
+		<div>
+			<div>
+				<figure>
+					<img alt='J-P De Clerck' src='https://secure.gravatar.com/avatar/c4f826af6e61b42741e56caebca5d9ffd71b85531edaecc3763faaa62c0bcbb8?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/c4f826af6e61b42741e56caebca5d9ffd71b85531edaecc3763faaa62c0bcbb8?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>J-P De Clerck</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Hear, hear, same finding :) Sharing it. Thanks Matt for your unexpected announcement. Nice additional to do tasks just before the end of the year.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300037">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Andrew' src='https://secure.gravatar.com/avatar/e5caf31fe6f94f6a99c29cba3d7f2f8b143f2aa77526fff658a9f245f86b36d2?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e5caf31fe6f94f6a99c29cba3d7f2f8b143f2aa77526fff658a9f245f86b36d2?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Andrew</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Great advice. I love the new editor and have been anticipating this upgrade for a while. I&#8217;ll definitely upgrade some of my sites as soon as the new release is available. And I&#8217;ll definitely wait a while before I upgrade others. I also really like the way Yoast has integrated with Guttenberg. You guys continue to impress. Thanks</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300102">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Good to hear Andrew, curious to know how your sites will do!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300027">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Felix' src='https://secure.gravatar.com/avatar/31b53fd4b8a74eca10f2e25b6cb9353cd729d7aceee9aa9151c3cb2eac9e7e1d?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/31b53fd4b8a74eca10f2e25b6cb9353cd729d7aceee9aa9151c3cb2eac9e7e1d?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Felix</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for your advice. However I have one question: Currently I am using the Gutenberg Plugin and (apart from some known bugs) it works just fine with my other plugins. Can I count on that or will it be totally different when the release is out? I have no staging environment, and for I&#8217;m just writing a blog I would like to avoid the effort.<br />
+Thanks once again!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300101">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>It won&#8217;t be totally different, if you&#8217;re already using it you should be totally fine (and I&#8217;m honestly glad to hear that!).</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1301100">
+		<div>
+			<div>
+				<figure>
+					<img alt='admin2347' src='https://yoast.com/app/uploads/sites/3/2018/12/avatar_user_346116_1545018983-70x70.png' srcset='https://yoast.com/app/uploads/sites/3/2018/12/avatar_user_346116_1545018983-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>admin2347</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Totally!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1300022">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Ciska' src='https://secure.gravatar.com/avatar/d970867bf0e4771af9fc18576cff16f59b3bee34a262e851721ac52849b813f8?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d970867bf0e4771af9fc18576cff16f59b3bee34a262e851721ac52849b813f8?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Ciska</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for this confirmation. I think I will also wait until Gutenburg is more stable before plunging into this update</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1300003">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Corrinda Campbell' src='https://secure.gravatar.com/avatar/7af477f95f7ff06442299f46e99b38133549d9f8644a8793234f40d192fc789b?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/7af477f95f7ff06442299f46e99b38133549d9f8644a8793234f40d192fc789b?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Corrinda Campbell</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thanks Yoast! The rollout of Gutenberg from start to launch has been utterly hideous. Your posts, comments and videos have been extremely helpful.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300100">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Glad to hear that Corrinda!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1301636">
+		<div>
+			<div>
+				<figure>
+					<img alt='Kapil Garg' src='https://secure.gravatar.com/avatar/d5d1f6c295f1cbf5cfeaa91f338751df3e1eea4a0d28bc5c8e4d15e7075d60fc?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/d5d1f6c295f1cbf5cfeaa91f338751df3e1eea4a0d28bc5c8e4d15e7075d60fc?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Kapil Garg</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>I have used Gutenberg. It&#8217;s nice</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299963">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Dave Hoe' src='https://secure.gravatar.com/avatar/e8109dada6aa06542d10a4462a71a794d6cee38c4d2ab8f8fe934acd5b619593?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e8109dada6aa06542d10a4462a71a794d6cee38c4d2ab8f8fe934acd5b619593?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Dave Hoe</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Hi Guys</p>
+<p>Good advice. I only use premium themes and plugins, which should all be WordPress 5.0 and Guttenberg ready. however i won&#8217;t be updating clients sites until after Christmas. Just not worth the risk. Will install and have a gander on a test site though</p>
+<p>Regards<br />
+Dave</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300034">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>That&#8217;s probably the most sensible approach for many.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299957">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Janice' src='https://secure.gravatar.com/avatar/011d27848e2ae94d24fe9362d11fd95cb8fdac9604cd81c25e00ca4ff5a19e8d?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/011d27848e2ae94d24fe9362d11fd95cb8fdac9604cd81c25e00ca4ff5a19e8d?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Janice</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Is it a code thing only? Can I turn off the automatic update without going to my developer?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300033">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>If it wasn&#8217;t enabled specifically, you won&#8217;t update to 5.0 automatically.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299847">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='vicky999' src='https://secure.gravatar.com/avatar/03eb484433ab5de36533424045a6a963141915f0264e1ea0ee35b2b5f74db14f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/03eb484433ab5de36533424045a6a963141915f0264e1ea0ee35b2b5f74db14f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>vicky999</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the news. I will update for some business sites with a few posts. Unfortunately when it comes to news sites I will postpone and definitely disable Gutenberg. Our writers don&#8217;t want to touch it.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1299933">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I would urge them to give it another go soonish, as it really has progressed a lot and I do think it&#8217;s a great new experience.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1306641">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joanne' src='https://secure.gravatar.com/avatar/89eb8449d24b14efbc6ab83e66ac620c95d0c1d4be607e95b6e1a4d379e0b14a?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/89eb8449d24b14efbc6ab83e66ac620c95d0c1d4be607e95b6e1a4d379e0b14a?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joanne</span>
+				<span>Dec. 07, 2018</span>
+			</div>
+			<div>
+				<p>It&#8217;s not good for writers though, the people who actually create content and just want to publish it and get on with their day. Nobody writes in discrete blocks, like this.  Gutenberg was created by graphic designers, not actual writers.  All we want is a blank screen and software which won&#8217;t screw up our formatting.  Thank heavens there&#8217;s a plug-in we can use to disable it.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1319434">
+		<div>
+			<div>
+				<figure>
+					<img alt='Mark' src='https://secure.gravatar.com/avatar/305bc0310ba43e523d0c88b2dcf979ef0b39458d4e8aa763f70f2ff949f8504b?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/305bc0310ba43e523d0c88b2dcf979ef0b39458d4e8aa763f70f2ff949f8504b?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Mark</span>
+				<span>Dec. 13, 2018</span>
+			</div>
+			<div>
+				<p>I have to manage a site for my neighbor who has written a books. He is a writer, not an editor and it has been a chore helping him.</p>
+<p>To center his book titles, he went to each one and pressed SPACE SPACE SPACE SPACE&#8230; I even had to reformat his book for him.</p>
+<p>Not everyone is going to like change for the sake of change.</p>
+<p>This reminds me of the guy who buys a car and loves it, only to find out that overnight the dealer spray painted it and moved the steering wheel to the other side.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299836">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Monique Martens' src='https://secure.gravatar.com/avatar/ae100d7148d365ff12bad789ca9801c6e79a136adf8cf533da70715f25826d51?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ae100d7148d365ff12bad789ca9801c6e79a136adf8cf533da70715f25826d51?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Monique Martens</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for your valuable and ongoing information on WP 5.0 and Gutenberg. It is very much appreciated!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300035">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>We try hard Monique! Glad to see it&#8217;s appreciated.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299830">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Pamir Kiciman' src='https://secure.gravatar.com/avatar/a3f7aa4f67026e2feeaa04b6eaab3fc2f0652d8385c27251a0dd51f482b735d8?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a3f7aa4f67026e2feeaa04b6eaab3fc2f0652d8385c27251a0dd51f482b735d8?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Pamir Kiciman</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>My WordPress updates automatically. How do I stop that?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1299924">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>check your WP-config and find this line:</p>
+<p><code>define( 'WP_AUTO_UPDATE_CORE', true );</code></p>
+<p>I would suggest changing it to &#8216;minor&#8217;:</p>
+<p><code>define( 'WP_AUTO_UPDATE_CORE', 'minor' );</code></p>
+<p>So you do get auto-updated to security updates but nothing else.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1302462">
+		<div>
+			<div>
+				<figure>
+					<img alt='Pamir Kiciman' src='https://secure.gravatar.com/avatar/a3f7aa4f67026e2feeaa04b6eaab3fc2f0652d8385c27251a0dd51f482b735d8?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a3f7aa4f67026e2feeaa04b6eaab3fc2f0652d8385c27251a0dd51f482b735d8?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Pamir Kiciman</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>For the life of me I can&#8217;t see that in my wp-config. This is the one that&#8217;s created during install correct? Can&#8217;t see on wp admin. File access from my host to wp-config doesn&#8217;t show this line. In wp admin under updates it says: Future security updates will be applied automatically. I don&#8217;t remember if that&#8217;s minor. I wake up to emails that WP updated but I think those are patches and not new version of all of WP.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1300945">
+		<div>
+			<div>
+				<figure>
+					<img alt='Patdundee' src='https://secure.gravatar.com/avatar/1762c49cf3fe72a6ae9424d4873352c21817b6158d1e2877ce0b7f41e6614db0?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/1762c49cf3fe72a6ae9424d4873352c21817b6158d1e2877ce0b7f41e6614db0?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Patdundee</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Any updates are never automatic on my sites. I have to authenticate the FTP update. That way i get no nasty surprises and i can check each one as i do it. This is with all WP updates and plugins. I do not know why people allow auto updates. It could do one through the night and you may not notice a crash on the system until it is to late. My advice Never Allow Auto Update of anything.<br />
+P</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li>	<li		id="comment-1300591">
+		<div>
+			<div>
+				<figure>
+					<img alt='kavlito' src='https://secure.gravatar.com/avatar/30ac7f1855e3f7f06c271a041b6185bddaff4feca8ccc14065cd79db7cfb9ef6?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/30ac7f1855e3f7f06c271a041b6185bddaff4feca8ccc14065cd79db7cfb9ef6?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>kavlito</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>My WP-config contains nothing about WP_AUTO_UPDATE_CORE?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299814">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Emmy' src='https://secure.gravatar.com/avatar/e3b7eb020a9b89f5d3dce27d140049eda59d25aff8ff167188cfd1335b88e3ac?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e3b7eb020a9b89f5d3dce27d140049eda59d25aff8ff167188cfd1335b88e3ac?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Emmy</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Should I do anything to prevent auto-update, or are major updates like this excluded from auto-updating?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1299913">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>If you&#8217;ve not explicitly opted in to auto-updates, they don&#8217;t happen normally.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1301753">
+		<div>
+			<div>
+				<figure>
+					<img alt='Jai' src='https://secure.gravatar.com/avatar/324daeccc5d7dee785bad4017f2d5a7744e68dd64e2ff1caf25a65e27d98e9d9?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/324daeccc5d7dee785bad4017f2d5a7744e68dd64e2ff1caf25a65e27d98e9d9?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Jai</span>
+				<span>Dec. 05, 2018</span>
+			</div>
+			<div>
+				<p>Some hosting platforms like Blue host and Siteground implement auto updates from the server so you must check and disable them on the server itself.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299807">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Andrea Gabriel' src='https://secure.gravatar.com/avatar/473b8db317f69e7ae732c5a47fdc2158b5c5c6d5629df347cebce43929694b9c?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/473b8db317f69e7ae732c5a47fdc2158b5c5c6d5629df347cebce43929694b9c?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Andrea Gabriel</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I agree. This is hard for those of us who manage sites. When it didn&#8217;t roll out on the Nov date, we were told that meant reprieve until January. Springing it on people now with 2 days&#8217; notice, after they&#8217;ve assumed a Jan date, is just hard, as we&#8217;ve now rearranged our schedules assuming a later date.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1299948">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Yeah same here and in a lot of other places. I would suggest just making sure sites don&#8217;t auto update and doing it at your date and time of choice. I&#8217;ve already seen some managed hosts say they will also not roll this out until January.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299760">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Steven Horn' src='https://secure.gravatar.com/avatar/1c00dc1159505243cf3cdbd88ba90e8deab0e1954a64de44ebdfbe68dc87300b?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/1c00dc1159505243cf3cdbd88ba90e8deab0e1954a64de44ebdfbe68dc87300b?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Steven Horn</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the information and the authoritative &#8220;permission&#8221; so I can relay this to those who believe Joost more than myself.<br />
+Question for those who have tested Gutenberg in the core: is it basically the same as using the Gutenberg plugin with 4.8?</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1299759">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Jagdish Pal Bhatia' src='https://secure.gravatar.com/avatar/3aaf09621237451ce2b82c032c04a61fb096854b2861c52623ea0004a18bef3f?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/3aaf09621237451ce2b82c032c04a61fb096854b2861c52623ea0004a18bef3f?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Jagdish Pal Bhatia</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thank you for information.<br />
+I tried it as plugin but was not working with adsense.<br />
+Let&#8217;s see how this upgrade works.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-1299716">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Clint' src='https://secure.gravatar.com/avatar/10b9ce0f9e243657085f73156ca001d967c651a302628a133bf975eef06cf4be?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/10b9ce0f9e243657085f73156ca001d967c651a302628a133bf975eef06cf4be?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Clint</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for the quick turn on this post and for your recommendation. I plan to wait until it&#8217;s more stable. Although, I am looking forward to the new editor and new Yoast functionality.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1299750">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>We&#8217;re looking forward to it too! If your site isn&#8217;t very critical, you should be OK to update at any given time, and you can already play :)</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299611">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Istvan' src='https://secure.gravatar.com/avatar/f3ddc96cae5ad9762ce17850be15f535abf81034af976caf2a6f2b42de09366a?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f3ddc96cae5ad9762ce17850be15f535abf81034af976caf2a6f2b42de09366a?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Istvan</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Hi, it&#8217;s good enough to insert this line into the wp-config.php?</p>
+<p>define( &#8216;AUTOMATIC_UPDATER_DISABLED&#8217;, true );</p>
+<p>Thanks,<br />
+Istvan</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1299701">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>5.0 is a major update, unless you&#8217;ve specifically opted <em>in</em> to major updates updating automatically, it won&#8217;t update automatically.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300175">
+		<div>
+			<div>
+				<figure>
+					<img alt='Anton' src='https://secure.gravatar.com/avatar/31be75810ef3f00b3f1d3c126e0f1a9fc1e87b7fa5cdff7cdaa17da5197b6028?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/31be75810ef3f00b3f1d3c126e0f1a9fc1e87b7fa5cdff7cdaa17da5197b6028?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Anton</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Note: Some &#8220;Managed WordPress&#8221; hosting plans include autoupdate also for major releases.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299591">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Mathukutty P. V.' src='https://secure.gravatar.com/avatar/a343dd65d089d9154fe3b149411f521e4cec9bcf6620ddcf16d34c8697b12a4c?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/a343dd65d089d9154fe3b149411f521e4cec9bcf6620ddcf16d34c8697b12a4c?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Mathukutty P. V.</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>I have created 2/3 posts in Gutenberg in WordPress dot com blog. Let us see what is the result in self-hosted blogs</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1299951">
+		<div>
+			<div>
+				<figure>
+					<img alt='Joost de Valk' src='https://yoast.com/app/uploads/2022/12/joost-de-valk-70x70.png' srcset='https://yoast.com/app/uploads/2022/12/joost-de-valk-140x140.png 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Joost de Valk</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>The editor itself is a good improvement. We can debate about &#8220;ready&#8221;, but it&#8217;s definitely an improvement over the current editor in <em>many</em> ways.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</div></li>	<li		id="comment-1299540">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Jeroen Rotty' src='https://secure.gravatar.com/avatar/e7642683dce49ad2f1021d32bc657d0bb33fd54d466125835bce10ce0437dcad?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/e7642683dce49ad2f1021d32bc657d0bb33fd54d466125835bce10ce0437dcad?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Jeroen Rotty</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>Completely agree with Joost here. Announcing it 2 days early, just before #WCUS and during the busy December month is just bad practice.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1300564">
+		<div>
+			<div>
+				<figure>
+					<img alt='Corrinda Campbell' src='https://secure.gravatar.com/avatar/7af477f95f7ff06442299f46e99b38133549d9f8644a8793234f40d192fc789b?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/7af477f95f7ff06442299f46e99b38133549d9f8644a8793234f40d192fc789b?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Corrinda Campbell</span>
+				<span>Dec. 04, 2018</span>
+			</div>
+			<div>
+				<p>From a project management perspective you could say it is negligent.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1305755">
+		<div>
+			<div>
+				<figure>
+					<img alt='Moses' src='https://secure.gravatar.com/avatar/56e6efe24e0c561dd0d809ab569521e70818105da6487ca5442d9a692dfa942c?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/56e6efe24e0c561dd0d809ab569521e70818105da6487ca5442d9a692dfa942c?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>Moses</span>
+				<span>Dec. 06, 2018</span>
+			</div>
+			<div>
+				<p>Upgrade? Am not feeling home anymore. The editor has changed. Just updated my blog right now, and am no longer welcome to my home!</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		<ul>
+	<li		id="comment-1309474">
+		<div>
+			<div>
+				<figure>
+					<img alt='john' src='https://secure.gravatar.com/avatar/cf64c089443116590c9bf673b9a7352421ccfbcab5d295afad70e2cf89fbe839?s=70&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/cf64c089443116590c9bf673b9a7352421ccfbcab5d295afad70e2cf89fbe839?s=140&#038;d=mm&#038;r=g 2x' class='avatar avatar-70 photo' height='70' width='70' decoding='async'/>				</figure>
+				<span>john</span>
+				<span>Dec. 08, 2018</span>
+			</div>
+			<div>
+				<p>Hi Guys, it feels really strange to use the Gutenberg editor/platform, all plugin icons/buttons that often show in the classic editor mode seem to vanish from the screen. I guess the learning curve will be really steep for most.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</li></ul><!-- .children -->
+</div></li>	</ol>
+</div>
+		</div>
+						</div>
+				<footer id="post__footer">
+					<div>
+<div>
+<div>
+<div>
+<div>
+<div>
+<h2 id="h-want-to-stay-ahead-of-the-seo-game">Want to stay ahead of the SEO game?</h2>
+<p>Subscribe to our newsletter: Get weekly tips to improve your website’s SEO, usability, and conversion!</p>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div></div>
+<p>We care about the protection of your data. Read our <a href="https://yoast.com/privacy-notice/">privacy policy.</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+				</footer>
+			</article>
+		</main>
+	<div>
+		<div>
+			<hr>
+		</div>
+		<nav id="footer__nav"
+			aria-label="Sitemap">
+			<ul id="menu-footer-menu"><li id="menu-item-1712602"><a href="https://yoast.com">Yoast SEO</a>
+<ul>
+	<li id="menu-item-1712755"><a href="https://yoast.com/about-us/"><span>    </span><span><span>About us</span><span>      </span></span></a></li>
+	<li id="menu-item-1949653"><a href="https://yoast.com/jobs/"><span>    </span><span><span>Careers</span><span>      </span></span></a></li>
+	<li id="menu-item-2318820"><a href="https://yoast.com/werken-bij/"><span>    </span><span><span>Werken bij Yoast (NL)</span><span>      </span></span></a></li>
+	<li id="menu-item-2032798"><a href="https://yoast.com/about-us/community/"><span>    </span><span><span>Community</span><span>      </span></span></a></li>
+	<li id="menu-item-4627270"><a href="https://yoast.com/about-us/events/"><span>    </span><span><span>Events</span><span>      </span></span></a></li>
+	<li id="menu-item-4112861"><a href="https://yoast.com/press/"><span>    </span><span><span>Press</span><span>      </span></span></a></li>
+	<li id="menu-item-3474416"><a href="https://yoast.com/yoast-partners/"><span>    </span><span><span>Become a Yoast partner</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712732"><a href="https://yoast.com/shop/">Products</a>
+<ul>
+	<li id="menu-item-4246977"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span>    </span><span><span>Yoast SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4189497"><a href="https://yoast.com/product/yoast-seo-shopify/"><span>    </span><span><span>Yoast SEO for Shopify</span><span>      </span></span></a></li>
+	<li id="menu-item-1712733"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span>    </span><span><span>Yoast SEO Premium</span><span>      </span></span></a></li>
+	<li id="menu-item-4256701"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span>    </span><span><span>Yoast SEO AI+</span><span>      </span></span></a></li>
+	<li id="menu-item-1712737"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span>    </span><span><span>Yoast WooCommerce SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4140313"><a href="https://yoast.com/product/google-docs-addon/"><span>    </span><span><span>Yoast SEO Google Docs Add-On</span><span>      </span></span></a></li>
+	<li id="menu-item-1712739"><a href="https://yoast.com/yoast-seo-platforms/"><span>    </span><span><span>Other platforms</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712608"><a href="https://yoast.com/help/">Support and Resources</a>
+<ul>
+	<li id="menu-item-3972071"><a href="https://yoast.com/help/support/#email"><span>    </span><span><span>24/7 Premium Support</span><span>      </span></span></a></li>
+	<li id="menu-item-3972064"><a href="https://yoast.com/help/support/"><span>    </span><span><span>Yoast SEO WordPress help</span><span>      </span></span></a></li>
+	<li id="menu-item-3972066"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span>    </span><span><span>Yoast SEO Shopify guide</span><span>      </span></span></a></li>
+	<li id="menu-item-1712749"><a href="https://yoast.com/academy/yoast-seo-wordpress-training/"><span>    </span><span><span>Yoast SEO training</span><span>      </span></span></a></li>
+	<li id="menu-item-1712605"><a href="https://developer.yoast.com/"><span>    </span><span><span>Developer Documentation</span><span>      </span></span></a></li>
+	<li id="menu-item-4116702"><a href="https://yoast.com/tools/seo-checker/"><span>    </span><span><span>SEO Checker</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712746"><a href="https://yoast.com/seo-blog/">Learn SEO</a>
+<ul>
+	<li id="menu-item-1712741"><a href="https://yoast.com/tag/seo-basics/"><span>    </span><span><span>SEO basics</span><span>      </span></span></a></li>
+	<li id="menu-item-2324514"><a href="https://yoast.com/must-reads-for-website-seo/"><span>    </span><span><span>SEO essentials</span><span>      </span></span></a></li>
+	<li id="menu-item-3699893"><a href="https://yoast.com/seo-glossary/"><span>    </span><span><span>SEO glossary</span><span>      </span></span></a></li>
+	<li id="menu-item-3081154"><a href="https://yoast.com/series/seo-news-webinar/"><span>    </span><span><span>SEO news</span><span>      </span></span></a></li>
+	<li id="menu-item-1712747"><a href="https://yoast.com/academy/"><span>    </span><span><span>Yoast SEO Academy</span><span>      </span></span></a></li>
+	<li id="menu-item-3124128"><a href="https://yoast.com/webinar/"><span>    </span><span><span>Webinars</span><span>      </span></span></a></li>
+	<li id="menu-item-3124133"><a href="https://yoast.com/zo-werkt-yoast-seo/"><span>    </span><span><span>Zo werkt Yoast SEO (NL boek)</span><span>      </span></span></a></li>
+</ul>
+</li>
+</ul>		</nav>
+	</div>
+		</div>
+	<footer role="contentinfo">
+		<div>
+			<div>
+				<ul id="menu-legal"><li id="menu-item-1712763"><a href="https://yoast.com/reserved-rights/">Some rights reserved</a></li>
+<li id="menu-item-1712764"><a href="https://newfold.com/privacy-center/privacy">Privacy notice</a></li>
+<li id="menu-item-1712765"><a target="_blank" href="https://yoast.com/terms-of-service/">Terms of service</a></li>
+<li id="menu-item-4555200"><a href="https://legal.newfold.com/TermsOfUse.pdf">Terms of use</a></li>
+<li id="menu-item-3543442"><a target="_blank" href="https://newfold.com/privacy-center/cookie-policy">Cookie notice</a></li>
+<li id="menu-item-1712766"><a href="https://yoast.com/terms-of-service/#h-yoast-refund-policy">Refund policy</a></li>
+<li id="menu-item-3322202"><a href="https://yoast.com/review-notice/">Review notice</a></li>
+<li id="menu-item-4476575"><a href="https://www.newfold.com/abuse">Report abuse</a></li>
+<li id="menu-item-1712767"><a href="https://yoast.com/contact/">Contact us</a></li>
+<li id="menu-item-4452686"><a href="https://www.newfold.com/privacy-center/addendum-for-california-users">Do not sell or share my personal information</a></li>
+</ul>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+			</div>
+			<div>
+				<div>
+					<strong>© 2003-2026 Yoast BV</strong> Yoast is a trademark of Yoast BV				</div>
+				<div>
+												<a href="https://www.facebook.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Facebook</span></a>
+														<a href="https://www.youtube.com/yoast" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Youtube</span></a>
+														<a href="https://www.instagram.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Instagram</span></a>
+														<a href="https://www.linkedin.com/company/yoast-com/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>LinkedIn</span></a>
+											</div>
+			</div>
+		</div>
+			</footer>
+<div>
+	<div id="back-to-top-button__container">
+		<button id="back-to-top-button"><i></i></button>
+	</div>
+</div>
+<link rel="stylesheet" id="newsletter-block-pattern-css" href="https://yoast.com/app/themes/yoast-theme/css/patterns/Newsletter/Newsletter_Block/newsletter-block.min.css?ver=1772455867" media="all" />
+<link rel="stylesheet" id="back-to-top-button-css" href="https://yoast.com/app/themes/yoast-theme/css/includes/back-to-top-button.min.css?ver=1772455867" media="all" />
+</body>
+</html>

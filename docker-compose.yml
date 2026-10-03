@@ -47,6 +47,8 @@ services:
     environment:
       <<: *be-env
       PORT: "3000"
+      # The API process also executes crawl runs (two at a time) from the crawl_runs queue.
+      CRAWL_WORKER_ENABLED: "true"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -55,6 +57,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
+
+  # One-shot and idempotent: `docker compose run --rm seed`. Creates the two demo
+  # accounts, crawls their sites through the same crawl the API runs, and fills daily
+  # positions up to today for every current keyword. Not started by `up`.
+  seed:
+    image: seo-keyword-tracker-be
+    profiles: [tools]
+    command: ["node", "dist/src/seed/seed.js"]
+    environment:
+      <<: *be-env
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
   # The built SPA served by Caddy, which also proxies /api to the backend.
   web:

@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://sitemaps.crosshost.example/index.xml

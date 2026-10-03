@@ -1925,3 +1925,12 @@ D36. The owner accepted every default: Q4 (tests, fixtures, support and e2e unde
      v8). The planner's own choices are accepted as written: the cross-module join rule, results
      written once per attempt, LISTEN/NOTIFY wake-up with the 2 s poll as a fallback, the seed's
      in-process worker, and the sitemap score threshold of 2. Q4-Q12 are closed.
+
+D37. After delivery the owner tried real sites, and two defaults were reopened. Q11 is reversed: a
+     client can be deleted (`DELETE /api/clients/:id`, everything its crawls produced goes with
+     it). Discovery gains the HTML fallbacks the first design deferred, because blog.google,
+     blog.canada.ca, united24media.com, nit.bg and about.instagram.com all failed it: a blog host
+     and a Google News sitemap score, relative and sibling-subdomain sitemaps are read, and with
+     no confirmed sitemap the feed, then a blog index page, then the best sitemap are tried — the
+     last two counting only pages that declare themselves articles. A site refusing every request
+     fails with the new `SITE_BLOCKED` code; Q9 stands, so such sites stay uncrawlable.

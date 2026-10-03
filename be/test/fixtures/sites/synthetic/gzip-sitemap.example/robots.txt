@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://gzip-sitemap.example/sitemap.xml.gz

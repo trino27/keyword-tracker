@@ -1,0 +1,13 @@
+.pageCell {
+	max-width: 360px;
+}
+
+.keywordsCell {
+	max-width: 340px;
+}
+
+// A refresh keeps the old rows, dimmed, instead of flashing a skeleton.
+.stale {
+	opacity: 0.6;
+	transition: opacity 150ms ease;
+}

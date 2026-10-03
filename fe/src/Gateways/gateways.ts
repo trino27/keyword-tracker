@@ -1,4 +1,7 @@
-import { HealthGateway } from "./HealthGateway/HealthGateway";
+import { ClientGateway } from "./ClientGateway/ClientGateway";
+import { PageGateway } from "./PageGateway/PageGateway";
+import { PositionGateway } from "./PositionGateway/PositionGateway";
+import { SessionGateway } from "./SessionGateway/SessionGateway";
 
 /**
  * One instance of each gateway, imported by ViewModels only (ESLint enforces it).
@@ -7,5 +10,8 @@ import { HealthGateway } from "./HealthGateway/HealthGateway";
  * reaches through here.
  */
 export const gateways = {
-	health: new HealthGateway(),
+	session: new SessionGateway(),
+	clients: new ClientGateway(),
+	pages: new PageGateway(),
+	positions: new PositionGateway(),
 };

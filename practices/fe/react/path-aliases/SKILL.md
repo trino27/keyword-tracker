@@ -20,7 +20,7 @@ Casing matches the folder: `@Core`, not `@core`. The glob matcher in lint rules 
 ## The rule
 
 - **Leaves its layer: alias.** `import { describeError } from "@Core/Helpers/DescribeError/describeError"`.
-- **Stays inside its layer: relative.** `./PageRow.module.css`, `../IssueTag/IssueTag`.
+- **Stays inside its layer: relative.** `./PageRow.module.scss`, `../IssueTag/IssueTag`.
 
 The alias in an import line therefore names the dependency being taken, which is what makes layer direction reviewable at a glance (`mvvm-layers`). If you need more than two `../` inside a layer, the target is probably another area and wants a clearer home.
 

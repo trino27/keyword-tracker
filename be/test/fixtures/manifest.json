@@ -1,0 +1,1463 @@
+{
+  "entries": {
+    "https://blog.relative-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/blog.relative-sitemap.example/index"
+    },
+    "https://blog.relative-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/blog.relative-sitemap.example/robots.txt"
+    },
+    "https://blog.relative-sitemap.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/blog.relative-sitemap.example/sitemap.xml"
+    },
+    "https://crosshost.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/crosshost.example/index"
+    },
+    "https://crosshost.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/crosshost.example/robots.txt"
+    },
+    "https://feed-as-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/feed-as-sitemap.example/index"
+    },
+    "https://feed-as-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/feed-as-sitemap.example/robots.txt"
+    },
+    "https://feed-as-sitemap.example/syndication.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml; charset=utf-8"
+      },
+      "file": "synthetic/feed-as-sitemap.example/syndication.xml"
+    },
+    "https://feed-only.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/feed-only.example/index"
+    },
+    "https://feed-only.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/feed-only.example/robots.txt"
+    },
+    "https://feed-only.example/rss/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml; charset=utf-8"
+      },
+      "file": "synthetic/feed-only.example/rss/index"
+    },
+    "https://flat-mixed.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/index"
+    },
+    "https://flat-mixed.example/article-number-1": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-1"
+    },
+    "https://flat-mixed.example/article-number-2": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-2"
+    },
+    "https://flat-mixed.example/article-number-3": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-3"
+    },
+    "https://flat-mixed.example/article-number-4": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-4"
+    },
+    "https://flat-mixed.example/article-number-5": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-5"
+    },
+    "https://flat-mixed.example/article-number-6": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-6"
+    },
+    "https://flat-mixed.example/hosting": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/hosting"
+    },
+    "https://flat-mixed.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/robots.txt"
+    },
+    "https://flat-mixed.example/seo-audit": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/seo-audit"
+    },
+    "https://flat-mixed.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/sitemap.xml"
+    },
+    "https://flat-mixed.example/web-design": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/web-design"
+    },
+    "https://gzip-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/gzip-sitemap.example/index"
+    },
+    "https://gzip-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/gzip-sitemap.example/robots.txt"
+    },
+    "https://gzip-sitemap.example/sitemap.xml.gz": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/x-gzip"
+      },
+      "file": "synthetic/gzip-sitemap.example/sitemap.xml.gz"
+    },
+    "https://listing-only.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/listing-only.example/index"
+    },
+    "https://listing-only.example/blog/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/listing-only.example/blog/index"
+    },
+    "https://listing-only.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/listing-only.example/robots.txt"
+    },
+    "https://moved.example/": {
+      "status": 301,
+      "headers": {
+        "location": "https://new-home.example/"
+      }
+    },
+    "https://newsroom.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/index"
+    },
+    "https://newsroom.example/news-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/news-sitemap.xml"
+    },
+    "https://newsroom.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/robots.txt"
+    },
+    "https://newsroom.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/sitemap.xml"
+    },
+    "https://no-robots.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/no-robots.example/index"
+    },
+    "https://no-robots.example/post-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/no-robots.example/post-sitemap.xml"
+    },
+    "https://no-robots.example/sitemap_index.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/no-robots.example/sitemap_index.xml"
+    },
+    "https://no-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/no-sitemap.example/index"
+    },
+    "https://no-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/no-sitemap.example/robots.txt"
+    },
+    "https://pages-only.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/pages-only.example/index"
+    },
+    "https://pages-only.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/pages-only.example/robots.txt"
+    },
+    "https://pages-only.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/pages-only.example/sitemap.xml"
+    },
+    "https://robots-5xx.example/robots.txt": {
+      "status": 500,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "body": "Internal Server Error"
+    },
+    "https://root-blog-no-feed.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/root-blog-no-feed.example/index"
+    },
+    "https://root-blog-no-feed.example/page-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/root-blog-no-feed.example/page-sitemap.xml"
+    },
+    "https://root-blog-no-feed.example/post-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/root-blog-no-feed.example/post-sitemap.xml"
+    },
+    "https://root-blog-no-feed.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/root-blog-no-feed.example/robots.txt"
+    },
+    "https://root-blog-no-feed.example/sitemap_index.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/root-blog-no-feed.example/sitemap_index.xml"
+    },
+    "https://sitemaps.crosshost.example/index.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/sitemaps.crosshost.example/index.xml"
+    },
+    "https://sitemaps.crosshost.example/post-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/sitemaps.crosshost.example/post-sitemap.xml"
+    },
+    "https://text-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/text-sitemap.example/index"
+    },
+    "https://text-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/text-sitemap.example/robots.txt"
+    },
+    "https://text-sitemap.example/sitemap.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/text-sitemap.example/sitemap.txt"
+    },
+    "https://unusual-name.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/unusual-name.example/index"
+    },
+    "https://unusual-name.example/chronicle.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/unusual-name.example/chronicle.xml"
+    },
+    "https://unusual-name.example/pages-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/unusual-name.example/pages-sitemap.xml"
+    },
+    "https://unusual-name.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/unusual-name.example/robots.txt"
+    },
+    "https://unusual-name.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/unusual-name.example/sitemap.xml"
+    },
+    "https://unusual-name.example/updates.rss": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml; charset=utf-8"
+      },
+      "file": "synthetic/unusual-name.example/updates.rss"
+    },
+    "https://walled.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "body": "User-agent: *\nAllow: /\nSitemap: https://walled.example/sitemap.xml\n"
+    },
+    "https://www.semrush.com/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 212,
+      "file": "semrush/index.html"
+    },
+    "https://www.semrush.com/academy/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=utf-8"
+      },
+      "ttfbMs": 218,
+      "file": "semrush/academy/sitemap.xml"
+    },
+    "https://www.semrush.com/analytics/traffic/competitor-monitoring": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 331,
+      "file": "semrush/analytics/traffic/competitor-monitoring.html"
+    },
+    "https://www.semrush.com/apps/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 185,
+      "file": "semrush/apps/sitemap.xml"
+    },
+    "https://www.semrush.com/blog/ai-marketing/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 211,
+      "file": "semrush/blog/ai-marketing/index.html"
+    },
+    "https://www.semrush.com/blog/ai-search-optimization/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 189,
+      "file": "semrush/blog/ai-search-optimization/index.html"
+    },
+    "https://www.semrush.com/blog/artificial-intelligence-stats/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 236,
+      "file": "semrush/blog/artificial-intelligence-stats/index.html"
+    },
+    "https://www.semrush.com/blog/data-driven-marketing/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 219,
+      "file": "semrush/blog/data-driven-marketing/index.html"
+    },
+    "https://www.semrush.com/blog/digital-marketing-agency-pricing/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 208,
+      "file": "semrush/blog/digital-marketing-agency-pricing/index.html"
+    },
+    "https://www.semrush.com/blog/facebook-audience-overlap/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 177,
+      "file": "semrush/blog/facebook-audience-overlap/index.html"
+    },
+    "https://www.semrush.com/blog/feed/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml; charset=utf-8"
+      },
+      "ttfbMs": 190,
+      "file": "semrush/blog/feed/index.xml"
+    },
+    "https://www.semrush.com/blog/how-to-find-youtube-influencers/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 196,
+      "file": "semrush/blog/how-to-find-youtube-influencers/index.html"
+    },
+    "https://www.semrush.com/blog/how-to-reply-to-google-reviews/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 281,
+      "file": "semrush/blog/how-to-reply-to-google-reviews/index.html"
+    },
+    "https://www.semrush.com/blog/keyword-bidding/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 250,
+      "file": "semrush/blog/keyword-bidding/index.html"
+    },
+    "https://www.semrush.com/blog/keyword-research-tools/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 200,
+      "file": "semrush/blog/keyword-research-tools/index.html"
+    },
+    "https://www.semrush.com/blog/local-seo-ranking-factors/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 210,
+      "file": "semrush/blog/local-seo-ranking-factors/index.html"
+    },
+    "https://www.semrush.com/blog/local-seo-statistics/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 248,
+      "file": "semrush/blog/local-seo-statistics/index.html"
+    },
+    "https://www.semrush.com/blog/martech-tools/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 209,
+      "file": "semrush/blog/martech-tools/index.html"
+    },
+    "https://www.semrush.com/blog/seo-data-science/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 254,
+      "file": "semrush/blog/seo-data-science/index.html"
+    },
+    "https://www.semrush.com/blog/seo-specialist/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 187,
+      "file": "semrush/blog/seo-specialist/index.html"
+    },
+    "https://www.semrush.com/blog/seo-split-test-result-does-bolded-text-help-your-seo/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 189,
+      "file": "semrush/blog/seo-split-test-result-does-bolded-text-help-your-seo/index.html"
+    },
+    "https://www.semrush.com/blog/seo-traffic-generation/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 209,
+      "file": "semrush/blog/seo-traffic-generation/index.html"
+    },
+    "https://www.semrush.com/blog/sitemap/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=utf-8"
+      },
+      "ttfbMs": 210,
+      "file": "semrush/blog/sitemap/index.xml"
+    },
+    "https://www.semrush.com/blog/what-is-ai-marketing/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 195,
+      "file": "semrush/blog/what-is-ai-marketing/index.html"
+    },
+    "https://www.semrush.com/blog/what-is-keyword-analysis/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 203,
+      "file": "semrush/blog/what-is-keyword-analysis/index.html"
+    },
+    "https://www.semrush.com/blog/why-ai-search-is-the-new-reality-for-brands/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 187,
+      "file": "semrush/blog/why-ai-search-is-the-new-reality-for-brands/index.html"
+    },
+    "https://www.semrush.com/company/sitemap/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml",
+        "x-robots-tag": "noindex, noodp, noarchive"
+      },
+      "ttfbMs": 207,
+      "file": "semrush/company/sitemap/index.xml"
+    },
+    "https://www.semrush.com/eyeon/sitemap.xml": {
+      "status": 301,
+      "headers": {
+        "content-type": "text/html",
+        "location": "/analytics/traffic/competitor-monitoring"
+      },
+      "ttfbMs": 139
+    },
+    "https://www.semrush.com/free-tools/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 166,
+      "file": "semrush/free-tools/sitemap.xml"
+    },
+    "https://www.semrush.com/kb/sitemap/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml",
+        "x-robots-tag": "noindex, noodp, noarchive"
+      },
+      "ttfbMs": 891,
+      "file": "semrush/kb/sitemap/index.xml"
+    },
+    "https://www.semrush.com/mcp/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 177,
+      "file": "semrush/mcp/sitemap.xml"
+    },
+    "https://www.semrush.com/news/sitemap/": {
+      "status": 404,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "ttfbMs": 596
+    },
+    "https://www.semrush.com/popular/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml"
+      },
+      "ttfbMs": 169,
+      "file": "semrush/popular/sitemap.xml"
+    },
+    "https://www.semrush.com/pricing/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 156,
+      "file": "semrush/pricing/sitemap.xml"
+    },
+    "https://www.semrush.com/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "ttfbMs": 296,
+      "file": "semrush/robots.txt"
+    },
+    "https://www.semrush.com/sitemap_static.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml"
+      },
+      "ttfbMs": 137,
+      "file": "semrush/sitemap_static.xml"
+    },
+    "https://www.semrush.com/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml"
+      },
+      "ttfbMs": 143,
+      "file": "semrush/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ad/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 160,
+      "file": "semrush/trending-websites/ad/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ae/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 160,
+      "file": "semrush/trending-websites/ae/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/af/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 161,
+      "file": "semrush/trending-websites/af/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ag/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 159,
+      "file": "semrush/trending-websites/ag/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ai/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 161,
+      "file": "semrush/trending-websites/ai/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/al/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 189,
+      "file": "semrush/trending-websites/al/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/am/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 165,
+      "file": "semrush/trending-websites/am/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ao/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 159,
+      "file": "semrush/trending-websites/ao/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/aq/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 160,
+      "file": "semrush/trending-websites/aq/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ar/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 154,
+      "file": "semrush/trending-websites/ar/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/as/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 173,
+      "file": "semrush/trending-websites/as/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/at/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 156,
+      "file": "semrush/trending-websites/at/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/au/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 160,
+      "file": "semrush/trending-websites/au/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/aw/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 166,
+      "file": "semrush/trending-websites/aw/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ax/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 177,
+      "file": "semrush/trending-websites/ax/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/az/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 156,
+      "file": "semrush/trending-websites/az/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/ba/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 173,
+      "file": "semrush/trending-websites/ba/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/bb/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 158,
+      "file": "semrush/trending-websites/bb/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/bd/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 167,
+      "file": "semrush/trending-websites/bd/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/be/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 167,
+      "file": "semrush/trending-websites/be/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/bf/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 155,
+      "file": "semrush/trending-websites/bf/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/bg/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 156,
+      "file": "semrush/trending-websites/bg/sitemap.xml"
+    },
+    "https://www.semrush.com/trending-websites/sitemap": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 172,
+      "file": "semrush/trending-websites/sitemap.xml"
+    },
+    "https://www.semrush.com/vs/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 296,
+      "file": "semrush/vs/sitemap.xml"
+    },
+    "https://www.semrush.com/website-pages-sitemap/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "ttfbMs": 161,
+      "file": "semrush/website-pages-sitemap/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 252,
+      "file": "semrush/website/sitemap.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-competitors.xml/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 209,
+      "file": "semrush/website/sitemap/sitemap-competitors.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-competitors.xml/?p=2": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 204,
+      "file": "semrush/website/sitemap/sitemap-competitors.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-main.xml/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 177,
+      "file": "semrush/website/sitemap/sitemap-main.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-pages.xml/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 380,
+      "file": "semrush/website/sitemap/sitemap-pages.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-pages.xml/?p=2": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 205,
+      "file": "semrush/website/sitemap/sitemap-pages.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-pages.xml/?p=3": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 196,
+      "file": "semrush/website/sitemap/sitemap-pages.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-pages.xml/?p=4": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 203,
+      "file": "semrush/website/sitemap/sitemap-pages.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-pages.xml/?p=5": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml"
+      },
+      "ttfbMs": 189,
+      "file": "semrush/website/sitemap/sitemap-pages.xml/index.xml"
+    },
+    "https://www.semrush.com/website/sitemap/sitemap-top.xml/": {
+      "status": 404,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "ttfbMs": 147
+    },
+    "https://yoast.com/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 26,
+      "file": "yoast/index.html"
+    },
+    "https://yoast.com/3-exercises-google-analytics-fun/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 25,
+      "file": "yoast/3-exercises-google-analytics-fun/index.html"
+    },
+    "https://yoast.com/7-reasons-to-come-to-yoastcon/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 26,
+      "file": "yoast/7-reasons-to-come-to-yoastcon/index.html"
+    },
+    "https://yoast.com/assisted-conversions-google-analytics/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 26,
+      "file": "yoast/assisted-conversions-google-analytics/index.html"
+    },
+    "https://yoast.com/conversion-rate-optimization-hypothesise-test/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 24,
+      "file": "yoast/conversion-rate-optimization-hypothesise-test/index.html"
+    },
+    "https://yoast.com/email-performance-in-google-analytics/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 25,
+      "file": "yoast/email-performance-in-google-analytics/index.html"
+    },
+    "https://yoast.com/facebook-changes-make-seo-important/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 26,
+      "file": "yoast/facebook-changes-make-seo-important/index.html"
+    },
+    "https://yoast.com/facebook-traffic-decreasing-what-to-do/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 23,
+      "file": "yoast/facebook-traffic-decreasing-what-to-do/index.html"
+    },
+    "https://yoast.com/facebook-traffic-the-current-status/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 27,
+      "file": "yoast/facebook-traffic-the-current-status/index.html"
+    },
+    "https://yoast.com/feed/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml; charset=UTF-8"
+      },
+      "ttfbMs": 26,
+      "file": "yoast/feed/index.xml"
+    },
+    "https://yoast.com/google-analytics-dashboards/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 24,
+      "file": "yoast/google-analytics-dashboards/index.html"
+    },
+    "https://yoast.com/google-analytics-segments-blog/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 22,
+      "file": "yoast/google-analytics-segments-blog/index.html"
+    },
+    "https://yoast.com/how-to-remove-www-from-your-url/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 25,
+      "file": "yoast/how-to-remove-www-from-your-url/index.html"
+    },
+    "https://yoast.com/live-indexing-bing-google-yoast-seo/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 24,
+      "file": "yoast/live-indexing-bing-google-yoast-seo/index.html"
+    },
+    "https://yoast.com/news-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/news-sitemap.xml"
+    },
+    "https://yoast.com/on-gutenberg-and-wordpress-5-0/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 29,
+      "file": "yoast/on-gutenberg-and-wordpress-5-0/index.html"
+    },
+    "https://yoast.com/one-page-website-seo/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 25,
+      "file": "yoast/one-page-website-seo/index.html"
+    },
+    "https://yoast.com/online-marketing-tools/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 24,
+      "file": "yoast/online-marketing-tools/index.html"
+    },
+    "https://yoast.com/page-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 19,
+      "file": "yoast/page-sitemap.xml"
+    },
+    "https://yoast.com/post_tag-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/post_tag-sitemap.xml"
+    },
+    "https://yoast.com/post-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 16,
+      "file": "yoast/post-sitemap.xml"
+    },
+    "https://yoast.com/post-sitemap2.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 21,
+      "file": "yoast/post-sitemap2.xml"
+    },
+    "https://yoast.com/pressing-questions-about-gutenberg-the-new-editor-in-wordpress-5-0/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 28,
+      "file": "yoast/pressing-questions-about-gutenberg-the-new-editor-in-wordpress-5-0/index.html"
+    },
+    "https://yoast.com/product-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 16,
+      "file": "yoast/product-sitemap.xml"
+    },
+    "https://yoast.com/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "ttfbMs": 67,
+      "file": "yoast/robots.txt"
+    },
+    "https://yoast.com/secondary-dimensions-in-google-analytics/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 26,
+      "file": "yoast/secondary-dimensions-in-google-analytics/index.html"
+    },
+    "https://yoast.com/seo-blog/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 24,
+      "file": "yoast/seo-blog/index.html"
+    },
+    "https://yoast.com/sequence-segments-google-analytics/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 23,
+      "file": "yoast/sequence-segments-google-analytics/index.html"
+    },
+    "https://yoast.com/should-you-update-to-wordpress-5-0/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 28,
+      "file": "yoast/should-you-update-to-wordpress-5-0/index.html"
+    },
+    "https://yoast.com/sitemap_index.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/sitemap_index.xml"
+    },
+    "https://yoast.com/technology-report-in-google-analytics/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 24,
+      "file": "yoast/technology-report-in-google-analytics/index.html"
+    },
+    "https://yoast.com/video-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 16,
+      "file": "yoast/video-sitemap.xml"
+    },
+    "https://yoast.com/what-is-http2/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=UTF-8"
+      },
+      "ttfbMs": 26,
+      "file": "yoast/what-is-http2/index.html"
+    },
+    "https://yoast.com/wpkb-article-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 19,
+      "file": "yoast/wpkb-article-sitemap.xml"
+    },
+    "https://yoast.com/yoast_ask_yoasie-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 18,
+      "file": "yoast/yoast_ask_yoasie-sitemap.xml"
+    },
+    "https://yoast.com/yoast_care_fund-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 21,
+      "file": "yoast/yoast_care_fund-sitemap.xml"
+    },
+    "https://yoast.com/yoast_case_study-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 16,
+      "file": "yoast/yoast_case_study-sitemap.xml"
+    },
+    "https://yoast.com/yoast_courses-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/yoast_courses-sitemap.xml"
+    },
+    "https://yoast.com/yoast_developer_blog-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/yoast_developer_blog-sitemap.xml"
+    },
+    "https://yoast.com/yoast_employees-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 19,
+      "file": "yoast/yoast_employees-sitemap.xml"
+    },
+    "https://yoast.com/yoast_events-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/yoast_events-sitemap.xml"
+    },
+    "https://yoast.com/yoast_feature-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/yoast_feature-sitemap.xml"
+    },
+    "https://yoast.com/yoast_industry-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 18,
+      "file": "yoast/yoast_industry-sitemap.xml"
+    },
+    "https://yoast.com/yoast_podcast-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 17,
+      "file": "yoast/yoast_podcast-sitemap.xml"
+    },
+    "https://yoast.com/yoast_series-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 15,
+      "file": "yoast/yoast_series-sitemap.xml"
+    },
+    "https://yoast.com/yoast_videos-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 20,
+      "file": "yoast/yoast_videos-sitemap.xml"
+    },
+    "https://yoast.com/yoast_webinar_type-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 15,
+      "file": "yoast/yoast_webinar_type-sitemap.xml"
+    },
+    "https://yoast.com/yoast_webinar-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/xml; charset=UTF-8",
+        "x-robots-tag": "noindex, follow"
+      },
+      "ttfbMs": 16,
+      "file": "yoast/yoast_webinar-sitemap.xml"
+    }
+  },
+  "patterns": [
+    {
+      "pattern": "^https://(no-robots|gzip-sitemap)\\.example/blog/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://root-blog-no-feed\\.example/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://unusual-name\\.example/stories/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://unreachable\\.example/",
+      "error": "unavailable"
+    },
+    {
+      "pattern": "^https://blog\\.relative-sitemap\\.example/2025/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://crosshost\\.example/blog/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://newsroom\\.example/politics/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://listing-only\\.example/blog/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://feed-only\\.example/stories/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://walled\\.example/(?!robots\\.txt$)",
+      "status": 403
+    },
+    {
+      "pattern": "^https://text-sitemap\\.example/blog/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://feed-as-sitemap\\.example/notes/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://challenged\\.example/",
+      "status": 503,
+      "headers": {
+        "cf-mitigated": "challenge"
+      }
+    }
+  ]
+}

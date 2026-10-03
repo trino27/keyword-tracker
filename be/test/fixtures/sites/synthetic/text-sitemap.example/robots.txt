@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://text-sitemap.example/sitemap.txt

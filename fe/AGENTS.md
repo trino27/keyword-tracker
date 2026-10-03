@@ -1,6 +1,6 @@
 # fe/ — React single-page app
 
-React 19 + Vite, MVVM: zustand ViewModels, gateway classes, TanStack Router, zod, CSS Modules,
+React 19 + Vite, MVVM: zustand ViewModels, gateway classes, TanStack Router, zod, Mantine with SCSS modules,
 Vitest. No SSR — everything is behind a sign-in. In docker the build is served by Caddy, which
 also proxies `/api`; in development Vite's server proxies `/api` to the backend.
 
@@ -13,7 +13,7 @@ also proxies `/api`; in development Vite's server proxies `/api` to the backend.
 
 ```
 src/
-  main.tsx, index.css
+  main.tsx, index.scss
   App/        Router (route tree), Guards
   Core/       Configs, Helpers — no feature knowledge
   Gateways/   one class per backend resource, Validation/ zod schemas, _Shared/, gateways.ts

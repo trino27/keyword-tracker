@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://feed-as-sitemap.example/syndication.xml
