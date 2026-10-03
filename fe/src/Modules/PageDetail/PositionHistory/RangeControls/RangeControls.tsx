@@ -1,4 +1,4 @@
-import { Group, SegmentedControl } from "@mantine/core";
+import { Button, Group, SegmentedControl } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { isIsoDay, MAX_HISTORY_DAYS, type TIsoDay } from "@app/contracts";
 import type {
@@ -20,9 +20,12 @@ interface IRangeControlsProps {
 	/** The user's today — the latest day a range may end on. */
 	today: TIsoDay;
 	view: "chart" | "table";
+	/** The fill is running: it can write tens of thousands of rows, so it is not instant. */
+	filling: boolean;
 	onPreset: (preset: TRangePreset) => void;
 	onCustom: (range: IDayRange) => void;
 	onView: (view: "chart" | "table") => void;
+	onFill: () => void;
 }
 
 export function RangeControls({
@@ -30,9 +33,11 @@ export function RangeControls({
 	range,
 	today,
 	view,
+	filling,
 	onPreset,
 	onCustom,
 	onView,
+	onFill,
 }: IRangeControlsProps) {
 	return (
 		<Group justify="space-between" gap="sm" wrap="wrap">
@@ -61,16 +66,27 @@ export function RangeControls({
 					/>
 				)}
 			</Group>
-			<SegmentedControl
-				aria-label="View"
-				size="xs"
-				data={[
-					{ value: "chart", label: "Chart" },
-					{ value: "table", label: "Table" },
-				]}
-				value={view}
-				onChange={(value) => onView(value)}
-			/>
+			<Group gap="sm" wrap="nowrap">
+				<Button
+					size="xs"
+					variant="default"
+					loading={filling}
+					onClick={onFill}
+					title="Runs the seed's position fill for your clients"
+				>
+					Generate positions
+				</Button>
+				<SegmentedControl
+					aria-label="View"
+					size="xs"
+					data={[
+						{ value: "chart", label: "Chart" },
+						{ value: "table", label: "Table" },
+					]}
+					value={view}
+					onChange={(value) => onView(value)}
+				/>
+			</Group>
 		</Group>
 	);
 }

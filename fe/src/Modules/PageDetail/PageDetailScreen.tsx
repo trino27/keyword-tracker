@@ -28,7 +28,7 @@ export function PageDetailScreen() {
 		[search.range, search.from, search.to, timeZone],
 	);
 
-	const { fetchDetail, fetchHistory } = vm;
+	const { fetchDetail, fetchHistory, fillPositions } = vm;
 	useEffect(() => {
 		if (validId) void fetchDetail(pageId);
 	}, [validId, pageId, fetchDetail]);
@@ -37,8 +37,14 @@ export function PageDetailScreen() {
 		if (validId) void fetchHistory(pageId, range);
 	}, [validId, pageId, range, fetchHistory]);
 
+	// `resetScroll: false`: the range only redraws the chart in place, so the reader keeps
+	// their position instead of being thrown to the top of the page.
 	const update = (change: Partial<TPageDetailSearch>) =>
-		void navigate({ search: (previous) => ({ ...previous, ...change }), replace: true });
+		void navigate({
+			search: (previous) => ({ ...previous, ...change }),
+			replace: true,
+			resetScroll: false,
+		});
 
 	if (!validId || vm.notFound) return <NotFound what="This page" />;
 	if (vm.detailStatus === "error" && vm.detailError) {
@@ -70,6 +76,8 @@ export function PageDetailScreen() {
 				today={todayInZone(new Date(), timeZone)}
 				view={search.view}
 				hidden={hidden}
+				filling={vm.fillStatus === "loading"}
+				fillError={vm.fillError}
 				onPreset={(preset) =>
 					update(
 						preset === "custom"
@@ -87,6 +95,7 @@ export function PageDetailScreen() {
 					})
 				}
 				onRetry={() => void fetchHistory(pageId, range)}
+				onFill={() => void fillPositions(pageId, range)}
 			/>
 			<IssuesSection issues={vm.detail.issues} />
 		</Stack>

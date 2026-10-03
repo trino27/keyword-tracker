@@ -1,4 +1,4 @@
-import { Paper, Skeleton, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Paper, Skeleton, Stack, Text, Title } from "@mantine/core";
 import type { TIsoDay } from "@app/contracts";
 import type { TPositionHistory } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
@@ -21,16 +21,20 @@ interface IPositionHistoryProps {
 	today: TIsoDay;
 	view: "chart" | "table";
 	hidden: number[];
+	filling: boolean;
+	fillError: string | null;
 	onPreset: (preset: TRangePreset) => void;
 	onCustom: (range: IDayRange) => void;
 	onView: (view: "chart" | "table") => void;
 	onToggle: (keywordId: number) => void;
 	onRetry: () => void;
+	onFill: () => void;
 }
 
 /** Where the page ranked over the chosen days, for each of its keywords. */
 export function PositionHistory(props: IPositionHistoryProps) {
-	const { history, status, error, view, hidden, onRetry, onToggle } = props;
+	const { history, status, error, view, hidden, filling, fillError, onRetry, onToggle, onFill } =
+		props;
 	const empty = history !== null && history.series.every((series) => series.points.length === 0);
 
 	let body;
@@ -43,10 +47,15 @@ export function PositionHistory(props: IPositionHistoryProps) {
 	} else if (empty) {
 		body = (
 			<Paper withBorder radius="md" p="xl">
-				<Text size="sm" c="dimmed" ta="center">
-					No positions in this range. A page crawled after the last seed run gets its
-					history the next time the seed runs.
-				</Text>
+				<Stack gap="sm" align="center">
+					<Text size="sm" c="dimmed" ta="center">
+						No positions in this range. A page crawled after the last seed run has no
+						history until the positions are generated.
+					</Text>
+					<Button size="xs" loading={filling} onClick={onFill}>
+						Generate positions
+					</Button>
+				</Stack>
 			</Paper>
 		);
 	} else {
@@ -62,6 +71,11 @@ export function PositionHistory(props: IPositionHistoryProps) {
 		<Stack gap="sm">
 			<Title order={4}>Position history</Title>
 			<RangeControls {...props} />
+			{fillError && (
+				<Alert color="red" variant="light" title="Could not generate positions">
+					{fillError}
+				</Alert>
+			)}
 			{history && !empty && view === "chart" && (
 				<KeywordToggles series={history.series} hidden={hidden} onToggle={onToggle} />
 			)}
