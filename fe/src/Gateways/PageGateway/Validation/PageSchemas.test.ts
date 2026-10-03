@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { seoIssueSchema } from "./PageSchemas";
+import { SEO_ISSUE_CODES } from "@app/contracts";
+import { pageCheckSchema, seoIssueSchema } from "./PageSchemas";
 
 describe("seoIssueSchema", () => {
 	it("parses a measured finding with its stored bounds", () => {
@@ -55,5 +56,32 @@ describe("seoIssueSchema", () => {
 		});
 
 		expect(parsed.details).toEqual({ types: ["Organization"] });
+	});
+});
+
+describe("pageCheckSchema", () => {
+	it("accepts every catalogue code with every status", () => {
+		for (const code of SEO_ISSUE_CODES) {
+			for (const status of ["passed", "failed", "notApplicable", "notYetChecked"]) {
+				expect(pageCheckSchema.safeParse({ code, status }).success).toBe(true);
+			}
+		}
+	});
+
+	/**
+	 * A status the frontend does not know is contract drift, and the detail screen fails
+	 * loudly rather than rendering a row with no marker — the stance seoIssueSchema above
+	 * already takes on an unknown code.
+	 */
+	it("refuses a status it does not know", () => {
+		expect(pageCheckSchema.safeParse({ code: "NOT_HTTPS", status: "skipped" }).success).toBe(
+			false,
+		);
+	});
+
+	it("refuses a code the catalogue does not have", () => {
+		expect(pageCheckSchema.safeParse({ code: "MADE_UP", status: "passed" }).success).toBe(
+			false,
+		);
 	});
 });

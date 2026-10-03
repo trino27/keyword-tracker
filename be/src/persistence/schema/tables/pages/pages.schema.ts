@@ -61,8 +61,15 @@ export const pages = pgTable(
     // since from one this page passed. Written by the same upsert as the counts, for
     // the same reason they are written here: nothing in this row can answer it later.
     //
-    // Null means the last crawl predates this record, not that nothing was skipped.
-    // Phase 2 drops the nulls once every client has been re-crawled.
+    // Null means the last crawl predates this record, never that nothing was skipped.
+    //
+    // The columns stay nullable, and that is a finding rather than a step not yet taken.
+    // Re-crawling fills a page the crawl still finds; it cannot fill one it no longer
+    // does, and those rows are kept because nothing here deletes a page. Backfilling
+    // them is not merely dishonest but unrepresentable: the constraint below ties
+    // checks_applicable to cardinality(checks_judged), so an invented '{}' on a row
+    // claiming eighteen applicable checks is refused. Making the column NOT NULL would
+    // therefore need those pages deleted, which this module forbids.
     checksJudged: varchar('checks_judged', { length: 64 }).array(),
     checksNotApplicable: varchar('checks_not_applicable', {
       length: 64,

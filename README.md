@@ -63,6 +63,13 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:db
   judged on its length — so the denominator is counted at crawl time, while the parsed page is
   still in hand, and shown beside the number: two pages with different denominators do not compare
   as equals. Every check weighs the same; severity is how the screen reads, not arithmetic.
+- **The detail names every check and what it concluded** — passed, failed, not applicable, or
+  added to the catalogue after this page's last crawl — so the denominator is readable as a list
+  and not only as a number. A check that could not run is listed with its reason ("the page has
+  no images") rather than counted as a pass, and the page says how its own score was reached:
+  the arithmetic, the equal weighting, and what the number is not allowed to claim. Which checks
+  ran is recorded at crawl time in two columns beside the counters, because the stored row holds
+  no canonical, no images and no headings and cannot answer it afterwards.
 - **The pages list is ordered worst first**, interleaving clients rather than grouping by name.
   The score exists so a portfolio can be triaged, and an order that buries the worst page of the
   second client under the best page of the first defeats it. The sort ends in a unique key, so a

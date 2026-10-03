@@ -14,8 +14,11 @@ export function ScoreExplainer({ score }: { score: IPageScore }) {
 			<Title order={4}>How this score is calculated</Title>
 			<Paper withBorder radius="md" p="md">
 				<Stack gap="sm">
-					{explainScore(score).map((paragraph) => (
-						<Text key={paragraph.slice(0, 32)} size="sm">
+					{/* Index as key: four paragraphs, built in one place, never reordered
+					    or filtered — position is identity here, and a key sliced from the
+					    text would collide the day two of them open alike. */}
+					{explainScore(score).map((paragraph, index) => (
+						<Text key={index} size="sm">
 							{paragraph}
 						</Text>
 					))}
