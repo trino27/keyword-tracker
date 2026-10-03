@@ -55,6 +55,30 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   over every recorded fixture post, and which is why a page's score can never rest on a denominator
   too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
+- **The pass records WHICH checks ran, not only how many.** `evaluateSeoRules` returns two
+  disjoint lists in catalogue order — `checksJudged` and `checksNotApplicable` — and their union
+  is the catalogue AS OF THAT CRAWL. That union is the only record of it there will ever be:
+  read back against a catalogue that has since grown, a code in neither list is one that did not
+  exist when the page was seen, and a count alone cannot say which. No constraint can state the
+  union property, because any spelling of it names the catalogue's size and would break every
+  older row the day a check is added; `seo-rules.registry.spec.ts` asserts it over the recorded
+  corpus instead. What the database CAN state, and does, is
+  `checks_applicable = cardinality(checks_judged)`.
+<!-- invariant: ANALYSIS-011 -->
+**One pass records which checks it judged and which it could not.** The two lists are disjoint,
+in catalogue order, and their union is the catalogue as of that crawl. Pinned by
+`be/src/modules/page-analysis/services/seo-rules/seo-rules.registry.spec.ts` ->
+"the five conditional checks drop out together" and "emits only catalogued codes over every
+recorded page", which assert disjointness and the union over the recorded corpus. The counter
+half is pinned by the database instead: CHECK `pages_checks_judged_matches_applicable`.
+Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
+
+- **A skippable check declares why, in the catalogue.** The reason is a property of the rule and
+  not of a page — `IMAGES_MISSING_ALT` is skipped for one reason every time — so it is
+  `skipReason` beside `label` and `hint`, and `CONDITIONAL_ISSUE_CODES` is derived from its
+  presence rather than repeated as a second list. The registry spec asserts the skipped set over
+  the corpus is exactly those codes, which is what fails when a rule learns to skip and the
+  catalogue is not told why.
 - **Two checks are deliberately absent.** `SLOW_RESPONSE` measured the crawler's network position
   rather than the page, and `KEYWORD_NOT_IN_TITLE` could not fail by construction. The
   measurements are in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and

@@ -33,6 +33,15 @@ user never reaches another user's data.
   request that starts it; how it runs is decided in the plan.
 - **Shared wire values live in `@app/contracts`.** The backend owns them; the frontend
   imports them ([`skills/be-canonical-fe-mirror`](../../../skills/be-canonical-fe-mirror/SKILL.md)).
+- **A column added for new facts is nullable, and may have to stay that way.** Adding
+  `pages.checks_judged` was planned in two phases: nullable now, NOT NULL once every client had
+  been re-crawled. The second phase cannot arrive, and the reason generalises. Reconstruction was
+  refused first, because the stored row could honestly answer two of five conditional checks and
+  the other three would have been invented. Then re-crawling turned out to fill only the pages a
+  crawl still finds; rows it no longer finds are retained by an explicit module invariant and can
+  never be filled. The constraint written to protect the column — `checks_applicable =
+  cardinality(checks_judged)` — is also what makes a placeholder backfill impossible to write.
+  Before promising a tightening phase, ask which rows the refilling act cannot reach.
 
 ## Not used here — and why
 
