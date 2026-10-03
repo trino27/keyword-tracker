@@ -100,6 +100,56 @@ describe('extractPage', () => {
     });
   });
 
+  // practices/search-engines/references/field-study-2026-10.md, finding 7.
+  it('a copy-link control inside an h2 is not part of the heading (vercel.com)', () => {
+    const parsed = page(
+      '<main>' +
+        '<h2 id="agentic-infrastructure">' +
+        '<a href="#agentic-infrastructure" class="copy-link">' +
+        '<span class="sr-only">Copy link to heading</span>' +
+        '<svg aria-hidden="true"><path/></svg>' +
+        '</a>' +
+        'Agentic infrastructure' +
+        '</h2>' +
+        '<p>The platform runs the agent.</p>' +
+        '</main>',
+    );
+
+    expect(parsed.headings).toEqual([
+      { level: 2, text: 'Agentic infrastructure' },
+    ]);
+    expect(parsed.blocks).toEqual([
+      'Agentic infrastructure',
+      'The platform runs the agent.',
+    ]);
+  });
+
+  it('strips a control from an h1 the same way, wherever the h1 sits', () => {
+    expect(
+      page(
+        '<h1><button type="button">Copy link to heading</button>The future</h1>' +
+          '<main><p>Words.</p></main>',
+      ).h1s,
+    ).toEqual(['The future']);
+  });
+
+  it('an element hidden from assistive technology contributes no text', () => {
+    const parsed = page(
+      '<main>' +
+        '<h2><span aria-hidden="true">#</span>Rankings</h2>' +
+        '<p>Visible copy.<span hidden>Hidden copy.</span>' +
+        '<span class="visually-hidden">Label only.</span></p>' +
+        '</main>',
+    );
+
+    expect(parsed.headings).toEqual([{ level: 2, text: 'Rankings' }]);
+    expect(parsed.blocks).toEqual(['Rankings', 'Visible copy.']);
+  });
+
+  it('separates adjacent blocks so their words never fuse', () => {
+    expect(page('<main><h1>Title</h1><p>One</p></main>').wordCount).toBe(2);
+  });
+
   it('tells a missing alt from an empty one', () => {
     expect(
       page('<main><img src="a.png"><img src="b.png" alt=""></main>').images,

@@ -90,9 +90,24 @@ describe('crawl (e2e, recorded sites)', () => {
       expect(pairs).toBeLessThanOrEqual(8);
     }
     expect(await testDb.db.$count(seoIssues)).toBeGreaterThan(0);
+
+    // The write path, end to end: every page carries a denominator a score can divide by,
+    // and a failed count that agrees with the issue rows written in the same transaction.
+    const issueCounts = await testDb.db
+      .select({ pageId: seoIssues.pageId, found: count() })
+      .from(seoIssues)
+      .groupBy(seoIssues.pageId);
+    const failedByPage = new Map(
+      issueCounts.map(({ pageId, found }) => [pageId, found]),
+    );
+    for (const page of stored) {
+      expect(page.checksApplicable).toBeGreaterThanOrEqual(13);
+      expect(page.checksApplicable).toBeLessThanOrEqual(18);
+      expect(page.checksFailed).toBe(failedByPage.get(page.id) ?? 0);
+    }
   });
 
-  it('flags KEYWORD_NOT_IN_TITLE on a post whose title omits its top keyword', async () => {
+  it('flags STRUCTURED_DATA_MISSING on a post that declares no article markup', async () => {
     const post = 'https://root-blog-no-feed.example/post-number-2/';
     const paragraph =
       'Widget pricing depends on volume. Widget pricing tiers explained. '.repeat(
@@ -101,7 +116,7 @@ describe('crawl (e2e, recorded sites)', () => {
     transport.override(post, {
       status: 200,
       headers: { 'content-type': 'text/html' },
-      body: `<html lang="en"><head><title>Company news from our team this month</title></head><body><main><h1>Widget pricing</h1><p>${paragraph}</p></main></body></html>`,
+      body: `<html lang="en"><head><title>Widget pricing explained, tier by tier</title><script type="application/ld+json">{"@type":"Organization","name":"Acme"}</script></head><body><main><h1>Widget pricing</h1><p>${paragraph}</p></main></body></html>`,
     });
     const client = await addClient('root-blog-no-feed.example');
 
@@ -116,11 +131,8 @@ describe('crawl (e2e, recorded sites)', () => {
       .from(seoIssues)
       .where(eq(seoIssues.pageId, page.id));
     expect(issues).toContainEqual({
-      code: 'KEYWORD_NOT_IN_TITLE',
-      details: {
-        keyword: 'widget pricing',
-        title: 'Company news from our team this month',
-      },
+      code: 'STRUCTURED_DATA_MISSING',
+      details: { types: ['Organization'] },
     });
     await expect(runDetail(client.latestRun.id)).resolves.toMatchObject({
       status: 'succeeded',

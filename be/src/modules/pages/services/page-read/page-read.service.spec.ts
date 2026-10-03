@@ -20,6 +20,10 @@ const setup = (rowCount: number) => {
     title: `Post ${i}`,
     clientId: 7,
     clientName: 'Site',
+    // Worst first, as the repository's ORDER BY returns them: the first row fails the
+    // most checks and each later row fails fewer.
+    checksApplicable: 18,
+    checksFailed: Math.min(18, Math.max(0, rowCount - 1 - i)),
   }));
   const list = {
     listSlice: (_scope: IUserScope, filter: IPageListFilter) => {
@@ -61,6 +65,11 @@ const setup = (rowCount: number) => {
         { pageId: 1, severity: 'notice' as const, count: 2 },
       ]);
     },
+    siteWideCountsForPages: () => {
+      calls.push('siteWide');
+      // Two of page 1's three findings are on another page of the client too.
+      return Promise.resolve([{ pageId: 1, siteWide: 2 }]);
+    },
   } as unknown as PageListRepository;
   const clients = {
     assertOwnedClient: jest.fn(() => Promise.resolve()),
@@ -80,12 +89,20 @@ const setup = (rowCount: number) => {
 
 describe('PageReadService.listPages', () => {
   describe('cost', () => {
-    it('makes four repository calls for 50 rows', async () => {
+    // Five statements whatever the page size — never a query per row. A future "just one
+    // more lookup" turns this into six and the assertion says so.
+    it('makes five repository calls for 50 rows', async () => {
       const { service, calls, query } = setup(50);
 
       await service.listPages(scope, query());
 
-      expect(calls.sort()).toEqual(['issues', 'keywords', 'slice', 'total']);
+      expect(calls.sort()).toEqual([
+        'issues',
+        'keywords',
+        'siteWide',
+        'slice',
+        'total',
+      ]);
     });
   });
 
@@ -98,11 +115,22 @@ describe('PageReadService.listPages', () => {
       id: 1,
       client: { id: 7, name: 'Site' },
       bestPosition: { position: 3, term: 'audit' },
-      issues: { total: 3, error: 1, warning: 0, notice: 2 },
+      issues: { total: 3, error: 1, warning: 0, notice: 2, siteWide: 2 },
       lastCapturedAt: AT.toISOString(),
     });
     expect(response.items[1].issues.total).toBe(0);
+    // A page nobody shares a finding with says zero, not nothing.
+    expect(response.items[1].issues.siteWide).toBe(0);
     expect(response).toMatchObject({ page: 1, pageSize: 50, total: 2 });
+  });
+
+  it('the items’ scores never decrease, so the list reads worst first', async () => {
+    const { service, query } = setup(5);
+
+    const response = await service.listPages(scope, query());
+
+    const scores = response.items.map((item) => item.score.value);
+    expect(scores).toEqual([...scores].sort((a, b) => a - b));
   });
 
   it('checks a clientId belongs to the user before listing', async () => {
