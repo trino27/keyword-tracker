@@ -35,6 +35,27 @@
       },
       "file": "synthetic/crosshost.example/robots.txt"
     },
+    "https://feed-as-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/feed-as-sitemap.example/index"
+    },
+    "https://feed-as-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/feed-as-sitemap.example/robots.txt"
+    },
+    "https://feed-as-sitemap.example/syndication.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml; charset=utf-8"
+      },
+      "file": "synthetic/feed-as-sitemap.example/syndication.xml"
+    },
     "https://feed-only.example/": {
       "status": 200,
       "headers": {
@@ -182,6 +203,12 @@
       },
       "file": "synthetic/listing-only.example/robots.txt"
     },
+    "https://moved.example/": {
+      "status": 301,
+      "headers": {
+        "location": "https://new-home.example/"
+      }
+    },
     "https://newsroom.example/": {
       "status": 200,
       "headers": {
@@ -266,6 +293,13 @@
       },
       "file": "synthetic/pages-only.example/sitemap.xml"
     },
+    "https://robots-5xx.example/robots.txt": {
+      "status": 500,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "body": "Internal Server Error"
+    },
     "https://root-blog-no-feed.example/": {
       "status": 200,
       "headers": {
@@ -314,6 +348,27 @@
         "content-type": "application/xml; charset=utf-8"
       },
       "file": "synthetic/sitemaps.crosshost.example/post-sitemap.xml"
+    },
+    "https://text-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/text-sitemap.example/index"
+    },
+    "https://text-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/text-sitemap.example/robots.txt"
+    },
+    "https://text-sitemap.example/sitemap.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/text-sitemap.example/sitemap.txt"
     },
     "https://unusual-name.example/": {
       "status": 200,
@@ -1388,6 +1443,21 @@
     {
       "pattern": "^https://walled\\.example/(?!robots\\.txt$)",
       "status": 403
+    },
+    {
+      "pattern": "^https://text-sitemap\\.example/blog/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://feed-as-sitemap\\.example/notes/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://challenged\\.example/",
+      "status": 503,
+      "headers": {
+        "cf-mitigated": "challenge"
+      }
     }
   ]
 }

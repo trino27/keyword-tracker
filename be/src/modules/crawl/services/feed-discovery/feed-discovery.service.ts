@@ -18,8 +18,9 @@ const NO_FEED: IFeedDiscovery = { feedUrl: null, keys: new Set(), links: [] };
 
 /**
  * The site's own list of its latest posts: the strongest evidence of which sitemap is
- * the blog. Advertised feeds first, then the usual addresses; the first document that
- * parses as a feed wins. No feed is a normal outcome, not a failure.
+ * the blog. Feeds robots.txt named as sitemaps first, then the advertised ones, then the
+ * usual addresses; the first document that parses as a feed wins. No feed is a normal
+ * outcome, not a failure.
  */
 @Injectable()
 export class FeedDiscoveryService {
@@ -30,6 +31,7 @@ export class FeedDiscoveryService {
     siteKey: string,
     homeHtml: string | null,
     signal: AbortSignal,
+    declared: readonly string[] = [],
   ): Promise<IFeedDiscovery> {
     const advertised = homeHtml
       ? findAlternateFeeds(homeHtml, `${origin}/`).filter((url) =>
@@ -38,6 +40,7 @@ export class FeedDiscoveryService {
       : [];
     const candidates = [
       ...new Set([
+        ...declared,
         ...advertised,
         ...WELL_KNOWN_FEED_PATHS.map((path) => `${origin}${path}`),
       ]),

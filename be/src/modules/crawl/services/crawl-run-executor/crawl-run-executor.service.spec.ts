@@ -159,6 +159,23 @@ describe('outcomeOf', () => {
     ).toMatchObject({ errorCode: 'SITE_BLOCKED' });
   });
 
+  it('a bot challenge on every post is SITE_BLOCKED too', () => {
+    expect(
+      outcomeOf(0, [failedItem(503, 'Bot challenge (Cloudflare)')]),
+    ).toMatchObject({ errorCode: 'SITE_BLOCKED' });
+  });
+
+  it('every post disallowed by robots.txt: ROBOTS_DISALLOWED', () => {
+    const disallowed: ISelectedItem = {
+      ...failedItem(null, 'Disallowed by robots.txt'),
+      status: 'skipped_robots',
+    };
+
+    expect(outcomeOf(0, [disallowed, disallowed])).toMatchObject({
+      errorCode: 'ROBOTS_DISALLOWED',
+    });
+  });
+
   it('nothing crawled from a guessed source: no blog was found after all', () => {
     const notArticle: ISelectedItem = {
       ...failedItem(200, 'Not marked as an article'),

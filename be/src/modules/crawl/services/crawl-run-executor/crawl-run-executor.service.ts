@@ -20,7 +20,10 @@ import {
   CrawlResultsService,
   type IRunPage,
 } from '@modules/pages/services/crawl-results/crawl-results.service';
-import { MAX_PAGE_URL_LENGTH } from '../../constants/post-selection.constant';
+import {
+  BOT_CHALLENGE_REASON,
+  MAX_PAGE_URL_LENGTH,
+} from '../../constants/post-selection.constant';
 import type {
   ICrawledPage,
   IPostSelection,
@@ -38,11 +41,16 @@ const failed = (code: TCrawlRunErrorCode): IRunOutcome => ({
 });
 
 const REFUSED = new Set([401, 403, 429]);
-const UNANSWERED = new Set(['Timed out', 'Could not connect']);
+const UNANSWERED = new Set([
+  'Timed out',
+  'Could not connect',
+  BOT_CHALLENGE_REASON,
+]);
 
 /**
  * 15 posts: succeeded; fewer: partial; none: failed — and the failure says why: no page
- * was an article (the source was a guess), or the site turned the crawler away.
+ * was an article (the source was a guess), robots.txt forbids every post, or the site
+ * turned the crawler away.
  */
 export function outcomeOf(
   crawled: number,
@@ -50,11 +58,16 @@ export function outcomeOf(
   articlesOnly = false,
 ): IRunOutcome {
   if (crawled === 0) {
+    const onSite = items.filter((item) => item.status !== 'skipped_other_site');
+    if (
+      onSite.length > 0 &&
+      onSite.every((item) => item.status === 'skipped_robots')
+    )
+      return failed('ROBOTS_DISALLOWED');
     const fetched = items.filter((item) => item.status === 'failed');
     const allRefused =
       fetched.length > 0 &&
-      fetched.length ===
-        items.filter((item) => item.status !== 'skipped_other_site').length &&
+      fetched.length === onSite.length &&
       fetched.every(
         (item) =>
           (item.httpStatus !== null && REFUSED.has(item.httpStatus)) ||

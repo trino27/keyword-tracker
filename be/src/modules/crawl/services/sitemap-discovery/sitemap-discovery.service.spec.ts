@@ -215,10 +215,52 @@ describe('SitemapDiscoveryService (recorded and synthetic sites)', () => {
     );
   });
 
+  it('reads a text sitemap', async () => {
+    const { discover } = setup();
+
+    const result = await discover('https://text-sitemap.example');
+
+    expect(result).toMatchObject({
+      ok: true,
+      articlesOnly: false,
+      sitemapUrls: ['https://text-sitemap.example/sitemap.txt'],
+    });
+    expect(result.ok && result.urls).toHaveLength(20);
+  });
+
+  it('a feed named as the sitemap in robots.txt is read as one', async () => {
+    const { discover } = setup();
+
+    const result = await discover('https://feed-as-sitemap.example');
+
+    expect(result).toMatchObject({
+      ok: true,
+      articlesOnly: false,
+      sitemapUrls: ['https://feed-as-sitemap.example/syndication.xml'],
+    });
+    expect(result.ok && result.urls[0]).toBe(
+      'https://feed-as-sitemap.example/notes/post-number-1/',
+    );
+  });
+
+  it('robots.txt answering 5xx means disallow everything (RFC 9309): nothing else is read', async () => {
+    const { transport, discover } = setup();
+
+    await expect(discover('https://robots-5xx.example')).resolves.toMatchObject(
+      { ok: false, errorCode: 'ROBOTS_UNAVAILABLE' },
+    );
+    expect(
+      transport.requests.filter((url) => !url.endsWith('/robots.txt')),
+    ).toEqual([]);
+  });
+
   it.each([
     ['https://no-sitemap.example', 'SITEMAP_NOT_FOUND'],
     ['https://unreachable.example', 'SITE_UNREACHABLE'],
     ['https://walled.example', 'SITE_BLOCKED'],
+    // A Cloudflare challenge answers 503, which alone would read as "no sitemap".
+    ['https://challenged.example', 'SITE_BLOCKED'],
+    ['https://moved.example', 'SITE_REDIRECTS_ELSEWHERE'],
   ])('%s fails %s', async (websiteUrl, errorCode) => {
     const { discover } = setup();
 

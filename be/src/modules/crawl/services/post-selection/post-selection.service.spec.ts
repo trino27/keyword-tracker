@@ -151,6 +151,34 @@ describe('PostSelectionService', () => {
     expect(items[5].httpStatus).toBe(500);
   });
 
+  it('a Cloudflare challenge is a refusal, whatever its status', async () => {
+    const challenge = (status: number): IFixtureEntry => ({
+      status,
+      headers: { 'content-type': 'text/html', 'cf-mitigated': 'challenge' },
+      body: '<title>Just a moment...</title>',
+    });
+    const { select } = setup({
+      [`${ORIGIN}/posts/a/`]: challenge(503),
+      [`${ORIGIN}/posts/b/`]: challenge(403),
+    });
+
+    const { items } = await select([
+      `${ORIGIN}/posts/a/`,
+      `${ORIGIN}/posts/b/`,
+    ]);
+
+    expect(
+      items.map(({ status, reason, httpStatus }) => [
+        status,
+        reason,
+        httpStatus,
+      ]),
+    ).toEqual([
+      ['failed', 'Bot challenge (Cloudflare)', 503],
+      ['failed', 'Bot challenge (Cloudflare)', 403],
+    ]);
+  });
+
   it('considers at most 30 entries', async () => {
     const { select, transport } = setup({
       ...Object.fromEntries(posts(40).map((url) => [url, { status: 404 }])),

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { isSameSite, siteKeyOf, type TCrawlRunErrorCode } from '@app/contracts';
 import { RemoteApiError } from '@infrastructure/remote-api/remote-api.errors';
+import type { ISiteResponse } from '../site-http-client/site-http-client';
 import {
   SITEMAP_MAX_DEPTH,
   SITEMAP_MAX_FETCHES,
@@ -12,6 +13,7 @@ import {
   FeedDiscoveryService,
   type IFeedDiscovery,
 } from '../feed-discovery/feed-discovery.service';
+import { parseFeedLinks } from '../feed-parser/feed-parser';
 import { extractListingLinks } from '../listing-links/listing-links';
 import { RobotsPolicy } from '../robots-policy/robots-policy';
 import { SiteHttpClient } from '../site-http-client/site-http-client';
@@ -55,6 +57,8 @@ export type TSitemapDiscovery =
         | 'BLOG_SITEMAP_NOT_FOUND'
         | 'SITE_UNREACHABLE'
         | 'SITE_BLOCKED'
+        | 'SITE_REDIRECTS_ELSEWHERE'
+        | 'ROBOTS_UNAVAILABLE'
       >;
       detail: string;
     };
@@ -78,7 +82,13 @@ interface IWalkState {
   seen: Set<string>;
   pending: IPending[];
   leaves: ISitemapLeaf[];
+  /** Feeds named where a sitemap was expected — the protocol allows it. */
+  feeds: string[];
+  /** Where the site's pages lead when they redirect off it: the site has moved. */
+  redirectedTo: string | null;
 }
+
+type TDiscoveryFailure = Extract<TSitemapDiscovery, { ok: false }>;
 
 /** Below this, a sitemap on a sibling subdomain waits for the site's own. */
 const OTHER_HOST_PRIORITY = -10;
@@ -121,9 +131,13 @@ export class SitemapDiscoveryService {
       seen: new Set(),
       pending: [],
       leaves: [],
+      feeds: [],
+      redirectedTo: null,
     };
 
-    const robots = await this.readRobots(origin, state, signal);
+    const read = await this.readRobots(origin, state, signal);
+    if ('errorCode' in read) return read;
+    const { robots } = read;
     const declared = robots
       .sitemaps()
       .map((raw) => resolve(raw, `${origin}/robots.txt`))
@@ -136,8 +150,14 @@ export class SitemapDiscoveryService {
     }
     await this.walk(siteKey, state, signal);
 
-    const home = await this.readHome(origin, state, signal);
-    const feed = await this.feeds.discover(origin, siteKey, home, signal);
+    const home = await this.readHome(origin, siteKey, state, signal);
+    const feed = await this.feeds.discover(
+      origin,
+      siteKey,
+      home,
+      signal,
+      state.feeds,
+    );
     const selection = selectBlogGroup(
       groupSitemaps(state.leaves),
       feed.keys,
@@ -234,6 +254,14 @@ export class SitemapDiscoveryService {
         detail: `No answer from ${origin}.`,
       };
     }
+    if (state.redirectedTo) {
+      return {
+        ok: false,
+        robots,
+        errorCode: 'SITE_REDIRECTS_ELSEWHERE',
+        detail: `${origin} redirects to ${state.redirectedTo}.`,
+      };
+    }
     if (state.usable === 0 && state.refused > 0) {
       return {
         ok: false,
@@ -258,31 +286,60 @@ export class SitemapDiscoveryService {
     };
   }
 
+  /**
+   * RFC 9309: a 4xx robots.txt allows everything, a 5xx one forbids everything until it
+   * answers. A bot challenge on robots.txt is a wall in front of the whole site.
+   */
   private async readRobots(
     origin: string,
     state: IWalkState,
     signal: AbortSignal,
-  ): Promise<RobotsPolicy> {
+  ): Promise<{ robots: RobotsPolicy } | TDiscoveryFailure> {
     try {
       const response = await this.http.getRobots(origin, signal);
       state.answered += 1;
-      return response.status === 200
-        ? RobotsPolicy.parse(`${origin}/robots.txt`, response.text)
-        : RobotsPolicy.allowAll();
+      if (isChallenge(response))
+        return this.refuse(
+          'SITE_BLOCKED',
+          `robots.txt answered a bot challenge (HTTP ${response.status}).`,
+        );
+      if (response.status >= 500)
+        return this.refuse(
+          'ROBOTS_UNAVAILABLE',
+          `robots.txt answered HTTP ${response.status}.`,
+        );
+      return {
+        robots:
+          response.status === 200
+            ? RobotsPolicy.parse(`${origin}/robots.txt`, response.text)
+            : RobotsPolicy.allowAll(),
+      };
     } catch (error) {
       if (!(error instanceof RemoteApiError)) throw error;
       this.logger.warn({ origin, error: error.name }, 'robots.txt unreachable');
-      return RobotsPolicy.allowAll();
+      return { robots: RobotsPolicy.allowAll() };
     }
   }
 
+  /** Stopped before anything else is read: no robots rules apply to nothing. */
+  private refuse(
+    errorCode: TDiscoveryFailure['errorCode'],
+    detail: string,
+  ): TDiscoveryFailure {
+    return { ok: false, robots: RobotsPolicy.allowAll(), errorCode, detail };
+  }
+
+  /** A home page that redirects off the site says the site has moved. */
   private async readHome(
     origin: string,
+    siteKey: string,
     state: IWalkState,
     signal: AbortSignal,
   ): Promise<string | null> {
     const response = await this.fetchHtml(`${origin}/`, state, signal);
-    return response?.text ?? null;
+    if (response && !isSameSite(response.finalUrl, siteKey))
+      state.redirectedTo = response.finalUrl;
+    return response?.status === 200 ? response.text : null;
   }
 
   /** The first well-known blog index that links to enough posts below itself. */
@@ -297,7 +354,8 @@ export class SitemapDiscoveryService {
       const url = `${origin}${path}`;
       if (!robots.isAllowed(url)) continue;
       const response = await this.fetchHtml(url, state, signal);
-      if (!response || !isSameSite(response.finalUrl, siteKey)) continue;
+      if (response?.status !== 200 || !isSameSite(response.finalUrl, siteKey))
+        continue;
       const links = extractListingLinks(
         response.text,
         response.finalUrl,
@@ -313,14 +371,13 @@ export class SitemapDiscoveryService {
     url: string,
     state: IWalkState,
     signal: AbortSignal,
-  ): Promise<{ text: string; finalUrl: string } | null> {
+  ): Promise<Pick<ISiteResponse, 'status' | 'text' | 'finalUrl'> | null> {
     try {
       const response = await this.http.getHtml(url, signal);
       state.answered += 1;
-      if (REFUSAL_STATUSES.has(response.status)) state.refused += 1;
-      if (response.status !== 200) return null;
-      state.usable += 1;
-      return { text: response.text, finalUrl: response.finalUrl };
+      if (isRefusal(response)) state.refused += 1;
+      if (response.status === 200) state.usable += 1;
+      return response;
     } catch (error) {
       if (!(error instanceof RemoteApiError)) throw error;
       state.refused += 1;
@@ -411,10 +468,16 @@ export class SitemapDiscoveryService {
     try {
       const response = await this.http.getSitemap(url, signal);
       state.answered += 1;
-      if (REFUSAL_STATUSES.has(response.status)) state.refused += 1;
+      if (isRefusal(response)) state.refused += 1;
       if (response.status !== 200) return null;
       state.usable += 1;
-      return parseSitemap(response.text);
+      const parsed = parseSitemap(response.text);
+      if (parsed.kind === 'invalid' && parseFeedLinks(response.text) !== null) {
+        // Read where feeds are read, as a feed: its items are posts by definition.
+        state.feeds.push(url);
+        return null;
+      }
+      return parsed;
     } catch (error) {
       if (!(error instanceof RemoteApiError)) throw error;
       state.refused += 1;
@@ -422,6 +485,15 @@ export class SitemapDiscoveryService {
       return null;
     }
   }
+}
+
+/** 401/403/429, or a Cloudflare challenge page (`cf-mitigated: challenge`, often a 503). */
+function isRefusal(response: ISiteResponse): boolean {
+  return REFUSAL_STATUSES.has(response.status) || isChallenge(response);
+}
+
+function isChallenge(response: ISiteResponse): boolean {
+  return response.headers['cf-mitigated']?.toLowerCase() === 'challenge';
 }
 
 /** robots.txt may name a sitemap by a relative path (`Sitemap: /sitemap.xml`). */

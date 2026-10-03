@@ -47,6 +47,9 @@ export const HTML_CONTENT_TYPES: ReadonlySet<string> = new Set([
 export const MAX_PAGE_URL_LENGTH = 2048;
 
 /** JSON-LD types that make a page an article when the source does not say so. */
+/** A page answered with a Cloudflare challenge (`cf-mitigated: challenge`) — a bot wall. */
+export const BOT_CHALLENGE_REASON = 'Bot challenge (Cloudflare)';
+
 export const ARTICLE_SCHEMA_TYPES: ReadonlySet<string> = new Set([
   'Article',
   'BlogPosting',

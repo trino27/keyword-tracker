@@ -22,7 +22,17 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   `NO_POSTS_CRAWLED`.
 - **A site that refuses robots** (every answer 401/403/429 or none) fails `SITE_BLOCKED`. The
   crawler never disguises its User-Agent (D36 Q9), so washingtonpost.com and canva.com stay
-  uncrawlable by design.
+  uncrawlable by design. A Cloudflare challenge (`cf-mitigated: challenge`, often a 503) counts
+  as a refusal, on robots.txt, sitemaps and posts alike.
+- **robots.txt per RFC 9309:** 4xx allows everything, 5xx forbids everything and the run fails
+  `ROBOTS_UNAVAILABLE` without reading anything else; every candidate disallowed fails
+  `ROBOTS_DISALLOWED`. A home page redirecting to another site fails `SITE_REDIRECTS_ELSEWHERE`
+  when nothing else was found.
+- **Formats read:** XML sitemaps and indexes (gzip, CDATA, namespaces), text sitemaps (one URL
+  per line), a feed named as a sitemap, RSS 2.0/1.0, Atom and JSON Feed (FeedBurner's
+  `origLink`, a permalink `guid`; `utm_*` and fragments dropped). Text is decoded by BOM, then
+  the header's charset, then `<meta charset>`/the XML declaration — windows-1251 sites declare
+  it only in the page.
 - **No post is fetched before the sitemap is chosen** — a spec asserts the transport's request
   log holds only robots, sitemaps, the home page and feeds.
 - **"The first 15 blog posts in sitemap order":** entries are considered in order, three fetched

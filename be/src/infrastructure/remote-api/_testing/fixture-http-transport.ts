@@ -25,13 +25,15 @@ export interface IFixtureEntry {
 
 /**
  * Unrecorded URLs matching `pattern` answer with a synthesized article, fail like the
- * network, or answer a bare status (a bot wall's 403).
+ * network, or answer a bare status (a bot wall's 403, with `headers` such as a
+ * challenge's `cf-mitigated`).
  */
 export interface IFixturePattern {
   pattern: string;
   synthesize?: 'article';
   error?: TFixtureError;
   status?: number;
+  headers?: Record<string, string>;
 }
 
 export interface IFixtureManifest {
@@ -105,7 +107,7 @@ export class FixtureHttpTransport implements IHttpTransport {
     if (match.status !== undefined)
       return {
         status: match.status,
-        headers: { 'content-type': 'text/html' },
+        headers: { 'content-type': 'text/html', ...match.headers },
         body: '<html><head><title>Forbidden</title></head></html>',
       };
     return {
