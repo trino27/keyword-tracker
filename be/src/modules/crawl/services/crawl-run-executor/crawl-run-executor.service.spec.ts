@@ -7,7 +7,8 @@ import type {
 } from '@modules/clients/interfaces/client-record.interface';
 import type { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import type { CrawlResultsService } from '@modules/pages/services/crawl-results/crawl-results.service';
-import type { IParsedPage } from '@modules/page-analysis/interfaces/parsed-page.interface';
+import { PageAnalysisService } from '@modules/page-analysis/services/page-analysis/page-analysis.service';
+import { makeRuleInput } from '@modules/page-analysis/services/seo-rules/_testing/make-rule-input';
 import type {
   ICrawledPage,
   ISelectedItem,
@@ -36,12 +37,7 @@ const crawledItem = (position: number): ISelectedItem => {
     headers: {},
     responseMs: 100,
     htmlBytes: 1000,
-    parsed: {
-      title: 'T',
-      h1s: ['H'],
-      lang: 'en',
-      wordCount: 400,
-    } as IParsedPage,
+    parsed: makeRuleInput().parsed,
   };
   return {
     sitemapPosition: position,
@@ -124,6 +120,7 @@ const setup = (options: {
     runs,
     discovery,
     selection,
+    new PageAnalysisService(),
     results,
     transactions,
     logger as unknown as PinoLogger,

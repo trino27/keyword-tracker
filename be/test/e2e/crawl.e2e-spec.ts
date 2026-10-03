@@ -1,14 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import request from 'supertest';
 import {
   FIXTURES_ROOT,
   FixtureHttpTransport,
 } from '../../src/infrastructure/remote-api/_testing/fixture-http-transport';
 import { CrawlWorker } from '../../src/modules/crawl/workers/crawl-worker/crawl-worker';
+import { pageKeywords } from '../../src/persistence/schema/tables/page-keywords/page-keywords.schema';
 import { pages } from '../../src/persistence/schema/tables/pages/pages.schema';
+import { seoIssues } from '../../src/persistence/schema/tables/seo-issues/seo-issues.schema';
 import { createTestApp } from '../support/create-test-app';
 import { seedTestUser, signIn } from '../support/sign-in';
 import { createTestDatabase } from '../support/test-database';
@@ -77,6 +79,52 @@ describe('crawl (e2e, recorded sites)', () => {
       .where(eq(pages.clientId, client.id));
     expect(stored).toHaveLength(15);
     expect(stored.every((page) => page.lastSeenRunId === run.id)).toBe(true);
+
+    const pairCounts = await testDb.db
+      .select({ pageId: pageKeywords.pageId, pairs: count() })
+      .from(pageKeywords)
+      .groupBy(pageKeywords.pageId);
+    expect(pairCounts).toHaveLength(15);
+    for (const { pairs } of pairCounts) {
+      expect(pairs).toBeGreaterThanOrEqual(5);
+      expect(pairs).toBeLessThanOrEqual(8);
+    }
+    expect(await testDb.db.$count(seoIssues)).toBeGreaterThan(0);
+  });
+
+  it('flags KEYWORD_NOT_IN_TITLE on a post whose title omits its top keyword', async () => {
+    const post = 'https://root-blog-no-feed.example/post-number-2/';
+    const paragraph =
+      'Widget pricing depends on volume. Widget pricing tiers explained. '.repeat(
+        40,
+      );
+    transport.override(post, {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+      body: `<html lang="en"><head><title>Company news from our team this month</title></head><body><main><h1>Widget pricing</h1><p>${paragraph}</p></main></body></html>`,
+    });
+    const client = await addClient('root-blog-no-feed.example');
+
+    await app.get(CrawlWorker).runOnce();
+
+    const [page] = await testDb.db
+      .select({ id: pages.id })
+      .from(pages)
+      .where(eq(pages.url, post));
+    const issues = await testDb.db
+      .select({ code: seoIssues.code, details: seoIssues.details })
+      .from(seoIssues)
+      .where(eq(seoIssues.pageId, page.id));
+    expect(issues).toContainEqual({
+      code: 'KEYWORD_NOT_IN_TITLE',
+      details: {
+        keyword: 'widget pricing',
+        title: 'Company news from our team this month',
+      },
+    });
+    await expect(runDetail(client.latestRun.id)).resolves.toMatchObject({
+      status: 'succeeded',
+    });
   });
 
   it('a re-crawl keeps a post the sitemap no longer lists, at its old run', async () => {

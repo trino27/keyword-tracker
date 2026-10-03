@@ -13,6 +13,10 @@ import type {
 } from '@modules/clients/interfaces/client-record.interface';
 import { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import {
+  PageAnalysisService,
+  type IPageAnalysis,
+} from '@modules/page-analysis/services/page-analysis/page-analysis.service';
+import {
   CrawlResultsService,
   type IRunPage,
 } from '@modules/pages/services/crawl-results/crawl-results.service';
@@ -54,6 +58,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
     private readonly runs: ClientCrawlRunsService,
     private readonly discovery: SitemapDiscoveryService,
     private readonly selection: PostSelectionService,
+    private readonly analysis: PageAnalysisService,
     private readonly results: CrawlResultsService,
     private readonly transactions: TransactionRunner,
     @InjectPinoLogger(CrawlRunExecutorService.name)
@@ -116,9 +121,12 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
         this.runs.recordProgressForWorker(run.id, run.attempts, crawled),
     });
 
+    // Pure and outside any transaction: the whole run is judged at once (IDF).
+    const analysis = this.analysis.analyseRun(selection.pages, target.siteKey);
     await this.finalize(run, outcomeOf(selection.pages.length), {
       clientId: target.clientId,
       selection,
+      pages: selection.pages.map((page, i) => toRunPage(page, analysis[i])),
     });
   }
 
@@ -126,7 +134,11 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
   private finalize(
     run: IClaimedRun,
     outcome: IRunOutcome,
-    result: { clientId: number; selection: IPostSelection } | null,
+    result: {
+      clientId: number;
+      selection: IPostSelection;
+      pages: IRunPage[];
+    } | null,
   ): Promise<boolean> {
     return this.transactions.run(async (tx) => {
       const owned = await this.runs.lockForFinalizeForWorker(
@@ -146,7 +158,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
             clientId: result.clientId,
             runId: run.id,
             crawledAt: new Date(),
-            pages: result.selection.pages.map(toRunPage),
+            pages: result.pages,
           })
         : new Map<string, number>();
       const items: ICrawlRunItemRecord[] = (result?.selection.items ?? []).map(
@@ -169,7 +181,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
   }
 }
 
-function toRunPage(page: ICrawledPage): IRunPage {
+function toRunPage(page: ICrawledPage, analysis: IPageAnalysis): IRunPage {
   return {
     url: page.url,
     finalUrl: page.finalUrl,
@@ -182,5 +194,7 @@ function toRunPage(page: ICrawledPage): IRunPage {
     responseMs: page.responseMs,
     htmlBytes: page.htmlBytes,
     sitemapPosition: page.sitemapPosition,
+    keywords: analysis.keywords,
+    issues: analysis.issues,
   };
 }

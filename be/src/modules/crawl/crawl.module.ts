@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { RemoteApiModule } from '@infrastructure/remote-api/remote-api.module';
 import { PgNotificationListener } from '@persistence/connections/postgres/notification-listener/pg-notification-listener';
 import { ClientsModule } from '@modules/clients/clients.module';
+import { PageAnalysisModule } from '@modules/page-analysis/page-analysis.module';
 import { PagesModule } from '@modules/pages/pages.module';
 import { CRAWL_RUN_EXECUTOR } from './ports/crawl-run-executor.port';
 import { CrawlRunExecutorService } from './services/crawl-run-executor/crawl-run-executor.service';
@@ -16,7 +17,7 @@ import { CrawlWorker } from './workers/crawl-worker/crawl-worker';
  * pages module what a run finds. The worker starts only with CRAWL_WORKER_ENABLED=true.
  */
 @Module({
-  imports: [RemoteApiModule, ClientsModule, PagesModule],
+  imports: [RemoteApiModule, ClientsModule, PagesModule, PageAnalysisModule],
   providers: [
     CrawlWorker,
     PgNotificationListener,
