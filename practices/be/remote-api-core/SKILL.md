@@ -5,9 +5,9 @@ description: Rules and a base class for outbound HTTP from the backend (the craw
 
 # Outbound HTTP
 
-One abstract base class, `RemoteApiCore` in `be/src/infrastructure/remote-api/`, holds timeout,
-retry, logging, parsing and error mapping once. Every client extends it; business code never calls
-`fetch`. Not for SDK-based clients.
+`RemoteApiCore` in `be/src/infrastructure/remote-api/` holds timeout, redirects, retry, the SSRF
+checks and logging once, over a one-hop transport. Every client extends it; business code never
+calls `fetch`. Not for SDK-based clients.
 
 ## Rules
 
@@ -36,47 +36,44 @@ retry, logging, parsing and error mapping once. Every client extends it; busines
 
 ## Shape
 
-```ts
-export abstract class RemoteApiCore {
-  protected abstract readonly logger: PinoLogger;
-  protected constructor(protected readonly config: RemoteApiConfig) {}
+Three layers, each replaceable on its own:
 
-  protected async request<T>(opts: RequestOptions<T>): Promise<T> { /* guard, fetch with
-     timeout + size cap, retry loop, parse, schema.safeParse, errorMap */ }
-}
-
-interface RemoteApiConfig { timeoutMs: number; maxBytes: number; retry?: { attempts: number; on: number[] }; headers?: Record<string, string>; }
-interface RequestOptions<T> {
-  url: string; method: 'GET' | 'POST';
-  parse: 'json' | 'text';
-  schema: { safeParse(raw: unknown): { success: true; data: T } | { success: false; error: unknown } };
-  errorMap?: Record<number, (res: Response) => Error>;
-}
-```
-
-A client:
+- **`IHttpTransport`** (token `HTTP_TRANSPORT`) sends ONE hop: no redirect following, no retries.
+  It streams the body and stops at `maxBytes` of DECODED bytes, so a small gzip bomb cannot grow
+  past it. The production transport is undici with an `Agent` whose `connect.lookup` resolves the
+  host and refuses any non-public address; the socket connects to the address that was checked, so
+  there is no DNS-rebinding window. Tests swap in a fixture transport, where an unknown URL is a
+  404, never the network.
+- **`RemoteApiCore`** owns policy: the per-hop URL check (http/https, no credentials, no private
+  IP literal), up to 5 redirects followed one hop at a time so every hop is checked, a timeout per
+  hop, retries for 408/429/5xx/network with `250 ms * 2^attempt` plus jitter, honouring
+  `Retry-After` (capped), the user agent, and one log line per hop.
+- **One client per external service extends the core** and speaks the domain:
 
 ```ts
 @Injectable()
-export class SitemapFetcher extends RemoteApiCore {
-  protected readonly logger: PinoLogger;
-  constructor(config: ConfigService, @InjectPinoLogger(SitemapFetcher.name) logger: PinoLogger) {
-    super({ timeoutMs: config.getOrThrow(EnvKeys.CRAWL_FETCH_TIMEOUT_MS), maxBytes: 10_000_000, retry: { attempts: 3, on: [429, 502, 503, 504] } });
-    this.logger = logger;
+export class SiteHttpClient extends RemoteApiCore {
+  constructor(
+    @Inject(HTTP_TRANSPORT) transport: IHttpTransport,
+    @InjectPinoLogger(SiteHttpClient.name) logger: PinoLogger,
+  ) {
+    super(transport, logger);
   }
 
-  async getPostUrls(sitemapUrl: string, limit: number): Promise<string[]> {
-    const sitemap = await this.request({ url: sitemapUrl, method: 'GET', parse: 'text', schema: SitemapSchema,
-      errorMap: { 404: () => new SitemapNotFoundException() } });
-    return sitemap.urls.slice(0, limit).map((u) => u.loc);
+  async getHtml(url: string, signal: AbortSignal): Promise<ISiteResponse> {
+    return toText(await this.get(url, { maxBytes: 5 * 1024 * 1024, accept: 'text/html', signal }));
   }
 }
 ```
 
-The caller validates the URL (rule 5) before it reaches `getPostUrls`.
+Failures are typed (`RemoteApiTimeoutError`, `RemoteApiUnavailableError`,
+`RemoteApiForbiddenAddressError`, `RemoteApiTooLargeError`, `RemoteApiTooManyRedirectsError`),
+each saying whether it is retryable; the caller turns them into domain outcomes (a crawl item
+"Timed out"), never into a 500.
 
 ## Test
 
-Replace `global.fetch` with `jest.fn()` and cover: happy path, retry then
-`RemoteApiUnavailableError`, abort -> `RemoteApiTimeoutError`, body over the cap, a redirect to a
-private address, schema mismatch, and each `errorMap` entry.
+The core against a scripted fake transport: the redirect limit, a redirect to a private IP literal
+refused without being requested, retry 503 then 200, no retry on 404, `Retry-After` waited (an
+injected sleep), the user agent sent. The undici transport against a local `http.createServer`:
+the body cap, gzip, no redirect following, and the production lookup refusing 127.0.0.1.

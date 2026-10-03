@@ -57,6 +57,21 @@ A write is single-shot (never retried by hand: a retry can write twice). After i
 
 The action that performs the write calls the refresh itself; a component never chains "write, then fetch". If the write lives in a different ViewModel than the list, the screen that shows both calls the second action after the first resolves; ViewModels do not import each other.
 
+## Polling a crawl
+
+A crawl runs on the server for a minute; the screen follows it by polling, not a socket (D22).
+
+- The timer lives in a closure inside the store's `create(...)`, never in a module-level `let`
+  (it would outlive `reset()`), and `stopPolling` and `reset` both clear it.
+- It polls every 2 s only while a run is queued or running, and stops itself at a terminal status.
+- The screen starts it in an effect keyed on the id and returns `stopPolling` as the cleanup, so
+  leaving the screen stops it.
+- A poll refreshes silently (keeps what is on screen; a failed poll shows nothing). When the store
+  SEES a run go from active to finished it bumps a counter (`finishedCount`); the screen reloads
+  the affected list on that change, once — not on every poll.
+- Stores holding one user's data register their `reset` with the session store, so signing out or
+  an expired session clears them, timers included.
+
 ## Anti-patterns
 
 | Anti-pattern | Instead |
