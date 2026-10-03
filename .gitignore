@@ -2,8 +2,10 @@
 node_modules/
 .pnpm-store/
 
-# Build output
+# Build output. `dist-cjs/` needs its own line: `dist/` does not match it, and the
+# contracts package's CommonJS build would otherwise be committed with every rebuild.
 dist/
+dist-cjs/
 *.tsbuildinfo
 .tsbuildinfo
 
