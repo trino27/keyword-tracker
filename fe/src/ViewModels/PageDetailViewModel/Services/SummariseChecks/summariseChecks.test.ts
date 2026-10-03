@@ -55,3 +55,41 @@ describe("summariseChecks", () => {
 		expect(summariseChecks(allPassing()).rows.every((row) => row.reason === null)).toBe(true);
 	});
 });
+
+describe("summariseChecks subtitle", () => {
+	/**
+	 * The three-group case, which the two-group tests above cannot reach: the order of
+	 * the parts and the "not yet checked" noun are only pinned here.
+	 */
+	it("orders the groups judged, not applicable, not yet checked", () => {
+		const checks = SEO_ISSUE_CODES.map((code, i) => ({
+			code,
+			status:
+				i === 0
+					? ("failed" as const)
+					: i === 1
+						? ("notApplicable" as const)
+						: i === 2
+							? ("notYetChecked" as const)
+							: ("passed" as const),
+		}));
+
+		expect(summariseChecks(checks).subtitle).toBe(
+			"16 judged · 1 not applicable · 1 not yet checked",
+		);
+	});
+
+	it("counts every status, not only the ones it names", () => {
+		const checks = SEO_ISSUE_CODES.map((code, i) => ({
+			code,
+			status: i === 0 ? ("failed" as const) : ("passed" as const),
+		}));
+
+		expect(summariseChecks(checks).counts).toEqual({
+			passed: 17,
+			failed: 1,
+			notApplicable: 0,
+			notYetChecked: 0,
+		});
+	});
+});

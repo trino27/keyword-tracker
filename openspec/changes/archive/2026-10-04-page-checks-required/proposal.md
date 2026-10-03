@@ -1,5 +1,8 @@
 # Every page records its checks, so the columns stop being optional
 
+> **Withdrawn, 2026-10-04.** Not deferred: the tightening cannot be done, and the reason is
+> recorded in "Outcome" below rather than left for somebody to rediscover.
+
 ## Why
 
 `page-check-status-sections` added `checks_judged` and `checks_not_applicable` to `pages` as
@@ -38,5 +41,31 @@ recording says so, and this change only makes that branch unreachable. Hence `sk
 `fe/src/Gateways/PageGateway/Validation/PageSchemas.ts`,
 `fe/src/Modules/PageDetail/ChecksSection/**`.
 
-Plan: `docs/_plans/page-check-status-sections.md`, phase 2. **Blocked** until the plan's O1 query
-returns zero.
+Plan: `docs/_plans/page-check-status-sections.md`, phase 2.
+
+## Outcome — withdrawn, and why
+
+The gate was run. Every client was re-crawled through `POST /clients/:id/crawl-runs`, and on
+`seo_tracker` the O1 query answers **17 of 105**, not zero. It will not reach zero, and the
+remaining rows are not a backlog:
+
+- **A re-crawl fills a page the crawl still finds. It cannot fill one it no longer does.** The
+  seventeen are pages earlier runs saw and current runs do not reach. They are retained on
+  purpose — `PAGES_MODULE.md`: "Nothing deletes pages or pairs" — so they stay, and stay null.
+- **Backfilling them is not merely dishonest but unrepresentable.** CHECK
+  `checks_applicable = cardinality(checks_judged)` refuses an invented `'{}'` on a row claiming
+  eighteen applicable checks. The schema written to protect the column is what forbids the
+  shortcut around it.
+- **NOT NULL would therefore require deleting those pages**, which the module invariant forbids.
+
+Removing the null from the WIRE alone was tried and reverted. It is unsound: `findCurrentPage`
+returns any page on its client's latest succeeded or partial run, so a database where migration
+0008 has run and a re-crawl has not has CURRENT pages with null lists, and a non-null contract
+turns those into a failed request. It also contradicts PAGES-012, which requires that a page whose
+crawl predates the recording says so. The four places the "Why" counts as cost are therefore the
+price of a state that is real.
+
+What this leaves standing: the columns are nullable, `IPageDetail.checks` is `IPageCheck[] | null`,
+and the screen says "Re-crawl this page to see each check." for a page it cannot enumerate. The
+reasoning is harvested into `PAGES_MODULE.md` and `be/skills/architecture-decisions/SKILL.md`
+("ask which rows the refilling act cannot reach before promising a tightening phase").

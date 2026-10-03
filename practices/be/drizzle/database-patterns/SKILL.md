@@ -36,6 +36,13 @@ imported: [db-access-boundary](../db-access-boundary/SKILL.md).
 - A 1:1 table (`user_settings`) uses the parent FK as its primary key, no surrogate id, unless
   another table references its rows.
 - Table options return an array: `(table) => [index(...), check(...)]`.
+- **A CHECK may not contain a subquery.** Predicates needing `unnest` — "this array has no
+  duplicates" is the common one — move into an `IMMUTABLE` SQL function the constraint calls,
+  created by `drizzle-kit generate --custom` (the tool writes the file and the journal entry;
+  only the body is hand-written, so the no-hand-written-migrations rule holds). Two limits worth
+  knowing before reaching for it: a CHECK calling a user-defined function is validated on write
+  and changing the function later does NOT re-validate stored rows, and the function must exist
+  in an EARLIER migration than the constraint that calls it.
 
 ## Closed sets
 

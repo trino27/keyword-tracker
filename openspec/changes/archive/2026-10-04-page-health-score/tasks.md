@@ -67,6 +67,7 @@ about to be retired would bake it into a number.
 - [x] 4.2 New `ScoreBadge` (number, band colour, optional `14/16 checks` note); `PagesTable.tsx` gains a **Score** column after **Page**; `KpiCards.tsx` gains a first **Health score** card and goes to `cols={{ base: 1, xs: 2, md: 5 }}`. The wording stays inside what a share-of-passed score may claim: no traffic prediction, no competitive comparison, no quality judgement. Verify: `pnpm --filter fe test:ci && pnpm lint && pnpm typecheck`
 - [x] 4.3 The table's loading skeleton, four empty kinds and error state still render with the extra column. Verify: `pnpm --filter fe test:ci -- PagesTable`
 - [ ] 4.4 Browser walk as both seed users. Verify: `docker compose up -d --build`, then `/pages` is worst-first and `/pages/<id>` shows the score card, with no console error
+      - NOT DONE in this session: no browser is available in this environment, so nobody looked at the rendered screens or the console. The served stack WAS verified — `docker compose up -d --build`, `/api/health` 200, `/pages/1` returning the SPA shell with `id="root"`, both built assets 200, and signed-in API reads through the Caddy proxy — so what is unverified is rendering and console cleanliness, not deployment. Archived with this open rather than ticked.
   NOT DONE HERE: no browser in this environment. The stack is LEFT RUNNING at
   http://localhost:8081 (compose project `skt-accuracy`, seeded, both demo users), built under a
   separate project name because the default belongs to another session's containers.

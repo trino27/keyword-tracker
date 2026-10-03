@@ -97,3 +97,118 @@ after today MUST be clamped to today; `from` after `to`, or a span above 366 day
 - **WHEN** a request spans 367 calendar days
 - **THEN** the answer is 400 INVALID_DATE_RANGE
 
+### Requirement [PAGES-012]: a page answers every catalogue check with one of four statuses
+
+A page's detail MUST carry one entry per catalogue code, in catalogue order, each with exactly one
+of four statuses: the check passed, the check failed, the check could not be judged on this page,
+or the check did not exist when this page was last crawled. The status MUST be composed on the
+backend from the lists the crawl stored on the page row, because only those lists can tell a check
+that was skipped from one that did not yet exist. A page whose last crawl predates the recording
+MUST say so rather than report a status it never observed.
+
+The stored lists MUST be written by the same statement that writes the page's check counters, and
+the database MUST refuse a row whose judged list disagrees with its applicable count, whose two
+lists share a code, or whose lists hold a duplicate, a null or an empty code. A re-crawl MUST
+replace both lists rather than merge them.
+
+#### Scenario: a page whose crawl skipped two checks
+
+- **WHEN** its detail is read and the page stored 16 judged codes, 2 not-applicable codes and one
+  failing finding
+- **THEN** the detail carries 18 entries: 15 passed, 1 failed and 2 not applicable, in catalogue
+  order
+
+#### Scenario: a check added to the catalogue after the crawl
+
+- **WHEN** a code is in neither stored list
+- **THEN** its status is "not yet checked", and the page's score is unchanged because the score
+  reads the stored counters and never today's catalogue
+
+#### Scenario: a code that has left the catalogue since the crawl
+
+- **WHEN** a stored list holds a code the catalogue no longer defines
+- **THEN** no entry is produced for it
+
+#### Scenario: a page last crawled before the lists were recorded
+
+- **WHEN** its detail is read
+- **THEN** it carries no check entries at all, and the screen says the page must be re-crawled
+
+#### Scenario: a write whose count and list disagree
+
+- **WHEN** a page is written with an applicable count that is not the size of its judged list
+- **THEN** the database rejects it and the crawl's finalize aborts
+
+#### Scenario: a re-crawl that skips nothing
+
+- **WHEN** a page that previously stored two not-applicable codes is re-crawled and every check
+  applies
+- **THEN** its stored not-applicable list is empty
+
+### Requirement [PAGES-009]: a page's health score is the share of the checks that could apply to it
+
+The pages list and the page detail MUST each carry a score derived at read time from the page's
+stored check counts as the rounded percentage of applicable checks that passed, together with the
+applicable and failed counts it came from, so two pages with different denominators are never
+presented as comparable without the denominator being visible. One implementation of the formula
+MUST serve both the backend and the frontend.
+
+#### Scenario: sixteen applicable, two failed
+
+- **WHEN** a page stored 16 applicable checks of which 2 failed
+- **THEN** its score is 88, reported with `applicable: 16` and `failed: 2`
+
+#### Scenario: a page that passed everything that applied
+
+- **WHEN** a page stored 18 applicable checks and 0 failures
+- **THEN** its score is 100
+
+### Requirement [PAGES-010]: the pages list is ordered worst first under a total order
+
+The list MUST be ordered by score ascending, then by the number of failed checks descending, and
+MUST end its ordering on the page id so that the order is total; every page matching the filter
+MUST appear exactly once across the paginated walk. The score expression used for ordering MUST
+be evaluated in a type that preserves fractions.
+
+#### Scenario: two pages with different scores
+
+- **WHEN** one page scores 50 and another 90
+- **THEN** the page scoring 50 comes first
+
+#### Scenario: walking every page of a list whose scores tie
+
+- **WHEN** four pages share a score and the list is walked at a page size of 3
+- **THEN** each page id is returned exactly once and all of them are returned
+
+#### Scenario: integer division
+
+- **WHEN** the ordering expression divides two smallint columns without a cast
+- **THEN** the two-page ordering scenario above fails
+
+### Requirement [PAGES-011]: a finding is reported with how many of the client's current pages carry it
+
+The API MUST report, for each issue code, how many of that client's current pages carry it,
+computed at read time over the client's current pages and NOT over the filtered or paginated
+slice; storage MUST NOT change. The list MUST additionally report, per page, how many of its
+findings are shared with at least one other current page of the same client. Both MUST be
+produced without a query per row.
+
+#### Scenario: a template problem across a client's pages
+
+- **WHEN** H1_MULTIPLE is present on five of a client's fifteen current pages
+- **THEN** each of those pages reports the code as affecting five pages
+
+#### Scenario: a search that matches one page
+
+- **WHEN** the list is filtered by a search that matches only one of those five pages
+- **THEN** that page still reports the code as affecting five pages, not one
+
+#### Scenario: a problem of one page only
+
+- **WHEN** a code is present on exactly one of the client's current pages
+- **THEN** it reports one page affected, and that page's shared count does not include it
+
+#### Scenario: another client's pages
+
+- **WHEN** two clients of the same user both have pages carrying the code
+- **THEN** each client's pages count only their own client's pages

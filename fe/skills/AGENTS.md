@@ -15,3 +15,24 @@ disagree, the workspace skill wins.
 For anything else, start at [`practices/fe/AGENTS.md`](../../practices/fe/AGENTS.md): layers,
 ViewModels, gateways, routing and guards, forms, error handling and path aliases are written there
 for this stack and not restated here.
+
+## Screen behaviour that is specified, not merely implemented
+
+`fe/` keeps skills rather than module documents, so the deposits for frontend requirements live
+here rather than in a document created to hold them.
+
+<!-- invariant: PAGEDETAIL-009 -->
+**The page detail lists every catalogue check with its outcome, and names the reason a skipped
+one was skipped.** The screen never derives a status: it renders what the backend composed, in
+the order given. Pinned by `fe/src/Modules/PageDetail/ChecksSection/ChecksSection.test.tsx` and
+`fe/src/ViewModels/PageDetailViewModel/Services/SummariseChecks/summariseChecks.test.ts`.
+Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
+
+<!-- invariant: PAGEDETAIL-010 -->
+**The score is explained on the page's own numbers, and bounded in what it claims.** The
+arithmetic shown must round to the score shown beside it, and the band thresholds come from
+`SCORE_BANDS` rather than retyped prose. Pinned by
+`fe/src/ViewModels/PageDetailViewModel/Services/ExplainScore/explainScore.test.ts` ->
+"never prints a quotient that rounds away from the score", and by
+`fe/src/Modules/PageDetail/ScoreExplainer/ScoreExplainer.test.tsx`.
+Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.

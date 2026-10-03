@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-
 import { extractKeywords } from '../keyword-extraction/extract-keywords/extract-keywords';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 import type { ISeoRuleInput } from '../seo-rules/seo-rule.interface';

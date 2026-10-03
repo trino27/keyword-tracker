@@ -1,3 +1,4 @@
+import { SEO_ISSUE_CODES, type TSeoIssueCode } from '@app/contracts';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { ClientsService } from '@modules/clients/services/clients/clients.service';
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
@@ -6,6 +7,7 @@ import type {
   PageListRepository,
 } from '../../repositories/page-list/page-list.repository';
 import type { PageDetailRepository } from '../../repositories/page-detail/page-detail.repository';
+import { PageNotFoundException } from '../../exceptions/pages.exceptions';
 import { PageReadService } from './page-read.service';
 
 const scope = { userId: 1, timeZone: 'America/Toronto' } as IUserScope;
@@ -150,5 +152,154 @@ describe('PageReadService.listPages', () => {
       urlPattern: '%Link-Building 100\\%%',
       termPattern: '%link building 100%',
     });
+  });
+});
+
+const detailSetup = (
+  overrides: Partial<{
+    checksJudged: TSeoIssueCode[] | null;
+    checksNotApplicable: TSeoIssueCode[] | null;
+    checksApplicable: number;
+    checksFailed: number;
+    issueCodes: TSeoIssueCode[];
+    page: unknown;
+  }> = {},
+) => {
+  const issueCodes = overrides.issueCodes ?? ['LANG_MISSING', 'TITLE_MISSING'];
+  const record = {
+    id: 1,
+    url: 'https://a.example/post/',
+    finalUrl: 'https://a.example/post/',
+    title: 'Post',
+    metaDescription: null,
+    h1: 'Post',
+    lang: null,
+    wordCount: 800,
+    httpStatus: 200,
+    responseMs: 120,
+    checksApplicable: overrides.checksApplicable ?? SEO_ISSUE_CODES.length,
+    checksFailed: overrides.checksFailed ?? issueCodes.length,
+    checksJudged:
+      overrides.checksJudged === undefined
+        ? [...SEO_ISSUE_CODES]
+        : overrides.checksJudged,
+    checksNotApplicable:
+      overrides.checksNotApplicable === undefined
+        ? []
+        : overrides.checksNotApplicable,
+    crawledAt: AT,
+    clientId: 7,
+    clientName: 'Site',
+    clientWebsiteUrl: 'https://a.example',
+    clientCurrentPages: 15,
+  };
+  const detail = {
+    findCurrentPage: () =>
+      Promise.resolve('page' in overrides ? overrides.page : record),
+    // Deliberately unsorted, so the service's catalogue ordering is what is observed.
+    issuesForPage: () =>
+      Promise.resolve(
+        [...issueCodes].reverse().map((code) => ({
+          code,
+          severity: 'notice' as const,
+          details: {},
+          pagesAffected: 1,
+        })),
+      ),
+  } as unknown as PageDetailRepository;
+  const list = {
+    keywordsForPages: () => Promise.resolve([]),
+  } as unknown as PageListRepository;
+  const latestRun = { id: 3, status: 'succeeded' as const };
+  const clients = {
+    getClient: jest.fn(() => Promise.resolve({ latestRun })),
+  };
+  const service = new PageReadService(
+    list,
+    detail,
+    clients as unknown as ClientsService,
+  );
+  return { service, clients, latestRun };
+};
+
+describe('PageReadService.getPage', () => {
+  it('refuses a page the scope cannot reach, exactly like a missing one', async () => {
+    const { service } = detailSetup({ page: null });
+
+    await expect(service.getPage(scope, 1)).rejects.toBeInstanceOf(
+      PageNotFoundException,
+    );
+  });
+
+  it('answers for every catalogue check', async () => {
+    const { service } = detailSetup();
+
+    const { checks } = await service.getPage(scope, 1);
+
+    expect(checks?.map(({ code }) => code)).toEqual(SEO_ISSUE_CODES);
+  });
+
+  /** The composition reads the issue codes, so a finding is never reported as a pass. */
+  it('marks a finding failed and leaves the rest passed', async () => {
+    const { service } = detailSetup({ issueCodes: ['NOINDEX'] });
+
+    const { checks } = await service.getPage(scope, 1);
+    const status = (code: string) =>
+      checks?.find((check) => check.code === code)?.status;
+
+    expect(status('NOINDEX')).toBe('failed');
+    expect(status('NOT_HTTPS')).toBe('passed');
+  });
+
+  it('separates a skipped check from a passed one', async () => {
+    const judged = SEO_ISSUE_CODES.filter((code) => code !== 'HEADING_SKIP');
+    const { service } = detailSetup({
+      checksJudged: judged,
+      checksNotApplicable: ['HEADING_SKIP'],
+      checksApplicable: judged.length,
+      issueCodes: [],
+      checksFailed: 0,
+    });
+
+    const { checks, score } = await service.getPage(scope, 1);
+
+    expect(checks?.find((check) => check.code === 'HEADING_SKIP')?.status).toBe(
+      'notApplicable',
+    );
+    expect(score.applicable).toBe(SEO_ISSUE_CODES.length - 1);
+  });
+
+  /** A page whose crawl predates the record cannot be enumerated, and says so. */
+  it('answers null when the crawl predates the record', async () => {
+    const { service } = detailSetup({
+      checksJudged: null,
+      checksNotApplicable: null,
+    });
+
+    await expect(service.getPage(scope, 1)).resolves.toMatchObject({
+      checks: null,
+    });
+  });
+
+  it('returns the issues in catalogue order, not the order stored', async () => {
+    const { service } = detailSetup({
+      issueCodes: ['TITLE_MISSING', 'LANG_MISSING'],
+    });
+
+    const { issues } = await service.getPage(scope, 1);
+
+    expect(issues.map(({ code }) => code)).toEqual([
+      'TITLE_MISSING',
+      'LANG_MISSING',
+    ]);
+  });
+
+  it('takes the last crawl from the client, not from the page', async () => {
+    const { service, clients, latestRun } = detailSetup();
+
+    const { lastCrawl } = await service.getPage(scope, 1);
+
+    expect(clients.getClient).toHaveBeenCalled();
+    expect(lastCrawl).toBe(latestRun);
   });
 });
