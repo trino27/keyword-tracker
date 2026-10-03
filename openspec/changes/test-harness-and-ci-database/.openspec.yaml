@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-10-03
+# Test infrastructure only: no capability's state changes, so no delta is written.
+skip_specs: true
