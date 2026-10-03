@@ -3,6 +3,8 @@ import {
   MAX_NGRAM,
   MAX_NGRAM_UNKNOWN_LANG,
   MAX_TERM_LENGTH,
+  REPEATED_RUN_MAX_TOKENS,
+  REPEATED_RUN_MIN,
   TITLE_SEPARATORS,
   type TKeywordField,
 } from '../../../constants/keyword-scoring.constant';
@@ -162,6 +164,27 @@ function* gramsOf(
 }
 
 /**
+ * Short runs of body text the page repeats verbatim — `quick action`, `pro tip`,
+ * `read more`. Collected before scoring and then skipped, because frequency is the
+ * only evidence the body gives and a template defeats it.
+ */
+export function repeatedBodyRuns(blocks: string[]): ReadonlySet<string> {
+  const counts = new Map<string, number>();
+  for (const block of blocks) {
+    for (const run of tokenize(block)) {
+      if (run.length > REPEATED_RUN_MAX_TOKENS) continue;
+      const key = run.join(' ');
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  }
+  return new Set(
+    [...counts]
+      .filter(([, seen]) => seen >= REPEATED_RUN_MIN)
+      .map(([key]) => key),
+  );
+}
+
+/**
  * The keyword candidates of one page, with the fields each appears in (§10.4 steps
  * 2–5). Each text is tokenized on its own, so no phrase spans a heading and the next
  * paragraph.
@@ -207,12 +230,14 @@ export function collectCandidates(
     ['body', parsed.blocks],
   ];
 
+  const repeated = repeatedBodyRuns(parsed.blocks);
   const candidates = new Map<string, ICandidateStats>();
   let runId = 0;
   for (const [field, texts] of fields) {
     for (const text of texts) {
       for (const run of tokenize(text)) {
         runId += 1;
+        if (field === 'body' && repeated.has(run.join(' '))) continue;
         for (const { term, tokens } of gramsOf(run, nonBounding, maxNgram)) {
           let stats = candidates.get(term);
           if (!stats) {

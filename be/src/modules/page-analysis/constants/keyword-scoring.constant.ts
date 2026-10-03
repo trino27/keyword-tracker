@@ -148,12 +148,47 @@ export const ANCHOR_FIELDS: ReadonlySet<TKeywordField> = new Set([
 export const MIN_UNANCHORED_TF = 2;
 
 /**
+ * How much of the corpus penalty a term still pays when the page names it in its own
+ * title, h1 or slug. The penalty is there to strip the site's vocabulary from pages
+ * that merely mention it, and a term in the title is not mentioned — it is declared.
+ * Yoast has three posts about Facebook traffic, enough that `facebook traffic` paid a
+ * third of its score and "Facebook traffic: What's the current status?" was filed
+ * under `current status`. A section a site writes about repeatedly is still what its
+ * posts are about.
+ */
+export const ANCHORED_IDF_SHARE = 0.5;
+/**
+ * …but only while the term is one section's and not the whole site's. Half of Yoast's
+ * posts put "Google Analytics" in the title, and forgiving an anchored term outright
+ * made `google analytics` the keyword of the post about dashboards and the post about
+ * assisted conversions alike; on Semrush the same relief handed a 3,300-word guide to
+ * `ai search` and left no room under the floor for `schema markup` or `generative
+ * engine optimization`. Past this share of the run a title says where on the site the
+ * page lives rather than what it says, and the penalty applies in full.
+ */
+export const ANCHORED_IDF_MAX_SHARE = 0.15;
+
+/**
  * A title tail segment, or a declared keyword, that this share of the run's pages
  * also carries belongs to the site, not to the page. One page cannot tell a section
  * name from a subtitle, and a run can: it is the same evidence the IDF step uses,
  * read before scoring rather than after.
  */
 export const RUN_BOILERPLATE_SHARE = 0.5;
+
+/**
+ * A short block of text the page repeats verbatim this many times is its own
+ * furniture, not its prose: a recurring callout label, a CTA, a caption. The AI
+ * search post prints `Quick action:` before twenty of its paragraphs, and twenty
+ * body occurrences of a two-word label outscored almost everything the article is
+ * about. The run-level boilerplate pass cannot see it — it is one page's habit, not
+ * the site's — and the IDF step sees it on one page and rewards it.
+ *
+ * Only a SHORT run counts: a sentence repeated three times is emphasis, a two-word
+ * fragment repeated three times is a template.
+ */
+export const REPEATED_RUN_MIN = 3;
+export const REPEATED_RUN_MAX_TOKENS = 4;
 
 /**
  * Selected keywords that may come from one run of text — one sentence, one heading.

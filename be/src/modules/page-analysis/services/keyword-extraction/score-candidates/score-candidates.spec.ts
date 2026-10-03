@@ -83,3 +83,20 @@ describe('idfFactor', () => {
     expect(idfFactor(15, 1)).toBe(1);
   });
 });
+
+describe('idfFactor, for a term the page itself names', () => {
+  it('halves the corpus penalty on a term few other pages carry', () => {
+    const shared = idfFactor(22, 3);
+    expect(idfFactor(22, 3, true)).toBeCloseTo(1 - 0.5 * (1 - shared));
+    // Yoast has three posts about Facebook traffic, and the penalty for that was
+    // enough to file "Facebook traffic: What's the current status?" under
+    // `current status`.
+    expect(idfFactor(22, 3, true)).toBeGreaterThan(shared);
+  });
+
+  it('gives no relief to a term that is the whole site’s vocabulary', () => {
+    // Half of Yoast's titles say "Google Analytics"; a title saying it again is
+    // telling us where on the site the page lives.
+    expect(idfFactor(22, 12, true)).toBe(idfFactor(22, 12));
+  });
+});

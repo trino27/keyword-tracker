@@ -194,3 +194,33 @@ describe('collectCandidates', () => {
     expect(candidates.has('big red house')).toBe(false);
   });
 });
+
+describe('repeated body runs', () => {
+  const TAILS = [
+    'audit your schema markup.',
+    'test five rival prompts.',
+    'refresh the quarterly statistics.',
+  ];
+  const label = (times: number) =>
+    collect({
+      title: 'How to optimize for AI search',
+      headings: [{ level: 1, text: 'How to optimize for AI search' }],
+      h1s: ['How to optimize for AI search'],
+      blocks: Array.from(
+        { length: times },
+        (_, i) => `Quick action: ${TAILS[i]}`,
+      ),
+    });
+
+  it('reads a short block the page repeats as furniture, not as prose', () => {
+    // semrush.com prints "Quick action:" before twenty of one post's paragraphs,
+    // and twenty body occurrences of a label outscored the article's subject.
+    expect(label(3).has('quick action')).toBe(false);
+    // What follows the label is prose, and stays.
+    expect(label(3).get('schema markup')?.bodyTf).toBe(1);
+  });
+
+  it('leaves a phrase the page says twice alone', () => {
+    expect(label(2).get('quick action')?.bodyTf).toBe(2);
+  });
+});

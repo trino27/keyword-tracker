@@ -5,7 +5,11 @@ import {
   collectCandidates,
   titleSegments,
 } from '../collect-candidates/collect-candidates';
-import { idfFactor, pageScore } from '../score-candidates/score-candidates';
+import {
+  idfFactor,
+  isAnchored,
+  pageScore,
+} from '../score-candidates/score-candidates';
 import {
   selectKeywords,
   subsume,
@@ -93,7 +97,11 @@ export function extractKeywords(
       runs: stats.runs,
       score:
         pageScore(stats) *
-        idfFactor(pages.length, documentFrequency.get(term) ?? 1),
+        idfFactor(
+          pages.length,
+          documentFrequency.get(term) ?? 1,
+          isAnchored(stats),
+        ),
     }));
     return selectKeywords(subsume(scored), pages[index].parsed.wordCount);
   });
