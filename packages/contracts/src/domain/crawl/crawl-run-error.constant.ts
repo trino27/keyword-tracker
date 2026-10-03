@@ -14,6 +14,10 @@ export const CRAWL_RUN_ERRORS = {
   SITE_UNREACHABLE: {
     message: 'The website could not be reached.',
   },
+  SITE_BLOCKED: {
+    message:
+      'The website refuses automated requests (it answered 403 or not at all), so it cannot be crawled.',
+  },
   NO_POSTS_CRAWLED: {
     message:
       'The blog sitemap was found, but none of its posts could be crawled.',
