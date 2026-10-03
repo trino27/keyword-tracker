@@ -1,4 +1,4 @@
-import { Alert, Button, Paper, Skeleton, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Group, Paper, Skeleton, Stack, Text, Title } from "@mantine/core";
 import type { TIsoDay } from "@app/contracts";
 import type { TPositionHistory } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
@@ -29,6 +29,22 @@ interface IPositionHistoryProps {
 	onToggle: (keywordId: number) => void;
 	onRetry: () => void;
 	onFill: () => void;
+}
+
+/**
+ * Stands in for the keyword chips until the history arrives. Without it the range
+ * buttons appeared at once, the space under them stayed blank, and the chips then
+ * dropped in and pushed the chart down — the reader could not tell a page with no
+ * keywords from one still loading. Same height and shape as a chip, so nothing moves.
+ */
+function KeywordTogglesSkeleton() {
+	return (
+		<Group gap={6} wrap="wrap" aria-label="Loading keywords">
+			{[112, 84, 136, 96, 120].map((width) => (
+				<Skeleton key={width} height={26} width={width} radius="xl" />
+			))}
+		</Group>
+	);
 }
 
 /** Where the page ranked over the chosen days, for each of its keywords. */
@@ -76,10 +92,21 @@ export function PositionHistory(props: IPositionHistoryProps) {
 					{fillError}
 				</Alert>
 			)}
-			{history && !empty && view === "chart" && (
-				<KeywordToggles series={history.series} hidden={hidden} onToggle={onToggle} />
-			)}
-			<div style={{ opacity: status === "loading" && history ? 0.6 : 1 }}>{body}</div>
+			{/* The chips and the chart are one request: they load together and, while a
+			    new range is fetched, they dim together. */}
+			<div style={{ opacity: status === "loading" && history ? 0.6 : 1 }}>
+				<Stack gap="sm">
+					{status !== "error" && !history && <KeywordTogglesSkeleton />}
+					{history && !empty && view === "chart" && (
+						<KeywordToggles
+							series={history.series}
+							hidden={hidden}
+							onToggle={onToggle}
+						/>
+					)}
+					{body}
+				</Stack>
+			</div>
 		</Stack>
 	);
 }
