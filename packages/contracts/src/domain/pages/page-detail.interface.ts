@@ -1,5 +1,5 @@
 import type { ICrawlRunSummary } from '../crawl/crawl-run.interface.js';
-import type { ISeoIssue } from '../seo/seo-issue.interface.js';
+import type { TSeoIssue } from '../seo/seo-issue.interface.js';
 import type { IBestPosition } from './best-position.interface.js';
 import type { IKeywordPosition } from './keyword-position.interface.js';
 
@@ -22,7 +22,7 @@ export interface IPageDetail {
   keywords: IKeywordPosition[];
   bestPosition: IBestPosition | null;
   /** Catalogue order: errors, then warnings, then notices. */
-  issues: ISeoIssue[];
+  issues: TSeoIssue[];
   /** The client's latest run, whatever its status. */
   lastCrawl: ICrawlRunSummary | null;
 }
