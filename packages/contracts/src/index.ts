@@ -26,6 +26,8 @@ export * from './domain/crawl/crawl-run-error.constant.js';
 export * from './domain/crawl/crawl-run.interface.js';
 export * from './domain/seo/seo-issue-severity.enum.js';
 export * from './domain/seo/seo-issue-catalogue.constant.js';
+export * from './domain/seo/seo-measurement.interface.js';
+export * from './domain/seo/measured-issue-codes.constant.js';
 export * from './domain/seo/seo-issue.interface.js';
 export * from './domain/time/iso-day.type.js';
 export * from './domain/time/history-range.constant.js';
