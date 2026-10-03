@@ -40,3 +40,4 @@ export * from './domain/pages/page-list-response.interface.js';
 export * from './domain/pages/page-list-limits.constant.js';
 export * from './domain/pages/page-detail.interface.js';
 export * from './domain/pages/position-history.interface.js';
+export * from './domain/pages/position-fill.interface.js';

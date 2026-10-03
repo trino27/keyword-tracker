@@ -5,6 +5,7 @@ import { keywords } from '@persistence/schema/tables/keywords/keywords.schema';
 import { pageKeywords } from '@persistence/schema/tables/page-keywords/page-keywords.schema';
 import { pages } from '@persistence/schema/tables/pages/pages.schema';
 import { rankSnapshots } from '@persistence/schema/tables/rank-snapshots/rank-snapshots.schema';
+import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { expectPgError } from '../../../../../test/support/expect-pg-error';
 import { seedTestUser } from '../../../../../test/support/sign-in';
 import { createTestDatabase } from '../../../../../test/support/test-database';
@@ -17,9 +18,15 @@ const DAY = 24 * 60 * 60 * 1000;
 const noon = (daysAgo: number) =>
   new Date(Date.UTC(2026, 8, 30, 12) - daysAgo * DAY);
 
-/** A client with an old and a current run; one page with a current and a stale pair. */
-async function seedPairs() {
-  const user = await seedTestUser(testDb, 'owner@example.com');
+const scopeOf = (userId: number) =>
+  ({ userId, timeZone: 'America/Toronto' }) as IUserScope;
+
+/**
+ * A client with an old and a current run; one page with a current and a stale pair.
+ * `suffix` keeps the terms apart: a keyword term is global, not one user's.
+ */
+async function seedPairs(email = 'owner@example.com', suffix = '') {
+  const user = await seedTestUser(testDb, email);
   const [client] = await testDb.db
     .insert(clients)
     .values({
@@ -61,7 +68,10 @@ async function seedPairs() {
     .returning();
   const [current, stale] = await testDb.db
     .insert(keywords)
-    .values([{ term: 'current term' }, { term: 'stale term' }])
+    .values([
+      { term: `current term${suffix}` },
+      { term: `stale term${suffix}` },
+    ])
     .returning();
   await testDb.db.insert(pageKeywords).values([
     {
@@ -78,6 +88,7 @@ async function seedPairs() {
     },
   ]);
   return {
+    userId: user.id,
     clientId: client.id,
     pageId: page.id,
     currentId: current.id,
@@ -188,5 +199,19 @@ describe('RankSnapshotsRepository (postgres)', () => {
         lastPosition: 11,
       },
     ]);
+  });
+
+  it("scoped to a user, lists their pairs and nobody else's", async () => {
+    const owner = await seedPairs();
+    const other = await seedPairs('other@example.com', ' two');
+
+    const mine = await repository.listCurrentPairs(scopeOf(owner.userId));
+    const theirs = await repository.listCurrentPairs(scopeOf(other.userId));
+
+    expect(mine.map((pair) => pair.pageId)).toEqual([owner.pageId]);
+    expect(theirs.map((pair) => pair.pageId)).toEqual([other.pageId]);
+    await expect(repository.listCurrentPairsForWorker()).resolves.toHaveLength(
+      2,
+    );
   });
 });

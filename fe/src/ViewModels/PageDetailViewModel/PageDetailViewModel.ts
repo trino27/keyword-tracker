@@ -17,6 +17,9 @@ interface IPageDetailState {
 	history: TPositionHistory | null;
 	historyStatus: TLoadStatus;
 	historyError: string | null;
+	/** The "generate positions" action, which the seed normally performs. */
+	fillStatus: TLoadStatus;
+	fillError: string | null;
 	detailRequest: number;
 	historyRequest: number;
 }
@@ -25,6 +28,8 @@ interface IPageDetailActions {
 	fetchDetail: (pageId: number) => Promise<void>;
 	/** The chart's range changed: the newest request wins, older answers are dropped. */
 	fetchHistory: (pageId: number, range: IDayRange) => Promise<void>;
+	/** Generates the user's missing daily positions, then re-reads what changed. */
+	fillPositions: (pageId: number, range: IDayRange) => Promise<void>;
 	reset: () => void;
 }
 
@@ -39,6 +44,8 @@ const initialState: IPageDetailState = {
 	history: null,
 	historyStatus: "idle",
 	historyError: null,
+	fillStatus: "idle",
+	fillError: null,
 	detailRequest: 0,
 	historyRequest: 0,
 };
@@ -87,6 +94,20 @@ export const usePageDetailViewModel = create<IPageDetailViewModel>()((set, get) 
 					? { historyStatus: "ready", notFound: true }
 					: { historyStatus: "error", historyError: describeError(error) },
 			);
+		}
+	},
+
+	fillPositions: async (pageId, range) => {
+		if (get().fillStatus === "loading") return;
+		set({ fillStatus: "loading", fillError: null });
+		try {
+			await gateways.positions.fill();
+			set({ fillStatus: "ready" });
+			// The fill touches every client of this user, so the page's own numbers
+			// (best position, average) are re-read too, not only the chart.
+			await Promise.all([get().fetchDetail(pageId), get().fetchHistory(pageId, range)]);
+		} catch (error: unknown) {
+			set({ fillStatus: "error", fillError: describeError(error) });
 		}
 	},
 

@@ -58,6 +58,11 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:db
 - **Keywords** are scored by where a phrase appears (title, H1, URL slug, description, headings,
   body), the page's own declared keywords, and an IDF penalty across the client's pages — so
   "yoast" does not top every Yoast page. 19 SEO rules, one per catalogued code, compile-checked.
+- **Positions are invented**, as the brief says — a mean-reverting walk seeded by `url + term`,
+  so a re-seeded database regenerates the same history. `pnpm seed` (or `docker compose run --rm
+  seed`) stays the way to produce them; **Generate positions** on the page detail screen runs the
+  same fill for the signed-in user's clients only, so a client added in the UI gets a chart
+  without a shell. Nothing here talks to a search engine either way.
 - **A re-crawl deletes nothing.** Pages and keyword pairs a newer crawl no longer finds keep their
   history and are hidden; issues describe the latest fetch only.
 - **Outbound HTTP is guarded:** private, loopback and metadata addresses are refused at connect
@@ -69,7 +74,8 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:db
 - Sites without a blog sitemap (an HTML/feed-only fallback); network SEO checks (Lighthouse,
   broken links); real rank data instead of the seed's simulated walk.
 - A browser end-to-end test (Playwright); sorting the list by position.
-- Positions for a client added in the UI appear after the next `docker compose run --rm seed`.
+- The position fill runs inside the request (a few seconds for a fresh client); it belongs on the
+  crawl queue next to the crawl itself.
 - What changed against the plan while building is recorded as `AMENDED` lines in
   `openspec/changes/*/tasks.md`.
 

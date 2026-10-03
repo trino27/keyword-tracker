@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import {
   RankSnapshotsRepository,
   type ICurrentPairRecord,
@@ -17,6 +18,11 @@ export class SnapshotWriterService {
 
   listCurrentPairsForWorker(): Promise<ICurrentPairRecord[]> {
     return this.snapshots.listCurrentPairsForWorker();
+  }
+
+  /** One user's pairs — what the "generate positions" action is allowed to touch. */
+  listCurrentPairs(scope: IUserScope): Promise<ICurrentPairRecord[]> {
+    return this.snapshots.listCurrentPairs(scope);
   }
 
   /** Returns how many rows were new; existing (pair, instant) rows are kept. */
