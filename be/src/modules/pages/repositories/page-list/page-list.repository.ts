@@ -93,7 +93,19 @@ export class PageListRepository {
              c.id as client_id, c.name as client_name
       from current_pages p
       join clients c on c.id = p.client_id
-      order by c.name, c.id, p.sitemap_position, p.id
+      -- Worst first: the score exists so a user can triage a portfolio, and an order that
+      -- buries the worst page of the second client under the best page of the first
+      -- defeats it. Three things here are load-bearing:
+      --   ::numeric — both counters are smallint, and integer division would collapse
+      --     every score to 0 or 1;
+      --   checks_failed desc — among equal scores the page with more failures is the
+      --     bigger job, so the tie-break means something;
+      --   p.id last — unique, so the order is TOTAL. Without it two pages with the same
+      --     score have no defined relative order and the planner may answer offset 0 and
+      --     offset 20 differently, so rows repeat and vanish between pages.
+      order by (p.checks_applicable - p.checks_failed)::numeric / p.checks_applicable asc,
+               p.checks_failed desc,
+               c.name, c.id, p.sitemap_position, p.id
       limit ${limit} offset ${offset}
     `);
     return rows.map((row) => ({

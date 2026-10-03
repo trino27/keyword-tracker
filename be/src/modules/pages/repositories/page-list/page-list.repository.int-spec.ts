@@ -149,6 +149,124 @@ describe('PageListRepository (postgres)', () => {
     await expect(slice(user.id)).resolves.toHaveLength(1);
   });
 
+  it('orders worst first: the lowest score is row one', async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    // 90 and 50. Integer division would collapse both to 0 and leave the order to the
+    // tie-breakers, which is exactly what a missing ::numeric cast does.
+    await addPage(client.id, run.id, 'https://site.example/good/', 0, {
+      checksApplicable: 10,
+      checksFailed: 1,
+    });
+    await addPage(client.id, run.id, 'https://site.example/bad/', 1, {
+      checksApplicable: 10,
+      checksFailed: 5,
+    });
+
+    expect((await slice(user.id)).map((row) => row.url)).toEqual([
+      'https://site.example/bad/',
+      'https://site.example/good/',
+    ]);
+  });
+
+  it('compares scores as fractions, not as integer division', async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    // 3 of 4 passed is 75; 8 of 10 is 80. Without ::numeric both divisions are 0, the
+    // scores tie, and `checks_failed desc` puts the BETTER page first — the exact
+    // inversion this case exists to catch.
+    await addPage(client.id, run.id, 'https://site.example/seventy-five/', 0, {
+      checksApplicable: 4,
+      checksFailed: 1,
+    });
+    await addPage(client.id, run.id, 'https://site.example/eighty/', 1, {
+      checksApplicable: 10,
+      checksFailed: 2,
+    });
+
+    expect((await slice(user.id)).map((row) => row.url)).toEqual([
+      'https://site.example/seventy-five/',
+      'https://site.example/eighty/',
+    ]);
+  });
+
+  it('interleaves clients, because the worst page of the second client is still the worst', async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const alpha = await addClient(user.id, 'Alpha');
+    const zeta = await addClient(user.id, 'Zeta');
+    const alphaRun = await addRun(alpha.id, 'succeeded');
+    const zetaRun = await addRun(zeta.id, 'succeeded');
+    await addPage(alpha.id, alphaRun.id, 'https://a.example/fine/', 0, {
+      checksApplicable: 18,
+      checksFailed: 0,
+    });
+    await addPage(zeta.id, zetaRun.id, 'https://z.example/broken/', 0, {
+      checksApplicable: 18,
+      checksFailed: 9,
+    });
+
+    expect((await slice(user.id)).map((row) => row.url)).toEqual([
+      'https://z.example/broken/',
+      'https://a.example/fine/',
+    ]);
+  });
+
+  it('breaks a tie on score by the bigger job, then by a unique key', async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    // Both score 50; the page with four failures is the bigger job.
+    await addPage(client.id, run.id, 'https://site.example/two/', 0, {
+      checksApplicable: 4,
+      checksFailed: 2,
+    });
+    await addPage(client.id, run.id, 'https://site.example/four/', 1, {
+      checksApplicable: 8,
+      checksFailed: 4,
+    });
+
+    expect((await slice(user.id)).map((row) => row.url)).toEqual([
+      'https://site.example/four/',
+      'https://site.example/two/',
+    ]);
+  });
+
+  it('walking every page at pageSize 3 returns each id exactly once', async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    // Ten pages, all tying on score AND on failures, so only the unique last key of the
+    // ORDER BY can decide. Without it the planner is free to answer offset 0 and offset 3
+    // inconsistently, and rows repeat and vanish between pages — a walk over rows that
+    // never tie would prove nothing, which is why the tie is seeded deliberately.
+    const seeded: number[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      const page = await addPage(
+        client.id,
+        run.id,
+        `https://site.example/post-${i}/`,
+        i,
+        { checksApplicable: 16, checksFailed: 4 },
+      );
+      seeded.push(page.id);
+    }
+    expect(seeded).toHaveLength(10);
+
+    const walked: number[] = [];
+    for (let offset = 0; offset < 12; offset += 3) {
+      const rows = await repository.listSlice(scopeOf(user.id), {}, 3, offset);
+      walked.push(...rows.map((row) => row.id));
+    }
+
+    expect(walked).toHaveLength(10);
+    expect([...new Set(walked)]).toHaveLength(10);
+    expect([...walked].sort((a, b) => a - b)).toEqual(
+      [...seeded].sort((a, b) => a - b),
+    );
+  });
+
   it('orders by client name, then sitemap position; filters by client', async () => {
     const user = await seedTestUser(testDb, 'a@example.com');
     const zeta = await addClient(user.id, 'Zeta');
