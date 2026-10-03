@@ -17,6 +17,7 @@
     "dev:fe": "pnpm --filter fe run dev",
     "db:generate": "pnpm --filter be run db:generate",
     "db:migrate": "pnpm --filter be run db:migrate",
+    "seed": "pnpm --filter be run seed",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
