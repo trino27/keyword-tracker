@@ -17,6 +17,7 @@ import { listenForExpiredSession } from "@ViewModels/SessionViewModel/SessionVie
 import { redirectIfSignedIn } from "../Guards/redirectIfSignedIn";
 import { requireSession } from "../Guards/requireSession";
 import { clientsSearchSchema } from "./SearchSchemas/ClientsSearchSchema/clientsSearchSchema";
+import { pageDetailSearchSchema } from "./SearchSchemas/PageDetailSearchSchema/pageDetailSearchSchema";
 import { pagesSearchSchema } from "./SearchSchemas/PagesSearchSchema/pagesSearchSchema";
 import { signInSearchSchema } from "./SearchSchemas/SignInSearchSchema/signInSearchSchema";
 
@@ -67,6 +68,7 @@ const pagesRoute = createRoute({
 const pageDetailRoute = createRoute({
 	getParentRoute: () => appRoute,
 	path: "/pages/$pageId",
+	validateSearch: pageDetailSearchSchema,
 	component: PageDetailScreen,
 });
 
