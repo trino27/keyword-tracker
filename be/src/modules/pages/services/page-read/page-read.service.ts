@@ -150,6 +150,7 @@ export class PageReadService {
         lang: page.lang,
         wordCount: page.wordCount,
         httpStatus: page.httpStatus,
+        responseMs: page.responseMs,
         crawledAt: page.crawledAt.toISOString(),
       },
       client: {

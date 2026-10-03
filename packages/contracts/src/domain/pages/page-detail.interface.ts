@@ -14,6 +14,11 @@ export interface IPageDetail {
     lang: string | null;
     wordCount: number;
     httpStatus: number;
+    /**
+     * Time to first byte of the crawler's single fetch. A fact of the crawl, never a
+     * verdict, and never a field measurement of the page's visitors.
+     */
+    responseMs: number;
     /** ISO-8601 UTC instant of the last fetch. */
     crawledAt: string;
   };
