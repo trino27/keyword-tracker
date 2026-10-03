@@ -1,6 +1,6 @@
 # Tasks — site-wide-issue-grouping
 
-Generated from the plan `seo-analysis-accuracy` (`docs/_plans/`), Phase 3. Correct it through the
+Generated from the plan `seo-analysis-accuracy` (`docs/_plans-archive/`), Phase 3. Correct it through the
 plan; record a wrong task with an `AMENDED during implementation:` line and an already-satisfied
 one as `VERIFIED, NOT BUILT`.
 
@@ -69,5 +69,14 @@ because both phases patch the same `ORDER BY` and the same two screens.
   NOT DONE HERE: an archive is irreversible in the sense that matters — it turns a delta into
   approved truth — and two of the three changes still carry an open browser walk. Sequenced after
   2.5 and the two walks in the other changes.
-- [ ] 3.5 Move `docs/_plans/seo-analysis-accuracy.md` to `docs/_plans-archive/` with a header naming the branch, what was harvested where, and what was left open. Verify: `git grep -rn "seo-analysis-accuracy" -- ':!docs/_plans-archive'` finds no link into the archived plan from a skill or a module document
-  NOT DONE HERE: the plan is archived with the changes it drove, after 3.4.
+- [x] 3.5 Move `docs/_plans-archive/seo-analysis-accuracy.md` to `docs/_plans-archive/` with a header naming the branch, what was harvested where, and what was left open. Verify: `git grep -rn "seo-analysis-accuracy" -- ':!docs/_plans-archive'` finds no link into the archived plan from a skill or a module document
+  VERIFIED: moved to `docs/_plans-archive/seo-analysis-accuracy.md` with a header naming the
+  branch (`feat/page-health-and-catalogue`), what was harvested into which owning document, and
+  the four things left open — the browser walks, this change's own 3.3 and 3.4, the stale
+  developer database, and OQ5.
+  AMENDED during implementation: the verify command found one link that had to go first.
+  `practices/search-engines/SKILL.md` cited the plan by path, which `docs/_plans/README.md`
+  forbids outright — "a skill or module document citing a plan starts lying the day the plan is
+  archived". It now cites the three OpenSpec changes and the module document instead. The six
+  references from the changes' own proposals and tasks are the plan-to-change link the lifecycle
+  expects, not a skill reaching in; they were repointed to the archive path.

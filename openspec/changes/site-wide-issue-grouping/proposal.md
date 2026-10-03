@@ -47,4 +47,4 @@ Depends on `seo-check-catalogue-correction` (the code set must be final before c
 pages share one) and is sequenced after `page-health-score` only because both patch the same
 `ORDER BY` and the same two screens.
 
-Plan: `docs/_plans/seo-analysis-accuracy.md`, phase 3.
+Plan: `docs/_plans-archive/seo-analysis-accuracy.md`, phase 3.

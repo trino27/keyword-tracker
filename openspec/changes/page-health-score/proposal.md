@@ -65,4 +65,4 @@ refreshes the two counters with the issues.
 Depends on `seo-check-catalogue-correction`: scoring a check that is about to be retired would
 bake it into a number.
 
-Plan: `docs/_plans/seo-analysis-accuracy.md`, phase 2.
+Plan: `docs/_plans-archive/seo-analysis-accuracy.md`, phase 2.

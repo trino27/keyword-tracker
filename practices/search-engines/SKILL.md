@@ -12,17 +12,17 @@ sentence still stands. That is why it sits in `practices/` and not in `skills/`.
 ## Status: acted on, and still binding nothing by itself
 
 It was written to be drawn on by work that **starts after the current screens change ships**. That
-condition has been met, and the conversation it was waiting for has happened: the plan
-`docs/_plans/seo-analysis-accuracy.md` weighs these findings and the OpenSpec change
-`seo-check-catalogue-correction` acts on them — SLOW_RESPONSE and KEYWORD_NOT_IN_TITLE retired
-(findings 3 and 4), STRUCTURED_DATA_MISSING added (finding 8), and the extraction defect of
-finding 7 fixed. The catalogue is eighteen codes, not the nineteen described below.
+condition has been met, and the conversation it was waiting for has happened. The OpenSpec changes
+`seo-check-catalogue-correction`, `page-health-score` and `site-wide-issue-grouping` acted on these
+findings: SLOW_RESPONSE and KEYWORD_NOT_IN_TITLE retired (findings 3 and 4),
+STRUCTURED_DATA_MISSING added (finding 8), and the extraction defect of finding 7 fixed. The
+catalogue is eighteen codes, not the nineteen described below. Why each was decided that way lives
+in those changes and in `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`, never here.
 
 **This skill still decides nothing**, and the change to its status is only that: its findings are
 no longer unexamined. Where the research meets our implementation, a finding is still recorded
-here as an *observation* or an *open question* and stops there; what was decided about one is in
-the plan's decision log, not here. The references are untouched — a field study is a record of a
-day, and is never rewritten to match what was later done about it.
+here as an *observation* or an *open question* and stops there. The references are untouched — a
+field study is a record of a day, and is never rewritten to match what was later done about it.
 
 ## What to read, and when
 

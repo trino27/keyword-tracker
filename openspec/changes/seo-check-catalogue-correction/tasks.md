@@ -1,6 +1,6 @@
 # Tasks — seo-check-catalogue-correction
 
-Generated from the plan `seo-analysis-accuracy` (`docs/_plans/`), Phase 1. Correct it through the
+Generated from the plan `seo-analysis-accuracy` (`docs/_plans-archive/`), Phase 1. Correct it through the
 plan; record a wrong task with an `AMENDED during implementation:` line and an already-satisfied
 one as `VERIFIED, NOT BUILT`.
 
