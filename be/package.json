@@ -41,6 +41,7 @@
     "reflect-metadata": "^0.2.2",
     "robots-parser": "^3.0.1",
     "rxjs": "^7.8.1",
+    "stopword": "^3.1.5",
     "undici": "^8.11.2",
     "zod": "^4.5.4"
   },
@@ -54,6 +55,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.13.3",
     "@types/pg": "^8.23.1",
+    "@types/stopword": "^2.0.3",
     "@types/supertest": "^7.2.1",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
