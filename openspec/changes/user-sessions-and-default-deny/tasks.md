@@ -14,16 +14,18 @@ record a wrong task with an `AMENDED during implementation:` line and an already
 
 ## 2. Hashing and tokens (2b) — AUTH-001, AUTH-002
 
-- [ ] 2.1 Write `password-hasher.service.spec.ts` (format, verify true/false, parameters read from the string, malformed → false) and `session-token.spec.ts` (32 bytes base64url, sha256 32 bytes); both fail. Verify: `pnpm --filter be test:ci -- src/modules/auth/services` fails
-- [ ] 2.2 Implement `PasswordHasher` with `maxmem` and `timingSafeEqual`, and `session-token.ts`; constants in `constants/session.constant.ts`. Verify: `pnpm --filter be test:ci -- src/modules/auth/services`
+- [x] 2.1 Write `password-hasher.service.spec.ts` (format, verify true/false, parameters read from the string, malformed → false) and `session-token.spec.ts` (32 bytes base64url, sha256 32 bytes); both fail. Verify: `pnpm --filter be test:ci -- src/modules/auth/services` fails
+- [x] 2.2 Implement `PasswordHasher` with `maxmem` and `timingSafeEqual`, and `session-token.ts`; constants in `constants/session.constant.ts`. Verify: `pnpm --filter be test:ci -- src/modules/auth/services`
 
 ## 3. Endpoints, guard, default deny (2c) — AUTH-003…AUTH-009, ISO-001…ISO-005
 
-- [ ] 3.1 Write `be/test/e2e/default-deny.e2e-spec.ts` with `be/test/support/list-routes.ts`; it fails because health is not `@Public`. Verify: `pnpm --filter be test:db -- default-deny` fails
-- [ ] 3.2 `@Public()`, `@CurrentScope()`, `IUserScope`; `@Public()` on `HealthController`. Verify: `pnpm --filter be test:db -- default-deny`
-- [ ] 3.3 Write `be/test/e2e/auth.e2e-spec.ts` (cookie flags, me with timeZone, logout, identical invalid answers, 429, 415, expired 401, token hash) and `auth.service.spec.ts`, `session.guard.spec.ts`, `json-only.middleware.spec.ts`; all fail. Verify: `pnpm --filter be test:db -- auth` fails
-- [ ] 3.4 `json-only.middleware.ts` and `cookie-parser` in `configureApp`. Verify: `pnpm --filter be test:ci -- src/core`
-- [ ] 3.5 `AuthModule`: controller, `LoginDto`, `AuthService`, `SessionGuard` as `APP_GUARD`, `create-user-scope.ts`, `UserAccountsService`, error constants and exceptions, `ThrottlerModule` + throttle constants. Verify: `pnpm --filter be test:db -- auth default-deny && pnpm --filter be test:ci -- src/modules/auth`
-- [ ] 3.6 ESLint selectors in `be/eslint.config.mjs`: `as IUserScope` outside `create-user-scope.ts` and tests; `…ForWorker` calls in `src/modules/**/controllers/**`. Verify: `pnpm --filter be lint`, and a scratch `as IUserScope` in a service makes it fail (reverted)
-- [ ] 3.7 `be/test/support/sign-in.ts` (asserts every seeding status) and `be/test/e2e/isolation-matrix.e2e-spec.ts` with its static partner (no id routes yet). Verify: `pnpm --filter be test:db -- isolation-matrix`
-- [ ] 3.8 Stack check. Verify: `docker compose up -d --build`; `curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/auth/me` prints 401; `curl -fsS http://localhost:8080/api/health`; `docker compose ps` shows `be` healthy
+- [x] 3.1 Write `be/test/e2e/default-deny.e2e-spec.ts` with `be/test/support/list-routes.ts`; it fails because health is not `@Public`. Verify: `pnpm --filter be test:db -- default-deny` fails
+- [x] 3.2 `@Public()`, `@CurrentScope()`, `IUserScope`; `@Public()` on `HealthController`. Verify: `pnpm --filter be test:db -- default-deny`
+- [x] 3.3 Write `be/test/e2e/auth.e2e-spec.ts` (cookie flags, me with timeZone, logout, identical invalid answers, 429, 415, expired 401, token hash) and `auth.service.spec.ts`, `session.guard.spec.ts`, `json-only.middleware.spec.ts`; all fail. Verify: `pnpm --filter be test:db -- auth` fails
+  AMENDED during implementation: "slides expiry only after the touch interval" is pinned in `auth.service.spec.ts` (the sliding rule lives in `AuthService.resolveSession`); `session.guard.spec.ts` pins that the guard re-issues the cookie when the expiry slid. The cookie's Secure flag follows `request.secure` (HTTPS behind the trusted proxy) rather than a localhost check — the e2e asserts no Secure over plain HTTP.
+- [x] 3.4 `json-only.middleware.ts` and `cookie-parser` in `configureApp`. Verify: `pnpm --filter be test:ci -- src/core`
+- [x] 3.5 `AuthModule`: controller, `LoginDto`, `AuthService`, `SessionGuard` as `APP_GUARD`, `create-user-scope.ts`, `UserAccountsService`, error constants and exceptions, `ThrottlerModule` + throttle constants. Verify: `pnpm --filter be test:db -- auth default-deny && pnpm --filter be test:ci -- src/modules/auth`
+  AMENDED during implementation: the login throttle is `ThrottlerModule.forRoot([LOGIN_THROTTLE])` applied by a route-level `LoginThrottlerGuard` keyed by IP + lower-cased email, never a global throttler guard. `/auth/me` reads the user from `@CurrentSessionUser()`, which the session guard attaches beside the scope.
+- [x] 3.6 ESLint selectors in `be/eslint.config.mjs`: `as IUserScope` outside `create-user-scope.ts` and tests; `…ForWorker` calls in `src/modules/**/controllers/**`. Verify: `pnpm --filter be lint`, and a scratch `as IUserScope` in a service makes it fail (reverted)
+- [x] 3.7 `be/test/support/sign-in.ts` (asserts every seeding status) and `be/test/e2e/isolation-matrix.e2e-spec.ts` with its static partner (no id routes yet). Verify: `pnpm --filter be test:db -- isolation-matrix`
+- [x] 3.8 Stack check. Verify: `docker compose up -d --build`; `curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/auth/me` prints 401; `curl -fsS http://localhost:8080/api/health`; `docker compose ps` shows `be` healthy
