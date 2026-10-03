@@ -9,8 +9,22 @@ import type {
 const NON_CONTENT =
   'nav, header, footer, aside, script, style, noscript, form, svg, iframe, template';
 
-const BLOCK_ELEMENTS =
-  'h1, h2, h3, h4, h5, h6, p, li, td, th, blockquote, dd, dt, figcaption, pre';
+/**
+ * Text present only for assistive technology, or hidden from it; neither is page content.
+ * A copy-link control inside a heading made "Copy link to headingAgentic infrastructure"
+ * on vercel.com — practices/search-engines/references/field-study-2026-10.md, finding 7.
+ */
+const HIDDEN_TEXT =
+  '[aria-hidden="true"], [hidden], .sr-only, .visually-hidden, .visuallyhidden, ' +
+  '.screen-reader-text, .screen-reader-only, .a11y-hidden';
+
+const HEADINGS = 'h1, h2, h3, h4, h5, h6';
+
+/** A control is chrome, not heading text. Scoped to headings: in body copy a button's
+ *  label is sometimes the only word a paragraph has. */
+const HEADING_CONTROLS = 'button, [role="button"]';
+
+const BLOCK_ELEMENTS = `${HEADINGS}, p, li, td, th, blockquote, dd, dt, figcaption, pre`;
 
 const LAYOUT_ELEMENTS =
   'div, section, ul, ol, table, tr, figure, br, hr, dl, details, summary';
@@ -29,10 +43,22 @@ const orNull = (text: string | undefined) => {
  */
 export function extractPage(html: string, baseUrl: string): IParsedPage {
   const $ = load(html);
+  // Before anything is read, and on the whole document, because h1s are read outside the
+  // main content: strip what no reader sees, and the controls sitting inside headings.
+  $(HIDDEN_TEXT).remove();
+  $(HEADINGS).find(HEADING_CONTROLS).remove();
+
   const main = mainContent($);
+  // `.text()` concatenates siblings: "Title</h1><p>One" would read as "TitleOne". This runs
+  // BEFORE anything is collected, or the headings and blocks never see the separators and
+  // only the whole-page word count benefits. Collapsing afterwards removes the doubled
+  // spaces, so nothing else moves.
+  main
+    .find(`${BLOCK_ELEMENTS}, ${LAYOUT_ELEMENTS}, button, label, a`)
+    .after(' ');
 
   const headings: IHeading[] = [];
-  main.find('h1, h2, h3, h4, h5, h6').each((_, element) => {
+  main.find(HEADINGS).each((_, element) => {
     const text = collapse($(element).text());
     if (text)
       headings.push({
@@ -48,8 +74,6 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
     const text = collapse($(element).text());
     if (text) blocks.push(text);
   });
-  // `.text()` concatenates siblings: "Title</h1><p>One" would read as "TitleOne".
-  main.find(`${BLOCK_ELEMENTS}, ${LAYOUT_ELEMENTS}`).after(' ');
   const mainText = collapse(main.text());
   if (blocks.length === 0 && mainText) blocks.push(mainText);
 

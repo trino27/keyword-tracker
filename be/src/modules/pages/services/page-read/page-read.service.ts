@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  pageScoreOf,
   SEO_ISSUE_CODES,
   type IKeywordPosition,
   type IPageDetail,
@@ -78,10 +79,14 @@ export class PageReadService {
       this.list.countMatching(scope, filter),
     ]);
     const pageIds = rows.map((row) => row.id);
-    const [keywordRows, issueRows] = await Promise.all([
+    const [keywordRows, issueRows, siteWideRows] = await Promise.all([
       this.list.keywordsForPages(scope, pageIds),
       this.list.issueCountsForPages(scope, pageIds),
+      this.list.siteWideCountsForPages(scope, pageIds),
     ]);
+    const siteWideByPage = new Map(
+      siteWideRows.map((row) => [row.pageId, row.siteWide]),
+    );
 
     const keywordsByPage = new Map<number, IKeywordPosition[]>();
     for (const row of keywordRows) {
@@ -96,6 +101,7 @@ export class PageReadService {
         error: 0,
         warning: 0,
         notice: 0,
+        siteWide: siteWideByPage.get(row.pageId) ?? 0,
       };
       counts[row.severity] += row.count;
       counts.total += row.count;
@@ -112,11 +118,14 @@ export class PageReadService {
           client: { id: row.clientId, name: row.clientName },
           keywords,
           bestPosition: pickBestPosition(keywords),
+          score: pageScoreOf(row.checksApplicable, row.checksFailed),
+          // A page nobody shares a finding with says zero, not nothing.
           issues: issuesByPage.get(row.id) ?? {
             total: 0,
             error: 0,
             warning: 0,
             notice: 0,
+            siteWide: 0,
           },
           lastCapturedAt: lastCapturedAtOf(keywords),
         };
@@ -150,15 +159,18 @@ export class PageReadService {
         lang: page.lang,
         wordCount: page.wordCount,
         httpStatus: page.httpStatus,
+        responseMs: page.responseMs,
         crawledAt: page.crawledAt.toISOString(),
       },
       client: {
         id: page.clientId,
         name: page.clientName,
         websiteUrl: page.clientWebsiteUrl,
+        currentPages: page.clientCurrentPages,
       },
       keywords,
       bestPosition: pickBestPosition(keywords),
+      score: pageScoreOf(page.checksApplicable, page.checksFailed),
       issues: [...issues].sort(
         (a, b) =>
           SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),

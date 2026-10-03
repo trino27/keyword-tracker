@@ -9,6 +9,7 @@ import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
 import type { TPageListItem } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { EmptyState } from "@Modules/_Shared/EmptyState/EmptyState";
 import { PositionBadge } from "@Modules/_Shared/PositionBadge/PositionBadge";
+import { ScoreBadge } from "@Modules/_Shared/ScoreBadge/ScoreBadge";
 import { AnchorLink, ButtonLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import type { TLoadStatus } from "@ViewModels/ClientsViewModel/ClientsViewModel";
@@ -53,6 +54,12 @@ function IssueCounts({ issues }: { issues: TPageListItem["issues"] }) {
 				<Badge color="gray" variant="light" size="sm">
 					{issues.notice}
 				</Badge>
+			)}
+			{/* A number on every row of a client says the fix is in the template. */}
+			{issues.siteWide > 0 && (
+				<Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap" }}>
+					{`${issues.siteWide} site-wide`}
+				</Text>
 			)}
 		</Group>
 	);
@@ -136,6 +143,7 @@ export function PagesTable({
 					<Table.Thead>
 						<Table.Tr>
 							<Table.Th>Page</Table.Th>
+							<Table.Th>Score</Table.Th>
 							{showClient && <Table.Th>Client</Table.Th>}
 							<Table.Th>Keywords</Table.Th>
 							<Table.Th>Best position</Table.Th>
@@ -159,6 +167,12 @@ export function PagesTable({
 									<Text size="xs" c="dimmed" truncate="end">
 										{item.url}
 									</Text>
+								</Table.Td>
+								<Table.Td>
+									{/* The rows are rendered in the order the gateway returned
+									    them — worst first. A second sort here could only
+									    disagree with the one the database applied. */}
+									<ScoreBadge score={item.score} withNote />
 								</Table.Td>
 								{showClient && (
 									<Table.Td>

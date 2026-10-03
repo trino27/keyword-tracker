@@ -53,6 +53,8 @@ async function seedPage(): Promise<{
       responseMs: 100,
       htmlBytes: 1000,
       sitemapPosition: 0,
+      checksApplicable: 18,
+      checksFailed: 3,
       lastSeenRunId: first.id,
       crawledAt: now,
     })
@@ -177,7 +179,7 @@ describe('keywords, page_keywords and seo_issues (postgres)', () => {
             pageId,
             code: 'THIN_CONTENT',
             severity: 'warning',
-            details: { words: 120, min: 300 },
+            details: { value: 120, min: 300 },
           },
         ],
       ),
@@ -185,7 +187,7 @@ describe('keywords, page_keywords and seo_issues (postgres)', () => {
 
     const rows = await testDb.db.select().from(seoIssues);
     expect(rows).toMatchObject([
-      { code: 'THIN_CONTENT', details: { words: 120, min: 300 } },
+      { code: 'THIN_CONTENT', details: { value: 120, min: 300 } },
     ]);
   });
 

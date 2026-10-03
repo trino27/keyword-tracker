@@ -21,6 +21,9 @@ export interface IUpsertPage {
   responseMs: number;
   htmlBytes: number;
   sitemapPosition: number;
+  /** The score's denominator and its failed count, from the same pass as the issues. */
+  checksApplicable: number;
+  checksFailed: number;
   lastSeenRunId: number;
   crawledAt: Date;
 }
@@ -55,6 +58,10 @@ export class PagesRepository {
           responseMs: sql`excluded.response_ms`,
           htmlBytes: sql`excluded.html_bytes`,
           sitemapPosition: sql`excluded.sitemap_position`,
+          // Refreshed with the issues: counters left at their first value would produce a
+          // score that contradicts the issue list beside it.
+          checksApplicable: sql`excluded.checks_applicable`,
+          checksFailed: sql`excluded.checks_failed`,
           lastSeenRunId: sql`excluded.last_seen_run_id`,
           crawledAt: sql`excluded.crawled_at`,
           updatedAt: new Date(),

@@ -3,18 +3,23 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { IssuesSection } from "./IssuesSection";
 
-const renderSection = (issues: Parameters<typeof IssuesSection>[0]["issues"]) =>
+const renderSection = (issues: Parameters<typeof IssuesSection>[0]["issues"], currentPages = 1) =>
 	render(
 		<MantineProvider>
-			<IssuesSection issues={issues} />
+			<IssuesSection issues={issues} currentPages={currentPages} />
 		</MantineProvider>,
 	);
 
 describe("IssuesSection", () => {
 	it("groups by severity, worst first, with the sentence and the fix", () => {
 		renderSection([
-			{ code: "THIN_CONTENT", severity: "warning", details: { words: 120, min: 300 } },
-			{ code: "H1_MISSING", severity: "error", details: {} },
+			{
+				code: "THIN_CONTENT",
+				severity: "warning",
+				details: { value: 120, min: 300 },
+				pagesAffected: 1,
+			},
+			{ code: "H1_MISSING", severity: "error", details: {}, pagesAffected: 1 },
 		]);
 
 		const headings = screen
@@ -33,5 +38,38 @@ describe("IssuesSection", () => {
 		renderSection([]);
 
 		expect(screen.getByText("No issues found on the last crawl.")).toBeInTheDocument();
+	});
+
+	// The number that tells a user to go and edit a template instead of this page.
+	it("an issue on five of fifteen pages reads 'on 5 of 15 pages'", () => {
+		renderSection(
+			[
+				{
+					code: "H1_MULTIPLE",
+					severity: "warning",
+					details: { count: 2 },
+					pagesAffected: 5,
+				},
+			],
+			15,
+		);
+
+		expect(screen.getByText("on 5 of 15 pages")).toBeInTheDocument();
+	});
+
+	it("an issue on one page says nothing extra", () => {
+		renderSection(
+			[
+				{
+					code: "H1_MULTIPLE",
+					severity: "warning",
+					details: { count: 2 },
+					pagesAffected: 1,
+				},
+			],
+			15,
+		);
+
+		expect(screen.queryByText(/of 15 pages/)).not.toBeInTheDocument();
 	});
 });

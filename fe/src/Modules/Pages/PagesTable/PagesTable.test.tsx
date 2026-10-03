@@ -1,3 +1,4 @@
+import { pageScoreOf } from "@app/contracts";
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { TPageListItem } from "@Gateways/PageGateway/Validation/PageSchemas";
@@ -19,9 +20,19 @@ const ROW: TPageListItem = {
 		},
 	],
 	bestPosition: null,
-	issues: { total: 0, error: 0, warning: 0, notice: 0 },
+	score: { value: 83, applicable: 18, failed: 3 },
+	issues: { total: 0, error: 0, warning: 0, notice: 0, siteWide: 0 },
 	lastCapturedAt: null,
 };
+
+/** The score is derived from the counters by the shared formula, so a fixture cannot
+ *  claim a number its own denominator does not produce. */
+const withScore = (applicable: number, failed: number): TPageListItem => ({
+	...ROW,
+	id: applicable * 100 + failed,
+	url: `https://yoast.com/post-${applicable}-${failed}/`,
+	score: pageScoreOf(applicable, failed),
+});
 
 const renderTable = (props: Partial<Parameters<typeof PagesTable>[0]>) =>
 	renderWithProviders(() => (
@@ -76,5 +87,54 @@ describe("PagesTable", () => {
 		);
 		expect(screen.getAllByText("—").length).toBeGreaterThan(0);
 		expect(screen.getByText("None")).toBeInTheDocument();
+	});
+
+	it("a page failing 10 of 18 checks renders 44 in the poor band, with its denominator", async () => {
+		renderTable({ items: [withScore(18, 10)] });
+
+		const badge = await screen.findByTestId("score-badge");
+		expect(badge).toHaveAttribute("data-band", "poor");
+		expect(badge).toHaveTextContent("44");
+		expect(screen.getByText("8/18 checks")).toBeInTheDocument();
+	});
+
+	// The table renders what the gateway returned, in that order: the worst-first ordering
+	// is the database's job, and a second sort here could only disagree with it.
+	it("a row with two shared findings reads '2 site-wide'", async () => {
+		renderTable({
+			items: [
+				{
+					...ROW,
+					issues: { total: 3, error: 1, warning: 0, notice: 2, siteWide: 2 },
+				},
+			],
+		});
+
+		expect(await screen.findByText("2 site-wide")).toBeInTheDocument();
+	});
+
+	it("a row sharing nothing shows only the severity badges", async () => {
+		renderTable({
+			items: [
+				{
+					...ROW,
+					issues: { total: 1, error: 1, warning: 0, notice: 0, siteWide: 0 },
+				},
+			],
+		});
+
+		expect(await screen.findByText("1 error")).toBeInTheDocument();
+		expect(screen.queryByText(/site-wide/)).not.toBeInTheDocument();
+	});
+
+	it("the first row is the lowest score the gateway returned", async () => {
+		renderTable({
+			items: [withScore(20, 13), withScore(25, 8), withScore(18, 1)],
+		});
+
+		const badges = await screen.findAllByTestId("score-badge");
+		expect(badges.map((badge) => badge.textContent)).toEqual(["35", "68", "94"]);
+		expect(badges[0]).toHaveAttribute("data-band", "poor");
+		expect(badges[2]).toHaveAttribute("data-band", "good");
 	});
 });

@@ -22,6 +22,8 @@ export interface IPageListRow {
   title: string | null;
   clientId: number;
   clientName: string;
+  checksApplicable: number;
+  checksFailed: number;
 }
 
 export interface IPageKeywordRow {
@@ -39,12 +41,26 @@ export interface IIssueCountRow {
   count: number;
 }
 
+/** How many of one client's current pages carry one code. */
+export interface ICodeSpreadRow {
+  clientId: number;
+  code: string;
+  pages: number;
+}
+
+export interface ISiteWideCountRow {
+  pageId: number;
+  siteWide: number;
+}
+
 interface ISliceRow extends Record<string, unknown> {
   id: string;
   url: string;
   title: string | null;
   client_id: string;
   client_name: string;
+  checks_applicable: number;
+  checks_failed: number;
 }
 
 interface IKeywordRow extends Record<string, unknown> {
@@ -62,16 +78,29 @@ interface IIssueRow extends Record<string, unknown> {
   count: string;
 }
 
+interface ISpreadRow extends Record<string, unknown> {
+  client_id: string;
+  code: string;
+  pages: string;
+}
+
+interface ISiteWideRow extends Record<string, unknown> {
+  page_id: string;
+  site_wide: string;
+}
+
 const CURRENT_STATUSES = sql.join(
   CURRENT_CRAWL_RUN_STATUSES.map((status) => sql`${status}`),
   sql`, `,
 );
 
 /**
- * The pages list, in four statements whatever the page size (§10.7): the slice, the
- * total, the slice's keywords with their latest position, the slice's issue counts.
- * Every statement filters by the scope's user. "Current" = on the client's latest
- * succeeded or partial run; a page a later crawl no longer found is not listed.
+ * The pages list, in FIVE statements whatever the page size: the slice, the total, the
+ * slice's keywords with their latest position, the slice's issue counts, and how many of
+ * each page's findings are shared with another page of the same client. Still constant,
+ * still never a query per row. Every statement filters by the scope's user. "Current" =
+ * on the client's latest succeeded or partial run; a page a later crawl no longer found
+ * is not listed.
  */
 @Injectable()
 export class PageListRepository {
@@ -85,10 +114,23 @@ export class PageListRepository {
   ): Promise<IPageListRow[]> {
     const { rows } = await this.db.execute<ISliceRow>(sql`
       ${this.currentPages(scope, filter)}
-      select p.id, p.url, p.title, c.id as client_id, c.name as client_name
+      select p.id, p.url, p.title, p.checks_applicable, p.checks_failed,
+             c.id as client_id, c.name as client_name
       from current_pages p
       join clients c on c.id = p.client_id
-      order by c.name, c.id, p.sitemap_position, p.id
+      -- Worst first: the score exists so a user can triage a portfolio, and an order that
+      -- buries the worst page of the second client under the best page of the first
+      -- defeats it. Three things here are load-bearing:
+      --   ::numeric — both counters are smallint, and integer division would collapse
+      --     every score to 0 or 1;
+      --   checks_failed desc — among equal scores the page with more failures is the
+      --     bigger job, so the tie-break means something;
+      --   p.id last — unique, so the order is TOTAL. Without it two pages with the same
+      --     score have no defined relative order and the planner may answer offset 0 and
+      --     offset 20 differently, so rows repeat and vanish between pages.
+      order by (p.checks_applicable - p.checks_failed)::numeric / p.checks_applicable asc,
+               p.checks_failed desc,
+               c.name, c.id, p.sitemap_position, p.id
       limit ${limit} offset ${offset}
     `);
     return rows.map((row) => ({
@@ -97,6 +139,8 @@ export class PageListRepository {
       title: row.title,
       clientId: Number(row.client_id),
       clientName: row.client_name,
+      checksApplicable: Number(row.checks_applicable),
+      checksFailed: Number(row.checks_failed),
     }));
   }
 
@@ -171,6 +215,67 @@ export class PageListRepository {
       pageId: Number(row.page_id),
       severity: row.severity,
       count: Number(row.count),
+    }));
+  }
+
+  /**
+   * How many of each client's CURRENT pages carry each code.
+   *
+   * Deliberately takes no search filter: the spread is a property of the client, not of
+   * the slice on screen. Built on the filtered set, a search matching one page would
+   * report a template-wide problem as affecting one page — a number that looks perfectly
+   * plausible and is wrong, which is why the int-spec asserts it under a search.
+   */
+  async codeSpreadForClients(
+    scope: IUserScope,
+    clientIds: number[],
+  ): Promise<ICodeSpreadRow[]> {
+    if (clientIds.length === 0) return [];
+    const { rows } = await this.db.execute<ISpreadRow>(sql`
+      ${this.currentPages(scope, {})}
+      select p.client_id, i.code, count(distinct p.id) as pages
+      from current_pages p
+      join seo_issues i on i.page_id = p.id
+      where p.client_id in (${sql.join(
+        clientIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})
+      group by p.client_id, i.code
+    `);
+    return rows.map((row) => ({
+      clientId: Number(row.client_id),
+      code: row.code,
+      pages: Number(row.pages),
+    }));
+  }
+
+  /** Per page, how many of its distinct codes another current page of the client has too. */
+  async siteWideCountsForPages(
+    scope: IUserScope,
+    pageIds: number[],
+  ): Promise<ISiteWideCountRow[]> {
+    if (pageIds.length === 0) return [];
+    const { rows } = await this.db.execute<ISiteWideRow>(sql`
+      ${this.currentPages(scope, {})},
+      spread as (
+        select p.client_id, i.code, count(distinct p.id) as pages
+        from current_pages p
+        join seo_issues i on i.page_id = p.id
+        group by p.client_id, i.code
+      )
+      select i.page_id, count(*) as site_wide
+      from seo_issues i
+      join current_pages p on p.id = i.page_id
+      join spread s on s.client_id = p.client_id and s.code = i.code and s.pages > 1
+      where i.page_id in (${sql.join(
+        pageIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})
+      group by i.page_id
+    `);
+    return rows.map((row) => ({
+      pageId: Number(row.page_id),
+      siteWide: Number(row.site_wide),
     }));
   }
 

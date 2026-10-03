@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm';
 import {
   bigint,
+  check,
   index,
   integer,
   pgTable,
@@ -33,7 +35,9 @@ export const pages = pgTable(
     // Words of the main content, not of the navigation around it.
     wordCount: integer('word_count').notNull(),
     httpStatus: smallint('http_status').notNull(),
-    // Time to first byte, for SLOW_RESPONSE.
+    // Time to first byte of the crawler's single fetch. A fact of the crawl, never a
+    // verdict: the same site answered in 41 ms and 1728 ms minutes apart (field study,
+    // practices/search-engines/references/field-study-2026-10.md, finding 3).
     responseMs: integer('response_ms').notNull(),
     htmlBytes: integer('html_bytes').notNull(),
     // 0-based position in the selected sitemap group — the list's secondary order.
@@ -44,6 +48,13 @@ export const pages = pgTable(
     lastSeenRunId: bigint('last_seen_run_id', { mode: 'number' })
       .notNull()
       .references(() => crawlRuns.id, { onDelete: 'cascade' }),
+    // How many catalogue checks could be judged on this page, and how many of them failed.
+    // Written by the same act that writes the page's issues, because applicability is only
+    // knowable while the parsed page is in hand — this row holds no canonical, no Open Graph
+    // and no JSON-LD, so it cannot be recovered later. The score is applicable-minus-failed
+    // over applicable, derived at read time.
+    checksApplicable: smallint('checks_applicable').notNull(),
+    checksFailed: smallint('checks_failed').notNull(),
     // Last fetch; differs from created_at after a re-crawl.
     crawledAt: timestamp('crawled_at', { withTimezone: true }).notNull(),
     ...auditTimestampColumns(),
@@ -57,6 +68,14 @@ export const pages = pgTable(
       t.lastSeenRunId,
     ),
     index('pages_last_seen_run_id_idx').on(t.lastSeenRunId),
+    // The score divides by checks_applicable, so a zero denominator is impossible here
+    // rather than guarded for at every read.
+    check('pages_checks_applicable_positive', sql`${t.checksApplicable} > 0`),
+    // And a score can therefore never exceed 100 or fall below 0.
+    check(
+      'pages_checks_failed_range',
+      sql`${t.checksFailed} >= 0 and ${t.checksFailed} <= ${t.checksApplicable}`,
+    ),
   ],
 );
 

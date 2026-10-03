@@ -6,7 +6,7 @@ import {
 	IconInfoCircle,
 } from "@tabler/icons-react";
 import type { TSeoIssueSeverity } from "@app/contracts";
-import type { TSeoIssue } from "@Gateways/PageGateway/Validation/PageSchemas";
+import type { TDetailIssue } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { groupIssues } from "@ViewModels/PageDetailViewModel/Services/GroupIssues/groupIssues";
 
 const SEVERITY: Record<TSeoIssueSeverity, { title: string; color: string; icon: React.ReactNode }> =
@@ -16,8 +16,14 @@ const SEVERITY: Record<TSeoIssueSeverity, { title: string; color: string; icon: 
 		notice: { title: "Notices", color: "gray", icon: <IconInfoCircle size={16} /> },
 	};
 
+interface IIssuesSectionProps {
+	issues: TDetailIssue[];
+	/** Pages on the client's current crawl — the denominator of "on 5 of 15 pages". */
+	currentPages: number;
+}
+
 /** What the last fetch found wrong, worst first, each with what to do about it. */
-export function IssuesSection({ issues }: { issues: TSeoIssue[] }) {
+export function IssuesSection({ issues, currentPages }: IIssuesSectionProps) {
 	const groups = groupIssues(issues);
 	return (
 		<Stack gap="sm">
@@ -59,7 +65,16 @@ export function IssuesSection({ issues }: { issues: TSeoIssue[] }) {
 									<Text size="sm" fw={500}>
 										{issue.label}
 									</Text>
-									<Text size="sm">{issue.detail}</Text>
+									<Group gap={6} wrap="wrap">
+										<Text size="sm">{issue.detail}</Text>
+										{/* The number that says the fix belongs in a
+										    template, not on this page. */}
+										{issue.pagesAffected > 1 && (
+											<Text size="sm" c="dimmed">
+												{`on ${issue.pagesAffected} of ${currentPages} pages`}
+											</Text>
+										)}
+									</Group>
 									<Text size="xs" c="dimmed">
 										{issue.hint}
 									</Text>

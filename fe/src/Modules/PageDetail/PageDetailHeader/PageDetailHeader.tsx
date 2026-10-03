@@ -1,4 +1,4 @@
-import { Anchor, Breadcrumbs, Group, Text } from "@mantine/core";
+import { Anchor, Breadcrumbs, Group, Text, Tooltip } from "@mantine/core";
 import { IconExternalLink } from "@tabler/icons-react";
 import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
 import type { TPageDetail } from "@Gateways/PageGateway/Validation/PageSchemas";
@@ -36,8 +36,20 @@ export function PageDetailHeader({ detail, timeZone }: IPageDetailHeaderProps) {
 					</Anchor>
 					<Text span size="sm" c="dimmed">
 						{page.wordCount.toLocaleString("en-US")} words · HTTP {page.httpStatus}
-						{page.lang ? ` · ${page.lang}` : ""} · crawled{" "}
-						{formatInZone(page.crawledAt, timeZone, "dateTime")}
+						{page.lang ? ` · ${page.lang}` : ""} ·{" "}
+						{/* A fact of the crawl, never a verdict — the tooltip is the one place
+						    the screen can say so. */}
+						<Tooltip
+							label="Time to first byte of one fetch from our crawler — not a field measurement of your visitors."
+							multiline
+							w={260}
+							withArrow
+						>
+							<Text span size="sm" c="dimmed" style={{ cursor: "help" }}>
+								{page.responseMs.toLocaleString("en-US")} ms to first byte
+							</Text>
+						</Tooltip>{" "}
+						· crawled {formatInZone(page.crawledAt, timeZone, "dateTime")}
 					</Text>
 				</Group>
 			}

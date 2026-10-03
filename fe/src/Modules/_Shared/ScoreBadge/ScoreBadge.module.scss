@@ -1,0 +1,19 @@
+// Lighthouse's bands, because the model behind the number is the same: a share of equally
+// weighted binary checks. A user who has seen one of these before reads this one the same way.
+.badge {
+	--score-color: var(--mantine-color-gray-6);
+
+	&[data-band="poor"] {
+		--score-color: var(--mantine-color-red-6);
+	}
+	&[data-band="average"] {
+		--score-color: var(--mantine-color-yellow-7);
+	}
+	&[data-band="good"] {
+		--score-color: var(--mantine-color-teal-7);
+	}
+
+	color: var(--score-color);
+	font-weight: 700;
+	line-height: 1.1;
+}

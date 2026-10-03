@@ -248,5 +248,7 @@ function toRunPage(page: ICrawledPage, analysis: IPageAnalysis): IRunPage {
     sitemapPosition: page.sitemapPosition,
     keywords: analysis.keywords,
     issues: analysis.issues,
+    checksApplicable: analysis.checksApplicable,
+    checksFailed: analysis.checksFailed,
   };
 }

@@ -23,7 +23,9 @@ export const SEO_ISSUE_CATALOGUE = {
     hint: 'Search results show the title as the headline; add a <title> in <head>.',
   },
   TITLE_LENGTH: {
-    severity: 'warning',
+    // A notice, not a warning: exceeding the bounds costs space in a result, it does not
+    // break the page (plan D4). The numbers are unchanged; industry consensus confirms them.
+    severity: 'notice',
     label: 'Title length',
     hint: 'Titles outside 30–60 characters are cut off or waste the space in results.',
     min: 30,
@@ -102,22 +104,18 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Sitemap URL redirects',
     hint: 'The sitemap lists a URL that redirects; list the final URL instead.',
   },
-  SLOW_RESPONSE: {
-    severity: 'notice',
-    label: 'Slow server response',
-    hint: 'The first byte took longer than 1.5 s, which slows every visit.',
-    max: 1_500,
-  },
   LARGE_PAGE: {
     severity: 'notice',
     label: 'Large HTML',
     hint: 'HTML over 1 MB is slow to download and parse.',
     max: 1_048_576,
   },
-  KEYWORD_NOT_IN_TITLE: {
+  STRUCTURED_DATA_MISSING: {
+    // The hint speaks about eligibility, never about a violation: Google requires no
+    // structured data, and a hint implying otherwise manufactures urgency.
     severity: 'notice',
-    label: 'Top keyword not in the title',
-    hint: "The page's strongest keyword does not appear in its title.",
+    label: 'No article structured data',
+    hint: 'Article or BlogPosting markup makes the post eligible for rich results; Google requires none.',
   },
 } as const satisfies Record<string, ISeoIssueDefinition>;
 

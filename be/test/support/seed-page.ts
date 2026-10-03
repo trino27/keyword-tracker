@@ -16,6 +16,11 @@ export async function seedCurrentPage(
   userId: number,
   terms: string[] = ['seo audit'],
   existingClientId?: number,
+  /** The page's score, for a test that reads or orders by it. Default: 15 of 18 passed. */
+  counters: { checksApplicable: number; checksFailed: number } = {
+    checksApplicable: 18,
+    checksFailed: 3,
+  },
 ): Promise<{
   clientId: number;
   runId: number;
@@ -61,6 +66,8 @@ export async function seedCurrentPage(
       responseMs: 120,
       htmlBytes: 40_000,
       sitemapPosition: 0,
+      checksApplicable: counters.checksApplicable,
+      checksFailed: counters.checksFailed,
       lastSeenRunId: run.id,
       crawledAt: now,
     })

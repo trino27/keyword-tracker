@@ -23,12 +23,52 @@ describe('SEO_RULES', () => {
     expect(Object.keys(SEO_RULES).sort()).toEqual([...SEO_ISSUE_CODES].sort());
   });
 
-  it('a clean page has no issues', () => {
-    expect(evaluateSeoRules(makeRuleInput())).toEqual([]);
+  it('a clean page has no issues, and every check applied to it', () => {
+    expect(evaluateSeoRules(makeRuleInput())).toEqual({
+      issues: [],
+      checksApplicable: SEO_ISSUE_CODES.length,
+      checksFailed: 0,
+    });
+  });
+
+  it('a check that could not be judged is not counted against the page', () => {
+    // No title: TITLE_LENGTH has nothing to measure. Passing it would reward the page
+    // for the very thing TITLE_MISSING is failing it for.
+    const { issues, checksApplicable, checksFailed } = evaluateSeoRules(
+      makeRuleInput({ parsed: { title: null } }),
+    );
+
+    expect(checksApplicable).toBe(SEO_ISSUE_CODES.length - 1);
+    expect(issues.map(({ code }) => code)).toEqual(['TITLE_MISSING']);
+    expect(checksFailed).toBe(1);
+  });
+
+  it('the five conditional checks drop out together', () => {
+    const { checksApplicable } = evaluateSeoRules(
+      makeRuleInput({
+        parsed: {
+          title: null,
+          metaDescription: null,
+          canonical: null,
+          images: [],
+          headings: [{ level: 1, text: 'Only one heading' }],
+        },
+      }),
+    );
+
+    expect(checksApplicable).toBe(SEO_ISSUE_CODES.length - 5);
+  });
+
+  it('checksFailed is always the number of issues', () => {
+    const { issues, checksFailed } = evaluateSeoRules(
+      makeRuleInput({ parsed: { title: null, lang: null, h1s: [] } }),
+    );
+
+    expect(checksFailed).toBe(issues.length);
   });
 
   it('reports catalogue severity and order', () => {
-    const issues = evaluateSeoRules(
+    const { issues } = evaluateSeoRules(
       makeRuleInput({ parsed: { title: null, lang: null, h1s: [] } }),
     );
 
@@ -48,20 +88,24 @@ describe('SEO_RULES', () => {
         join(FIXTURES_ROOT, 'sites', entry.file!),
         'utf8',
       );
-      const issues = evaluateSeoRules(
+      const { issues, checksApplicable, checksFailed } = evaluateSeoRules(
         makeRuleInput({
           url,
           finalUrl: url,
           htmlBytes: Buffer.byteLength(html),
-          responseMs: entry.ttfbMs ?? 0,
           headers: entry.headers ?? {},
-          topKeyword: null,
           parsed: extractPage(html, url),
         }),
       );
       for (const issue of issues) {
         expect(SEO_ISSUE_CATALOGUE[issue.code].severity).toBe(issue.severity);
       }
+      // Thirteen checks always apply and five are conditional, so no real page can
+      // produce a denominator small enough to make its score meaningless. This is the
+      // assertion that fails the day an applicability condition is written too broadly.
+      expect(checksApplicable).toBeGreaterThanOrEqual(13);
+      expect(checksApplicable).toBeLessThanOrEqual(SEO_ISSUE_CODES.length);
+      expect(checksFailed).toBe(issues.length);
     }
   });
 });

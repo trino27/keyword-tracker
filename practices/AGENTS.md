@@ -29,9 +29,13 @@ whole reason this tree exists.
 
 The layout is **platform → technology → thing**, mirroring `packages/` on purpose.
 
-**One practice belongs to no platform**, and it sits at this tree's root rather than in a
-bucket: [`naming/`](naming/SKILL.md) — how a type, class, folder and constant file is named,
-identically in every workspace.
+**Two practices belong to no platform**, and they sit at this tree's root rather than in a
+bucket:
+
+| topic | holds |
+| --- | --- |
+| [`naming/`](naming/SKILL.md) | how a type, class, folder and constant file is named, identically in every workspace |
+| [`search-engines/`](search-engines/SKILL.md) | how search engines crawl, render, index, rank and summarise pages, and how the industry measures that — background for any SEO rule, threshold or keyword change. Records findings and open questions; decides nothing |
 
 A topic here is recognised by carrying a `SKILL.md` directly; a bucket never does.
 
@@ -40,7 +44,7 @@ A topic here is recognised by carrying a `SKILL.md` directly; a bucket never doe
 ```
 practices/
 ├── AGENTS.md                        this file — the tree's ONLY router
-├── <topic>/SKILL.md                 a practice true of EVERY platform — `naming/`
+├── <topic>/SKILL.md                 a practice true of EVERY platform — `naming/`, `search-engines/`
 └── <platform>/                      be | fe | ops — a BUCKET
     ├── AGENTS.md                    required: the bucket's own router and index
     ├── <topic>/SKILL.md             craft belonging to no single library

@@ -35,7 +35,7 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     await testDb.close();
   });
 
-  it('pages through the 15 posts, in sitemap order', async () => {
+  it('pages through the 15 posts, worst first and each exactly once', async () => {
     const first = await list('?pageSize=10').expect(200);
     const second = await list('?pageSize=10&page=2').expect(200);
 
@@ -43,11 +43,22 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     expect(first.body.items).toHaveLength(10);
     expect(second.body.items).toHaveLength(5);
     expect(first.body.items[0]).toMatchObject({
-      url: 'https://yoast.com/how-to-remove-www-from-your-url/',
       client: { id: clientId, name: 'Yoast' },
       bestPosition: null,
     });
     expect(first.body.items[0].keywords.length).toBeGreaterThanOrEqual(5);
+
+    const scores = [...first.body.items, ...second.body.items].map(
+      (item: { score: { value: number } }) => item.score.value,
+    );
+    expect(scores).toEqual([...scores].sort((a, b) => a - b));
+
+    // The walk is over two real pages of a real planner: the order is total, so no post
+    // repeats and none is skipped between them.
+    const ids = [...first.body.items, ...second.body.items].map(
+      (item: { id: number }) => item.id,
+    );
+    expect(new Set(ids).size).toBe(15);
   });
 
   it('searches by URL and by keyword', async () => {
@@ -85,6 +96,79 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     await expect(list('?q=%20%20').expect(200)).resolves.toMatchObject({
       body: { total: 15 },
     });
+  });
+
+  it('every item carries a score and the denominator it came from', async () => {
+    const response = await list('?pageSize=20').expect(200);
+
+    for (const item of response.body.items as {
+      score: { value: number; applicable: number; failed: number };
+    }[]) {
+      expect(item.score.applicable).toBeGreaterThanOrEqual(13);
+      expect(item.score.applicable).toBeLessThanOrEqual(18);
+      expect(item.score.failed).toBeLessThanOrEqual(item.score.applicable);
+      expect(item.score.value).toBe(
+        Math.round(
+          (100 * (item.score.applicable - item.score.failed)) /
+            item.score.applicable,
+        ),
+      );
+    }
+  });
+
+  it('the detail carries its score, the fetch time and a measured finding', async () => {
+    const { body } = await list('?q=gutenberg&pageSize=1').expect(200);
+    const detail = await http()
+      .get(`/api/pages/${body.items[0].id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    expect(detail.body.score).toMatchObject({
+      value: expect.any(Number),
+      applicable: expect.any(Number),
+      failed: expect.any(Number),
+    });
+    expect(detail.body.page.responseMs).toEqual(expect.any(Number));
+    // A measured finding reads from its own numbers, so a screen never has to consult
+    // today's catalogue to explain an old verdict.
+    const measured = (
+      detail.body.issues as { code: string; details: unknown }[]
+    )
+      .filter((issue) => issue.code === 'TITLE_LENGTH')
+      .map((issue) => issue.details);
+    for (const details of measured) {
+      expect(details).toMatchObject({
+        value: expect.any(Number),
+        min: 30,
+        max: 60,
+      });
+    }
+  });
+
+  it('a finding shared across the client’s pages says how many it is on', async () => {
+    const { body } = await list('?pageSize=20').expect(200);
+    const detail = await http()
+      .get(`/api/pages/${body.items[0].id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    const issues = detail.body.issues as {
+      code: string;
+      pagesAffected: number;
+    }[];
+    expect(issues.length).toBeGreaterThan(0);
+    for (const issue of issues) {
+      expect(issue.pagesAffected).toBeGreaterThanOrEqual(1);
+      expect(issue.pagesAffected).toBeLessThanOrEqual(15);
+    }
+    // Yoast's fifteen posts come from one template, so at least one finding is shared.
+    expect(issues.some((issue) => issue.pagesAffected > 1)).toBe(true);
+    expect(detail.body.client.currentPages).toBe(15);
+
+    // And the list's own count agrees: it is the number of THIS page's codes that
+    // another page of the client also carries.
+    const shared = issues.filter((issue) => issue.pagesAffected > 1).length;
+    expect(body.items[0].issues.siteWide).toBe(shared);
   });
 
   it("another user's clientId is a 404, and their list is empty", async () => {
