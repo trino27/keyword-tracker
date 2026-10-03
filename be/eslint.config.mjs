@@ -41,6 +41,30 @@ const DB_ACCESS_PATTERNS = [
   },
 ];
 
+/**
+ * An IUserScope is proof the session guard authenticated the request (I3). Asserting
+ * one into existence anywhere else would let a request parameter pose as a user.
+ */
+const SCOPE_FORGERY_SELECTOR = {
+  selector: "TSAsExpression[typeAnnotation.typeName.name='IUserScope']",
+  message:
+    'Only the session guard creates an IUserScope (create-user-scope.ts). Take it from @CurrentScope().',
+};
+
+/** Unscoped `...ForWorker` methods read any user's data; controllers never call them (I4). */
+const WORKER_CALL_SELECTOR = {
+  selector: 'CallExpression[callee.property.name=/ForWorker$/]',
+  message:
+    'A controller serves one user: call a scoped method, never a ...ForWorker one.',
+};
+
+const BARE_ERROR_SELECTOR = {
+  selector: "NewExpression[callee.name='Error']",
+  message:
+    'Throw InvariantViolationException (or a BusinessException subclass from ' +
+    'createException), never a bare Error, from a service or repository.',
+};
+
 /** Drizzle schema conventions — caught while the column is typed, not after it ships. */
 const SCHEMA_SELECTORS = [
   {
@@ -59,11 +83,13 @@ const SCHEMA_SELECTORS = [
       'factories in persistence/schema/_shared/columns.',
   },
   {
-    selector: "CallExpression[callee.name='jsonb'] > Literal:not([value=/_json$/])",
+    selector:
+      "CallExpression[callee.name='jsonb'] > Literal:not([value=/_json$/])",
     message: 'A jsonb column name must end with `_json`.',
   },
   {
-    selector: "CallExpression[callee.name='pgEnum'] > Literal:not([value=/_enum$/])",
+    selector:
+      "CallExpression[callee.name='pgEnum'] > Literal:not([value=/_enum$/])",
     message: 'A Postgres enum type name must end with `_enum`.',
   },
 ];
@@ -110,12 +136,19 @@ export default tseslint.config(
         { considerDefaultExhaustiveForUnions: true },
       ],
       'no-restricted-imports': 'off',
-      '@typescript-eslint/no-restricted-imports': ['error', { paths: [LOGGER_RESTRICTION] }],
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        { paths: [LOGGER_RESTRICTION] },
+      ],
     },
   },
   {
     // Layer direction: core / shared / infrastructure never import a feature module.
-    files: ['src/core/**/*.ts', 'src/shared/**/*.ts', 'src/infrastructure/**/*.ts'],
+    files: [
+      'src/core/**/*.ts',
+      'src/shared/**/*.ts',
+      'src/infrastructure/**/*.ts',
+    ],
     ignores: ['**/*.spec.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
@@ -150,9 +183,22 @@ export default tseslint.config(
     },
   },
   {
+    // I3 everywhere in the application. Every block below that sets
+    // no-restricted-syntax re-composes this selector: flat config replaces the rule's
+    // options per file rather than merging them.
+    files: ['src/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': ['error', SCOPE_FORGERY_SELECTOR],
+    },
+  },
+  {
     files: ['src/persistence/schema/**/*.ts'],
     rules: {
-      'no-restricted-syntax': ['error', ...SCHEMA_SELECTORS],
+      'no-restricted-syntax': [
+        'error',
+        SCOPE_FORGERY_SELECTOR,
+        ...SCHEMA_SELECTORS,
+      ],
     },
   },
   {
@@ -161,24 +207,40 @@ export default tseslint.config(
     // InvariantViolationException or a BusinessException subclass; bare Error is
     // reserved for bootstrap and load-time assertions.
     files: ['src/**/services/**/*.ts', 'src/**/repositories/**/*.ts'],
-    ignores: ['**/*.spec.ts', '**/*.spec-helpers.ts'],
     rules: {
       'no-restricted-syntax': [
         'error',
-        {
-          selector: "NewExpression[callee.name='Error']",
-          message:
-            'Throw InvariantViolationException (or a BusinessException subclass from ' +
-            'createException), never a bare Error, from a service or repository.',
-        },
+        SCOPE_FORGERY_SELECTOR,
+        BARE_ERROR_SELECTOR,
       ],
     },
   },
   {
+    files: ['src/modules/**/controllers/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        SCOPE_FORGERY_SELECTOR,
+        WORKER_CALL_SELECTOR,
+      ],
+    },
+  },
+  {
+    // The one file allowed to create a scope.
+    files: ['src/modules/auth/guards/session/create-user-scope.ts'],
+    rules: { 'no-restricted-syntax': 'off' },
+  },
+  {
     // Tests lean on jest doubles that legitimately produce `any`. Everything else —
     // dead code, prettier, the architectural bans — still applies.
-    files: ['**/*.spec.ts', '**/*.spec-helpers.ts'],
+    files: [
+      '**/*.spec.ts',
+      '**/*-spec.ts',
+      '**/*.spec-helpers.ts',
+      'test/**/*.ts',
+    ],
     plugins: { jest },
+    // Tests build scopes and call worker methods on purpose.
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -188,10 +250,14 @@ export default tseslint.config(
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/require-await': 'off',
       'no-console': 'off',
+      'no-restricted-syntax': 'off',
       // A committed `.only` shrinks the suite to one case while the run stays green.
       'jest/no-focused-tests': 'error',
       'jest/no-disabled-tests': 'error',
-      'jest/expect-expect': ['error', { assertFunctionNames: ['expect', 'done'] }],
+      'jest/expect-expect': [
+        'error',
+        { assertFunctionNames: ['expect', 'expectPgError', 'done'] },
+      ],
       'jest/no-identical-title': 'error',
     },
   },
