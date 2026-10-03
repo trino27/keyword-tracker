@@ -12,8 +12,9 @@ record a wrong task with an `AMENDED during implementation:` line and an already
 
 ## 2. Extraction (4b) — ANALYSIS-003
 
-- [ ] 2.1 Write `extract-page.spec.ts` against fixtures (semrush head title vs SVG title, yoast JSON-LD keywords and Article, main-content stripping, word count, lang); it fails. Verify: `pnpm --filter be test:ci -- src/modules/page-analysis/services/html-extraction` fails
-- [ ] 2.2 Implement `extractPage`. Verify: `pnpm --filter be test:ci -- src/modules/page-analysis/services/html-extraction`
+- [x] 2.1 Write `extract-page.spec.ts` against fixtures (semrush head title vs SVG title, yoast JSON-LD keywords and Article, main-content stripping, word count, lang); it fails. Verify: `pnpm --filter be test:ci -- src/modules/page-analysis/services/html-extraction` fails
+- [x] 2.2 Implement `extractPage`. Verify: `pnpm --filter be test:ci -- src/modules/page-analysis/services/html-extraction`
+  AMENDED during implementation: built during phase 3g, ahead of 4a — post selection needs the JSON-LD types to recognise a listing and the pages row needs the extracted fields. `IParsedPage` lives in `modules/page-analysis/interfaces/`; text blocks are separated before words are counted, so adjacent elements never fuse into one word.
 
 ## 3. SEO rules (4c) — ANALYSIS-001, ANALYSIS-002
 

@@ -36,6 +36,7 @@ describe('extractPage', () => {
     expect(parsed.jsonLd.keywords).toEqual(
       expect.arrayContaining(['Domains', 'Technical SEO', 'URL']),
     );
+    expect(parsed.jsonLd.types).toContain('Article');
     expect(parsed.h1s.length).toBeGreaterThan(0);
   });
 
