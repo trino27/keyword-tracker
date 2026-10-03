@@ -1,3 +1,4 @@
+import { SEO_ISSUE_CODES } from '@app/contracts';
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import type { KeywordsRepository } from '../../repositories/keywords/keywords.repository';
 import type {
@@ -31,8 +32,10 @@ const page = (overrides: Partial<IRunPage> = {}): IRunPage => ({
     { term: 'outreach', relevance: 0.4 },
   ],
   issues: [{ code: 'LANG_MISSING', severity: 'notice', details: {} }],
-  checksApplicable: 18,
+  checksApplicable: SEO_ISSUE_CODES.length,
   checksFailed: 1,
+  checksJudged: [...SEO_ISSUE_CODES],
+  checksNotApplicable: [],
   ...overrides,
 });
 

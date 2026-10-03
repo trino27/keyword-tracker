@@ -84,6 +84,16 @@ because both phases patch the same `ORDER BY` and the same two screens.
   requirements, each needing its delta heading rewritten from `Requirement: ID — text` into §3's
   `[ID]` form and then deposited into the module document that owns the invariant. One pass, done
   once, after the walks.
+  PARTLY DONE: the six changes whose OWN acceptance is fully ticked are archived
+  (`clients-and-blog-crawl`, `page-analysis`, `pages-and-position-history`,
+  `positions-and-seed`, `test-harness-and-ci-database`, `user-sessions-and-default-deny`),
+  giving nine capability specs and 58 requirements, every heading rewritten into the `[ID]`
+  form and `openspec validate --specs` passing nine of nine. The objection above stands and is
+  the reason the other five are untouched: each of them IS one of the open browser walks, so
+  archiving one would be approving its own unrun acceptance. The DEPOSIT is still owed for all
+  58 — the marker, the line naming what pins it, and the spec path, in the document that owns
+  each invariant. `_root/data-isolation` and `_root/time-zones` have no module document to
+  deposit into, and whoever does it has to decide where they land.
 - [x] 3.5 Move `docs/_plans-archive/seo-analysis-accuracy.md` to `docs/_plans-archive/` with a header naming the branch, what was harvested where, and what was left open. Verify: `git grep -rn "seo-analysis-accuracy" -- ':!docs/_plans-archive'` finds no link into the archived plan from a skill or a module document
   VERIFIED: moved to `docs/_plans-archive/seo-analysis-accuracy.md` with a header naming the
   branch (`feat/page-health-and-catalogue`), what was harvested into which owning document, and

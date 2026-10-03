@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import type { TSeoIssueCode } from '@app/contracts';
 import {
   DATABASE_CONNECTION,
   type Database,
@@ -24,6 +25,9 @@ export interface IUpsertPage {
   /** The score's denominator and its failed count, from the same pass as the issues. */
   checksApplicable: number;
   checksFailed: number;
+  /** And which checks those were — same pass, same statement. */
+  checksJudged: TSeoIssueCode[];
+  checksNotApplicable: TSeoIssueCode[];
   lastSeenRunId: number;
   crawledAt: Date;
 }
@@ -62,6 +66,11 @@ export class PagesRepository {
           // score that contradicts the issue list beside it.
           checksApplicable: sql`excluded.checks_applicable`,
           checksFailed: sql`excluded.checks_failed`,
+          // Overwritten, never merged: a page that had two skips and now has none must
+          // come back with an empty list, or the screen keeps naming a check as skipped
+          // that this crawl judged.
+          checksJudged: sql`excluded.checks_judged`,
+          checksNotApplicable: sql`excluded.checks_not_applicable`,
           lastSeenRunId: sql`excluded.last_seen_run_id`,
           crawledAt: sql`excluded.crawled_at`,
           updatedAt: new Date(),

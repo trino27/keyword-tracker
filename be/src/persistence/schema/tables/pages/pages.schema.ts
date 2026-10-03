@@ -55,6 +55,18 @@ export const pages = pgTable(
     // over applicable, derived at read time.
     checksApplicable: smallint('checks_applicable').notNull(),
     checksFailed: smallint('checks_failed').notNull(),
+    // WHICH checks ran, and which could not be judged — disjoint, and together the
+    // catalogue as of that crawl. The counts above say how many; only these say which,
+    // and the difference is what lets a later read tell a check the catalogue gained
+    // since from one this page passed. Written by the same upsert as the counts, for
+    // the same reason they are written here: nothing in this row can answer it later.
+    //
+    // Null means the last crawl predates this record, not that nothing was skipped.
+    // Phase 2 drops the nulls once every client has been re-crawled.
+    checksJudged: varchar('checks_judged', { length: 64 }).array(),
+    checksNotApplicable: varchar('checks_not_applicable', {
+      length: 64,
+    }).array(),
     // Last fetch; differs from created_at after a re-crawl.
     crawledAt: timestamp('crawled_at', { withTimezone: true }).notNull(),
     ...auditTimestampColumns(),
@@ -75,6 +87,36 @@ export const pages = pgTable(
     check(
       'pages_checks_failed_range',
       sql`${t.checksFailed} >= 0 and ${t.checksFailed} <= ${t.checksApplicable}`,
+    ),
+    // A row records both lists or neither; half of the pair would read as "nothing was
+    // skipped" and quietly turn a skipped check into a passed one.
+    check(
+      'pages_checks_sets_together',
+      sql`(${t.checksJudged} is null) = (${t.checksNotApplicable} is null)`,
+    ),
+    // The tie the counts alone could not have: the denominator IS the judged list's
+    // length, enforced here rather than trusted. It names no catalogue size, so it
+    // survives the catalogue growing.
+    check(
+      'pages_checks_judged_matches_applicable',
+      sql`${t.checksJudged} is null
+          or ${t.checksApplicable} = cardinality(${t.checksJudged})`,
+    ),
+    // A code in both lists would render with two statuses on the same screen.
+    check(
+      'pages_checks_sets_disjoint',
+      sql`${t.checksJudged} is null
+          or not (${t.checksJudged} && ${t.checksNotApplicable})`,
+    ),
+    // Distinct, non-null, non-empty elements. A duplicate is the one bad value the
+    // constraint above would wave through: it inflates cardinality(), so the denominator
+    // would match a judged list naming fewer checks than it counts. The predicate needs
+    // unnest, which is a subquery, which a CHECK may not contain — hence the IMMUTABLE
+    // helper created in migration 0009.
+    check('pages_checks_judged_clean', sql`array_is_clean(${t.checksJudged})`),
+    check(
+      'pages_checks_not_applicable_clean',
+      sql`array_is_clean(${t.checksNotApplicable})`,
     ),
   ],
 );

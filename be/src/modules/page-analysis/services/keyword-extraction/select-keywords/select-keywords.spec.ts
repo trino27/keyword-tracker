@@ -4,12 +4,12 @@ const scored = (pairs: [string, number][]) =>
   pairs.map(([term, score]) => ({ term, score }));
 
 describe('subsume', () => {
-  it('drops a word when a phrase containing it scores at least 0.8 of it', () => {
+  it('drops a word when a phrase containing it scores at least half of it', () => {
     expect(
       subsume(
         scored([
           ['seo', 10],
-          ['seo audit', 8],
+          ['seo audit', 5],
           ['audit', 20],
         ]),
       ).map((c) => c.term),
@@ -21,7 +21,7 @@ describe('subsume', () => {
       subsume(
         scored([
           ['seo', 10],
-          ['seo audit', 7],
+          ['seo audit', 4],
           ['seasonal', 5],
           ['season', 5],
         ]),
@@ -40,7 +40,7 @@ describe('selectKeywords', () => {
     expect(selected[0]).toEqual({ term: 'k0', relevance: 1 });
   });
 
-  it('fills up to 5 from below the floor when too few clear it', () => {
+  it('adds nothing from below the floor, however few clear it', () => {
     const selected = selectKeywords(
       scored([
         ['a', 100],
@@ -48,13 +48,41 @@ describe('selectKeywords', () => {
         ['c', 10],
         ['d', 5],
         ['e', 1],
-        ['f', 0.5],
-        ['zero', 0],
       ]),
     );
 
-    expect(selected.map((k) => k.term)).toEqual(['a', 'b', 'c', 'd', 'e']);
-    expect(selected[4].relevance).toBeCloseTo(0.01);
+    expect(selected.map((k) => k.term)).toEqual(['a', 'b']);
+  });
+
+  it('drops a candidate that covers the words of one already chosen', () => {
+    const selected = selectKeywords(
+      scored([
+        ['южна африка', 100],
+        ['африка без виза', 90],
+        ['пътуват до южна', 85],
+        ['българският паспорт', 60],
+      ]),
+    );
+
+    expect(selected.map((k) => k.term)).toEqual([
+      'южна африка',
+      'българският паспорт',
+    ]);
+  });
+
+  it('keeps two phrases that share one word out of three', () => {
+    const selected = selectKeywords(
+      scored([
+        ['flights to rome', 100],
+        ['hotels in rome', 95],
+      ]),
+    );
+
+    // A third of each is shared, under the limit: two different queries, both kept.
+    expect(selected.map((k) => k.term)).toEqual([
+      'flights to rome',
+      'hotels in rome',
+    ]);
   });
 
   it('never selects a zero score, and handles nothing at all', () => {

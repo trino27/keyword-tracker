@@ -21,6 +21,7 @@ import {
   HTML_CONTENT_TYPES,
   LISTING_SCHEMA_TYPES,
   MAX_PAGE_URL_LENGTH,
+  MIN_POST_WORD_COUNT,
   NON_HTML_EXTENSIONS,
 } from '../../constants/post-selection.constant';
 import type {
@@ -153,6 +154,14 @@ export class PostSelectionService {
       return skip(
         'skipped_listing',
         'Not marked as an article (no og:type=article, no JSON-LD Article)',
+        response.status,
+      );
+    // Last, because it needs the parse: a page with nothing to read is not a post,
+    // whatever its markup claims about itself.
+    if (parsed.wordCount < MIN_POST_WORD_COUNT)
+      return skip(
+        'skipped_listing',
+        `Too little content to analyse (${parsed.wordCount} words)`,
         response.status,
       );
 

@@ -1,6 +1,8 @@
 import {
+  ANCHOR_FIELDS,
   FIELD_WEIGHTS,
   METADATA_BONUS,
+  MIN_UNANCHORED_TF,
   MULTI_FIELD_BONUS,
   NGRAM_FACTOR,
   STRONG_FIELDS,
@@ -8,11 +10,24 @@ import {
 import type { ICandidateStats } from '../collect-candidates/collect-candidates';
 
 /**
+ * A term no heading, title or slug names, said once, is a span of prose rather than
+ * a subject — "oh the wonders", "world will be joining". Four-word candidates made
+ * these numerous enough to fill a list on any page whose own top score is modest.
+ */
+function isPassingMention(stats: ICandidateStats): boolean {
+  if (stats.bodyTf >= MIN_UNANCHORED_TF) return false;
+  for (const field of stats.fields) if (ANCHOR_FIELDS.has(field)) return false;
+  return true;
+}
+
+/**
  * A candidate's score on its own page (§10.4 steps 5–8): field presence weights, body
  * frequency on a log scale, a bonus for appearing in several deliberate fields and for
- * the page's own declared keywords, and a slight preference for phrases.
+ * the page's own declared keywords, and a preference for phrases over bare words.
+ * Zero means the candidate is not a keyword at all, and selection drops it.
  */
 export function pageScore(stats: ICandidateStats): number {
+  if (isPassingMention(stats)) return 0;
   let score = 0;
   let strongFields = 0;
   for (const field of stats.fields) {

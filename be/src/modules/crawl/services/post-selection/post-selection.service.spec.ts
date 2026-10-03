@@ -14,10 +14,13 @@ const logger = {
 } as unknown as PinoLogger;
 
 const ORIGIN = 'https://site.example';
+/** Long enough to be a post: a page with nothing to read is skipped. */
+const BODY =
+  'Words a reader can actually read, repeated to make a post. '.repeat(15);
 const article = (title: string): IFixtureEntry => ({
   status: 200,
   headers: { 'content-type': 'text/html; charset=utf-8' },
-  body: `<html lang="en"><head><title>${title}</title></head><body><main><h1>${title}</h1><p>Words.</p></main></body></html>`,
+  body: `<html lang="en"><head><title>${title}</title></head><body><main><h1>${title}</h1><p>${BODY}</p></main></body></html>`,
 });
 
 const setup = (entries: Record<string, IFixtureEntry> = {}) => {
@@ -219,6 +222,24 @@ describe('PostSelectionService', () => {
       finalUrl: `${ORIGIN}/posts/new/`,
       redirected: true,
       parsed: { title: 'New' },
+    });
+  });
+
+  it('skips a page with too little content to analyse', async () => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/author-card/`]: {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+        body: '<html lang="en"><head><title>Matt Brittin</title></head><body><main><h1>Matt Brittin</h1><p>President, EMEA</p></main></body></html>',
+      },
+    });
+
+    const { items, pages } = await select([`${ORIGIN}/posts/author-card/`]);
+
+    expect(pages).toHaveLength(0);
+    expect(items[0]).toMatchObject({
+      status: 'skipped_listing',
+      reason: 'Too little content to analyse (4 words)',
     });
   });
 

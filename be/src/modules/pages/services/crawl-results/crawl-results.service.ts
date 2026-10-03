@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { TSeoIssue } from '@app/contracts';
+import type { TSeoIssue, TSeoIssueCode } from '@app/contracts';
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import { KeywordsRepository } from '../../repositories/keywords/keywords.repository';
 import {
@@ -34,6 +34,9 @@ export interface IRunPage {
   /** Written in the same statement as the page, in the same transaction as the issues. */
   checksApplicable: number;
   checksFailed: number;
+  /** WHICH ones, disjoint — together the catalogue as of this crawl. */
+  checksJudged: TSeoIssueCode[];
+  checksNotApplicable: TSeoIssueCode[];
 }
 
 export interface IRunResults {
@@ -90,6 +93,8 @@ export class CrawlResultsService {
       sitemapPosition: page.sitemapPosition,
       checksApplicable: page.checksApplicable,
       checksFailed: page.checksFailed,
+      checksJudged: page.checksJudged,
+      checksNotApplicable: page.checksNotApplicable,
       lastSeenRunId: results.runId,
       crawledAt: results.crawledAt,
     }));

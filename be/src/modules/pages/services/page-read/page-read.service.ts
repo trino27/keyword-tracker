@@ -20,6 +20,7 @@ import {
   type IPageListFilter,
 } from '../../repositories/page-list/page-list.repository';
 import { pickBestPosition } from '../best-position/pick-best-position';
+import { composePageChecks } from '../page-checks/compose-page-checks';
 
 const contains = (text: string) => `%${escapeLike(text)}%`;
 
@@ -171,6 +172,11 @@ export class PageReadService {
       keywords,
       bestPosition: pickBestPosition(keywords),
       score: pageScoreOf(page.checksApplicable, page.checksFailed),
+      checks: composePageChecks(
+        page.checksJudged,
+        page.checksNotApplicable,
+        issues.map(({ code }) => code),
+      ),
       issues: [...issues].sort(
         (a, b) =>
           SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),

@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { TSeoIssue } from '@app/contracts';
+
 import { extractKeywords } from '../keyword-extraction/extract-keywords/extract-keywords';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 import type { ISeoRuleInput } from '../seo-rules/seo-rule.interface';
-import { evaluateSeoRules } from '../seo-rules/seo-rules.registry';
+import {
+  evaluateSeoRules,
+  type ISeoEvaluation,
+} from '../seo-rules/seo-rules.registry';
 
 /** One fetched page, as the analysis needs it. */
 export interface IAnalysisInput extends ISeoRuleInput {
@@ -14,17 +17,13 @@ export interface IAnalysisInput extends ISeoRuleInput {
   responseMs: number;
 }
 
-export interface IPageAnalysis {
+/**
+ * The whole verdict on one page: its keywords, and everything one pass over the rules
+ * concluded. Extends `ISeoEvaluation` rather than restating its fields, because
+ * `analyseRun` spreads the evaluation whole and a restated copy is a copy to forget.
+ */
+export interface IPageAnalysis extends ISeoEvaluation {
   keywords: ISelectedKeyword[];
-  issues: TSeoIssue[];
-  /**
-   * How many catalogue checks could be judged on this page, and how many of them failed.
-   * Produced by the same pass that produced the issues, because applicability is only
-   * knowable while the parsed page is in hand — the stored row holds no canonical, no
-   * Open Graph and no JSON-LD, so it cannot be recovered later.
-   */
-  checksApplicable: number;
-  checksFailed: number;
 }
 
 /**

@@ -9,27 +9,56 @@ const stats = (
   fields: new Set(fields),
   bodyTf: overrides.bodyTf ?? 0,
   declared: overrides.declared ?? false,
+  runs: new Set([1]),
 });
 
 describe('pageScore', () => {
   it('sums presence weights with the multi-field bonus', () => {
-    // (5 + 4) × (1 + 0.25 × 1)
-    expect(pageScore(stats(['title', 'h1']))).toBeCloseTo(11.25);
+    // (5 + 4) × (1 + 0.25 × 1) × 0.6, the single-word factor
+    expect(pageScore(stats(['title', 'h1']))).toBeCloseTo(6.75);
   });
 
   it('scores the body by log frequency, without a strong-field bonus', () => {
-    expect(pageScore(stats(['body'], { bodyTf: 3 }))).toBeCloseTo(Math.log(4));
+    expect(pageScore(stats(['body'], { bodyTf: 3 }))).toBeCloseTo(
+      2.5 * Math.log(4) * 0.6,
+    );
   });
 
   it('applies the declared-keyword bonus and the n-gram preference', () => {
-    expect(pageScore(stats(['meta'], { declared: true }))).toBeCloseTo(
-      2 * 1.15,
-    );
-    expect(pageScore(stats(['meta'], { tokens: 2 }))).toBeCloseTo(2 * 1.15);
-    expect(pageScore(stats(['meta'], { tokens: 3 }))).toBeCloseTo(2 * 1.1);
+    const base = (2 + 2.5 * Math.log(2)) * 1.15;
+    expect(
+      pageScore(stats(['subheading', 'body'], { bodyTf: 1, declared: true })),
+    ).toBeCloseTo(base * 0.6);
+    expect(
+      pageScore(stats(['subheading', 'body'], { bodyTf: 1, tokens: 2 })),
+    ).toBeCloseTo(base);
+    expect(
+      pageScore(stats(['subheading', 'body'], { bodyTf: 1, tokens: 4 })),
+    ).toBeCloseTo((2 + 2.5 * Math.log(2)) * 1.05);
   });
 
-  it('ranks a title-and-slug phrase above a body-only word used often', () => {
+  it('is zero for a term no anchor names and the body says once', () => {
+    expect(
+      pageScore(
+        stats(['meta', 'firstParagraph', 'body'], { tokens: 3, bodyTf: 1 }),
+      ),
+    ).toBe(0);
+    // A subheading anchors it; so does a second occurrence.
+    expect(
+      pageScore(stats(['subheading', 'body'], { tokens: 3, bodyTf: 1 })),
+    ).toBeGreaterThan(0);
+    expect(
+      pageScore(stats(['body'], { tokens: 3, bodyTf: 2 })),
+    ).toBeGreaterThan(0);
+  });
+
+  it('lets a word the body repeats outweigh one named once in a heading', () => {
+    expect(pageScore(stats(['body'], { bodyTf: 40 }))).toBeGreaterThan(
+      pageScore(stats(['subheading', 'body'], { bodyTf: 1 })),
+    );
+  });
+
+  it('still ranks a title-and-slug phrase above a body-only word', () => {
     expect(pageScore(stats(['title', 'slug'], { tokens: 2 }))).toBeGreaterThan(
       pageScore(stats(['body'], { bodyTf: 40 })),
     );

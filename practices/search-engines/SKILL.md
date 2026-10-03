@@ -19,6 +19,14 @@ STRUCTURED_DATA_MISSING added (finding 8), and the extraction defect of finding 
 catalogue is eighteen codes, not the nineteen described below. Why each was decided that way lives
 in those changes and in `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`, never here.
 
+Keyword extraction was then rebuilt against eight live pages on four sites, acting on the two
+keyword observations in [`keywords-and-intent.md`](references/keywords-and-intent.md) — overlapping
+variants surviving selection, and interface text leaking into keywords — and on failures that
+reference does not record, the largest being that a site's own widget column was being read as the
+page's body, so one article returned two disjoint keyword sets on two crawls. That reference still
+describes the extraction as it was on the day it was written; the module document describes it as
+it is.
+
 **This skill still decides nothing**, and the change to its status is only that: its findings are
 no longer unexamined. Where the research meets our implementation, a finding is still recorded
 here as an *observation* or an *open question* and stops there. The references are untouched — a

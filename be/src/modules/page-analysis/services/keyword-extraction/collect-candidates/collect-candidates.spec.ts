@@ -1,6 +1,6 @@
 import { makeRuleInput } from '../../seo-rules/_testing/make-rule-input';
 import type { IParsedPage } from '../../../interfaces/parsed-page.interface';
-import { collectCandidates, stripBrandSuffix } from './collect-candidates';
+import { collectCandidates, stripTitleChrome } from './collect-candidates';
 
 const collect = (
   parsed: Partial<IParsedPage>,
@@ -12,7 +12,7 @@ const collect = (
     parsed: { ...makeRuleInput().parsed, ...parsed },
   });
 
-describe('stripBrandSuffix', () => {
+describe('stripTitleChrome', () => {
   it.each([
     [
       'How to remove www from your URL • Yoast',
@@ -37,10 +37,33 @@ describe('stripBrandSuffix', () => {
       'Yoast SEO — how it works',
       'yoast.com',
       undefined,
-      'Yoast SEO — how it works',
+      'Yoast SEO - how it works',
     ],
   ])('%j → %j', (title, siteKey, siteName, expected) => {
-    expect(stripBrandSuffix(title, siteKey, siteName)).toBe(expected);
+    expect(stripTitleChrome(title, siteKey, siteName)).toBe(expected);
+  });
+
+  it('strips a section name the run showed to be the site’s, then the brand', () => {
+    const title =
+      'Dual UK-Iranian national released on bail - National | Globalnews.ca';
+
+    expect(stripTitleChrome(title, 'globalnews.ca', undefined)).toBe(
+      'Dual UK-Iranian national released on bail - National',
+    );
+    expect(
+      stripTitleChrome(
+        title,
+        'globalnews.ca',
+        undefined,
+        new Set(['national']),
+      ),
+    ).toBe('Dual UK-Iranian national released on bail');
+  });
+
+  it('never strips the whole title', () => {
+    expect(stripTitleChrome('Yoast | Yoast', 'yoast.com', undefined)).toBe(
+      'Yoast',
+    );
   });
 });
 
@@ -78,13 +101,53 @@ describe('collectCandidates', () => {
       'https://a.example/',
     );
 
-    // "art of the deal" would be a 4-gram; "art of the" ends with a stop word.
+    // "art of the" ends with a stop word; "art of the deal" is a 4-gram and allowed.
     expect([...candidates.keys()].sort()).toEqual([
       'art',
+      'art of the deal',
       'art of war',
       'deal',
       'war',
     ]);
+  });
+
+  it('spans a one-letter particle instead of stopping at it', () => {
+    const candidates = collect(
+      {
+        lang: 'bg',
+        title: null,
+        metaDescription: null,
+        firstParagraph: null,
+        headings: [],
+        h1s: [],
+        blocks: ['Евро в посока'],
+      },
+      'https://a.example/',
+    );
+
+    expect(candidates.has('евро в посока')).toBe(true);
+    expect(candidates.has('в')).toBe(false);
+  });
+
+  it('decodes a percent-encoded slug instead of reading its hex', () => {
+    const candidates = collect(
+      {},
+      'https://a.example/%d0%bf%d0%be%d0%bb%d0%b5%d1%82%d0%b8-%d0%b4%d0%be-%d1%80%d0%b8%d0%bc/',
+    );
+
+    expect(candidates.get('полети до рим')?.fields.has('slug')).toBe(true);
+    expect(candidates.has('d0 bf')).toBe(false);
+  });
+
+  it('ignores a slug that is an opaque identifier', () => {
+    const candidates = collect(
+      {},
+      'https://a.example/club/blog/x/BDgx_QEdO0G1NNL-VyGD1A',
+    );
+
+    expect(
+      [...candidates.values()].some((stats) => stats.fields.has('slug')),
+    ).toBe(false);
   });
 
   it('never crosses a heading into the next paragraph', () => {

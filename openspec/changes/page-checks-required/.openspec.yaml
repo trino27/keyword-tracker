@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-03
+# The transitional nullability is removed once every page has been re-crawled. No
+# capability's state changes: PAGES-012 already says a page whose crawl predates the
+# recording says so, and this change only makes that branch unreachable.
+skip_specs: true

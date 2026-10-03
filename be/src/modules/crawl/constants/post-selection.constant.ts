@@ -32,6 +32,19 @@ export const NON_HTML_EXTENSIONS: ReadonlySet<string> = new Set([
   'pptx',
 ]);
 
+/**
+ * Main-content words a page needs before it is worth tracking.
+ *
+ * An index, an author card or a tag page has a title and a list of links, and the
+ * keyword extraction has nothing to read but the site's own furniture — blog.google's
+ * author pages returned the names of its navigation sections, and a different set on
+ * each crawl, so a page's tracked keywords changed under its recorded history.
+ * Measured over the pages this repository has seen: real posts run 256 words and up
+ * (the shortest a club blog post), author and index pages 30 to 87. Well below the
+ * catalogue's 300-word THIN_CONTENT warning, which judges a post that IS one.
+ */
+export const MIN_POST_WORD_COUNT = 120;
+
 /** A page whose JSON-LD declares one of these is a listing, not a post. */
 export const LISTING_SCHEMA_TYPES: ReadonlySet<string> = new Set([
   'CollectionPage',

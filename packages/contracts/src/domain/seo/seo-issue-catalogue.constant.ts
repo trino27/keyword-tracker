@@ -9,6 +9,13 @@ export interface ISeoIssueDefinition {
   /** Inclusive bounds of the acceptable value, where the rule has one. */
   min?: number;
   max?: number;
+  /**
+   * Why this check can be skipped, for the codes whose rule can answer `notApplicable`.
+   * A property of the RULE, not of a page — `IMAGES_MISSING_ALT` is skipped for one
+   * reason every time — so it is a constant here rather than a fact stored per page.
+   * Its presence is what `CONDITIONAL_ISSUE_CODES` reads.
+   */
+  skipReason?: string;
 }
 
 /**
@@ -30,6 +37,7 @@ export const SEO_ISSUE_CATALOGUE = {
     hint: 'Titles outside 30–60 characters are cut off or waste the space in results.',
     min: 30,
     max: 60,
+    skipReason: 'No title to measure.',
   },
   META_DESCRIPTION_MISSING: {
     severity: 'warning',
@@ -42,6 +50,7 @@ export const SEO_ISSUE_CATALOGUE = {
     hint: 'Descriptions outside 70–160 characters are cut off or look thin.',
     min: 70,
     max: 160,
+    skipReason: 'No description to measure.',
   },
   H1_MISSING: {
     severity: 'error',
@@ -57,6 +66,7 @@ export const SEO_ISSUE_CATALOGUE = {
     severity: 'notice',
     label: 'Heading level skipped',
     hint: 'Going from H2 straight to H4 breaks the outline that headings describe.',
+    skipReason: 'Fewer than two headings — no outline to judge.',
   },
   CANONICAL_MISSING: {
     severity: 'warning',
@@ -67,6 +77,7 @@ export const SEO_ISSUE_CATALOGUE = {
     severity: 'notice',
     label: 'Canonical points elsewhere',
     hint: 'The page names another URL as canonical, so this one may not be indexed.',
+    skipReason: 'No canonical to disagree with.',
   },
   NOINDEX: {
     severity: 'error',
@@ -77,6 +88,7 @@ export const SEO_ISSUE_CATALOGUE = {
     severity: 'warning',
     label: 'Images without alt text',
     hint: 'Alt text describes an image to screen readers and image search.',
+    skipReason: 'The page has no images.',
   },
   THIN_CONTENT: {
     severity: 'warning',

@@ -1,3 +1,4 @@
+import { SEO_ISSUE_CODES } from '@app/contracts';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
 import { pages } from '@persistence/schema/tables/pages/pages.schema';
@@ -47,25 +48,32 @@ const page = (
   clientId: number,
   runId: number,
   overrides: Partial<IUpsertPage> = {},
-): IUpsertPage => ({
-  clientId,
-  url: 'https://yoast.com/how-to-remove-www-from-your-url/',
-  finalUrl: 'https://yoast.com/how-to-remove-www-from-your-url/',
-  title: 'How to remove www',
-  metaDescription: null,
-  h1: 'How to remove www',
-  lang: 'en',
-  wordCount: 900,
-  httpStatus: 200,
-  responseMs: 120,
-  htmlBytes: 190_000,
-  checksApplicable: 18,
-  checksFailed: 3,
-  sitemapPosition: 1,
-  lastSeenRunId: runId,
-  crawledAt: new Date(),
-  ...overrides,
-});
+): IUpsertPage => {
+  // The database now ties the denominator to the judged list's length, so a fixture
+  // cannot name one without the other: the first N codes judged, the remainder skipped.
+  const checksApplicable = overrides.checksApplicable ?? SEO_ISSUE_CODES.length;
+  return {
+    clientId,
+    url: 'https://yoast.com/how-to-remove-www-from-your-url/',
+    finalUrl: 'https://yoast.com/how-to-remove-www-from-your-url/',
+    title: 'How to remove www',
+    metaDescription: null,
+    h1: 'How to remove www',
+    lang: 'en',
+    wordCount: 900,
+    httpStatus: 200,
+    responseMs: 120,
+    htmlBytes: 190_000,
+    checksApplicable,
+    checksFailed: 3,
+    checksJudged: SEO_ISSUE_CODES.slice(0, checksApplicable),
+    checksNotApplicable: SEO_ISSUE_CODES.slice(checksApplicable),
+    sitemapPosition: 1,
+    lastSeenRunId: runId,
+    crawledAt: new Date(),
+    ...overrides,
+  };
+};
 
 describe('PagesRepository (postgres)', () => {
   beforeEach(() => testDb.reset());
@@ -109,6 +117,124 @@ describe('PagesRepository (postgres)', () => {
     // Left at their first value, the score would contradict the issue list beside it.
     const rows = await testDb.db.select().from(pages);
     expect(rows[0]).toMatchObject({ checksApplicable: 16, checksFailed: 2 });
+  });
+
+  /**
+   * The regression an upsert makes invisible. If the conflict clause merged instead of
+   * overwriting, a page that no longer skips anything would keep naming its old skips,
+   * and the screen would quote a reason for a check this crawl actually judged.
+   */
+  it('a re-crawl that skips nothing clears the skipped list', async () => {
+    const { clientId, firstRunId, secondRunId } = await seedClientWithRuns();
+
+    await testDb.db.transaction((tx) =>
+      repository.upsertManyForWorker(tx, [
+        page(clientId, firstRunId, { checksApplicable: 16, checksFailed: 2 }),
+      ]),
+    );
+    const [before] = await testDb.db.select().from(pages);
+    expect(before.checksNotApplicable).toHaveLength(2);
+
+    await testDb.db.transaction((tx) =>
+      repository.upsertManyForWorker(tx, [page(clientId, secondRunId)]),
+    );
+
+    const [after] = await testDb.db.select().from(pages);
+    expect(after.checksNotApplicable).toEqual([]);
+    expect(after.checksJudged).toEqual([...SEO_ISSUE_CODES]);
+  });
+
+  it('refuses a page whose denominator disagrees with its judged list', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await expectPgError(
+      testDb.db.transaction((tx) =>
+        repository.upsertManyForWorker(tx, [
+          page(clientId, firstRunId, {
+            checksApplicable: 16,
+            checksJudged: [...SEO_ISSUE_CODES],
+          }),
+        ]),
+      ),
+      { code: '23514', constraint: 'pages_checks_judged_matches_applicable' },
+    );
+  });
+
+  it('refuses a page that both judged and skipped the same check', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await expectPgError(
+      testDb.db.transaction((tx) =>
+        repository.upsertManyForWorker(tx, [
+          page(clientId, firstRunId, {
+            checksApplicable: 1,
+            checksFailed: 0,
+            checksJudged: ['TITLE_LENGTH'],
+            checksNotApplicable: ['TITLE_LENGTH'],
+          }),
+        ]),
+      ),
+      { code: '23514', constraint: 'pages_checks_sets_disjoint' },
+    );
+  });
+
+  /**
+   * The one bad value the counter constraint waves through: a duplicate inflates
+   * cardinality(), so the denominator would agree with a list naming fewer distinct
+   * checks than it counts, and the screen would show the same check twice.
+   */
+  it('refuses a judged list that names a check twice', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await expectPgError(
+      testDb.db.transaction((tx) =>
+        repository.upsertManyForWorker(tx, [
+          page(clientId, firstRunId, {
+            checksApplicable: 2,
+            checksFailed: 0,
+            checksJudged: ['TITLE_MISSING', 'TITLE_MISSING'],
+            checksNotApplicable: [],
+          }),
+        ]),
+      ),
+      { code: '23514', constraint: 'pages_checks_judged_clean' },
+    );
+  });
+
+  it('refuses a blank code', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await expectPgError(
+      testDb.db.transaction((tx) =>
+        repository.upsertManyForWorker(tx, [
+          page(clientId, firstRunId, {
+            checksApplicable: 1,
+            checksFailed: 0,
+            checksJudged: ['TITLE_MISSING'],
+            checksNotApplicable: [''] as never,
+          }),
+        ]),
+      ),
+      { code: '23514', constraint: 'pages_checks_not_applicable_clean' },
+    );
+  });
+
+  /** Phase 1: a page crawled before the record is stored, and says so by being null. */
+  it('accepts a page with neither array, as a pre-record crawl', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await testDb.db.transaction((tx) =>
+      repository.upsertManyForWorker(tx, [
+        page(clientId, firstRunId, {
+          checksJudged: null as never,
+          checksNotApplicable: null as never,
+        }),
+      ]),
+    );
+
+    const [row] = await testDb.db.select().from(pages);
+    expect(row.checksJudged).toBeNull();
+    expect(row.checksNotApplicable).toBeNull();
   });
 
   it('refuses a page with more failures than applicable checks', async () => {

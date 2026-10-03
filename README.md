@@ -83,6 +83,13 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:db
 - Sites without a blog sitemap (an HTML/feed-only fallback); network SEO checks (Lighthouse,
   broken links); real rank data instead of the seed's simulated walk.
 - A browser end-to-end test (Playwright); sorting the list by position.
+- Keyword extraction matches surface forms, so an inflected language counts one word several
+  times and ranks each of them lower than the word deserves: a page says `октябрь` in its title
+  and `октября` seven times in its text, and the two never meet. The fix is a stemmer, per
+  target language, applied when candidates are counted and reversed when a keyword is shown —
+  a reader must still see the form the page used. Which languages are targets is a product
+  decision that has not been made, and the work cannot start before it is: the stemmer, the
+  stored term and the displayed term all depend on it.
 - The position fill runs inside the request (a few seconds for a fresh client); it belongs on the
   crawl queue next to the crawl itself.
 - Whether a future change to the check catalogue needs a stale-analysis mechanism. There is none

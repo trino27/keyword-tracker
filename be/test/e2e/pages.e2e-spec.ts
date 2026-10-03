@@ -1,5 +1,6 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
+import { SEO_ISSUE_CODES } from '@app/contracts';
 import { CrawlWorker } from '../../src/modules/crawl/workers/crawl-worker/crawl-worker';
 import { createTestApp } from '../support/create-test-app';
 import { seedTestUser, signIn } from '../support/sign-in';
@@ -143,6 +144,36 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
         max: 60,
       });
     }
+  });
+
+  /**
+   * The one assertion that covers the crawl, the upsert, the read and the serialization
+   * together: a freshly crawled page must account for every catalogue code, and its
+   * passes must be exactly the ones the score's own numbers claim. Nothing short of a
+   * real crawl can produce the two stored lists, so nothing short of this can prove they
+   * come back as statuses.
+   */
+  it('the detail answers for every catalogue check, and the answers add up', async () => {
+    const { body } = await list('?q=gutenberg&pageSize=1').expect(200);
+    const detail = await http()
+      .get(`/api/pages/${body.items[0].id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    const checks = detail.body.checks as { code: string; status: string }[];
+    expect(checks.map(({ code }) => code)).toEqual(SEO_ISSUE_CODES);
+
+    const count = (status: string) =>
+      checks.filter((check) => check.status === status).length;
+    const { applicable, failed } = detail.body.score as {
+      applicable: number;
+      failed: number;
+    };
+    expect(count('passed')).toBe(applicable - failed);
+    expect(count('failed')).toBe(failed);
+    expect(count('passed') + count('failed')).toBe(applicable);
+    // This page was crawled against today's catalogue, so nothing can be newer than it.
+    expect(count('notYetChecked')).toBe(0);
   });
 
   it('a finding shared across the client’s pages says how many it is on', async () => {
