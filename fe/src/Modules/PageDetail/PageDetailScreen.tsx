@@ -8,12 +8,17 @@ import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import { usePageDetailViewModel } from "@ViewModels/PageDetailViewModel/PageDetailViewModel";
 import { resolveRange } from "@ViewModels/PageDetailViewModel/Services/ResolveRange/resolveRange";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
+import { ChecksSection } from "./ChecksSection/ChecksSection";
 import { IssuesSection } from "./IssuesSection/IssuesSection";
 import { KpiCards } from "./KpiCards/KpiCards";
 import { PageDetailHeader } from "./PageDetailHeader/PageDetailHeader";
 import { PositionHistory } from "./PositionHistory/PositionHistory";
+import { ScoreExplainer } from "./ScoreExplainer/ScoreExplainer";
 
-/** One page: header with summary metrics, then its position history, then its issues. */
+/**
+ * One page: header with summary metrics, then its position history, then what was
+ * checked, how the score follows from it, and finally what to fix.
+ */
 export function PageDetailScreen() {
 	const { pageId: rawPageId } = useParams({ from: "/app/pages/$pageId" });
 	const search = useSearch({ from: "/app/pages/$pageId" });
@@ -97,6 +102,10 @@ export function PageDetailScreen() {
 				onRetry={() => void fetchHistory(pageId, range)}
 				onFill={() => void fillPositions(pageId, range)}
 			/>
+			{/* Above the issues, because they answer "what was examined" and "what does the
+			    number mean"; the issues answer "what do I fix", which reads last. */}
+			<ChecksSection checks={vm.detail.checks} />
+			<ScoreExplainer score={vm.detail.score} />
 			<IssuesSection issues={vm.detail.issues} currentPages={vm.detail.client.currentPages} />
 		</Stack>
 	);
