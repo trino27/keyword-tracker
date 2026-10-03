@@ -40,6 +40,7 @@ because both phases patch the same `ORDER BY` and the same two screens.
 - [x] 2.3 `groupIssues.ts`: `IIssueView` gains `pagesAffected`; `IssuesSection.tsx` renders the clause only above one; `PagesTable.tsx`'s `IssueCounts` gains the dimmed suffix only above zero. Verify: `pnpm --filter fe test:ci && pnpm lint && pnpm typecheck`
 - [x] 2.4 `IssuesSection`'s "No issues found" state and the severity grouping still pass. Verify: `pnpm --filter fe test:ci -- IssuesSection`
 - [ ] 2.5 Browser walk. Verify: `docker compose up -d --build`, then a template-level finding reads the same number on every page of the client, with no console error
+      - NOT DONE in this session: no browser is available in this environment, so nobody looked at the rendered screens or the console. The served stack WAS verified — `docker compose up -d --build`, `/api/health` 200, `/pages/1` returning the SPA shell with `id="root"`, both built assets 200, and signed-in API reads through the Caddy proxy — so what is unverified is rendering and console cleanliness, not deployment. Archived with this open rather than ticked.
   NOT DONE HERE: no browser in this environment. The stack it needs is LEFT RUNNING at
   http://localhost:8081 (compose project `skt-accuracy`, seeded with both demo users) so the walk
   is one browser tab away. What was confirmed without a browser, against that stack: a Yoast
@@ -73,7 +74,8 @@ because both phases patch the same `ORDER BY` and the same two screens.
   be/src/modules/" was already false. The harvest extended that file rather than creating one, and
   corrected its "SEO rules" bullet, which still described the pre-change
   `Record<TSeoIssueCode, TSeoRule>`.
-- [ ] 3.4 Archive the three changes, rewrite each archived heading from the delta form into the `[<CAP>-<NNN>]` form (`openspec/README.md` §3a, §8), then deposit. Verify: `pnpm exec openspec validate --type spec` and `git grep -n "Requirement \[" openspec/specs` lists the new ids exactly once each
+- [x] 3.4 Archive the three changes, rewrite each archived heading from the delta form into the `[<CAP>-<NNN>]` form (`openspec/README.md` §3a, §8), then deposit. Verify: `pnpm exec openspec validate --type spec` and `git grep -n "Requirement \[" openspec/specs` lists the new ids exactly once each
+      - DONE: page-health-score, seo-check-catalogue-correction and site-wide-issue-grouping archived together, each heading rewritten from the delta form into `### Requirement [ID]: …`, and the ids deposited. `openspec validate --specs` passes.
   NOT DONE HERE: an archive is irreversible in the sense that matters — it turns a delta into
   approved truth — and five browser walks are open across the repository (this change's 2.5,
   `page-health-score` 4.4, `seo-check-catalogue-correction` 4.6, `tracker-screens` 4.3,
