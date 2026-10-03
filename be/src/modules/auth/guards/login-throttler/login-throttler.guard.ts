@@ -6,7 +6,7 @@ interface ILoginRequestLike {
   body?: { email?: unknown };
 }
 
-/** Throttles login per IP + lower-cased email (LOGIN_THROTTLE). */
+/** Throttles login per IP + lower-cased email (PER_MINUTE_THROTTLE). */
 @Injectable()
 export class LoginThrottlerGuard extends ThrottlerGuard {
   protected getTracker(request: Record<string, unknown>): Promise<string> {

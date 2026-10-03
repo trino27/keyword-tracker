@@ -7,7 +7,8 @@ import { validateEnv } from '@infrastructure/config/env.schema/env.schema';
 import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/logger.config';
 import { DatabaseModule } from '@persistence/connections/postgres/database.module';
 import { AuthModule } from '@modules/auth/auth.module';
-import { LOGIN_THROTTLE } from '@modules/auth/constants/throttle.constant';
+import { ClientsModule } from '@modules/clients/clients.module';
+import { PER_MINUTE_THROTTLE } from '@core/constants/throttle.constant';
 import { HealthModule } from '@modules/health/health.module';
 
 @Module({
@@ -26,10 +27,11 @@ import { HealthModule } from '@modules/health/health.module';
       forRoutes: [{ path: '{*path}', method: RequestMethod.ALL }],
     }),
     // In-memory counters; applied per route by the throttler guards, never globally.
-    ThrottlerModule.forRoot([LOGIN_THROTTLE]),
+    ThrottlerModule.forRoot([PER_MINUTE_THROTTLE]),
     DatabaseModule,
     HealthModule,
     AuthModule,
+    ClientsModule,
   ],
   providers: [...APP_GLOBAL_PROVIDERS],
 })
