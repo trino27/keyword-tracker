@@ -29,9 +29,10 @@ export const pageKeywords = pgTable(
       .references(() => keywords.id),
     // The keyword's score relative to the page's best one: the top keyword is 1.
     relevance: real('relevance').notNull(),
+    // Cascade: a run is deleted only with its client, and everything it saw goes too.
     lastSeenRunId: bigint('last_seen_run_id', { mode: 'number' })
       .notNull()
-      .references(() => crawlRuns.id),
+      .references(() => crawlRuns.id, { onDelete: 'cascade' }),
     ...auditTimestampColumns(),
   },
   (t) => [

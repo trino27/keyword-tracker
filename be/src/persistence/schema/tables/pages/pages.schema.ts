@@ -40,9 +40,10 @@ export const pages = pgTable(
     sitemapPosition: integer('sitemap_position').notNull(),
     // The run that last saw this page. Current = the client's latest succeeded/partial
     // run; a page a re-crawl no longer finds keeps its history but is hidden.
+    // Cascade: a run is deleted only with its client, and everything it saw goes too.
     lastSeenRunId: bigint('last_seen_run_id', { mode: 'number' })
       .notNull()
-      .references(() => crawlRuns.id),
+      .references(() => crawlRuns.id, { onDelete: 'cascade' }),
     // Last fetch; differs from created_at after a re-crawl.
     crawledAt: timestamp('crawled_at', { withTimezone: true }).notNull(),
     ...auditTimestampColumns(),

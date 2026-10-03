@@ -77,7 +77,12 @@ async function seedPairs() {
       lastSeenRunId: oldRun.id,
     },
   ]);
-  return { pageId: page.id, currentId: current.id, staleId: stale.id };
+  return {
+    clientId: client.id,
+    pageId: page.id,
+    currentId: current.id,
+    staleId: stale.id,
+  };
 }
 
 describe('RankSnapshotsRepository (postgres)', () => {
@@ -147,6 +152,21 @@ describe('RankSnapshotsRepository (postgres)', () => {
     await testDb.db.delete(pages).where(eq(pages.id, pageId));
 
     await expect(repository.countForWorker()).resolves.toBe(0);
+  });
+
+  it('deleting a client removes its runs, pages, pairs and snapshots, not the keywords', async () => {
+    const { clientId, pageId, currentId } = await seedPairs();
+    await repository.insertManyForWorker([
+      { pageId, keywordId: currentId, capturedAt: noon(0), position: 5 },
+    ]);
+
+    await testDb.db.delete(clients).where(eq(clients.id, clientId));
+
+    expect(await testDb.db.$count(crawlRuns)).toBe(0);
+    expect(await testDb.db.$count(pages)).toBe(0);
+    expect(await testDb.db.$count(pageKeywords)).toBe(0);
+    await expect(repository.countForWorker()).resolves.toBe(0);
+    expect(await testDb.db.$count(keywords)).toBe(2);
   });
 
   it('lists only current pairs, with the last stored snapshot', async () => {
