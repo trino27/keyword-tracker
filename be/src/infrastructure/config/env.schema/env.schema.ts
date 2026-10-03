@@ -35,6 +35,8 @@ export const envSchema = z.object({
     .string()
     .regex(/^\d+$/, 'PORT must be a positive integer')
     .optional(),
+  // "true" starts the crawl worker in this process; anything else leaves runs queued.
+  [K.CRAWL_WORKER_ENABLED]: z.enum(['true', 'false']).optional(),
   [K.LOG_LEVEL]: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .optional(),

@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
-import { CURRENT_CRAWL_RUN_STATUSES, type TCrawlTrigger } from '@app/contracts';
+import {
+  CRAWL_RUN_ERRORS,
+  CURRENT_CRAWL_RUN_STATUSES,
+  type TCrawlTrigger,
+} from '@app/contracts';
 import {
   DATABASE_CONNECTION,
   type Database,
@@ -8,14 +12,19 @@ import {
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
+import { CRAWL_QUEUED_CHANNEL } from '@shared/crawl-queue/crawl-queue.constant';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type {
+  IClaimedRun,
   IClientRunSummary,
   ICrawlRunRecord,
+  IRunDiscovery,
+  IRunOutcome,
+  IRunTarget,
 } from '../../interfaces/client-record.interface';
 
-/** The channel the crawl worker listens on; NOTIFY is delivered only on commit. */
-export const CRAWL_QUEUED_CHANNEL = 'crawl_run_queued';
+/** A run is given up after this many claims whose lease expired. */
+export const MAX_CRAWL_ATTEMPTS = 3;
 
 const runColumns = {
   id: crawlRuns.id,
@@ -117,5 +126,152 @@ export class CrawlRunsRepository {
       .where(and(eq(crawlRuns.id, runId), eq(clients.userId, scope.userId)))
       .limit(1);
     return row ?? null;
+  }
+
+  // ── The queue. Every method below is unscoped (…ForWorker): the worker serves all users.
+
+  /**
+   * Claims the oldest claimable run in ONE statement: a queued run, or a running run
+   * whose lease expired (its executor died). FOR UPDATE SKIP LOCKED lets several
+   * workers claim concurrently without ever taking the same run.
+   */
+  async claimNextForWorker(leaseMs: number): Promise<IClaimedRun | null> {
+    const result = await this.db.execute<{
+      id: string | number;
+      client_id: string | number;
+      attempts: number;
+    }>(sql`
+      UPDATE crawl_runs
+      SET status = 'running',
+          attempts = attempts + 1,
+          locked_until = now() + make_interval(secs => ${leaseMs / 1000}),
+          started_at = coalesce(started_at, now())
+      WHERE id = (
+        SELECT id FROM crawl_runs
+        WHERE (status = 'queued' OR (status = 'running' AND locked_until < now()))
+          AND attempts < ${MAX_CRAWL_ATTEMPTS}
+        ORDER BY created_at
+        FOR UPDATE SKIP LOCKED
+        LIMIT 1)
+      RETURNING id, client_id, attempts`);
+    const row = result.rows[0];
+    return row
+      ? {
+          id: Number(row.id),
+          clientId: Number(row.client_id),
+          attempts: Number(row.attempts),
+        }
+      : null;
+  }
+
+  /** Runs whose lease expired on their last allowed attempt become failed. */
+  async failAbandonedForWorker(): Promise<void> {
+    await this.db
+      .update(crawlRuns)
+      .set({
+        status: 'failed',
+        errorCode: 'CRAWL_ABANDONED',
+        errorMessage: CRAWL_RUN_ERRORS.CRAWL_ABANDONED.message,
+        finishedAt: sql`now()`,
+        lockedUntil: null,
+      })
+      .where(
+        and(
+          eq(crawlRuns.status, 'running'),
+          sql`${crawlRuns.lockedUntil} < now()`,
+          sql`${crawlRuns.attempts} >= ${MAX_CRAWL_ATTEMPTS}`,
+        ),
+      );
+  }
+
+  /**
+   * Extends the lease. False when another attempt now owns the run — the caller has
+   * been superseded and must stop.
+   */
+  async renewLeaseForWorker(
+    runId: number,
+    attempt: number,
+    leaseMs: number,
+  ): Promise<boolean> {
+    const rows = await this.db
+      .update(crawlRuns)
+      .set({
+        lockedUntil: sql`now() + make_interval(secs => ${leaseMs / 1000})`,
+      })
+      .where(this.ownedBy(runId, attempt))
+      .returning({ id: crawlRuns.id });
+    return rows.length > 0;
+  }
+
+  async recordDiscoveryForWorker(
+    runId: number,
+    attempt: number,
+    discovery: IRunDiscovery,
+  ): Promise<void> {
+    await this.db
+      .update(crawlRuns)
+      .set(discovery)
+      .where(this.ownedBy(runId, attempt));
+  }
+
+  async recordProgressForWorker(
+    runId: number,
+    attempt: number,
+    pagesDone: number,
+  ): Promise<void> {
+    await this.db
+      .update(crawlRuns)
+      .set({ pagesDone })
+      .where(this.ownedBy(runId, attempt));
+  }
+
+  /**
+   * The fence of the finalize transaction: locks the run only if THIS attempt still
+   * owns it. False → a newer attempt took over; the caller rolls back and writes nothing.
+   */
+  async lockForFinalizeForWorker(
+    tx: Transaction,
+    runId: number,
+    attempt: number,
+  ): Promise<boolean> {
+    const rows = await tx
+      .select({ id: crawlRuns.id })
+      .from(crawlRuns)
+      .where(this.ownedBy(runId, attempt))
+      .for('update');
+    return rows.length > 0;
+  }
+
+  async finalizeForWorker(
+    tx: Transaction,
+    runId: number,
+    outcome: IRunOutcome,
+  ): Promise<void> {
+    await tx
+      .update(crawlRuns)
+      .set({ ...outcome, finishedAt: sql`now()`, lockedUntil: null })
+      .where(eq(crawlRuns.id, runId));
+  }
+
+  async getRunTargetForWorker(runId: number): Promise<IRunTarget | null> {
+    const [row] = await this.db
+      .select({
+        clientId: clients.id,
+        websiteUrl: clients.websiteUrl,
+        siteKey: clients.siteKey,
+      })
+      .from(crawlRuns)
+      .innerJoin(clients, eq(clients.id, crawlRuns.clientId))
+      .where(eq(crawlRuns.id, runId))
+      .limit(1);
+    return row ?? null;
+  }
+
+  private ownedBy(runId: number, attempt: number) {
+    return and(
+      eq(crawlRuns.id, runId),
+      eq(crawlRuns.status, 'running'),
+      eq(crawlRuns.attempts, attempt),
+    );
   }
 }

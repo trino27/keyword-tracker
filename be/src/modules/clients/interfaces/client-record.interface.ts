@@ -51,3 +51,30 @@ export interface ICrawlRunItemRecord {
   httpStatus: number | null;
   pageId: number | null;
 }
+
+/** A run the worker has just claimed. `attempts` is the fencing token of this execution. */
+export interface IClaimedRun {
+  id: number;
+  clientId: number;
+  attempts: number;
+}
+
+/** Where a run crawls. */
+export interface IRunTarget {
+  clientId: number;
+  websiteUrl: string;
+  siteKey: string;
+}
+
+export interface IRunDiscovery {
+  sitemapUrl: string;
+  selectionReason: string;
+  pagesFound: number;
+}
+
+export interface IRunOutcome {
+  status: 'succeeded' | 'partial' | 'failed';
+  pagesDone: number;
+  errorCode: string | null;
+  errorMessage: string | null;
+}

@@ -27,4 +27,13 @@ describe('validateEnv', () => {
       /DATABASE_URL[\s\S]*PORT/,
     );
   });
+
+  it('accepts CRAWL_WORKER_ENABLED as "true" or "false" only', () => {
+    expect(
+      validateEnv({ ...valid, CRAWL_WORKER_ENABLED: 'true' }),
+    ).toBeDefined();
+    expect(() =>
+      validateEnv({ ...valid, CRAWL_WORKER_ENABLED: 'yes' }),
+    ).toThrow(/CRAWL_WORKER_ENABLED/);
+  });
 });
