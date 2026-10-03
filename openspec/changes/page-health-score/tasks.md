@@ -67,12 +67,15 @@ about to be retired would bake it into a number.
 - [x] 4.2 New `ScoreBadge` (number, band colour, optional `14/16 checks` note); `PagesTable.tsx` gains a **Score** column after **Page**; `KpiCards.tsx` gains a first **Health score** card and goes to `cols={{ base: 1, xs: 2, md: 5 }}`. The wording stays inside what a share-of-passed score may claim: no traffic prediction, no competitive comparison, no quality judgement. Verify: `pnpm --filter fe test:ci && pnpm lint && pnpm typecheck`
 - [x] 4.3 The table's loading skeleton, four empty kinds and error state still render with the extra column. Verify: `pnpm --filter fe test:ci -- PagesTable`
 - [ ] 4.4 Browser walk as both seed users. Verify: `docker compose up -d --build`, then `/pages` is worst-first and `/pages/<id>` shows the score card, with no console error
-  NOT DONE HERE: no browser in this environment, and the compose project name is pinned to
-  `seo-keyword-tracker`, which another session is running — `docker compose up -d --build` from
-  this worktree would replace their containers. What stands in for it: `pages.e2e-spec.ts` proves
-  worst-first and the score's wire shape through the real controller over a real crawl, and
-  `PagesTable.test.tsx` proves the first row is the lowest score the gateway returned. The walk
-  itself is for a person before merging.
+  NOT DONE HERE: no browser in this environment. The stack is LEFT RUNNING at
+  http://localhost:8081 (compose project `skt-accuracy`, seeded, both demo users), built under a
+  separate project name because the default belongs to another session's containers.
+  VERIFIED without a browser, against that stack, and it is the finding worth keeping: BOTH seed
+  users' lists come back worst first, and Yoast's /on-gutenberg-and-wordpress-5-0/ scores
+  **100 out of 17** — it carries no images, so IMAGES_MISSING_ALT is not applicable and the page
+  is neither rewarded nor punished for having none. A fixed denominator of 18 would have scored
+  it 94 and ranked it below pages with real problems. That is the honest denominator working on
+  live data, not on a fixture.
 - [x] 4.5 Commits: `feat(fe): a health score badge with its band`; `feat(fe): the pages list leads with the score, worst first`
 
 ## 5. The requirement that already existed (2a) — ANALYSIS-007
@@ -87,5 +90,8 @@ about to be retired would bake it into a number.
 
 ## 7. Phase acceptance
 
-- [ ] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm --filter be test:db`
-- [ ] 7.2 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`
+- [x] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm --filter be test:db`
+  VERIFIED: lint, typecheck, 61 + 347 + 156 unit tests, 121 database tests, all green.
+- [x] 7.2 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`
+  VERIFIED on the isolated stack: health answers `{"status":"ok","database":"up"}` after a
+  clean build, migrate and seed.

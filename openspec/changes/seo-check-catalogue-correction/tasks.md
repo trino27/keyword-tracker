@@ -59,21 +59,30 @@ Phase 0 (`readme-and-clean-clone`) must be closed before task 1.1 starts.
 - [x] 4.3 `IPageDetail.page` gains `responseMs`; `page-detail.repository.ts` selects `response_ms`; `page-read.service.ts` maps it. Verify: `pnpm --filter be test:db -- pages`
   VERIFIED: 42 database tests green.
 - [x] 4.4 `PageSchemas.ts`: a per-code details union, measured codes parsed as a measurement; `pageDetailSchema.page` gains `responseMs`. `groupIssues.ts`: the two retired entries removed, `STRUCTURED_DATA_MISSING` added, the four measured sentences read `value`/`min`/`max`. `PageDetailHeader.tsx`: `· 234 ms to first byte` in the facts line, with the tooltip saying it is one fetch from our crawler and not a field measurement. Verify: `pnpm --filter fe test:ci && pnpm typecheck`
-- [ ] 4.5 Before the browser walk, confirm no retired code is stored — `seoIssueSchema`'s `z.enum(SEO_ISSUE_CODES)` turns one into a parse error that blanks the detail screen. Verify: `docker compose exec -T postgres psql -U tracker -d seo_tracker -c "select distinct code from seo_issues"` lists only catalogue codes; if not, follow the plan's OQ2 recovery (never `docker compose down -v`)
-  NOT DONE HERE: the check was run and it FAILED, exactly as the plan's regression guard
-  predicted. The developer database holds KEYWORD_NOT_IN_TITLE and SLOW_RESPONSE from a crawl
-  made before this change, and `seoIssueSchema` now rejects both — the detail screen would
-  blank (I10 working as designed). The recovery is the plan's OQ2 and it is NOT run here: that
-  database belongs to the stack another session is working in, and deleting its crawl runs is
-  not this change's call. On a clean clone `seo_issues` is empty and this cannot happen. The
-  owner of that database runs OQ2's three commands before the walk; never `docker compose down -v`.
+- [x] 4.5 Before the browser walk, confirm no retired code is stored — `seoIssueSchema`'s `z.enum(SEO_ISSUE_CODES)` turns one into a parse error that blanks the detail screen. Verify: `docker compose exec -T postgres psql -U tracker -d seo_tracker -c "select distinct code from seo_issues"` lists only catalogue codes; if not, follow the plan's OQ2 recovery (never `docker compose down -v`)
+  AMENDED during implementation: run twice, with opposite results, and both matter.
+  Against the SHARED developer database (`seo-keyword-tracker-postgres-1`) it FAILED exactly as
+  the plan's regression guard predicted: that database holds KEYWORD_NOT_IN_TITLE and
+  SLOW_RESPONSE from a crawl made before this change, and `seoIssueSchema` now rejects both, so
+  the detail screen would blank — I10 working as designed. OQ2's recovery was NOT run there: that
+  database belongs to the stack another session is working in, and deleting its crawl runs is not
+  this change's call. Whoever owns it runs OQ2's three commands before opening a detail page;
+  never `docker compose down -v`.
+  VERIFIED on a clean stack (compose project `skt-accuracy`, port 8081, built and seeded from
+  this worktree): `select code, count(*) from seo_issues group by code` returns only
+  META_DESCRIPTION_LENGTH (4), TITLE_LENGTH (3) and STRUCTURED_DATA_MISSING (1) — catalogue codes
+  only, and the new check firing on a real page. This is the reviewer's path, and on it the
+  problem cannot arise.
 - [ ] 4.6 Browser walk. Verify: `docker compose up -d --build`, then `/pages/<id>` shows the response time in the facts line and no timing issue, with no console error
-  NOT DONE HERE: no browser in this environment, as with phase 0's task 2.3. The stack is also
-  pinned to the compose project name `seo-keyword-tracker`, which another session is running, so
-  `docker compose up -d --build` from this worktree would replace their containers. What stands
-  in for it: `pages.e2e-spec.ts` proves the wire shape through the real controller and guard, and
-  `PageSchemas.test.ts` proves the browser refuses a payload that is missing a measurement. The
-  walk itself is for a person before merging.
+  NOT DONE HERE: no browser in this environment. The stack is LEFT RUNNING at
+  http://localhost:8081 (compose project `skt-accuracy`, seeded, both demo users) so the walk is
+  one tab away — it was built under a separate project name because the default
+  `seo-keyword-tracker` belongs to another session's containers.
+  VERIFIED without a browser, against that stack: the detail of
+  /blog/seo-split-test-result-does-bolded-text-help-your-seo/ answers with
+  `page.responseMs: 530` and NO timing issue, while a Yoast page answers with
+  `responseMs: 1432` and also no timing issue — the same catalogue, two response times four
+  times apart, which is the measurement that retired SLOW_RESPONSE in the first place.
 - [x] 4.7 Commits: `feat(fe): read a threshold finding from its own measurement`; `feat(fe): response time as a fact of the crawl, not a verdict`
 
 ## 5. The requirements that already existed (1a–1d) — ANALYSIS-001, ANALYSIS-002, PAGEDETAIL-005
@@ -93,5 +102,9 @@ exist (plan §20 OQ4). Each amendment carries its `AMENDED during implementation
 
 ## 7. Phase acceptance
 
-- [ ] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm --filter be test:db`
-- [ ] 7.2 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`
+- [x] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm --filter be test:db`
+  VERIFIED: lint, typecheck, 61 contracts + 347 backend + 156 frontend unit tests, 121 database
+  tests, all green, after all three phases.
+- [x] 7.2 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`
+  VERIFIED on the isolated stack: `docker compose -p skt-accuracy up -d --build` then
+  `curl -fsS http://localhost:8081/api/health` → `{"status":"ok","database":"up"}`.
