@@ -60,7 +60,7 @@ const setup = (options: {
 };
 
 const seed = (runner: SeedRunner, positionsOnly = false) =>
-  runner.run({ password: 'demo-password', positionsOnly });
+  runner.run({ password: 'unit-test-password', positionsOnly });
 
 describe('SeedRunner', () => {
   it('does not enqueue for a client that already has pages', async () => {
