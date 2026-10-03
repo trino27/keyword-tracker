@@ -112,10 +112,22 @@ term present on every page of the run ranks below page-specific terms; with one 
 
 ### Requirement: ANALYSIS-007 — a re-crawl refreshes analysis without deleting it
 
-A re-crawl MUST replace the issues of each page it fetched, insert new page-keyword pairs, update
-the relevance and `last_seen_run_id` of surviving pairs, and MUST NOT delete any pair; analysis
-MUST run once per run, after all its pages are fetched.
+A re-crawl MUST replace the issues of each page it fetched AND refresh that page's two check
+counters in the same act, insert new page-keyword pairs, update the relevance and
+`last_seen_run_id` of surviving pairs, and MUST NOT delete any pair; analysis MUST run once per
+run, after all its pages are fetched.
+
+AMENDED during implementation (`page-health-score`, task 5.1): the requirement covered the issues
+and the pairs, which was the whole of a page's analysis when it was written. A page now also
+carries the counters its score is derived from, and they are part of the same verdict: refreshed
+issues beside counters left at their first value would show a score that contradicts the issue
+list printed next to it. "In the same act" is the requirement, not an implementation note — the
+counters are columns of the same upsert, inside the same transaction as the issue rows.
 
 #### Scenario: a keyword drops out
 - **WHEN** a re-crawled page no longer yields a keyword it had
 - **THEN** the pair row and its snapshots remain, with the earlier `last_seen_run_id`
+
+#### Scenario: a re-crawl finds fewer problems
+- **WHEN** a page that failed 7 of 18 checks is re-crawled and now fails 2 of 16
+- **THEN** its stored counters are 16 and 2, not the earlier pair
