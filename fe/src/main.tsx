@@ -1,13 +1,15 @@
 import "./index.css";
 
+import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { router } from "@App/Router/router";
 
 const container = document.getElementById("root");
 if (!container) throw new Error("#root is missing from index.html");
 
 createRoot(container).render(
 	<StrictMode>
-		<h1>SEO Keyword Tracker</h1>
+		<RouterProvider router={router} />
 	</StrictMode>,
 );
