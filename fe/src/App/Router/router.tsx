@@ -2,6 +2,7 @@ import {
 	createRootRoute,
 	createRoute,
 	createRouter,
+	lazyRouteComponent,
 	Outlet,
 	redirect,
 	type RouterHistory,
@@ -10,7 +11,6 @@ import { AppLayout } from "@Modules/_Shared/AppLayout/AppLayout";
 import { NotFound } from "@Modules/_Shared/NotFound/NotFound";
 import { RouteError } from "@Modules/_Shared/RouteError/RouteError";
 import { ClientsScreen } from "@Modules/Clients/ClientsScreen";
-import { PageDetailScreen } from "@Modules/PageDetail/PageDetailScreen";
 import { PagesScreen } from "@Modules/Pages/PagesScreen";
 import { SignInScreen } from "@Modules/SignIn/SignInScreen";
 import { listenForExpiredSession } from "@ViewModels/SessionViewModel/SessionViewModel";
@@ -69,7 +69,11 @@ const pageDetailRoute = createRoute({
 	getParentRoute: () => appRoute,
 	path: "/pages/$pageId",
 	validateSearch: pageDetailSearchSchema,
-	component: PageDetailScreen,
+	// Its own chunk: the chart library is most of the bundle and only this screen draws.
+	component: lazyRouteComponent(
+		() => import("@Modules/PageDetail/PageDetailScreen"),
+		"PageDetailScreen",
+	),
 });
 
 const clientsRoute = createRoute({
