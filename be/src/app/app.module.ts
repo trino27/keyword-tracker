@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { APP_GLOBAL_PROVIDERS } from '@core/bootstrap/app-globals.providers';
 import { validateEnv } from '@infrastructure/config/env.schema/env.schema';
 import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/logger.config';
 
@@ -16,5 +17,6 @@ import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/lo
     }),
     LoggerModule.forRoot({ pinoHttp: pinoHttpOptions }),
   ],
+  providers: [...APP_GLOBAL_PROVIDERS],
 })
 export class AppModule {}
