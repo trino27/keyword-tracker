@@ -23,6 +23,8 @@ export interface ICurrentPageRecord {
   wordCount: number;
   httpStatus: number;
   responseMs: number;
+  checksApplicable: number;
+  checksFailed: number;
   crawledAt: Date;
   clientId: number;
   clientName: string;
@@ -54,6 +56,8 @@ interface IPageRow extends Record<string, unknown> {
   word_count: number;
   http_status: number;
   response_ms: number;
+  checks_applicable: number;
+  checks_failed: number;
   crawled_at: string | Date;
   client_id: string;
   client_name: string;
@@ -86,7 +90,8 @@ export class PageDetailRepository {
   ): Promise<ICurrentPageRecord | null> {
     const { rows } = await this.db.execute<IPageRow>(sql`
       select p.id, p.url, p.final_url, p.title, p.meta_description, p.h1, p.lang,
-             p.word_count, p.http_status, p.response_ms, p.crawled_at,
+             p.word_count, p.http_status, p.response_ms,
+             p.checks_applicable, p.checks_failed, p.crawled_at,
              c.id as client_id, c.name as client_name, c.website_url as client_website_url
       from pages p
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
@@ -111,6 +116,8 @@ export class PageDetailRepository {
       wordCount: Number(row.word_count),
       httpStatus: Number(row.http_status),
       responseMs: Number(row.response_ms),
+      checksApplicable: Number(row.checks_applicable),
+      checksFailed: Number(row.checks_failed),
       crawledAt: new Date(row.crawled_at),
       clientId: Number(row.client_id),
       clientName: row.client_name,

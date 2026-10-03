@@ -19,6 +19,7 @@ const ROW: TPageListItem = {
 		},
 	],
 	bestPosition: null,
+	score: { value: 83, applicable: 18, failed: 3 },
 	issues: { total: 0, error: 0, warning: 0, notice: 0 },
 	lastCapturedAt: null,
 };

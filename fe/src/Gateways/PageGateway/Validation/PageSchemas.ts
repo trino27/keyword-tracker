@@ -8,6 +8,7 @@ import {
 	type IPageDetail,
 	type IPageListItem,
 	type IPageListResponse,
+	type IPageScore,
 	type IPositionHistory,
 	isIsoDay,
 	type TIsoDay,
@@ -32,6 +33,13 @@ export const bestPositionSchema = z.object({
 	capturedAt: z.string(),
 }) satisfies z.ZodType<IBestPosition>;
 
+/** A score and the denominator it came from; the denominator is never zero. */
+export const pageScoreSchema = z.object({
+	value: z.number().int().min(0).max(100),
+	applicable: z.number().int().positive(),
+	failed: z.number().int().min(0),
+}) satisfies z.ZodType<IPageScore>;
+
 export const pageListItemSchema = z.object({
 	id: z.number().int(),
 	url: z.string(),
@@ -39,6 +47,7 @@ export const pageListItemSchema = z.object({
 	client: z.object({ id: z.number().int(), name: z.string() }),
 	keywords: z.array(keywordPositionSchema),
 	bestPosition: bestPositionSchema.nullable(),
+	score: pageScoreSchema,
 	issues: z.object({
 		total: z.number().int(),
 		error: z.number().int(),
@@ -113,6 +122,7 @@ export const pageDetailSchema = z.object({
 	client: z.object({ id: z.number().int(), name: z.string(), websiteUrl: z.string() }),
 	keywords: z.array(keywordPositionSchema),
 	bestPosition: bestPositionSchema.nullable(),
+	score: pageScoreSchema,
 	issues: z.array(seoIssueSchema),
 	lastCrawl: crawlRunSummarySchema.nullable(),
 }) satisfies z.ZodType<IPageDetail>;

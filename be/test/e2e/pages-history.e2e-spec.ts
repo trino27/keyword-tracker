@@ -103,8 +103,15 @@ describe('page detail and position history (e2e)', () => {
     const response = await get(`/api/pages/${page.pageId}`).expect(200);
 
     expect(response.body).toMatchObject({
-      page: { id: page.pageId, wordCount: 800, httpStatus: 200 },
+      page: {
+        id: page.pageId,
+        wordCount: 800,
+        httpStatus: 200,
+        responseMs: 120,
+      },
       client: { id: page.clientId },
+      // 15 of the seeded page's 18 applicable checks passed.
+      score: { value: 83, applicable: 18, failed: 3 },
       bestPosition: { position: 15, term: 'seo audit' },
       lastCrawl: { id: page.runId, status: 'succeeded' },
     });

@@ -22,6 +22,8 @@ export interface IPageListRow {
   title: string | null;
   clientId: number;
   clientName: string;
+  checksApplicable: number;
+  checksFailed: number;
 }
 
 export interface IPageKeywordRow {
@@ -45,6 +47,8 @@ interface ISliceRow extends Record<string, unknown> {
   title: string | null;
   client_id: string;
   client_name: string;
+  checks_applicable: number;
+  checks_failed: number;
 }
 
 interface IKeywordRow extends Record<string, unknown> {
@@ -85,7 +89,8 @@ export class PageListRepository {
   ): Promise<IPageListRow[]> {
     const { rows } = await this.db.execute<ISliceRow>(sql`
       ${this.currentPages(scope, filter)}
-      select p.id, p.url, p.title, c.id as client_id, c.name as client_name
+      select p.id, p.url, p.title, p.checks_applicable, p.checks_failed,
+             c.id as client_id, c.name as client_name
       from current_pages p
       join clients c on c.id = p.client_id
       order by c.name, c.id, p.sitemap_position, p.id
@@ -97,6 +102,8 @@ export class PageListRepository {
       title: row.title,
       clientId: Number(row.client_id),
       clientName: row.client_name,
+      checksApplicable: Number(row.checks_applicable),
+      checksFailed: Number(row.checks_failed),
     }));
   }
 

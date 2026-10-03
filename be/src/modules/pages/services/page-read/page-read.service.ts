@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  pageScoreOf,
   SEO_ISSUE_CODES,
   type IKeywordPosition,
   type IPageDetail,
@@ -112,6 +113,7 @@ export class PageReadService {
           client: { id: row.clientId, name: row.clientName },
           keywords,
           bestPosition: pickBestPosition(keywords),
+          score: pageScoreOf(row.checksApplicable, row.checksFailed),
           issues: issuesByPage.get(row.id) ?? {
             total: 0,
             error: 0,
@@ -160,6 +162,7 @@ export class PageReadService {
       },
       keywords,
       bestPosition: pickBestPosition(keywords),
+      score: pageScoreOf(page.checksApplicable, page.checksFailed),
       issues: [...issues].sort(
         (a, b) =>
           SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),

@@ -87,6 +87,53 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     });
   });
 
+  it('every item carries a score and the denominator it came from', async () => {
+    const response = await list('?pageSize=20').expect(200);
+
+    for (const item of response.body.items as {
+      score: { value: number; applicable: number; failed: number };
+    }[]) {
+      expect(item.score.applicable).toBeGreaterThanOrEqual(13);
+      expect(item.score.applicable).toBeLessThanOrEqual(18);
+      expect(item.score.failed).toBeLessThanOrEqual(item.score.applicable);
+      expect(item.score.value).toBe(
+        Math.round(
+          (100 * (item.score.applicable - item.score.failed)) /
+            item.score.applicable,
+        ),
+      );
+    }
+  });
+
+  it('the detail carries its score, the fetch time and a measured finding', async () => {
+    const { body } = await list('?q=gutenberg&pageSize=1').expect(200);
+    const detail = await http()
+      .get(`/api/pages/${body.items[0].id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    expect(detail.body.score).toMatchObject({
+      value: expect.any(Number),
+      applicable: expect.any(Number),
+      failed: expect.any(Number),
+    });
+    expect(detail.body.page.responseMs).toEqual(expect.any(Number));
+    // A measured finding reads from its own numbers, so a screen never has to consult
+    // today's catalogue to explain an old verdict.
+    const measured = (
+      detail.body.issues as { code: string; details: unknown }[]
+    )
+      .filter((issue) => issue.code === 'TITLE_LENGTH')
+      .map((issue) => issue.details);
+    for (const details of measured) {
+      expect(details).toMatchObject({
+        value: expect.any(Number),
+        min: 30,
+        max: 60,
+      });
+    }
+  });
+
   it("another user's clientId is a 404, and their list is empty", async () => {
     const other = await signIn(app, 'other@example.com');
 
