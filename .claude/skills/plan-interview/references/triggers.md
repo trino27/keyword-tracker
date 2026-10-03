@@ -16,31 +16,31 @@ genuinely ambiguous, the ambiguity belongs in the description as an explicit bou
 
 | # | prompt | why |
 | --- | --- | --- |
-| 1 | «давай обсудим как хранить историю позиций по дням» | explicit design conversation |
-| 2 | «нужен план на переезд хранения снапшотов на партиции по месяцам» | asks for a plan |
-| 3 | «спроектируем запуск краула при добавлении клиента» | new lifecycle + new invariant |
-| 4 | «хочу добавить таблицу для SEO-проблем страницы, обсудим модель?» | new table, keyed by something undecided |
-| 5 | «надо переделать статусы краула, но не знаю на что — помоги решить» | lifecycle change, shape undecided |
-| 6 | «добавляем поле на wire между FE и BE, что учесть?» | contract crossing two workspaces |
-| 7 | «как правильно сделать удаление клиента, чтобы не сломать историю?» | policy + cascade + invariant, several valid answers |
-| 8 | «нужно вынести краулер в отдельный модуль, с чего начать» | ≥2 modules, ownership undecided |
-| 9 | «сделай план реализации UI списка страниц по этим макетам, фазами» | plan requested, phases requested |
-| 10 | «обсудим варианты: ESLint-правило или CHECK в схеме?» | a decision with trade-offs and no single right answer |
+| 1 | "let's discuss how to store the daily position history" | explicit design conversation |
+| 2 | "we need a plan to move snapshot storage to monthly partitions" | asks for a plan |
+| 3 | "let's design how a crawl starts when a client is added" | new lifecycle + new invariant |
+| 4 | "I want a table for a page's SEO issues — shall we discuss the model?" | new table, keyed by something undecided |
+| 5 | "the crawl statuses need reworking but I don't know into what — help me decide" | lifecycle change, shape undecided |
+| 6 | "we're adding a wire field between FE and BE — what should we consider?" | contract crossing two workspaces |
+| 7 | "how do we delete a client without breaking the history?" | policy + cascade + invariant, several valid answers |
+| 8 | "the crawler needs to move into its own module — where do we start?" | ≥2 modules, ownership undecided |
+| 9 | "write an implementation plan for the pages list UI from these mockups, in phases" | plan requested, phases requested |
+| 10 | "let's weigh the options: an ESLint rule or a CHECK in the schema?" | a decision with trade-offs and no single right answer |
 
 ## Must NOT trigger
 
 | # | prompt | why not — and what should happen instead |
 | --- | --- | --- |
-| 11 | «поправь опечатку в `CRAWL_MODULE.md`» | single-file edit; just do it |
-| 12 | «быстрый фикс: `latestPosition` не приходит в списке страниц» | user said quick fix; skip orchestration entirely |
-| 13 | «почему падает `crawl-run.service.spec.ts`?» | diagnosis, not design |
-| 14 | «прогони линт и тесты и скажи что красное» | verification; `test-runner` |
-| 15 | «объясни как работает подбор ключевых слов страницы» | explanation of existing behaviour; read the docs and answer |
-| 16 | «допиши тест на краевой случай с двумя клиентами с одним URL» | one focused test; main session |
-| 17 | «переименуй `siteUrl` в `websiteUrl` во всём фронте» | mechanical rename; shape already decided |
-| 18 | «продолжай по плану из `design.md` изменения `add-rank-history`» | a plan already exists — execute it, do not re-interview |
-| 19 | «сделай ревью моих изменений перед пушем» | review; `/code-review` or `qa` |
-| 20 | «какой из двух вариантов имени ты бы выбрал для `PositionBadge` — 2 строки кода?» | a genuine choice, but the answer is one sentence; a nine-category coverage scan on it is theatre |
+| 11 | "fix the typo in `CRAWL_MODULE.md`" | single-file edit; just do it |
+| 12 | "quick fix: `latestPosition` is missing from the pages list" | user said quick fix; skip orchestration entirely |
+| 13 | "why is `crawl-run.service.spec.ts` failing?" | diagnosis, not design |
+| 14 | "run lint and tests and tell me what is red" | verification; `test-runner` |
+| 15 | "explain how a page's keywords are chosen" | explanation of existing behaviour; read the docs and answer |
+| 16 | "add a test for the edge case of two clients with the same URL" | one focused test; main session |
+| 17 | "rename `siteUrl` to `websiteUrl` across the frontend" | mechanical rename; shape already decided |
+| 18 | "continue with the plan in `docs/_plans/rank-history.md`" | a plan already exists — execute it, do not re-interview |
+| 19 | "review my changes before I push" | review; `/code-review` or `qa` |
+| 20 | "which of two names would you pick for `PositionBadge` — two lines of code?" | a genuine choice, but the answer is one sentence; a nine-category coverage scan on it is theatre |
 
 ## The line these draw
 
