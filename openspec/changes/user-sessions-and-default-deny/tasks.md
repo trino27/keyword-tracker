@@ -6,10 +6,11 @@ record a wrong task with an `AMENDED during implementation:` line and an already
 
 ## 1. Users and sessions schema + contracts (2a)
 
-- [ ] 1.1 Contracts: `http/api-error-code.constant.ts`, `auth/session-user.interface.ts`, `auth/login-request.interface.ts`; write `time/is-time-zone/is-time-zone.util.test.ts` first (accepts America/Toronto, refuses Mars/Base), then the util; barrel. Verify: `pnpm --filter @app/contracts test:ci && pnpm typecheck`
-- [ ] 1.2 Write `users.repository.int-spec.ts` and `sessions.repository.int-spec.ts` (users_email_lowercase, users_email_uq, cascade, deleteExpired) — they fail for missing tables. Verify: `pnpm --filter be test:db -- users sessions` fails
-- [ ] 1.3 Schema `tables/users/users.schema.ts`, `tables/sessions/sessions.schema.ts`, register in `database-schema.ts`; generate and read the SQL. Verify: `pnpm db:generate && pnpm db:migrate`
-- [ ] 1.4 Repositories `modules/auth/repositories/{users,sessions}/`. Verify: `pnpm --filter be test:db -- users sessions`
+- [x] 1.1 Contracts: `http/api-error-code.constant.ts`, `auth/session-user.interface.ts`, `auth/login-request.interface.ts`; write `time/is-time-zone/is-time-zone.util.test.ts` first (accepts America/Toronto, refuses Mars/Base), then the util; barrel. Verify: `pnpm --filter @app/contracts test:ci && pnpm typecheck`
+- [x] 1.2 Write `users.repository.int-spec.ts` and `sessions.repository.int-spec.ts` (users_email_lowercase, users_email_uq, cascade, deleteExpired) — they fail for missing tables. Verify: `pnpm --filter be test:db -- users sessions` fails
+- [x] 1.3 Schema `tables/users/users.schema.ts`, `tables/sessions/sessions.schema.ts`, register in `database-schema.ts`; generate and read the SQL. Verify: `pnpm db:generate && pnpm db:migrate`
+- [x] 1.4 Repositories `modules/auth/repositories/{users,sessions}/`. Verify: `pnpm --filter be test:db -- users sessions`
+  AMENDED during implementation: pass Jest filters without `--` (`pnpm --filter be test:db users sessions`); pnpm 10 forwards a literal `--`, and Jest then runs every suite. drizzle-orm 0.45 has no `bytea`, so `token_hash` uses the new `byteaColumn` custom type (`persistence/schema/_shared/columns/bytea-column.ts`). DB tests got `testTimeout: 30000` — a cold ts-jest compile of AppModule overran Jest's 5 s default.
 
 ## 2. Hashing and tokens (2b) — AUTH-001, AUTH-002
 
