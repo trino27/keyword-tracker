@@ -15,6 +15,13 @@
       "when": 1791025750939,
       "tag": "0001_eager_unus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791029415320,
+      "tag": "0002_windy_sasquatch",
+      "breakpoints": true
     }
   ]
 }

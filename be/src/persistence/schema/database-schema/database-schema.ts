@@ -1,7 +1,10 @@
 import { clients } from '../tables/clients/clients.schema';
 import { crawlRunItems } from '../tables/crawl-run-items/crawl-run-items.schema';
 import { crawlRuns } from '../tables/crawl-runs/crawl-runs.schema';
+import { keywords } from '../tables/keywords/keywords.schema';
+import { pageKeywords } from '../tables/page-keywords/page-keywords.schema';
 import { pages } from '../tables/pages/pages.schema';
+import { seoIssues } from '../tables/seo-issues/seo-issues.schema';
 import { sessions } from '../tables/sessions/sessions.schema';
 import { users } from '../tables/users/users.schema';
 
@@ -18,6 +21,9 @@ export const databaseSchema = {
   crawlRuns,
   crawlRunItems,
   pages,
+  keywords,
+  pageKeywords,
+  seoIssues,
 };
 
 export type DatabaseSchema = typeof databaseSchema;
