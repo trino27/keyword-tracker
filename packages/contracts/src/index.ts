@@ -33,3 +33,8 @@ export * from './domain/time/is-iso-day/is-iso-day.util.js';
 export * from './domain/time/add-days/add-days.util.js';
 export * from './domain/time/today-in-zone/today-in-zone.util.js';
 export * from './domain/time/day-range-to-utc/day-range-to-utc.util.js';
+export * from './domain/pages/keyword-position.interface.js';
+export * from './domain/pages/best-position.interface.js';
+export * from './domain/pages/page-list-item.interface.js';
+export * from './domain/pages/page-list-response.interface.js';
+export * from './domain/pages/page-list-limits.constant.js';

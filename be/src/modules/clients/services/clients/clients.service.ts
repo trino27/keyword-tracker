@@ -41,6 +41,12 @@ export class ClientsService {
     return owned.map((client) => toClient(client, summaries.get(client.id)!));
   }
 
+  /** For other modules filtering by a client: 404 unless the scope's user owns it. */
+  async assertOwnedClient(scope: IUserScope, clientId: number): Promise<void> {
+    const client = await this.clients.findOwned(scope, clientId);
+    if (!client) throw new ClientNotFoundException({ clientId });
+  }
+
   async getClient(scope: IUserScope, clientId: number): Promise<IClient> {
     const client = await this.clients.findOwned(scope, clientId);
     if (!client) throw new ClientNotFoundException({ clientId });
