@@ -3,7 +3,8 @@ import type {
   INewSnapshot,
   SnapshotWriterService,
 } from '@modules/pages/services/snapshot-writer/snapshot-writer.service';
-import { generatePositions } from '../position-generator/generate-positions/generate-positions';
+import { generatePositions } from '@modules/pages/services/position-generator/generate-positions/generate-positions';
+import { PositionFillService } from '@modules/pages/services/position-fill/position-fill.service';
 import { PositionSeedService } from './position-seed.service';
 
 const NOW = new Date('2026-10-03T15:00:00Z');
@@ -33,7 +34,11 @@ const setup = (pairs: ICurrentPairRecord[]) => {
     },
     countForWorker: () => Promise.resolve(inserted.flat().length),
   } as unknown as SnapshotWriterService;
-  return { service: new PositionSeedService(writer), inserted };
+  const service = new PositionSeedService(
+    writer,
+    new PositionFillService(writer),
+  );
+  return { service, inserted };
 };
 
 describe('PositionSeedService', () => {
