@@ -1,6 +1,6 @@
 # Tasks — readme-and-clean-clone
 
-Generated from the plan `keyword-tracker` (docs/_plans/), Phase 8. Correct it through the plan;
+Generated from the plan `keyword-tracker` (docs/_plans-archive/), Phase 8. Correct it through the plan;
 record a wrong task with an `AMENDED during implementation:` line and an already-satisfied one as
 `VERIFIED, NOT BUILT`.
 
