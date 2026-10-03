@@ -18,6 +18,17 @@ export const CRAWL_RUN_ERRORS = {
     message:
       'The website refuses automated requests (it answered 403 or not at all), so it cannot be crawled.',
   },
+  SITE_REDIRECTS_ELSEWHERE: {
+    message:
+      'The website redirects to another site, and nothing on it could be read — add the site it redirects to instead.',
+  },
+  ROBOTS_UNAVAILABLE: {
+    message:
+      "The site's robots.txt answered with a server error; until it answers, the robots rules forbid crawling.",
+  },
+  ROBOTS_DISALLOWED: {
+    message: "The site's robots.txt forbids crawling its blog posts.",
+  },
   NO_POSTS_CRAWLED: {
     message:
       'The blog sitemap was found, but none of its posts could be crawled.',
