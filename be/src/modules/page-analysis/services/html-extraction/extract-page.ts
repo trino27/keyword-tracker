@@ -5,9 +5,29 @@ import type {
   IParsedPage,
 } from '../../interfaces/parsed-page.interface';
 
-/** Removed from the main content before anything is read from it. */
-const NON_CONTENT =
-  'nav, header, footer, aside, script, style, noscript, form, svg, iframe, template';
+/**
+ * Removed from the main content before anything is read from it.
+ *
+ * The element names are the easy half. The rest is the furniture a theme builds out
+ * of plain `div`s inside the content container — related posts, "most popular", a
+ * share bar, a newsletter box. Landmark ROLES catch what semantic elements would have
+ * caught on a site that used them; the class fragments catch the rest, and every one
+ * of them is here because a live page put it in a page's keywords: travelsmart.bg's
+ * `ast-single-related-posts-container` put other destinations in every post, and
+ * globalnews.ca's `c-infoBox` put other headlines in every story. Matching is
+ * case-insensitive, so `infoBox` and `relatedPosts` are caught as written.
+ */
+const NON_CONTENT = [
+  'nav, header, footer, aside, script, style, noscript, form, svg, iframe, template',
+  '[role="navigation"], [role="complementary"], [role="banner"]',
+  '[role="contentinfo"], [role="search"], [role="dialog"]',
+  '[class*="related" i], [class*="infobox" i], [class*="sidebar" i]',
+  '[class*="widget" i], [class*="newsletter" i], [class*="subscribe" i]',
+  '[class*="share" i], [class*="social" i], [class*="breadcrumb" i]',
+  '[class*="pagination" i], [class*="recirc" i], [class*="read-more" i]',
+  '[class*="popular" i], [class*="trending" i], [class*="recommend" i]',
+  '[class*="comment" i], [id*="comment" i]',
+].join(', ');
 
 /**
  * Text present only for assistive technology, or hidden from it; neither is page content.
@@ -115,12 +135,29 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
   };
 }
 
+/**
+ * The container the page's own text lives in.
+ *
+ * The `article` holding the `h1` wins over `main`, because that is the narrower and
+ * more certain answer: a theme's `main` routinely holds the post AND what follows it.
+ * travelsmart.bg closes `</article>` and opens a related-posts container as its
+ * sibling, so reading `main` read both, and other destinations became the post's
+ * keywords. An `article` WITHOUT the heading is not trusted — in a listing every card
+ * is one — and the old order is kept for that case.
+ */
 function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
-  const candidate = $('main').first().length
-    ? $('main').first()
-    : $('article').first().length
-      ? $('article').first()
-      : $('body').first();
+  let withHeading: ReturnType<CheerioAPI> | null = null;
+  $('article').each((_, element) => {
+    const article = $(element);
+    if (!withHeading && article.find('h1').length > 0) withHeading = article;
+  });
+  const candidate =
+    withHeading ??
+    ($('main').first().length
+      ? $('main').first()
+      : $('article').first().length
+        ? $('article').first()
+        : $('body').first());
   const main = candidate.clone();
   main.find(NON_CONTENT).remove();
   return main;

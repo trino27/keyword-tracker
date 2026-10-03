@@ -96,7 +96,7 @@ export const MAX_KEYWORDS = 8;
  * an author page returned `matt brittin` at 1.0 and four more at 0.12–0.14. Fewer
  * honest keywords beat five invented ones.
  */
-export const FLOOR_RATIO = 0.25;
+export const FLOOR_RATIO = 0.15;
 
 /**
  * Fields that NAME a subject rather than describe it. A description and a lede are
@@ -122,6 +122,16 @@ export const MIN_UNANCHORED_TF = 2;
  * read before scoring rather than after.
  */
 export const RUN_BOILERPLATE_SHARE = 0.5;
+
+/**
+ * Selected keywords that may come from one run of text — one sentence, one heading.
+ * A long headline has several non-overlapping windows and they are not several
+ * subjects: "Dual UK-Iranian national released on bail over suspected plot against
+ * US-run military base" produced `dual uk iranian national`, `run military base`,
+ * `national released on bail` and `bail over suspected plot`, none of them sharing a
+ * word with another, all of them the same sentence.
+ */
+export const MAX_KEYWORDS_PER_RUN = 2;
 
 /** Title separators before a brand suffix: "How to X | Brand". */
 export const TITLE_SEPARATORS = [
@@ -182,4 +192,33 @@ export const EXTRA_ENGLISH_STOP_WORDS: readonly string[] = [
   'should',
   'yet',
   'etc',
+  // Prepositions and conjunctions the shipped list omits. Every one of them was
+  // found ending or beginning a candidate on a live page: "suspected plot against",
+  // "plot against us run", "against us run military" were three of one article's
+  // eight keywords.
+  'against',
+  'among',
+  'across',
+  'although',
+  'behind',
+  'between',
+  'beyond',
+  'despite',
+  'during',
+  'even',
+  'except',
+  'however',
+  'into',
+  'onto',
+  'over',
+  'since',
+  'through',
+  'toward',
+  'towards',
+  'under',
+  'unless',
+  'until',
+  'upon',
+  'within',
+  'without',
 ];

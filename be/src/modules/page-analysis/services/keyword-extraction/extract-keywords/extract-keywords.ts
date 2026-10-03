@@ -90,6 +90,7 @@ export function extractKeywords(
   return perPage.map((candidates) => {
     const scored = [...candidates].map(([term, stats]) => ({
       term,
+      runs: stats.runs,
       score:
         pageScore(stats) *
         idfFactor(pages.length, documentFrequency.get(term) ?? 1),

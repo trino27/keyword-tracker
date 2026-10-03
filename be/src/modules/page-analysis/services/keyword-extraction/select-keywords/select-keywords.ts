@@ -1,6 +1,7 @@
 import {
   FLOOR_RATIO,
   MAX_KEYWORDS,
+  MAX_KEYWORDS_PER_RUN,
   MAX_OVERLAP_RATIO,
   SUBSUME_RATIO,
 } from '../../../constants/keyword-scoring.constant';
@@ -9,6 +10,8 @@ import { isWeakToken } from '../tokenize/tokenize';
 export interface IScoredCandidate {
   term: string;
   score: number;
+  /** Ids of the runs of text the term was read from; see ICandidateStats.runs. */
+  runs?: ReadonlySet<number>;
 }
 
 export interface ISelectedKeyword {
@@ -55,7 +58,8 @@ function overlapping(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
 
 /**
  * §10.4 step 11: the best keywords above FLOOR_RATIO of the top score, up to
- * MAX_KEYWORDS, no two of them covering the same words. Nothing is added below the
+ * MAX_KEYWORDS, no two of them covering the same words and no more than
+ * MAX_KEYWORDS_PER_RUN of them read out of one sentence. Nothing is added below the
  * floor — a page with one subject returns one keyword.
  */
 export function selectKeywords(
@@ -69,12 +73,17 @@ export function selectKeywords(
   const top = ranked[0].score;
   const chosen: ISelectedKeyword[] = [];
   const taken: ReadonlySet<string>[] = [];
+  const perRun = new Map<number, number>();
   for (const candidate of ranked) {
     if (chosen.length >= MAX_KEYWORDS) break;
     // Ranked descending: the first one under the floor ends the list.
     if (candidate.score < FLOOR_RATIO * top) break;
     const tokens = contentTokens(candidate.term);
     if (taken.some((other) => overlapping(tokens, other))) continue;
+    const runs = [...(candidate.runs ?? [])];
+    if (runs.some((run) => (perRun.get(run) ?? 0) >= MAX_KEYWORDS_PER_RUN))
+      continue;
+    for (const run of runs) perRun.set(run, (perRun.get(run) ?? 0) + 1);
     chosen.push({ term: candidate.term, relevance: candidate.score / top });
     taken.push(tokens);
   }

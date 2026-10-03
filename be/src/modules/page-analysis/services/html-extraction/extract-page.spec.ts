@@ -78,6 +78,44 @@ describe('extractPage', () => {
     expect(page('<div>Just text</div>').blocks).toEqual(['Just text']);
   });
 
+  it('prefers the <article> holding the h1 over the <main> around it', () => {
+    // travelsmart.bg closes </article> and opens its related posts next to it, inside
+    // the same <main>; reading <main> made other destinations the post's keywords.
+    const parsed = page(
+      '<main>' +
+        '<article><h1>Flights to Rome</h1><p>Rome is warm.</p></article>' +
+        '<div class="ast-single-related-posts-container">' +
+        '<h2>Similar offers</h2><p>Flights to Karlsruhe</p>' +
+        '</div>' +
+        '</main>',
+    );
+
+    expect(parsed.blocks).toEqual(['Flights to Rome', 'Rome is warm.']);
+  });
+
+  it('does not mistake a listing card for the article', () => {
+    const parsed = page(
+      '<main><h1>All posts</h1><article><p>A card</p></article>' +
+        '<p>And the rest</p></main>',
+    );
+
+    expect(parsed.blocks).toEqual(['All posts', 'A card', 'And the rest']);
+  });
+
+  it('removes the furniture a theme builds out of plain divs', () => {
+    const parsed = page(
+      '<main><h1>Story</h1><p>The story itself.</p>' +
+        '<ul class="c-infoBox__ul"><li>Another headline</li></ul>' +
+        '<div class="sidebar"><p>Most popular</p></div>' +
+        '<div class="newsletter-signup"><p>Subscribe now</p></div>' +
+        '<div role="complementary"><p>Elsewhere on the site</p></div>' +
+        '<div id="comments"><p>A reader said</p></div>' +
+        '</main>',
+    );
+
+    expect(parsed.blocks).toEqual(['Story', 'The story itself.']);
+  });
+
   it('reads head metadata, resolving the canonical', () => {
     const parsed = page(
       '<p>x</p>',

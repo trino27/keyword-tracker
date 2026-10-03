@@ -18,6 +18,12 @@ export interface ICandidateStats {
   bodyTf: number;
   /** Equals, or is part of, a keyword the page declares itself. */
   declared: boolean;
+  /**
+   * Ids of the runs of text this term was read from — one per sentence or heading
+   * it occurs in. Selection uses them to tell several subjects from several windows
+   * of one sentence.
+   */
+  runs: Set<number>;
 }
 
 export interface ICandidateSource {
@@ -202,9 +208,11 @@ export function collectCandidates(
   ];
 
   const candidates = new Map<string, ICandidateStats>();
+  let runId = 0;
   for (const [field, texts] of fields) {
     for (const text of texts) {
       for (const run of tokenize(text)) {
+        runId += 1;
         for (const { term, tokens } of gramsOf(run, nonBounding, maxNgram)) {
           let stats = candidates.get(term);
           if (!stats) {
@@ -215,10 +223,12 @@ export function collectCandidates(
               declared: declared.some((keyword) =>
                 keyword.includes(` ${term} `),
               ),
+              runs: new Set(),
             };
             candidates.set(term, stats);
           }
           stats.fields.add(field);
+          stats.runs.add(runId);
           if (field === 'body') stats.bodyTf += 1;
         }
       }

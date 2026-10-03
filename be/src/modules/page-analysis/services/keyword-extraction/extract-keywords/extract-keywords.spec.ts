@@ -6,6 +6,7 @@ import {
 } from '@infrastructure/remote-api/_testing/fixture-http-transport';
 import {
   FLOOR_RATIO,
+  MAX_KEYWORDS_PER_RUN,
   MAX_OVERLAP_RATIO,
 } from '../../../constants/keyword-scoring.constant';
 import { extractPage } from '../../html-extraction/extract-page';
@@ -52,13 +53,33 @@ describe('extractKeywords (golden, recorded yoast posts)', () => {
         expect(keyword.relevance).toBeGreaterThanOrEqual(FLOOR_RATIO);
       }
     }
-    // "How to remove www from your URL" is about exactly that, and says so five ways.
+    // "How to remove www from your URL" said it five ways and used to return all
+    // five; its subject is now stated once and the rest of the list is other things.
     const index = pages.findIndex((page) =>
       page.url.endsWith('/how-to-remove-www-from-your-url/'),
     );
-    expect(keywords[index].map((keyword) => keyword.term)).toEqual([
+    const terms = keywords[index].map((keyword) => keyword.term);
+    expect(terms[0]).toBe('remove www');
+    expect(terms.filter((term) => term.includes('www'))).toEqual([
       'remove www',
     ]);
+  });
+
+  it('takes at most two keywords out of one sentence', () => {
+    // The long headline of a news story has several windows and one subject.
+    const perRun = new Map<string, number>();
+    const index = pages.findIndex((page) =>
+      page.url.endsWith(
+        '/pressing-questions-about-gutenberg-the-new-editor-in-wordpress-5-0/',
+      ),
+    );
+    for (const keyword of keywords[index]) {
+      const title = normalizeText(pages[index].parsed.title ?? '');
+      if (title.includes(keyword.term)) {
+        perRun.set('title', (perRun.get('title') ?? 0) + 1);
+      }
+    }
+    expect(perRun.get('title') ?? 0).toBeLessThanOrEqual(MAX_KEYWORDS_PER_RUN);
   });
 
   it('never returns two keywords that are windows of one phrase', () => {

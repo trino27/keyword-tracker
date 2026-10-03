@@ -9,6 +9,7 @@ const stats = (
   fields: new Set(fields),
   bodyTf: overrides.bodyTf ?? 0,
   declared: overrides.declared ?? false,
+  runs: new Set([1]),
 });
 
 describe('pageScore', () => {
