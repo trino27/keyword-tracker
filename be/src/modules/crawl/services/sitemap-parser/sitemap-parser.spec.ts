@@ -50,12 +50,50 @@ describe('parseSitemap', () => {
     });
   });
 
-  it.each(['<html><body>Not a sitemap</body></html>', 'plain text', ''])(
-    'calls %j invalid',
-    (input) => {
-      expect(parseSitemap(input).kind).toBe('invalid');
-    },
-  );
+  it('reads a <loc> wrapped in CDATA', () => {
+    expect(
+      parseSitemap(
+        '<urlset><url><loc><![CDATA[https://a.example/x/?a=1&b=2]]></loc></url></urlset>',
+      ),
+    ).toEqual({
+      kind: 'urlset',
+      urls: ['https://a.example/x/?a=1&b=2'],
+      news: false,
+    });
+  });
+
+  it('tolerates blank lines before the XML declaration', () => {
+    expect(
+      parseSitemap(
+        '\n\n  <?xml version="1.0"?><urlset><url><loc>https://a.example/</loc></url></urlset>',
+      ),
+    ).toMatchObject({ kind: 'urlset', urls: ['https://a.example/'] });
+  });
+
+  it('reads a text sitemap: one absolute URL per line', () => {
+    expect(
+      parseSitemap(
+        'https://a.example/one/\r\n\r\nhttps://a.example/two/\nhttp://a.example/three/\n',
+      ),
+    ).toEqual({
+      kind: 'urlset',
+      urls: [
+        'https://a.example/one/',
+        'https://a.example/two/',
+        'http://a.example/three/',
+      ],
+      news: false,
+    });
+  });
+
+  it.each([
+    '<html><body>Not a sitemap</body></html>',
+    'plain text',
+    '',
+    'https://a.example/\nnot a url\n',
+  ])('calls %j invalid', (input) => {
+    expect(parseSitemap(input).kind).toBe('invalid');
+  });
 
   it('parses the recorded yoast index and its first post sitemap', () => {
     const index = parseSitemap(fixture('yoast/sitemap_index.xml'));
