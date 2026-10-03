@@ -1,9 +1,10 @@
 import {
   FLOOR_RATIO,
   MAX_KEYWORDS,
-  MIN_KEYWORDS,
+  MAX_OVERLAP_RATIO,
   SUBSUME_RATIO,
 } from '../../../constants/keyword-scoring.constant';
+import { isWeakToken } from '../tokenize/tokenize';
 
 export interface IScoredCandidate {
   term: string;
@@ -34,9 +35,28 @@ export function subsume(candidates: IScoredCandidate[]): IScoredCandidate[] {
   );
 }
 
+/** The words of a term that carry it; a one-letter particle or a number does not. */
+const contentTokens = (term: string): ReadonlySet<string> =>
+  new Set(term.split(' ').filter((token) => !isWeakToken(token)));
+
 /**
- * §10.4 step 11: the best up to MAX_KEYWORDS above FLOOR_RATIO of the top score; when
- * fewer than MIN_KEYWORDS clear the floor, the next best fill up to it.
+ * Two terms say the same thing when most of the smaller one's words are in the other.
+ * Subsumption sees `южна африка` inside `южна африка без виза`; it cannot see that
+ * `африка без виза` and `пътуват до южна` are the same sentence read through a
+ * different window, and those took three of five slots.
+ */
+function overlapping(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+  const smaller = Math.min(a.size, b.size);
+  if (smaller === 0) return false;
+  let shared = 0;
+  for (const token of a) if (b.has(token)) shared += 1;
+  return shared / smaller >= MAX_OVERLAP_RATIO;
+}
+
+/**
+ * §10.4 step 11: the best keywords above FLOOR_RATIO of the top score, up to
+ * MAX_KEYWORDS, no two of them covering the same words. Nothing is added below the
+ * floor — a page with one subject returns one keyword.
  */
 export function selectKeywords(
   candidates: IScoredCandidate[],
@@ -45,11 +65,18 @@ export function selectKeywords(
     .filter((candidate) => candidate.score > 0)
     .sort((a, b) => b.score - a.score || a.term.localeCompare(b.term));
   if (ranked.length === 0) return [];
+
   const top = ranked[0].score;
-  const aboveFloor = ranked.filter((c) => c.score >= FLOOR_RATIO * top);
-  const chosen =
-    aboveFloor.length >= MIN_KEYWORDS
-      ? aboveFloor.slice(0, MAX_KEYWORDS)
-      : ranked.slice(0, MIN_KEYWORDS);
-  return chosen.map(({ term, score }) => ({ term, relevance: score / top }));
+  const chosen: ISelectedKeyword[] = [];
+  const taken: ReadonlySet<string>[] = [];
+  for (const candidate of ranked) {
+    if (chosen.length >= MAX_KEYWORDS) break;
+    // Ranked descending: the first one under the floor ends the list.
+    if (candidate.score < FLOOR_RATIO * top) break;
+    const tokens = contentTokens(candidate.term);
+    if (taken.some((other) => overlapping(tokens, other))) continue;
+    chosen.push({ term: candidate.term, relevance: candidate.score / top });
+    taken.push(tokens);
+  }
+  return chosen;
 }

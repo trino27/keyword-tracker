@@ -8,7 +8,7 @@ import {
 } from '../../../constants/keyword-scoring.constant';
 import { normalizeText } from '../../text/normalize-text/normalize-text';
 import { stopWordsFor } from '../stop-words/stop-words';
-import { tokenize } from '../tokenize/tokenize';
+import { isWeakToken, tokenize } from '../tokenize/tokenize';
 
 export interface ICandidateStats {
   tokens: number;
@@ -24,56 +24,131 @@ export interface ICandidateSource {
   url: string;
   parsed: IParsedPage;
   siteKey: string;
+  /**
+   * Normalized title tail segments the RUN showed to be the site's rather than the
+   * page's — the brand, and the section a CMS appends after it. Empty for a single
+   * page, which then relies on the brand name alone.
+   */
+  titleChrome?: ReadonlySet<string>;
+  /**
+   * Normalized declared keywords most of the run also declares. A news CMS emits its
+   * rubric there ("International", "Region National"), and the declared bonus would
+   * reward the taxonomy instead of the topic.
+   */
+  taxonomyKeywords?: ReadonlySet<string>;
+}
+
+/** A title cut at its separators: "A - National | Brand" → ["A", "National", "Brand"]. */
+export function titleSegments(title: string): string[] {
+  let segments = [title];
+  for (const separator of TITLE_SEPARATORS) {
+    segments = segments.flatMap((segment) => segment.split(separator));
+  }
+  return segments.map((segment) => segment.trim()).filter(Boolean);
 }
 
 /**
- * "How to X | Yoast" → "How to X": the last segment goes when it names the site — the
- * site key's first label or og:site_name. Brand words otherwise top every title.
+ * "How to X | Yoast" → "How to X", and "… - National | Globalnews.ca" → "…": tail
+ * segments go while they name the site — the site key's first label, `og:site_name`,
+ * or a segment the rest of the run also ends with, which is how a section name is
+ * told from a title that happens to have a dash in it. Stripping only ONE segment
+ * left "National" the top-scoring term of every Global News article.
  */
-export function stripBrandSuffix(
+/** Words that name the site, for recognising a title's tail. */
+function brandWords(siteKey: string, siteName: string | undefined): string[] {
+  return [siteKey.split('.')[0], siteName]
+    .filter((brand): brand is string => Boolean(brand))
+    .flatMap((brand) => normalizeText(brand).split(' '))
+    .filter(Boolean);
+}
+
+/**
+ * The one word that is the site's own, from the site key alone. `og:site_name` is
+ * not used here: "Global News" would make `news` unable to end a phrase on a news
+ * site, and a site's description of itself is not reliably its distinctive word.
+ */
+export function siteWord(siteKey: string): string {
+  return normalizeText(siteKey.split('.')[0]);
+}
+
+export function stripTitleChrome(
   title: string,
   siteKey: string,
   siteName: string | undefined,
+  titleChrome: ReadonlySet<string> = new Set(),
 ): string {
-  const brands = [siteKey.split('.')[0], siteName]
-    .filter((brand): brand is string => Boolean(brand))
-    .map(normalizeText)
-    .filter(Boolean);
-  let cut = -1;
-  let separatorLength = 0;
-  for (const separator of TITLE_SEPARATORS) {
-    const at = title.lastIndexOf(separator);
-    if (at > cut) {
-      cut = at;
-      separatorLength = separator.length;
-    }
+  const brands = brandWords(siteKey, siteName);
+  const segments = titleSegments(title);
+  // Never the whole title: a page whose title IS its section name keeps it.
+  while (segments.length > 1) {
+    const tail = ` ${normalizeText(segments[segments.length - 1])} `;
+    const isChrome =
+      brands.some((brand) => tail.includes(` ${brand} `)) ||
+      titleChrome.has(tail.trim());
+    if (!isChrome) break;
+    segments.pop();
   }
-  if (cut <= 0) return title;
-  const suffix = ` ${normalizeText(title.slice(cut + separatorLength))} `;
-  return brands.some((brand) => suffix.includes(` ${brand} `))
-    ? title.slice(0, cut)
-    : title;
+  // Rejoined with a separator, so no phrase is stitched across what was one.
+  return segments.join(' - ');
 }
 
+const VOWEL = /[aeiouyàâäåæéèêëíìîïóòôöøœúùûüýÿаеёиоуыэюяіїєўъ]/i;
+
+/**
+ * A slug token that is not a word: part of an opaque id, a hash, a base64 fragment.
+ * Letters mixed with digits, or no vowel at all.
+ */
+function looksLikeId(token: string): boolean {
+  return (/\p{L}/u.test(token) && /\p{N}/u.test(token)) || !VOWEL.test(token);
+}
+
+/**
+ * The URL's last path segment as words, or '' when it is an identifier.
+ *
+ * Two things went wrong here. A percent-encoded path — every non-ASCII URL — reached
+ * the candidates as its hex: `полети-до-рим` scored `d0 bf` and `bf d0`, while the
+ * real words never arrived and the page's own topic lost the slug's weight entirely.
+ * And an opaque id (`BDgx_QEdO0G1NNL-VyGD1A`) says nothing at all, yet at a slug's
+ * weight its fragments outscore real body terms. A slug is either words or an
+ * identifier; a mixed verdict is the identifier's.
+ */
 function slugOf(url: string): string {
+  let segment: string;
   try {
     const segments = new URL(url).pathname.split('/').filter(Boolean);
-    return (segments.at(-1) ?? '').replace(/\.[a-z0-9]+$/i, '');
+    segment = (segments.at(-1) ?? '').replace(/\.[a-z0-9]+$/i, '');
   } catch {
     return '';
   }
+  let decoded = segment;
+  try {
+    decoded = decodeURIComponent(segment);
+  } catch {
+    // A stray '%' is not an encoding; the segment as written is the better guess.
+  }
+  const tokens = decoded.replace(/[-_]+/g, ' ').split(' ').filter(Boolean);
+  const noise = tokens.filter(looksLikeId).length;
+  return noise * 2 > tokens.length ? '' : tokens.join(' ');
 }
 
-/** Every 1..n-gram of a run that neither starts nor ends with a stop word. */
+/**
+ * Every 1..n-gram of a run that neither starts nor ends with a non-bounding token —
+ * a stop word, a weak token, or the site's own name. A weak token INSIDE is what
+ * makes `евро в посока` and `багаж с wizz air` expressible at all; the brand inside
+ * is what keeps "ecommerce dashboard by yoast" from becoming "ecommerce dashboard"'s
+ * better-scoring twin.
+ */
 function* gramsOf(
   run: string[],
-  stopWords: ReadonlySet<string> | null,
+  nonBounding: ReadonlySet<string>,
   maxNgram: number,
 ): Generator<{ term: string; tokens: number }> {
+  const bounds = (token: string) =>
+    !isWeakToken(token) && !nonBounding.has(token);
   for (let start = 0; start < run.length; start += 1) {
-    if (stopWords?.has(run[start])) continue;
+    if (!bounds(run[start])) continue;
     for (let n = 1; n <= maxNgram && start + n <= run.length; n += 1) {
-      if (stopWords?.has(run[start + n - 1])) continue;
+      if (!bounds(run[start + n - 1])) continue;
       const term = run.slice(start, start + n).join(' ');
       if (term.length <= MAX_TERM_LENGTH) yield { term, tokens: n };
     }
@@ -91,9 +166,12 @@ export function collectCandidates(
   const { parsed } = source;
   const stopWords = stopWordsFor(parsed.lang);
   const maxNgram = stopWords ? MAX_NGRAM : MAX_NGRAM_UNKNOWN_LANG;
+  const nonBounding = new Set([...(stopWords ?? []), siteWord(source.siteKey)]);
+  const taxonomy = source.taxonomyKeywords ?? new Set<string>();
   const declared = [...parsed.jsonLd.keywords, ...parsed.articleTags]
-    .map((keyword) => ` ${normalizeText(keyword)} `)
-    .filter((keyword) => keyword.trim().length > 0);
+    .map((keyword) => normalizeText(keyword))
+    .filter((keyword) => keyword.length > 0 && !taxonomy.has(keyword))
+    .map((keyword) => ` ${keyword} `);
 
   const mainH1 = parsed.headings.find((heading) => heading.level === 1)?.text;
   const fields: [TKeywordField, string[]][] = [
@@ -101,16 +179,17 @@ export function collectCandidates(
       'title',
       parsed.title
         ? [
-            stripBrandSuffix(
+            stripTitleChrome(
               parsed.title,
               source.siteKey,
               parsed.openGraph['og:site_name'],
+              source.titleChrome,
             ),
           ]
         : [],
     ],
     ['h1', [mainH1 ?? parsed.h1s[0] ?? ''].filter(Boolean)],
-    ['slug', [slugOf(source.url).replace(/[-_]+/g, ' ')]],
+    ['slug', [slugOf(source.url)]],
     ['meta', parsed.metaDescription ? [parsed.metaDescription] : []],
     [
       'subheading',
@@ -126,7 +205,7 @@ export function collectCandidates(
   for (const [field, texts] of fields) {
     for (const text of texts) {
       for (const run of tokenize(text)) {
-        for (const { term, tokens } of gramsOf(run, stopWords, maxNgram)) {
+        for (const { term, tokens } of gramsOf(run, nonBounding, maxNgram)) {
           let stats = candidates.get(term);
           if (!stats) {
             stats = {
