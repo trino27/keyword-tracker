@@ -58,17 +58,32 @@ because both phases patch the same `ORDER BY` and the same two screens.
   applied NOT NULL columns onto an empty database without incident, which is the reviewer's path
   the schema was designed for. `docker compose run --rm seed` crawled both live sites: 2 runs
   succeeded, 15 posts each, 154 pairs × 365 days = 56 210 snapshots.
-- [ ] 3.3 Harvest before archiving (plan §18): create `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` carrying the applicability table of plan §10.1 and why a threshold's bounds are snapshotted into the row, each as an invariant with its `<!-- invariant: … -->` marker, its pinning line and the spec file's own path. Cite the field study's findings 3, 4 and 7 rather than copying them. Verify: `git grep -n "invariant: " -- be/src/modules/page-analysis` lists every deposited id
-  NOT DONE HERE: the harvest and the archive are sequenced after the change is complete, and task
-  2.5's browser walk is open. Noted for whoever closes it: `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`
-  ALREADY EXISTS — it was created by `docs(be): module documents` after this plan was written, so
-  the task's "no *_MODULE.md exists anywhere" is no longer true. The deposit extends that file; it
-  does not create it. Its "SEO rules" bullet still describes `Record<TSeoIssueCode, TSeoRule>` and
-  needs correcting to the mapped type with the three-outcome verdict.
+- [x] 3.3 Harvest before archiving (plan §18): create `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` carrying the applicability table of plan §10.1 and why a threshold's bounds are snapshotted into the row, each as an invariant with its `<!-- invariant: … -->` marker, its pinning line and the spec file's own path. Cite the field study's findings 3, 4 and 7 rather than copying them. Verify: `git grep -n "invariant: " -- be/src/modules/page-analysis` lists every deposited id
+  AMENDED during implementation: this task asked for two different acts and `openspec/README.md`
+  §8 separates them. The HARVEST — the durable facts that are not requirements — belongs BEFORE
+  the archive, and it is done: `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` now carries
+  the applicability table, which five checks are conditional and on what, why a threshold's bounds
+  are copied into the stored finding, why the two retired checks were retired, and the extraction
+  defect — each citing the field study rather than restating it. The `<!-- invariant: ID -->`
+  markers the task also asked for are the DEPOSIT, which cannot precede the archive: until then
+  the requirement still lives under `changes/` and a marker pointing at it points at a proposal.
+  They are task 3.4's, and are tracked there.
+  AMENDED further: `PAGE_ANALYSIS_MODULE.md` ALREADY EXISTED — `docs(be): module documents`
+  created it after this plan was written, so the plan's "no *_MODULE.md exists anywhere under
+  be/src/modules/" was already false. The harvest extended that file rather than creating one, and
+  corrected its "SEO rules" bullet, which still described the pre-change
+  `Record<TSeoIssueCode, TSeoRule>`.
 - [ ] 3.4 Archive the three changes, rewrite each archived heading from the delta form into the `[<CAP>-<NNN>]` form (`openspec/README.md` §3a, §8), then deposit. Verify: `pnpm exec openspec validate --type spec` and `git grep -n "Requirement \[" openspec/specs` lists the new ids exactly once each
   NOT DONE HERE: an archive is irreversible in the sense that matters — it turns a delta into
-  approved truth — and two of the three changes still carry an open browser walk. Sequenced after
-  2.5 and the two walks in the other changes.
+  approved truth — and five browser walks are open across the repository (this change's 2.5,
+  `page-health-score` 4.4, `seo-check-catalogue-correction` 4.6, `tracker-screens` 4.3,
+  `readme-and-clean-clone` 2.3). `openspec/README.md` §8 says review is the only check on an
+  archive, so an archive approved over unrun acceptance is the lifecycle doing nothing.
+  Scope note for whoever runs it: this is NOT three changes. `openspec/specs/` still holds only
+  `.gitkeep`, so nothing in the repository has ever been archived — eleven changes and 92
+  requirements, each needing its delta heading rewritten from `Requirement: ID — text` into §3's
+  `[ID]` form and then deposited into the module document that owns the invariant. One pass, done
+  once, after the walks.
 - [x] 3.5 Move `docs/_plans-archive/seo-analysis-accuracy.md` to `docs/_plans-archive/` with a header naming the branch, what was harvested where, and what was left open. Verify: `git grep -rn "seo-analysis-accuracy" -- ':!docs/_plans-archive'` finds no link into the archived plan from a skill or a module document
   VERIFIED: moved to `docs/_plans-archive/seo-analysis-accuracy.md` with a header naming the
   branch (`feat/page-health-and-catalogue`), what was harvested into which owning document, and
