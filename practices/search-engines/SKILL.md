@@ -41,6 +41,7 @@ field study is a record of a day, and is never rewritten to match what was later
 | [`keywords-and-intent.md`](references/keywords-and-intent.md) | changing keyword extraction, or deciding what the word "keyword" promises a user |
 | [`ai-search.md`](references/ai-search.md) | anything about AI answers, AI crawlers, or `llms.txt` |
 | [`field-study-2026-10.md`](references/field-study-2026-10.md) | arguing about a threshold — it holds measurements from live sites, including ours firing on them |
+| [`field-study-2026-10-04-canada.md`](references/field-study-2026-10-04-canada.md) | tuning keyword extraction — what four sites' keywords were graded as, and the two silent total failures only an unfamiliar site showed |
 
 ## Three rules for reading any of it
 

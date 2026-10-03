@@ -86,7 +86,12 @@ vocabulary from being mistaken for every page's topic.
 ## Observations from live pages
 
 Measured 2026-10-03 on fifteen articles across three publishers; detail in
-[`field-study-2026-10.md`](field-study-2026-10.md).
+[`field-study-2026-10.md`](field-study-2026-10.md). Extraction itself was graded against four
+sites on 2026-10-04 — see
+[`field-study-2026-10-04-canada.md`](field-study-2026-10-04-canada.md), which is the better
+starting point before changing a scoring constant, and which ends on the ceiling every one of
+these heuristics shares: the scoring measures salience within a document, and a keyword is a
+search query.
 
 - **The declared-keyword bonus never applied *on this sample* — but it is not dead.** None of
   the fifteen pages emitted JSON-LD `keywords` or `article:tag`, while 20 of the 23 recorded
