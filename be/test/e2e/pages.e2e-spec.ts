@@ -1,6 +1,7 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { SEO_ISSUE_CODES } from '@app/contracts';
+import { MAX_KEYWORDS } from '../../src/modules/page-analysis/constants/keyword-scoring.constant';
 import { CrawlWorker } from '../../src/modules/crawl/workers/crawl-worker/crawl-worker';
 import { createTestApp } from '../support/create-test-app';
 import { seedTestUser, signIn } from '../support/sign-in';
@@ -47,7 +48,18 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
       client: { id: clientId, name: 'Yoast' },
       bestPosition: null,
     });
-    expect(first.body.items[0].keywords.length).toBeGreaterThanOrEqual(5);
+    // Every page carries keywords, none more than the cap, and the strongest is the one
+    // relevance is measured against. A fixed lower bound of five would re-assert the
+    // topping-up that select-keywords deliberately does not do.
+    for (const item of [...first.body.items, ...second.body.items]) {
+      const relevances = (item.keywords as { relevance: number }[]).map(
+        ({ relevance }) => relevance,
+      );
+      expect(relevances.length).toBeGreaterThanOrEqual(1);
+      expect(relevances.length).toBeLessThanOrEqual(MAX_KEYWORDS);
+      expect(relevances[0]).toBe(1);
+      expect(relevances).toEqual([...relevances].sort((a, b) => b - a));
+    }
 
     const scores = [...first.body.items, ...second.body.items].map(
       (item: { score: { value: number } }) => item.score.value,
@@ -178,8 +190,15 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
 
   it('a finding shared across the client’s pages says how many it is on', async () => {
     const { body } = await list('?pageSize=20').expect(200);
+    // The page that HAS a shared finding, not whichever happens to score worst. Yoast's
+    // fifteen posts come from one template, so some code is shared; which page is worst
+    // depends on the catalogue and is not what this test is about.
+    const withShared = (
+      body.items as { id: number; issues: { siteWide: number } }[]
+    ).find((item) => item.issues.siteWide > 0);
+    expect(withShared).toBeDefined();
     const detail = await http()
-      .get(`/api/pages/${body.items[0].id}`)
+      .get(`/api/pages/${withShared!.id}`)
       .set('Cookie', cookie)
       .expect(200);
 
@@ -199,7 +218,7 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     // And the list's own count agrees: it is the number of THIS page's codes that
     // another page of the client also carries.
     const shared = issues.filter((issue) => issue.pagesAffected > 1).length;
-    expect(body.items[0].issues.siteWide).toBe(shared);
+    expect(withShared!.issues.siteWide).toBe(shared);
   });
 
   it("another user's clientId is a 404, and their list is empty", async () => {

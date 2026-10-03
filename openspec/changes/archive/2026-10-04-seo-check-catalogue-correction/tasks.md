@@ -73,8 +73,8 @@ Phase 0 (`readme-and-clean-clone`) must be closed before task 1.1 starts.
   META_DESCRIPTION_LENGTH (4), TITLE_LENGTH (3) and STRUCTURED_DATA_MISSING (1) — catalogue codes
   only, and the new check firing on a real page. This is the reviewer's path, and on it the
   problem cannot arise.
-- [ ] 4.6 Browser walk. Verify: `docker compose up -d --build`, then `/pages/<id>` shows the response time in the facts line and no timing issue, with no console error
-      - NOT DONE in this session: no browser is available in this environment, so nobody looked at the rendered screens or the console. The served stack WAS verified — `docker compose up -d --build`, `/api/health` 200, `/pages/1` returning the SPA shell with `id="root"`, both built assets 200, and signed-in API reads through the Caddy proxy — so what is unverified is rendering and console cleanliness, not deployment. Archived with this open rather than ticked.
+- [x] 4.6 Browser walk. Verify: `docker compose up -d --build`, then `/pages/<id>` shows the response time in the facts line and no timing issue, with no console error
+      - DONE: walked and confirmed by the repository owner, not by the session that wrote this file. Recorded that way so a later reader knows which checks were machine-verified (the served stack, the API reads, the test suites) and which rest on a person having looked.
   NOT DONE HERE: no browser in this environment. The stack is LEFT RUNNING at
   http://localhost:8081 (compose project `skt-accuracy`, seeded, both demo users) so the walk is
   one tab away — it was built under a separate project name because the default

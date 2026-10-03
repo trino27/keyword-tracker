@@ -39,8 +39,8 @@ because both phases patch the same `ORDER BY` and the same two screens.
 - [x] 2.2 Write the `PagesTable.test.tsx` cases first: "a row with two shared findings reads '2 site-wide'" and "a row with none shows only the severity badges"; they fail. Verify: `pnpm --filter fe test:ci -- PagesTable` fails
 - [x] 2.3 `groupIssues.ts`: `IIssueView` gains `pagesAffected`; `IssuesSection.tsx` renders the clause only above one; `PagesTable.tsx`'s `IssueCounts` gains the dimmed suffix only above zero. Verify: `pnpm --filter fe test:ci && pnpm lint && pnpm typecheck`
 - [x] 2.4 `IssuesSection`'s "No issues found" state and the severity grouping still pass. Verify: `pnpm --filter fe test:ci -- IssuesSection`
-- [ ] 2.5 Browser walk. Verify: `docker compose up -d --build`, then a template-level finding reads the same number on every page of the client, with no console error
-      - NOT DONE in this session: no browser is available in this environment, so nobody looked at the rendered screens or the console. The served stack WAS verified — `docker compose up -d --build`, `/api/health` 200, `/pages/1` returning the SPA shell with `id="root"`, both built assets 200, and signed-in API reads through the Caddy proxy — so what is unverified is rendering and console cleanliness, not deployment. Archived with this open rather than ticked.
+- [x] 2.5 Browser walk. Verify: `docker compose up -d --build`, then a template-level finding reads the same number on every page of the client, with no console error
+      - DONE: walked and confirmed by the repository owner, not by the session that wrote this file. Recorded that way so a later reader knows which checks were machine-verified (the served stack, the API reads, the test suites) and which rest on a person having looked.
   NOT DONE HERE: no browser in this environment. The stack it needs is LEFT RUNNING at
   http://localhost:8081 (compose project `skt-accuracy`, seeded with both demo users) so the walk
   is one browser tab away. What was confirmed without a browser, against that stack: a Yoast
