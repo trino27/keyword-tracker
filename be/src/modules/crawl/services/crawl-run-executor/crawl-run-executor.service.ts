@@ -250,5 +250,7 @@ function toRunPage(page: ICrawledPage, analysis: IPageAnalysis): IRunPage {
     issues: analysis.issues,
     checksApplicable: analysis.checksApplicable,
     checksFailed: analysis.checksFailed,
+    checksJudged: analysis.checksJudged,
+    checksNotApplicable: analysis.checksNotApplicable,
   };
 }
