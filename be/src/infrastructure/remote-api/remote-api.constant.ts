@@ -8,7 +8,8 @@ export const REMOTE_API_LIMITS = {
   maxRedirects: 5,
   /** Retries after the first attempt — three attempts in all. */
   maxRetries: 2,
-  backoffBaseMs: 500,
+  backoffBaseMs: 250,
+  backoffJitterMs: 100,
   /** A Retry-After longer than this is not worth holding a crawl slot for. */
   retryAfterCapMs: 10_000,
 } as const;

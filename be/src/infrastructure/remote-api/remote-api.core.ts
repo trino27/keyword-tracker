@@ -83,6 +83,8 @@ export class RemoteApiCore {
   ): Promise<IHttpResponse> {
     for (let attempt = 0; ; attempt += 1) {
       const isLast = attempt === REMOTE_API_LIMITS.maxRetries;
+      const startedAt = performance.now();
+      let retryAfter: string | undefined;
       try {
         const response = await this.transport.send({
           url: url.href,
@@ -93,31 +95,39 @@ export class RemoteApiCore {
           signal: hopSignal(options.signal),
           maxBytes: options.maxBytes,
         });
+        this.logger.debug(
+          {
+            method: 'GET',
+            host: url.host,
+            path: url.pathname,
+            status: response.status,
+            durationMs: Math.round(performance.now() - startedAt),
+            attempt,
+          },
+          'remote request',
+        );
         if (isLast || !RETRYABLE_STATUSES.has(response.status)) return response;
-        await this.backoff(url, attempt, response.headers['retry-after']);
+        retryAfter = response.headers['retry-after'];
       } catch (error) {
         if (isLast || !(error instanceof RemoteApiError) || !error.retryable)
           throw error;
         if (options.signal?.aborted) throw error;
-        await this.backoff(url, attempt, undefined);
+        this.logger.debug(
+          { host: url.host, path: url.pathname, attempt, error: error.name },
+          'remote request failed',
+        );
       }
+      await this.timing.sleep(backoffMs(attempt, retryAfter));
     }
   }
+}
 
-  private async backoff(
-    url: URL,
-    attempt: number,
-    retryAfter: string | undefined,
-  ): Promise<void> {
-    const ms =
-      parseRetryAfter(retryAfter) ??
-      REMOTE_API_LIMITS.backoffBaseMs * 2 ** attempt;
-    this.logger.debug(
-      { url: url.href, attempt, waitMs: ms },
-      'retrying request',
-    );
-    await this.timing.sleep(ms);
-  }
+function backoffMs(attempt: number, retryAfter: string | undefined): number {
+  const jitter = Math.floor(Math.random() * REMOTE_API_LIMITS.backoffJitterMs);
+  return (
+    parseRetryAfter(retryAfter) ??
+    REMOTE_API_LIMITS.backoffBaseMs * 2 ** attempt + jitter
+  );
 }
 
 /**
