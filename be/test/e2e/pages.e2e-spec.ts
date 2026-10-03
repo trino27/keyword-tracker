@@ -35,7 +35,7 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     await testDb.close();
   });
 
-  it('pages through the 15 posts, in sitemap order', async () => {
+  it('pages through the 15 posts, worst first and each exactly once', async () => {
     const first = await list('?pageSize=10').expect(200);
     const second = await list('?pageSize=10&page=2').expect(200);
 
@@ -43,11 +43,22 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     expect(first.body.items).toHaveLength(10);
     expect(second.body.items).toHaveLength(5);
     expect(first.body.items[0]).toMatchObject({
-      url: 'https://yoast.com/how-to-remove-www-from-your-url/',
       client: { id: clientId, name: 'Yoast' },
       bestPosition: null,
     });
     expect(first.body.items[0].keywords.length).toBeGreaterThanOrEqual(5);
+
+    const scores = [...first.body.items, ...second.body.items].map(
+      (item: { score: { value: number } }) => item.score.value,
+    );
+    expect(scores).toEqual([...scores].sort((a, b) => a - b));
+
+    // The walk is over two real pages of a real planner: the order is total, so no post
+    // repeats and none is skipped between them.
+    const ids = [...first.body.items, ...second.body.items].map(
+      (item: { id: number }) => item.id,
+    );
+    expect(new Set(ids).size).toBe(15);
   });
 
   it('searches by URL and by keyword', async () => {
