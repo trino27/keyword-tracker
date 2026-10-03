@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    // TYPE-CHECK ONLY. tsc never rewrites path aliases, so JS emitted from here
+    // would still import `@core/...` and die with MODULE_NOT_FOUND. Emit belongs to
+    // `pnpm build` (`nest build` + `tsc-alias`), which `tsconfig.build.json` enables.
+    "noEmit": true,
+    "outDir": "./dist",
+    // Outside `dist/`, which `nest build` deletes, so incremental state survives a build.
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "baseUrl": "./",
+    "paths": {
+      "@core/*": ["src/core/*"],
+      "@shared/*": ["src/shared/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@modules/*": ["src/modules/*"],
+      "@persistence/*": ["src/persistence/*"]
+    },
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}

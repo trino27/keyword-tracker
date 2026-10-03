@@ -1,0 +1,34 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"useDefineForClassFields": true,
+		"module": "ESNext",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["vite/client", "node", "@testing-library/jest-dom"],
+		"skipLibCheck": true,
+
+		"moduleResolution": "bundler",
+		"moduleDetection": "force",
+		"resolveJsonModule": true,
+		"noEmit": true,
+		"jsx": "react-jsx",
+
+		/* One alias per layer. A cross-layer import uses the alias, an import inside the
+		   same layer is relative — so the alias in an import line names the dependency. */
+		"paths": {
+			"@App/*": ["./src/App/*"],
+			"@Core/*": ["./src/Core/*"],
+			"@Gateways/*": ["./src/Gateways/*"],
+			"@Modules/*": ["./src/Modules/*"],
+			"@ViewModels/*": ["./src/ViewModels/*"]
+		},
+
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"erasableSyntaxOnly": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedSideEffectImports": true
+	},
+	"include": ["src/**/*", "vite.config.ts", "vitest.setup.ts"]
+}

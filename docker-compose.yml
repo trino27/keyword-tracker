@@ -1,0 +1,75 @@
+# The whole app: Postgres, a one-shot migration, the API, and Caddy serving the
+# built SPA in front of it. `cp .env.example .env && docker compose up -d --build`.
+#
+# Only `web` publishes an app port. Postgres publishes one too, for local tools and
+# for running be/fe outside docker against this database.
+
+name: seo-keyword-tracker
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: UTC
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Runs to completion before the API starts; the API waits for it to succeed.
+  migrate:
+    build:
+      context: .
+      dockerfile: be/Dockerfile
+    image: seo-keyword-tracker-be
+    command: ["node", "dist/src/migrate.js"]
+    environment: &be-env
+      NODE_ENV: production
+      TZ: UTC
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  be:
+    image: seo-keyword-tracker-be
+    restart: unless-stopped
+    environment:
+      <<: *be-env
+      PORT: "3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  # The built SPA served by Caddy, which also proxies /api to the backend.
+  web:
+    build:
+      context: .
+      dockerfile: fe/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - caddy-data:/data
+    depends_on:
+      be:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  caddy-data:

@@ -1,0 +1,43 @@
+# The single entry point: serves the built SPA and proxies the API, so the app and
+# its API share one origin — the session cookie stays first-party and nothing needs CORS.
+#
+# Plain HTTP inside the compose network; the published port is set in
+# docker-compose.yml. Put a real domain here instead of :80 and Caddy provisions TLS.
+:80 {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+
+	# The API keeps its /api prefix: the backend's global prefix expects it.
+	handle /api/* {
+		reverse_proxy be:3000
+	}
+
+	# Hashed build assets never change under the same name.
+	handle /assets/* {
+		root * /srv
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# Every other path is a client-side route: serve the file if it exists, otherwise
+	# index.html. index.html itself is never cached, or a deploy stays invisible until
+	# a hard refresh.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		header /index.html Cache-Control "no-cache"
+		file_server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
