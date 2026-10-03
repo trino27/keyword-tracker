@@ -1,10 +1,12 @@
 import { z } from "zod";
 import {
+	CHECK_STATUSES,
 	MEASURED_ISSUE_CODES,
 	SEO_ISSUE_CODES,
 	SEO_ISSUE_SEVERITIES,
 	type IBestPosition,
 	type IKeywordPosition,
+	type IPageCheck,
 	type IPageDetail,
 	type IPageListItem,
 	type IPageListResponse,
@@ -39,6 +41,16 @@ export const pageScoreSchema = z.object({
 	applicable: z.number().int().positive(),
 	failed: z.number().int().min(0),
 }) satisfies z.ZodType<IPageScore>;
+
+/**
+ * One catalogue check and what the last crawl concluded. An unknown status is contract
+ * drift — a parse error, not a row rendered with no marker — the same stance the issue
+ * union takes on an unknown code.
+ */
+export const pageCheckSchema = z.object({
+	code: z.enum([...SEO_ISSUE_CODES] as [TSeoIssueCode, ...TSeoIssueCode[]]),
+	status: z.enum(CHECK_STATUSES),
+}) satisfies z.ZodType<IPageCheck>;
 
 export const pageListItemSchema = z.object({
 	id: z.number().int(),
@@ -135,6 +147,8 @@ export const pageDetailSchema = z.object({
 	keywords: z.array(keywordPositionSchema),
 	bestPosition: bestPositionSchema.nullable(),
 	score: pageScoreSchema,
+	/** Null while this page's last crawl predates per-check recording. */
+	checks: z.array(pageCheckSchema).nullable(),
 	issues: z.array(detailIssueSchema),
 	lastCrawl: crawlRunSummarySchema.nullable(),
 }) satisfies z.ZodType<IPageDetail>;
@@ -161,3 +175,4 @@ export type TPageDetail = z.infer<typeof pageDetailSchema>;
 export type TPositionHistory = z.infer<typeof positionHistorySchema>;
 export type TSeoIssue = z.infer<typeof seoIssueSchema>;
 export type TDetailIssue = z.infer<typeof detailIssueSchema>;
+export type TPageCheck = z.infer<typeof pageCheckSchema>;
