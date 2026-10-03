@@ -68,7 +68,7 @@ export class RankSnapshotsRepository {
         select distinct on (client_id) id, client_id
         from crawl_runs
         where status in (${statuses})
-        order by client_id, id desc
+        order by client_id, finished_at desc, id desc
       )
       select p.id as page_id, pk.keyword_id, p.url, k.term, pk.relevance,
              last.captured_at as last_captured_at, last.position as last_position
