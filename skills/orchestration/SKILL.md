@@ -10,7 +10,7 @@ subagents exist for the steps where a separate context earns its cost:
 
 | Agent | Does |
 | --- | --- |
-| **planner** | Writes the plan: creates the OpenSpec change (`proposal.md`, `design.md`, specs, `tasks.md`) once the decisions exist. Never decides, never writes application code |
+| **planner** | Writes the plan in `docs/_plans/` and creates the OpenSpec changes it drives (`proposal.md`, specs, generated `tasks.md`) once the decisions exist. Never decides, never writes application code |
 | **scout** | Finds files, patterns, interfaces and local conventions before coding. Read-only |
 | **system-architect** | Reviews architecture, cross-module and `be`↔`fe` contracts, security. Read-only |
 | **test-runner** | Runs lint, typecheck, tests and build for the affected workspaces. Writes nothing |
