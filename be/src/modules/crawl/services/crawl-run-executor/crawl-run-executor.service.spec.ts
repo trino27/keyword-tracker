@@ -176,6 +176,25 @@ describe('outcomeOf', () => {
     });
   });
 
+  it('every post redirects to another site: the blog has moved', () => {
+    // A Blogger blog moved to its own domain keeps a sitemap of blogspot URLs.
+    const moved: ISelectedItem = {
+      ...failedItem(301, 'Redirects to another site'),
+      status: 'skipped_other_site',
+    };
+    const foreign: ISelectedItem = {
+      ...failedItem(null, 'Belongs to another site'),
+      status: 'skipped_other_site',
+    };
+
+    expect(outcomeOf(0, [moved, moved], true)).toMatchObject({
+      errorCode: 'SITE_REDIRECTS_ELSEWHERE',
+    });
+    expect(outcomeOf(0, [foreign], true)).toMatchObject({
+      errorCode: 'BLOG_SITEMAP_NOT_FOUND',
+    });
+  });
+
   it('nothing crawled from a guessed source: no blog was found after all', () => {
     const notArticle: ISelectedItem = {
       ...failedItem(200, 'Not marked as an article'),

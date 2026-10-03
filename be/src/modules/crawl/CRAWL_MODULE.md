@@ -27,7 +27,8 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
 - **robots.txt per RFC 9309:** 4xx allows everything, 5xx forbids everything and the run fails
   `ROBOTS_UNAVAILABLE` without reading anything else; every candidate disallowed fails
   `ROBOTS_DISALLOWED`. A home page redirecting to another site fails `SITE_REDIRECTS_ELSEWHERE`
-  when nothing else was found.
+  when nothing else was found, and so does a run whose every candidate redirects off the site
+  (a Blogger blog moved to its own domain keeps a sitemap of blogspot URLs).
 - **Formats read:** XML sitemaps and indexes (gzip, CDATA, namespaces), text sitemaps (one URL
   per line), a feed named as a sitemap, RSS 2.0/1.0, Atom and JSON Feed (FeedBurner's
   `origLink`, a permalink `guid`; `utm_*` and fragments dropped). Text is decoded by BOM, then
