@@ -21,9 +21,9 @@ export interface ICandidateStats {
   /** Equals, or is part of, a keyword the page declares itself. */
   declared: boolean;
   /**
-   * Ids of the runs of text this term was read from — one per sentence or heading
-   * it occurs in. Selection uses them to tell several subjects from several windows
-   * of one sentence.
+   * Ids of the runs of text this term was read from — one per DISTINCT sentence or
+   * heading it occurs in. Selection uses them to tell several subjects from several
+   * windows of one sentence.
    */
   runs: Set<number>;
 }
@@ -232,12 +232,24 @@ export function collectCandidates(
 
   const repeated = repeatedBodyRuns(parsed.blocks);
   const candidates = new Map<string, ICandidateStats>();
-  let runId = 0;
+  // Keyed by the run's own words, not by a counter. A post's title, its h1 and its
+  // slug are usually the same sentence written three times, and counting them as
+  // three let one headline spend a list that allows two keywords per sentence:
+  // canadiangeographic.ca returned `canadian astronaut joshua kutryk launches` AND
+  // `kutryk launches on long term`, both at relevance 1, for one piece of news.
+  const runIds = new Map<string, number>();
+  const runIdOf = (run: string[]) => {
+    const key = run.join(' ');
+    const existing = runIds.get(key);
+    if (existing !== undefined) return existing;
+    runIds.set(key, runIds.size);
+    return runIds.size - 1;
+  };
   for (const [field, texts] of fields) {
     for (const text of texts) {
       for (const run of tokenize(text)) {
-        runId += 1;
         if (field === 'body' && repeated.has(run.join(' '))) continue;
+        const runId = runIdOf(run);
         for (const { term, tokens } of gramsOf(run, nonBounding, maxNgram)) {
           let stats = candidates.get(term);
           if (!stats) {

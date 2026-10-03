@@ -46,6 +46,12 @@ const NON_CONTENT = [
 const FURNITURE_MAX_SHARE = 0.5;
 
 /**
+ * Share of the page an `<article>` must hold before it is read as the post rather
+ * than as a card listing one. See `mainContent`.
+ */
+const ARTICLE_MIN_SHARE = 0.3;
+
+/**
  * Text present only for assistive technology, or hidden from it; neither is page content.
  * A copy-link control inside a heading made "Copy link to headingAgentic infrastructure"
  * on vercel.com — practices/search-engines/references/field-study-2026-10.md, finding 7.
@@ -173,15 +179,26 @@ const wordsIn = ($: CheerioAPI, node: ReturnType<CheerioAPI>) =>
   $(node).text().split(/\s+/).filter(Boolean).length;
 
 function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
+  const mainEl = $('main').first();
+  const whole = mainEl.length ? mainEl : $('body').first();
+  const wholeWords = wordsIn($, whole);
+
   let withHeading: ReturnType<CheerioAPI> | null = null;
   $('article').each((_, element) => {
     const article = $(element);
-    if (!withHeading && article.find('h1').length > 0) withHeading = article;
+    if (withHeading || article.find('h1').length === 0) return;
+    // A related-post card is an <article> with an <h1> in it too, and on
+    // canadiangeographic.ca the post itself is not in an <article> at all: the first
+    // one on the page is the first card, and reading it gave a 2,555-word feature a
+    // word count of 30. The post is most of what the page holds; a card is a sliver.
+    if (wholeWords > 0 && wordsIn($, article) < wholeWords * ARTICLE_MIN_SHARE)
+      return;
+    withHeading = article;
   });
   const candidate =
     withHeading ??
-    ($('main').first().length
-      ? $('main').first()
+    (mainEl.length
+      ? mainEl
       : $('article').first().length
         ? $('article').first()
         : $('body').first());

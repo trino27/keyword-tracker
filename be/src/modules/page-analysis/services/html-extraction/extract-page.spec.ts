@@ -89,6 +89,22 @@ describe('extractPage', () => {
     expect(parsed.blocks).toEqual(['Rome is warm.']);
   });
 
+  it('does not mistake a related-post card for the article, h1 and all', () => {
+    // canadiangeographic.ca does not wrap the post in an <article> at all, and the
+    // cards under it are <article>s with an <h1> each. Taking the first one gave a
+    // 2,555-word feature a word count of 30.
+    const parsed = page(
+      '<main><h1>Falling in love with Kananaskis</h1>' +
+        '<p>The valley holds a quiet that the highway never reaches at dawn.</p>' +
+        '<p>Mount Engadine Lodge sits where the moose come down to feed.</p>' +
+        '<article><h1>Glacier ghosts of the Rockies</h1></article>' +
+        '</main>',
+    );
+
+    expect(parsed.wordCount).toBeGreaterThan(20);
+    expect(parsed.blocks[0]).toContain('The valley holds a quiet');
+  });
+
   it('does not mistake a listing card for the article', () => {
     const parsed = page(
       '<main><h1>All posts</h1><article><p>A card</p></article>' +

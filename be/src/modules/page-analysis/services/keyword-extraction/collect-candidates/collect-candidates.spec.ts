@@ -195,6 +195,32 @@ describe('collectCandidates', () => {
   });
 });
 
+describe('runs', () => {
+  it('reads one headline as one run, though it is written three times', () => {
+    // A post's title, its h1 and its slug are usually the same sentence. Counted as
+    // three, one headline could spend a list that allows two keywords per sentence
+    // three times over.
+    const headline =
+      'Canadian astronaut Joshua Kutryk launches on a long mission';
+    const candidates = collect(
+      {
+        title: headline,
+        headings: [{ level: 1, text: headline }],
+        h1s: [headline],
+        blocks: ['He trained in Houston.'],
+      },
+      'https://a.example/canadian-astronaut-joshua-kutryk-launches-on-a-long-mission/',
+    );
+
+    expect(candidates.get('joshua kutryk')?.runs.size).toBe(1);
+    expect(candidates.get('joshua kutryk')?.fields).toEqual(
+      new Set(['title', 'h1', 'slug']),
+    );
+    // A sentence that is genuinely another sentence is still another run.
+    expect(candidates.get('trained in houston')?.runs.size).toBe(1);
+  });
+});
+
 describe('repeated body runs', () => {
   const TAILS = [
     'audit your schema markup.',
