@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /stories/post-number-3/
+Sitemap: https://unusual-name.example/sitemap.xml

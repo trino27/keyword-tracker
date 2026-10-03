@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="color-scheme" content="only light">
+	<title>Email performance in Google Analytics &#8226; Yoast</title>
+		<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+	<!-- This site is optimized with the Yoast SEO Premium plugin v28.7-RC1 (Yoast SEO v28.7-RC1) - https://yoast.com/product/yoast-seo-premium-wordpress/ -->
+	<meta name="description" content="Oh, the wonders of email marketing! With the help of Google Analytics, you can get insight into the data. Want to know more? Annelieke explains how you can measure your email performance." />
+	<link rel="canonical" href="https://yoast.com/email-performance-in-google-analytics/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Email performance in Google Analytics" />
+	<meta property="og:description" content="Oh, the wonders of email marketing! With the help of Google Analytics, you can get insight into the data. Want to know more? Annelieke explains how you can measure your email performance." />
+	<meta property="og:url" content="https://yoast.com/email-performance-in-google-analytics/" />
+	<meta property="og:site_name" content="Yoast" />
+	<meta property="article:publisher" content="https://www.facebook.com/yoast" />
+	<meta property="article:published_time" content="2018-06-11T13:51:36+00:00" />
+	<meta property="article:modified_time" content="2018-11-30T09:03:40+00:00" />
+	<meta property="og:image" content="https://yoast.com/app/uploads/2018/06/Annelieke_s_analytics_-_email_performance_in_Google_Analytics.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="628" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta name="author" content="Annelieke van den Berg" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:creator" content="@yoast" />
+	<meta name="twitter:site" content="@yoast" />
+	<meta name="twitter:label1" content="Written by" />
+	<meta name="twitter:data1" content="Annelieke van den Berg" />
+	<meta name="twitter:label2" content="Est. reading time" />
+	<meta name="twitter:data2" content="7 minutes" />
+	<script type="application/ld+json">{"@context":"https:\/\/schema.org","@graph":[{"@type":"Article","@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/#article","isPartOf":{"@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/"},"author":{"name":"Annelieke van den Berg","@id":"https:\/\/yoast.com\/#\/schema\/person\/99ffcf717f57bafb21c7669e8dcd7eff"},"headline":"Email performance in Google Analytics","datePublished":"2018-06-11T13:51:36+00:00","dateModified":"2018-11-30T09:03:40+00:00","mainEntityOfPage":{"@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/"},"wordCount":1434,"commentCount":4,"publisher":{"@id":"https:\/\/yoast.com\/#organization"},"image":{"@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2018\/05\/Google_analytics_03_FI.png","keywords":["Google Analytics"],"inLanguage":"en-US","potentialAction":[{"@type":"CommentAction","name":"Comment","target":["https:\/\/yoast.com\/email-performance-in-google-analytics\/#respond"]}],"copyrightYear":"2018","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"}},{"@type":"WebPage","@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/","url":"https:\/\/yoast.com\/email-performance-in-google-analytics\/","name":"Email performance in Google Analytics &#8226; Yoast","isPartOf":{"@id":"https:\/\/yoast.com\/#website"},"primaryImageOfPage":{"@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/#primaryimage"},"image":{"@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/#primaryimage"},"thumbnailUrl":"https:\/\/yoast.com\/app\/uploads\/2018\/05\/Google_analytics_03_FI.png","datePublished":"2018-06-11T13:51:36+00:00","dateModified":"2018-11-30T09:03:40+00:00","description":"Oh, the wonders of email marketing! With the help of Google Analytics, you can get insight into the data. Want to know more? Annelieke explains how you can measure your email performance.","breadcrumb":{"@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/#breadcrumb"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https:\/\/yoast.com\/email-performance-in-google-analytics\/"]}]},{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/#primaryimage","url":"https:\/\/yoast.com\/app\/uploads\/2018\/05\/Google_analytics_03_FI.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2018\/05\/Google_analytics_03_FI.png","width":1200,"height":628,"caption":"Google Analytics"},{"@type":"BreadcrumbList","@id":"https:\/\/yoast.com\/email-performance-in-google-analytics\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/yoast.com\/"},{"@type":"ListItem","position":2,"name":"SEO blog","item":"https:\/\/yoast.com\/seo-blog\/"},{"@type":"ListItem","position":3,"name":"Google Analytics","item":"https:\/\/yoast.com\/tag\/google-analytics\/"},{"@type":"ListItem","position":4,"name":"Email performance in Google Analytics"}]},{"@type":"WebSite","@id":"https:\/\/yoast.com\/#website","url":"https:\/\/yoast.com\/","name":"Yoast","description":"SEO for everyone","publisher":{"@id":"https:\/\/yoast.com\/#organization"},"potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/yoast.com\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-US","copyrightHolder":{"@id":"https:\/\/yoast.com\/#organization"}},{"@type":["Organization","Brand"],"@id":"https:\/\/yoast.com\/#organization","name":"Yoast","url":"https:\/\/yoast.com\/","logo":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/","url":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","contentUrl":"https:\/\/yoast.com\/app\/uploads\/2020\/09\/Yoast_Icon_SocialMedia_500x500.png","width":500,"height":500,"caption":"Yoast"},"image":{"@id":"https:\/\/yoast.com\/#\/schema\/logo\/image\/"},"sameAs":["https:\/\/www.facebook.com\/yoast","https:\/\/x.com\/yoast","https:\/\/www.instagram.com\/yoast\/","https:\/\/www.linkedin.com\/company\/1414157\/","https:\/\/www.pinterest.com\/yoast\/","https:\/\/www.youtube.com\/yoast","https:\/\/en.wikipedia.org\/wiki\/Yoast","https:\/\/www.tiktok.com\/@yoastseo","https:\/\/g.co\/kgs\/4H5sG2","https:\/\/g.co\/kgs\/a9XfUu"],"numberOfEmployees":81,"founder":{"@type":"Person","name":"Joost de Valk","sameAs":"https:\/\/en.wikipedia.org\/wiki\/Joost_de_Valk"},"foundingDate":"2010-05-01","slogan":"SEO for Everyone","description":"Yoast helps you with your website optimization, whether it be through our widely used SEO software or our online SEO courses: we&#039;re here to help.","legalName":"Yoast BV","parentOrganization":{"@type":"Organization","name":"Newfold Digital","description":"Newfold Digital is a leading web presence solutions provider serving millions of small-to-medium businesses globally.","url":"https:\/\/newfold.com\/","sameAs":["https:\/\/newfold.com\/"],"logo":"https:\/\/yoast.com\/app\/uploads\/2022\/01\/newfold-logo.png"},"memberOf":{"@type":"Organization","name":"World Wide Web Consortium (W3C)","description":"The World Wide Web Consortium (W3C) is an international community that develops open standards to ensure the long-term growth of the Web.","url":"https:\/\/w3.org\/","sameAs":["https:\/\/w3.org\/"],"logo":"https:\/\/www.w3.org\/Icons\/w3c_main.png"}},{"@type":"Person","@id":"https:\/\/yoast.com\/#\/schema\/person\/99ffcf717f57bafb21c7669e8dcd7eff","name":"Annelieke van den Berg","image":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/secure.gravatar.com\/avatar\/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=96&d=mm&r=g","url":"https:\/\/secure.gravatar.com\/avatar\/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=96&d=mm&r=g","contentUrl":"https:\/\/secure.gravatar.com\/avatar\/5b7c926fcc8bf5814a275e33e1ec08ed3551f565d72c57579894a9cd455608ba?s=96&d=mm&r=g","caption":"Annelieke van den Berg"},"description":"Annelieke is a former employee of Yoast and used to lead the research team at Yoast. She has her Master's degree in Sociology and focuses on all things related to data.","sameAs":["https:\/\/nl.linkedin.com\/in\/anneliekevdberg"]}]}</script>
+	<!-- / Yoast SEO Premium plugin. -->
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel="alternate" type="application/rss+xml" title="Yoast &raquo; Feed" href="https://yoast.com/feed/" />
+<link rel="stylesheet" id="address-autocomplete-billing-block-css" href="https://yoast.com/app/plugins/address-autocomplete/build/style-address-autocomplete-billing-block.css?ver=1.1.2" media="all" />
+<link rel="stylesheet" id="daexthefup-google-font-css" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&#038;&#038;ver=1.14#038;display=swap" media="all" />
+<link rel="stylesheet" id="daexthefup-general-css" href="https://yoast.com/app/plugins/helpful-pro/public/assets/css/general.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="daexthefup-custom-css" href="https://yoast.com/app/uploads/daexthefup_uploads/custom-1.css?ver=1.14" media="all" />
+<link rel="stylesheet" id="select2-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/select2.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-wcaf-css" href="https://yoast.com/app/plugins/yith-woocommerce-affiliates-premium/assets/css/yith-wcaf.min.css?ver=3.12.0" media="all" />
+<link rel="stylesheet" id="brands-styles-css" href="https://yoast.com/app/plugins/woocommerce/assets/css/brands.css?ver=10.0.5" media="all" />
+<link rel="stylesheet" id="yith-plugin-fw-icon-font-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/plugin-fw/assets/css/yith-icon.css?ver=4.6.5" media="all" />
+<link rel="stylesheet" id="yith-wcmcs-shortcodes-css" href="https://yoast.com/app/plugins/yith-multi-currency-switcher-for-woocommerce/assets/css/shortcodes.css?ver=1.36.1-beta-1" media="all" />
+<link rel="stylesheet" id="yoast-com-menu-css" href="https://yoast.com/app/themes/yoast-theme/css/templates/menu.min.css?ver=1782129058" media="all" />
+<link rel="stylesheet" id="yoast-siteheader-css" href="https://yoast.com/app/themes/yoast-com/assets/css/siteheader.min.css?ver=1774510573" media="all" />
+<link rel="stylesheet" id="yoast-com-css" href="https://yoast.com/app/themes/yoast-theme/css/style.min.css?ver=1782290502" media="all" />
+<link rel="stylesheet" id="new-post-css" href="https://yoast.com/app/themes/yoast-theme/css/4-pages/new-post.min.css?ver=1776675829" media="all" />
+<!-- Stream WordPress user activity plugin v4.3.0 -->
+<link rel="manifest" href="/manifest.json" />
+<!-- Google AdSense meta tags added by Site Kit -->
+<meta name="google-adsense-platform-account" content="ca-host-pub-2644536267352236">
+<meta name="google-adsense-platform-domain" content="sitekit.withgoogle.com">
+<!-- End Google AdSense meta tags added by Site Kit -->
+<link rel="icon" href="https://yoast.com/images/yoast_icon_32x32.ico" sizes="any">
+<link rel="icon" href="https://yoast.com/images/yoast_icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://yoast.com/images/yoast_icon_180x180.png">
+</head>
+<body>
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NHRB36F" height="0" width="0"></iframe></noscript>
+		<header>
+	<a id="yoast-skip-link"
+		href="#content">Skip to content</a>
+		<div><button id="close-mobile-search-menu" aria-label="Close"><i aria-hidden="true"></i></button><form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-1" >What are you looking for?</label><div ><input id="wp-block-search__input-1" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form></div><div>
+	<a href="/">
+		<picture>
+			<img id="sticky-menu-logo" width="90" height="40" src="https://yoast.com/app/themes/yoast-theme/images/logo-diap.svg"
+				alt="Yoast - SEO for everyone">
+		</picture>
+	</a>
+			<nav aria-label="Main menu">
+			<div id="main-menu">
+				<ul id="menu-main-menu"><li id="menu-item-3251820"><a href="https://yoast.com/shop/">Plans &amp; pricing</a>
+<ul>
+	<li id="menu-item-4246533"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO: #1 WordPress SEO plugin</span><span>Essential SEO tools for your site</span></span></a></li>
+	<li id="menu-item-4246543"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/07/woocommerce_icon-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast WooCommerce SEO</span><span>SEO that scales with your product catalog</span></span></a></li>
+	<li id="menu-item-4256677"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/10/ai_plus_package_icon_menu.svg 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO AI+</span><span>Your complete search visibility package</span></span></a></li>
+	<li id="menu-item-4189500"><a href="https://yoast.com/product/yoast-seo-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo_shopify.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Easy SEO, now with AI insights</span></span></a></li>
+	<li id="menu-item-4140280"><a href="https://yoast.com/product/google-docs-addon/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Google Docs Add-On</span><span>Create better content in Google Docs</span></span></a></li>
+	<li id="menu-item-4634954"><a href="https://yoast.com/yoast-partners/resellers/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/custom_quote.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Get a custom quote</span><span>Got multiple sites? Let's talk</span></span></a></li>
+	<li id="menu-item-4246550"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_premium.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Premium</span><span>Advanced SEO with real-time guidance and built-in AI</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251898"><a href="https://yoast.com/academy/">Learn SEO</a>
+<ul>
+	<li id="menu-item-3251899"><a href="https://yoast.com/academy/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_academy.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO Academy</span><span>Practical SEO training, from beginner to advanced</span></span></a></li>
+	<li id="menu-item-3251901"><a href="https://yoast.com/academy/free-seo-training-seo-for-beginners/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/free_courses.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO for beginners (free course)</span><span>Start developing your SEO skills today</span></span></a></li>
+	<li id="menu-item-3251903"><a href="https://yoast.com/tag/seo-basics/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/seo_basics.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>SEO basics</span><span>Read up on the basic concepts of SEO</span></span></a></li>
+	<li id="menu-item-3251905"><a href="https://yoast.com/must-reads-for-website-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/ultimate_guides.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Ultimate SEO guides</span><span>In-depth articles on core SEO themes</span></span></a></li>
+	<li id="menu-item-4546254"><a href="https://yoast.com/podcasts/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/04/podcasts.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Podcasts</span><span>Stay up to date with expert insights on SEO news and trends</span></span></a></li>
+	<li id="menu-item-3251936"><a href="https://yoast.com/webinar/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_webinars.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Webinars</span><span>Your go-to for expert SEO insights, live and on demand</span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3251982"><a href="https://yoast.com/seo-blog/">Blog</a>
+<ul>
+	<li id="menu-item-3251980"><a href="https://yoast.com/tag/content-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Content SEO</span><span>Learn about content SEO on our blog</span></span></a></li>
+	<li id="menu-item-3251983"><a href="https://yoast.com/tag/technical-seo/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/technical_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Technical SEO</span><span>Learn about technical SEO on our blog</span></span></a></li>
+	<li id="menu-item-4634523"><a href="https://yoast.com/developer-blog/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/dev_blog-1.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer blog</span><span>Built by engineers, written for engineers</span></span></a></li>
+	<li id="menu-item-4517726"><a href="https://yoast.com/tag/release-post/page/2/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/product_news.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast software news</span><span>Browse our latest product and feature releases</span></span></a></li>
+	<li id="menu-item-3251992"><a href="https://yoast.com/newsletter/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_newsletter.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Newsletter</span><span>Sign up for the latest news from Yoast</span><span>Sign up now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252004"><a href="https://yoast.com/help/">Help</a>
+<ul>
+	<li id="menu-item-3252005"><a href="https://yoast.com/help/support/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_plugin_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>WordPress plugins</span><span>Get help with our WordPress plugins</span></span></a></li>
+	<li id="menu-item-3252007"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/shopify_app_help.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast SEO for Shopify</span><span>Get help with Yoast SEO for Shopify</span></span></a></li>
+	<li id="menu-item-3252008"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/knowledge_base.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Help center</span><span>Find out how to use our products</span></span></a></li>
+	<li id="menu-item-3252009"><a href="https://developer.yoast.com/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/dev_docs.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Developer resources</span><span>Advanced documentation and product changelogs</span></span></a></li>
+	<li id="menu-item-3252010"><a href="https://yoast.com/help/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/highlight_support.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>24/7 support</span><span>Premium support whenever you need</span><span>Get support now <svg></svg></span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-3252063"><a href="https://yoast.com/about-us/">About us</a>
+<ul>
+	<li id="menu-item-3929595"><a href="https://yoast.com/about-us/core-values/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/yoast_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Company culture</span><span>Equality, inclusiveness, and empowerment</span></span></a></li>
+	<li id="menu-item-3929607"><a href="https://yoast.com/jobs/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/content_seo.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Careers</span><span>Join Yoast, make an impact</span></span></a></li>
+	<li id="menu-item-3252060"><a href="https://yoast.com/about-us/community/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/giving_back.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Community</span><span>Giving back to our community</span></span></a></li>
+	<li id="menu-item-4634516"><a href="https://yoast.com/case-studies"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/case_studies.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Case studies</span><span>Growth stories from brands like yours</span></span></a></li>
+	<li id="menu-item-3252069"><a href="https://yoast.com/wordpress/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2022/09/wp_community.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Yoast and WordPress</span><span>Yoast in the WordPress ecosystem</span></span></a></li>
+	<li id="menu-item-4627269"><a href="https://yoast.com/about-us/events/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2026/06/events.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Events</span><span>Network, learn, grow</span></span></a></li>
+	<li id="menu-item-3929437"><a href="https://yoast.com/about-us/team/"><span><img src="https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png" srcset="https://yoast.com/cdn-cgi/image/width=80%2Cheight=80%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 2x, https://yoast.com/cdn-cgi/image/width=40%2Cheight=40%2Cfit=crop%2Cf=auto%2Conerror=redirect/app/uploads/2025/04/icon_aboutus-2.png 1x" alt="" loading="lazy" fetchpriority="low" decoding="async" width="40" height="40"></span><span><span>Team and leadership</span><span>Meet the Yoasters</span></span></a></li>
+</ul>
+</li>
+<li><div>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+</div></li></ul>			</div>
+		</nav>
+					<div>
+				<a
+					href="https://yoast.com/download-yoast-seo/">
+					Download FREE<img src="https://yoast.com/app/uploads/2025/11/download_icon.svg" alt="">				</a>
+			</div>
+<ul>
+	<li>
+		<button id="main-menu-search-container"
+				aria-label="Open search box"><i
+			></i></button>
+		<div>
+			<div>
+				<form role="search" method="get" action="https://yoast.com/" ><label for="wp-block-search__input-2" >What are you looking for?</label><div ><input id="wp-block-search__input-2" placeholder="What are you looking for?" value="" type="search" pattern=".{2,}" title="Enter 2 or more characters" name="s" required /><button aria-label="Search" type="submit" ><i aria-hidden="true"></i><span>Search</span></button></div></form>			</div>
+		</div>
+	</li>
+	<li>
+		<a href="https://my.yoast.com/"
+			aria-label="">
+			<i></i>
+			<span>Login</span>
+		</a>
+			</li>
+		<li>
+			<a href="https://yoast.com/checkout/"
+				aria-label="Cart">
+				<i></i>
+				<span>Cart</span>
+				<div>
+					<span></span>
+				</div>
+			</a>
+		</li>
+	<li>
+		<button type="button"
+			 aria-expanded="false">
+			<span>Search</span>
+			<span aria-hidden="true">
+				<i></i>
+			</span>
+		</button>
+	</li>
+	<li>
+		<button type="button"
+			 id="mobile-show-nav" aria-expanded="false">
+			<span>Navigation menu</span>
+			<span aria-hidden="true">
+				<span></span>
+				<span></span>
+				<span></span>
+			</span>
+		</button>
+	</li>
+</ul>
+</div>
+		<div>
+			<div></div>
+			<div></div>
+		</div>
+	</header>
+<div></div>
+	<div>
+		<main id="content">
+	<nav aria-label="You are here:">
+		<ol><li><a href="https://yoast.com/" aria-label="Home"><i aria-hidden="true"></i></a></li>  <li><a href="https://yoast.com/seo-blog/">SEO blog</a></li>  <li><a href="https://yoast.com/tag/google-analytics/">Google Analytics</a></li>  <li aria-current="page">Email performance in Google Analytics</li></ol>	</nav>
+			<article>
+				<header>
+		<span>
+			<a href="https://yoast.com/series/annelieke-analytics/"
+				title="Annelieke&#039;s Analytics series archive">
+				Annelieke&#039;s Analytics:
+			</a>
+		</span>
+<h1>
+	Email performance in Google Analytics</h1>
+					<div>
+							<span>Jun 11, 2018</span>
+		<span>
+		<a href="https://yoast.com/email-performance-in-google-analytics/#comments">4</a>
+	</span>
+	<span>
+		<a href="https://yoast.com/tag/google-analytics/" rel="tag">Google Analytics</a>	</span>
+							<span>Annelieke van den Berg</span>
+												</div>
+						<picture>
+		<img
+		fetchpriority="high"
+		width="400"
+		height="210"
+		decoding="async"
+		loading="eager"
+		sizes="(max-width: 1012px) 100vw, 1012px"
+		src="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=scale-down%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png"
+		srcset="https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 400w, https://yoast.com/cdn-cgi/image/width=400%2Cheight=210%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 800w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 600w, https://yoast.com/cdn-cgi/image/width=600%2Cheight=315%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 1200w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 800w, https://yoast.com/cdn-cgi/image/width=800%2Cheight=420%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 1600w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 1012w, https://yoast.com/cdn-cgi/image/width=1012%2Cheight=531%2Cdpr=2%2Cfit=cover%2Cf=auto%2Cquality=75%2Conerror=redirect/app/uploads/2018/05/Google_analytics_03_FI.png 2024w"
+		alt=""
+		>
+	</picture>
+					</header>
+				<div>
+					<aside>
+<div>
+			<figure>
+		<img src="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg" srcset="https://yoast.com/cdn-cgi/image/width=75,height=75,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 75w, https://yoast.com/cdn-cgi/image/width=150,height=150,fit=contain,f=auto,onerror=redirect/app/uploads/2025/08/premium_icon.svg 150w" width="75" height="75" alt="" loading="lazy" decoding="async" fetchpriority="low" sizes="(min-width: 1321px) 75px" />		</figure>
+	<h2>Get Yoast SEO Premium</h2>
+	<p>Drive <strong>more traffic </strong>to your site. Use <strong>AI to save time</strong> doing SEO tasks. Make <strong>SEO easier</strong>. And get <strong>24/7 support.</strong></p>
+<p><strong>Includes Local SEO, Video SEO &amp; News SEO.</strong></p>
+<p>&nbsp;</p>
+				<div>
+			<span><strong><span><span>&#036;</span>118.80</span></strong>&nbsp;<small>/ year (ex. VAT)</small></span>
+		</div>
+		<div><a href="https://yoast.com/cart/?add-to-cart=4113952" rel="nofollow">Get Yoast SEO Premium&nbsp;<span aria-hidden="true">&raquo;</span></a></div>		<div>
+		<div><a href="https://www.trustpilot.com/review/yoast.com" target="_blank"><h3>Reviews from real users</h3><span>Rated 4.6 stars by 819 users</span><div aria-hidden="true"><div><div></div></div> 4.6 / 5 </div><span> (opens in a new tab)</span></a></div>		</div>
+		</div>
+					</aside>
+					<p>Oh, the wonders of email marketing. It can keep your audience up-to-date whilst hopefully resulting in an increase in sales. But how do you measure the efforts of email marketing? Google Analytics can give you insight into how much of your traffic is generated by email. It’s an interesting tool that can break down the email performance, so that &#8211; if needed &#8211; you can adapt your site accordingly. I’ll explain down below how to monitor your email performance successfully!</p>
+<h2>Use UTM tags</h2>
+<p>If you want to track your email performance in Google Analytics, it&#8217;s pretty important to get email data into your Google Analytics, right? If you want to know how many people came to your site by clicking on a link in your newsletter, you need to send a piece of information so that Google Analytics can recognize the traffic is coming from your email campaign. You can do so by adding UTM (Urchin Tracking Module) tags to all links in your newsletter that link to your site, so-called <a href="https://yoast.com/use-custom-campaigns/">campaign tracking</a>. As a result of that, a link from your email newsletter might look something like this: x.com/postx/#utm_source=x&amp;utm_medium=y&amp;utm_campaign=z</p>
+<p>If you google more information about UTM tagging, you might find a lot of different approaches. And tagging your links isn&#8217;t something you should think lightly of. You need to find a way that will help you with <span>easily </span><span>identifying links in Google Analytics. Browse through your source/medium stats, look at campaigns and ask yourself what kind of elements of links in your emails you want to see in your reports. Think about how you want to handle the following UTM tags:</span></p>
+<ul>
+<li>utm_medium</li>
+<li>utm_source</li>
+<li>utm_campaign</li>
+</ul>
+<p>An example: let&#8217;s say you&#8217;re planning to do a summer sale and you&#8217;re sending out an additional email to your customers. How would you add UTM tag links in such an email? One UTM tag you don&#8217;t have to think about is the utm_medium tag. That should always, always be &#8217;email.&#8217; That way, Google Analytics will organize this traffic in the <a href="https://support.google.com/analytics/answer/6010097?hl=en">Channel email</a>, and that is something you&#8217;d want if you&#8217;re going to work wilt <a href="https://support.google.com/analytics/answer/1191180?hl=en">Multi-Channel Funnels</a>.</p>
+<p>Then you have the utm_source tag. Some say you should use the Branded source, for instance, utm_source=mailchimp if you use MailChimp, or utm_source=helpscout if you use HelpScout for support emails and such. But again, it&#8217;s all about how <em>you</em> can identify from which source your traffic is coming from. If you sent multiple emails, for instance, your regular newsletter and an occasional sales email, you can decide that for your newsletter, you use utm_source=newsletter and for your sales email utm_source=sales.</p>
+<p>Use the campaign tag for more specified tagging. In the example of the Summer Sale, you want to give that sale a specific tag that is used by all the marketing efforts you do for that sale. Your Social Media efforts and so on should use the same utm_campaign tag. That way you can easily recognize what your email did for that campaign and it it&#8217;s the best performing source for that campaign. For  example: utm_campaign=summer-sale-july-18.</p>
+<p>There are two other UTM tags you can use to differentiate even further:</p>
+<ul>
+<li>utm_term</li>
+<li>utm_content</li>
+</ul>
+<p>You can use the utm_term, for instance, to add the subject of the post you&#8217;re linking to. And you can use utm_content to differentiate elements of the newsletter. For instance, if you&#8217;re linking to the same page twice, but one with a text link and the other with a banner, you can use utm_content=textlink and utm_content=banner.</p>
+<h2>Where to find your emails in Google Analytics?</h2>
+<p>If you use campaign tracking on all links in your emails, you can find them in your Acquisition reports when clicking on All Traffic &#8211;&gt; Source/Medium. You can find what you used for utm_source in the Source report, and what you used for utm_medium in de Medium report. Or both in the Source/Medium report:</p>
+<p><img fetchpriority="high" decoding="async" src="https://yoast.com/app/uploads/2018/06/email_in_aquisition_reports_in_Google_Analytics-600x234.png" alt="email in aquisition reports in Google Analytics" width="600" height="234" srcset="https://yoast.com/app/uploads/2018/06/email_in_aquisition_reports_in_Google_Analytics-600x234.png 600w, https://yoast.com/app/uploads/2018/06/email_in_aquisition_reports_in_Google_Analytics-250x97.png 250w, https://yoast.com/app/uploads/2018/06/email_in_aquisition_reports_in_Google_Analytics-768x299.png 768w, https://yoast.com/app/uploads/2018/06/email_in_aquisition_reports_in_Google_Analytics-128x50.png 128w" sizes="(max-width: 600px) 100vw, 600px" /></p>
+<p>If you can&#8217;t find what you&#8217;re looking for, you can use the search bar that searches in the first column of your report:</p>
+<p><img decoding="async" src="https://yoast.com/app/uploads/2018/06/search_for_email_in_Google_Analytics-600x219.png" alt="search for email in Google Analytics" width="600" height="219" srcset="https://yoast.com/app/uploads/2018/06/search_for_email_in_Google_Analytics-600x219.png 600w, https://yoast.com/app/uploads/2018/06/search_for_email_in_Google_Analytics-250x91.png 250w, https://yoast.com/app/uploads/2018/06/search_for_email_in_Google_Analytics-768x281.png 768w, https://yoast.com/app/uploads/2018/06/search_for_email_in_Google_Analytics-137x50.png 137w" sizes="(max-width: 600px) 100vw, 600px" /></p>
+<p>Then you&#8217;ll get a nice overview of all sources for your utm_medium=email. In the screenshot above, you can see the performance of a sales email for a given period. You can see how much users came to your site, how many <a href="https://yoast.com/sessions-in-google-analytics/">sessions</a> there are, how long they lasted on average, and in the last column you can see how your email converted for the goals you&#8217;ve set. And you can compare this with your other email marketing efforts and check which was most successful.</p>
+<p>If you want to know how your email campaigns (utm_campaign) worked out for you, you can add a Secondary <a href="https://yoast.com/dimensions-and-metrics-google-analytics/">dimension</a>: Campaign to your report.</p>
+<p><img decoding="async" src="https://yoast.com/app/uploads/2018/06/email_campaigns_in_Google_Analytics-600x187.png" alt="email campaigns in Google Analytics" width="600" height="187" srcset="https://yoast.com/app/uploads/2018/06/email_campaigns_in_Google_Analytics-600x187.png 600w, https://yoast.com/app/uploads/2018/06/email_campaigns_in_Google_Analytics-250x78.png 250w, https://yoast.com/app/uploads/2018/06/email_campaigns_in_Google_Analytics-768x240.png 768w, https://yoast.com/app/uploads/2018/06/email_campaigns_in_Google_Analytics-160x50.png 160w" sizes="(max-width: 600px) 100vw, 600px" /></p>
+<p>You can also go to your campaign report that&#8217;s filed under Acquisition: Campaigns &#8211;&gt; All Campaigns <img decoding="async" src="https://yoast.com/app/uploads/2018/06/campaigns_report_in_Google_Analytics-166x300.png" alt="campaigns report in Google Analytics" width="166" height="300" srcset="https://yoast.com/app/uploads/2018/06/campaigns_report_in_Google_Analytics-166x300.png 166w, https://yoast.com/app/uploads/2018/06/campaigns_report_in_Google_Analytics-28x50.png 28w, https://yoast.com/app/uploads/2018/06/campaigns_report_in_Google_Analytics-83x150.png 83w, https://yoast.com/app/uploads/2018/06/campaigns_report_in_Google_Analytics.png 416w" sizes="(max-width: 166px) 100vw, 166px" /></p>
+<p>You can add Source / Medium as a Secondary dimension here as well. But there are other UTM tags you can add as Secondary dimensions, like the utm_term and utm_content tags. For utm_term, you need to find &#8216;Seach Term,&#8217; and for utm_content you need to look for &#8216;Ad Content.&#8217;</p>
+<p>I find it very insightful to click my way through these reports and check if I&#8217;m tagging in a way I can understand my traffic sources. If I see a UTM tag that I find useless, I&#8217;ll know I have to change the way I&#8217;m tagging. This is especially the case if I decide to use utm_term and utm_content tags for links to my site.</p>
+<p><img decoding="async" src="https://yoast.com/app/uploads/2018/06/utm_term_in_Google_Analytics-250x178.png" alt="utm_term in Google Analytics" width="250" height="178" srcset="https://yoast.com/app/uploads/2018/06/utm_term_in_Google_Analytics-250x178.png 250w, https://yoast.com/app/uploads/2018/06/utm_term_in_Google_Analytics-768x548.png 768w, https://yoast.com/app/uploads/2018/06/utm_term_in_Google_Analytics-600x428.png 600w, https://yoast.com/app/uploads/2018/06/utm_term_in_Google_Analytics-70x50.png 70w, https://yoast.com/app/uploads/2018/06/utm_term_in_Google_Analytics-210x150.png 210w, https://yoast.com/app/uploads/2018/06/utm_term_in_Google_Analytics.png 812w" sizes="(max-width: 250px) 100vw, 250px" /></p>
+<h2><img decoding="async" src="https://yoast.com/app/uploads/2018/06/utm_content_in_Google_Analytics-229x300.png" alt="utm_content in Google Analytics" width="229" height="300" srcset="https://yoast.com/app/uploads/2018/06/utm_content_in_Google_Analytics-229x300.png 229w, https://yoast.com/app/uploads/2018/06/utm_content_in_Google_Analytics-38x50.png 38w, https://yoast.com/app/uploads/2018/06/utm_content_in_Google_Analytics-114x150.png 114w, https://yoast.com/app/uploads/2018/06/utm_content_in_Google_Analytics.png 500w" sizes="(max-width: 229px) 100vw, 229px" /></h2>
+<h2></h2>
+<h2></h2>
+<h2></h2>
+<h2></h2>
+<h2></h2>
+<h2></h2>
+<h2>Create a segment for email</h2>
+<p>If you don&#8217;t want to deal with Secondary dimensions and want to see more than what the Acquisition reports have to offer, you can decide on creating a <a href="https://yoast.com/why-use-segments-in-google-analytics/">segment</a> for your emails in general. Or you can narrow the segment down to just the email you&#8217;re interested in using all UTM tags that are in your email as shown in the image below. <img decoding="async" src="https://yoast.com/app/uploads/2018/06/Creating_an_email_segment_in_Google_Analytics-600x386.png" alt="Creating an email segment in Google Analytics" width="600" height="386" srcset="https://yoast.com/app/uploads/2018/06/Creating_an_email_segment_in_Google_Analytics-600x386.png 600w, https://yoast.com/app/uploads/2018/06/Creating_an_email_segment_in_Google_Analytics-250x161.png 250w, https://yoast.com/app/uploads/2018/06/Creating_an_email_segment_in_Google_Analytics-768x495.png 768w, https://yoast.com/app/uploads/2018/06/Creating_an_email_segment_in_Google_Analytics-78x50.png 78w, https://yoast.com/app/uploads/2018/06/Creating_an_email_segment_in_Google_Analytics-233x150.png 233w, https://yoast.com/app/uploads/2018/06/Creating_an_email_segment_in_Google_Analytics.png 1640w" sizes="(max-width: 600px) 100vw, 600px" /></p>
+<p>Just play a little with your segment. If you just want to see Medium=email, create that segment. If you just want to see Source=sales, create another segment. Find the joy in segments; they&#8217;re fun!</p>
+<h2>Reports to look at</h2>
+<p>Before you look at all the numbers in your Google Analytics report, think about what kind of questions you want to be answered. This will help you with finding what you&#8217;re looking for in the jungle called Google Analytics. Do you want to know how many users came to your site via email? How many new users your email drove to your site? How long they stayed and so on: check the Audience Overview report and use a segment to you&#8217;ll only see traffic from your emails.</p>
+<p>You can also compare email with other sources, see how effective your emails were by checking the stats in your Acquisition report. Did email get the most sessions, conversions and so on? Are the people coming from email more engaged than other sources? What&#8217;s your question and hypothesis here?</p>
+<p>And using an email segment shows you which pages users saw in the Behavior reports, the products they bought in the Conversion reports, the (goal/eCommerce) <a href="https://yoast.com/what-is-conversion/">conversion</a> rate of your newsletter subscribers. And you can use this data to compare it with other marketing efforts. Which was more effective? Do newsletter subscribers convert better? And do you know why?</p>
+<p>One final tip, when sending out an email to your users, check the real-time report. Is what you&#8217;re seeing what you expected? Or isn&#8217;t there any traffic coming from email? Then there might be an issue with your newsletter.</p>
+<h2>Conclusion</h2>
+<p>The most important thing if you want to analyze your newsletter performance, is using campaign tracking on the links in your email. There are email services that can add UTM tags automatically, like MailChimp. Otherwise, you have to do this manually. And trust me, you want to do this. Because you want to check your email performance in Google Analytics. When analyzing your newsletters, think about the questions you want to be answered. Using segments will make sure you rock your Google Analytics reports!</p>
+<p><p>Read more: <a href="https://yoast.com/online-marketing-tools/">Tools to improve your online marketing campaign &raquo;</a></p></p>
+						<div>
+		<p>Share this post</p>
+		<a
+			rel="nofollow"
+			href="https://twitter.com/share?url=https%3A%2F%2Fyoast.com%2Femail-performance-in-google-analytics%2F&#038;via=yoast&#038;text=Email%20performance%20in%20Google%20Analytics%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on X"
+			aria-label="Share on X"
+		>
+			<span>Share on X</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://www.linkedin.com/shareArticle?url=https%3A%2F%2Fyoast.com%2Femail-performance-in-google-analytics%2F&#038;title=Email%20performance%20in%20Google%20Analytics%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on LinkedIn"
+			aria-label="Share on LinkedIn"
+		>
+			<span>Share on LinkedIn</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://wa.me/?text=Email%20performance%20in%20Google%20Analytics%20by%20Yoast%20-%20https%3A%2F%2Fyoast.com%2Femail-performance-in-google-analytics%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on WhatsApp"
+			aria-label="Share on WhatsApp"
+		>
+			<span>Share on WhatsApp</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://telegram.me/share/url?url=https%3A%2F%2Fyoast.com%2Femail-performance-in-google-analytics%2F&#038;text=Email%20performance%20in%20Google%20Analytics%20by%20Yoast"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Telegram"
+			aria-label="Share on Telegram"
+		>
+			<span>Share on Telegram</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="https://mastodonshare.com/?text=Email%20performance%20in%20Google%20Analytics%20by%20Yoast&#038;url=https%3A%2F%2Fyoast.com%2Femail-performance-in-google-analytics%2F"
+			onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=468,width=768');return false;"
+			title="Share on Mastodon"
+			aria-label="Share on Mastodon"
+		>
+			<span>Share on Mastodon</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			title="Copy to clipboard"
+			aria-label="Copy to clipboard"
+		>
+			<span>Copy to clipboard</span>
+			<i aria-hidden="true"></i>
+		</a>
+		<a
+			rel="nofollow"
+			href="#"
+			aria-label="Share"
+		>
+			<i aria-hidden="true"></i>
+			<span>Share</span>
+		</a>
+	</div>
+					<div>
+						<div>
+	<figure><img srcset="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,dpr=2,onerror=redirect/app/uploads/2019/04/Annelieke_bubble-250x285.png 2x, https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2019/04/Annelieke_bubble-250x285.png 1x" src="https://yoast.com/cdn-cgi/image/width=75,height=85,f=auto,onerror=redirect/app/uploads/2019/04/Annelieke_bubble-250x285.png" width="75" height="85" alt="Avatar of Annelieke van den Berg" loading="lazy" decoding="async" fetchpriority="low" /></figure>	<div>
+					<span>Annelieke van den Berg</span>
+					<p>Annelieke is a former employee of Yoast and used to lead the research team at Yoast. She has her Master's degree in Sociology and focuses on all things related to data.</p>
+			</div>
+</div>
+<hr/>
+					</div>
+							<div id="comments">
+			<h3>Discussion (4)</h3>
+			<div>
+	<ol>
+			<li		id="comment-930848">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='jake' src='https://secure.gravatar.com/avatar/5cd086f2f1dfb3b1b30a863aa100e774cc9b4c42e2e356e75612f6d7244d42c2?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/5cd086f2f1dfb3b1b30a863aa100e774cc9b4c42e2e356e75612f6d7244d42c2?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>jake</span>
+				<span>Jun. 18, 2018</span>
+			</div>
+			<div>
+				<p>Thanks for sharing&#8230;..Yoast is the best SEO Plugin</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-920808">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='انجام پروژه دانشجویی' src='https://secure.gravatar.com/avatar/2d47ceabefaf413ed14776a4810346b6e38f09923a3265a17f5200d6e43e8c5b?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/2d47ceabefaf413ed14776a4810346b6e38f09923a3265a17f5200d6e43e8c5b?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>انجام پروژه دانشجویی</span>
+				<span>Jun. 12, 2018</span>
+			</div>
+			<div>
+				<p>Every time you write a blog post about Google Analytics, I learn something new. Lots of love to Dear Annelieke for sharing her knowledge to us.</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-920085">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Joyita Paul Chowdhury' src='https://secure.gravatar.com/avatar/665206475a1a4d0ad43c27d12f83c302718520d7d6cc30d5c3dc032838cf5872?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/665206475a1a4d0ad43c27d12f83c302718520d7d6cc30d5c3dc032838cf5872?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Joyita Paul Chowdhury</span>
+				<span>Jun. 12, 2018</span>
+			</div>
+			<div>
+				<p>Great stuff!  Annelieke, thanks for sharing.<br />
+Regards,<br />
+Joyita</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	<li		id="comment-919153">
+				<div>
+		<div>
+			<div>
+				<figure>
+					<img alt='Rawson Tom' src='https://secure.gravatar.com/avatar/0892809e7368104b138d5df72314ada7725517c38e26037c92832d16813ccbdf?s=100&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/0892809e7368104b138d5df72314ada7725517c38e26037c92832d16813ccbdf?s=200&#038;d=mm&#038;r=g 2x' class='avatar avatar-100 photo' height='100' width='100' decoding='async'/>				</figure>
+				<span>Rawson Tom</span>
+				<span>Jun. 11, 2018</span>
+			</div>
+			<div>
+				<p>Thank you so much dear, i bet you that i never had the idea of google analytics and an email campaign. and i had paid for an analytics manager when i could possibly do this things myself</p>
+			</div>
+			<div>
+											</div>
+		</div>
+		</div></li>	</ol>
+</div>
+		</div>
+						</div>
+				<footer id="post__footer">
+					<div>
+<div>
+<div>
+<div>
+<div>
+<div>
+<h2 id="h-want-to-stay-ahead-of-the-seo-game">Want to stay ahead of the SEO game?</h2>
+<p>Subscribe to our newsletter: Get weekly tips to improve your website’s SEO, usability, and conversion!</p>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div></div>
+<p>We care about the protection of your data. Read our <a href="https://yoast.com/privacy-notice/">privacy policy.</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+				</footer>
+			</article>
+		</main>
+	<div>
+		<div>
+			<hr>
+		</div>
+		<nav id="footer__nav"
+			aria-label="Sitemap">
+			<ul id="menu-footer-menu"><li id="menu-item-1712602"><a href="https://yoast.com">Yoast SEO</a>
+<ul>
+	<li id="menu-item-1712755"><a href="https://yoast.com/about-us/"><span>    </span><span><span>About us</span><span>      </span></span></a></li>
+	<li id="menu-item-1949653"><a href="https://yoast.com/jobs/"><span>    </span><span><span>Careers</span><span>      </span></span></a></li>
+	<li id="menu-item-2318820"><a href="https://yoast.com/werken-bij/"><span>    </span><span><span>Werken bij Yoast (NL)</span><span>      </span></span></a></li>
+	<li id="menu-item-2032798"><a href="https://yoast.com/about-us/community/"><span>    </span><span><span>Community</span><span>      </span></span></a></li>
+	<li id="menu-item-4627270"><a href="https://yoast.com/about-us/events/"><span>    </span><span><span>Events</span><span>      </span></span></a></li>
+	<li id="menu-item-4112861"><a href="https://yoast.com/press/"><span>    </span><span><span>Press</span><span>      </span></span></a></li>
+	<li id="menu-item-3474416"><a href="https://yoast.com/yoast-partners/"><span>    </span><span><span>Become a Yoast partner</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712732"><a href="https://yoast.com/shop/">Products</a>
+<ul>
+	<li id="menu-item-4246977"><a href="https://yoast.com/product/yoast-seo-wordpress/"><span>    </span><span><span>Yoast SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4189497"><a href="https://yoast.com/product/yoast-seo-shopify/"><span>    </span><span><span>Yoast SEO for Shopify</span><span>      </span></span></a></li>
+	<li id="menu-item-1712733"><a href="https://yoast.com/product/yoast-seo-premium-wordpress/"><span>    </span><span><span>Yoast SEO Premium</span><span>      </span></span></a></li>
+	<li id="menu-item-4256701"><a href="https://yoast.com/product/yoast-seo-ai-plus/"><span>    </span><span><span>Yoast SEO AI+</span><span>      </span></span></a></li>
+	<li id="menu-item-1712737"><a href="https://yoast.com/product/yoast-woocommerce-seo/"><span>    </span><span><span>Yoast WooCommerce SEO</span><span>      </span></span></a></li>
+	<li id="menu-item-4140313"><a href="https://yoast.com/product/google-docs-addon/"><span>    </span><span><span>Yoast SEO Google Docs Add-On</span><span>      </span></span></a></li>
+	<li id="menu-item-1712739"><a href="https://yoast.com/yoast-seo-platforms/"><span>    </span><span><span>Other platforms</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712608"><a href="https://yoast.com/help/">Support and Resources</a>
+<ul>
+	<li id="menu-item-3972071"><a href="https://yoast.com/help/support/#email"><span>    </span><span><span>24/7 Premium Support</span><span>      </span></span></a></li>
+	<li id="menu-item-3972064"><a href="https://yoast.com/help/support/"><span>    </span><span><span>Yoast SEO WordPress help</span><span>      </span></span></a></li>
+	<li id="menu-item-3972066"><a href="https://yoast.com/help/guide-for-yoast-seo-for-shopify/"><span>    </span><span><span>Yoast SEO Shopify guide</span><span>      </span></span></a></li>
+	<li id="menu-item-1712749"><a href="https://yoast.com/academy/yoast-seo-wordpress-training/"><span>    </span><span><span>Yoast SEO training</span><span>      </span></span></a></li>
+	<li id="menu-item-1712605"><a href="https://developer.yoast.com/"><span>    </span><span><span>Developer Documentation</span><span>      </span></span></a></li>
+	<li id="menu-item-4116702"><a href="https://yoast.com/tools/seo-checker/"><span>    </span><span><span>SEO Checker</span><span>      </span></span></a></li>
+</ul>
+</li>
+<li id="menu-item-1712746"><a href="https://yoast.com/seo-blog/">Learn SEO</a>
+<ul>
+	<li id="menu-item-1712741"><a href="https://yoast.com/tag/seo-basics/"><span>    </span><span><span>SEO basics</span><span>      </span></span></a></li>
+	<li id="menu-item-2324514"><a href="https://yoast.com/must-reads-for-website-seo/"><span>    </span><span><span>SEO essentials</span><span>      </span></span></a></li>
+	<li id="menu-item-3699893"><a href="https://yoast.com/seo-glossary/"><span>    </span><span><span>SEO glossary</span><span>      </span></span></a></li>
+	<li id="menu-item-3081154"><a href="https://yoast.com/series/seo-news-webinar/"><span>    </span><span><span>SEO news</span><span>      </span></span></a></li>
+	<li id="menu-item-1712747"><a href="https://yoast.com/academy/"><span>    </span><span><span>Yoast SEO Academy</span><span>      </span></span></a></li>
+	<li id="menu-item-3124128"><a href="https://yoast.com/webinar/"><span>    </span><span><span>Webinars</span><span>      </span></span></a></li>
+	<li id="menu-item-3124133"><a href="https://yoast.com/zo-werkt-yoast-seo/"><span>    </span><span><span>Zo werkt Yoast SEO (NL boek)</span><span>      </span></span></a></li>
+</ul>
+</li>
+</ul>		</nav>
+	</div>
+		</div>
+	<footer role="contentinfo">
+		<div>
+			<div>
+				<ul id="menu-legal"><li id="menu-item-1712763"><a href="https://yoast.com/reserved-rights/">Some rights reserved</a></li>
+<li id="menu-item-1712764"><a href="https://newfold.com/privacy-center/privacy">Privacy notice</a></li>
+<li id="menu-item-1712765"><a target="_blank" href="https://yoast.com/terms-of-service/">Terms of service</a></li>
+<li id="menu-item-4555200"><a href="https://legal.newfold.com/TermsOfUse.pdf">Terms of use</a></li>
+<li id="menu-item-3543442"><a target="_blank" href="https://newfold.com/privacy-center/cookie-policy">Cookie notice</a></li>
+<li id="menu-item-1712766"><a href="https://yoast.com/terms-of-service/#h-yoast-refund-policy">Refund policy</a></li>
+<li id="menu-item-3322202"><a href="https://yoast.com/review-notice/">Review notice</a></li>
+<li id="menu-item-4476575"><a href="https://www.newfold.com/abuse">Report abuse</a></li>
+<li id="menu-item-1712767"><a href="https://yoast.com/contact/">Contact us</a></li>
+<li id="menu-item-4452686"><a href="https://www.newfold.com/privacy-center/addendum-for-california-users">Do not sell or share my personal information</a></li>
+</ul>
+<div>
+	<label>
+		CURRENCY		<select name="currency" id="currency">
+			 selected='selected'<option value="USD" selected=&#039;selected&#039;>USD (&#036;)</option><option value="EUR">EUR (&euro;)</option><option value="GBP">GBP (&pound;)</option>		</select>
+	</label>
+</div>
+			</div>
+			<div>
+				<div>
+					<strong>© 2003-2026 Yoast BV</strong> Yoast is a trademark of Yoast BV				</div>
+				<div>
+												<a href="https://www.facebook.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Facebook</span></a>
+														<a href="https://www.youtube.com/yoast" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Youtube</span></a>
+														<a href="https://www.instagram.com/yoast/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>Instagram</span></a>
+														<a href="https://www.linkedin.com/company/yoast-com/" rel="noopener" target="_blank"><i
+									aria-hidden="true"></i><span
+								>LinkedIn</span></a>
+											</div>
+			</div>
+		</div>
+			</footer>
+<div>
+	<div id="back-to-top-button__container">
+		<button id="back-to-top-button"><i></i></button>
+	</div>
+</div>
+<link rel="stylesheet" id="newsletter-block-pattern-css" href="https://yoast.com/app/themes/yoast-theme/css/patterns/Newsletter/Newsletter_Block/newsletter-block.min.css?ver=1772455867" media="all" />
+<link rel="stylesheet" id="back-to-top-button-css" href="https://yoast.com/app/themes/yoast-theme/css/includes/back-to-top-button.min.css?ver=1772455867" media="all" />
+</body>
+</html>

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://yoast.com/video-sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+	<url>
+		<loc>https://yoast.com/kasteelfeesten/</loc>
+		<video:video>
+			<video:title><![CDATA[Kasteelfeesten Wijchen • Yoast]]></video:title>
+			<video:publication_date>2017-05-09T08:04:15+00:00</video:publication_date>
+			<video:description><![CDATA[Doe mee met de Kasteelfeesten knutselwedstrijd van Yoast! Onder de video vind je de knutselplaat die je uit kunt printen om mee te doen met de wedstrijd. Yoast promo video In deze video laten we je zien wat Yoast doet, wie we zijn en waar we zitten! https://www.youtube.com/watch?v=v_FEpJlP1IE Knutse]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/v_FEpJlP1IE</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2017/05/v_fepjlp1ie-1.jpg</video:thumbnail_loc>
+			<video:duration>316</video:duration>
+			<video:view_count>1388</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/willemien-hallebeek/'>Willemien Hallebeek</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/google-analytics-dashboards/</loc>
+		<video:video>
+			<video:title><![CDATA[How to create and use dashboards in Google Analytics • Yoast]]></video:title>
+			<video:publication_date>2017-04-13T11:42:22+00:00</video:publication_date>
+			<video:description><![CDATA[Google Analytics dashboards are a great way to present your data in ways you can quickly understand. Learn how to use them!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/Q0oneXlCvnQ</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2014/10/q0onexlcvnq.jpg</video:thumbnail_loc>
+			<video:duration>79</video:duration>
+			<video:view_count>3275</video:view_count>
+			<video:width>480</video:width>
+			<video:height>360</video:height>
+			<video:tag><![CDATA[Google Analytics]]></video:tag>
+			<video:tag><![CDATA[Google Analytics dashboard]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/annelieke-van-den-berg/'>Annelieke van den Berg</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/wijchen-schaatst/</loc>
+		<video:video>
+			<video:title><![CDATA[Wijchen Schaatst • Yoast]]></video:title>
+			<video:publication_date>2016-11-10T15:52:22+00:00</video:publication_date>
+			<video:description><![CDATA[Doe mee met de Wijchen Schaatst kleurwedstrijd van Yoast! Onder de video vind je de kleurplaat die je uit kunt printen om mee te doen met de kleurwedstrijd. Yoast promo video In deze video laten we je zien wat Yoast doet, wie we zijn en waar we zitten! https://www.youtube.com/watch?v=v_FEpJlP1IE]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/v_FEpJlP1IE</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2016/11/v_fepjlp1ie-5.jpg</video:thumbnail_loc>
+			<video:duration>316</video:duration>
+			<video:view_count>1388</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/willemien-hallebeek/'>Willemien Hallebeek</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/7-reasons-to-come-to-yoastcon/</loc>
+		<video:video>
+			<video:title><![CDATA[7 reasons to come to YoastCon • Yoast]]></video:title>
+			<video:publication_date>2019-01-24T11:17:59+00:00</video:publication_date>
+			<video:description><![CDATA[Tickets to YoastCon are selling very quickly! And people from all over the world will be joining us. And for 7 good reasons!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/vbshegP077Q</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2019/01/vbshegp077q-5.jpg</video:thumbnail_loc>
+			<video:duration>88</video:duration>
+			<video:view_count>1272</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/marieke-van-de-rakt/'>Marieke van de Rakt</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/video/ask-yoast-preparing-for-the-gdpr/</loc>
+		<video:video>
+			<video:title><![CDATA[Preparing for the General Data Protection Regulation (GDPR) • Yoast]]></video:title>
+			<video:publication_date>2018-04-06T12:16:44+00:00</video:publication_date>
+			<video:description><![CDATA[How should you be preparing for the GDPR? In this week's Ask Yoast, Joost gives some advice on the subject!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/ioDYTXxVe4Q</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2018/04/iodytxxve4q-1.jpg</video:thumbnail_loc>
+			<video:duration>86</video:duration>
+			<video:view_count>1295</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Ecommerce SEO]]></video:tag>
+			<video:tag><![CDATA[preparing for the GDPR]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/joost-de-valk/'>Joost de Valk</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/launching-my-yoast-com/</loc>
+		<video:video>
+			<video:title><![CDATA[Introducing MyYoast: our brand new customer portal • Yoast]]></video:title>
+			<video:publication_date>2017-08-30T13:13:06+00:00</video:publication_date>
+			<video:description><![CDATA[We're launching MyYoast today. This online dashboard has everything you need to manage your Yoast subscriptions and other purchases. Try it now!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/udtHnajozUg</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2017/06/udthnajozug.jpg</video:thumbnail_loc>
+			<video:duration>135</video:duration>
+			<video:view_count>16642</video:view_count>
+			<video:width>480</video:width>
+			<video:height>360</video:height>
+			<video:tag><![CDATA[Yoast SEO]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO Academy]]></video:tag>
+			<video:tag><![CDATA[myyoast]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/willemien-hallebeek/'>Willemien Hallebeek</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/video/how-to-create-a-dashboard-in-google-data-studio/</loc>
+		<video:video>
+			<video:title><![CDATA[How to create a dashboard in Google Data Studio • Yoast]]></video:title>
+			<video:publication_date>2019-08-27T12:13:48+00:00</video:publication_date>
+			<video:description><![CDATA[Want to create a dashboard in Google Data Studio to to analyze where traffic to your site is coming from? In this video, Annelieke explains how to do that!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/ud_vDq9pHo0</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2019/08/ud_vdq9pho0.jpg</video:thumbnail_loc>
+			<video:duration>980</video:duration>
+			<video:view_count>5707</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Google Analytics]]></video:tag>
+			<video:tag><![CDATA[create a dashboard in Google Data Studio]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/annelieke-van-den-berg/'>Annelieke van den Berg</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/visual-attention/</loc>
+		<video:video>
+			<video:title><![CDATA[Visually direct and captivate your visitors • Yoast]]></video:title>
+			<video:publication_date>2014-06-03T14:08:58+00:00</video:publication_date>
+			<video:description><![CDATA[Read more about Visually direct and captivate your visitors - from Yoast]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/g76knGVTITU</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2014/05/visually-direct-and-captivate-your-visitors-e280a2-yoast.jpg</video:thumbnail_loc>
+			<video:duration>21</video:duration>
+			<video:view_count>5619</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[User eXperience (UX)]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/thijs-de-valk/'>Thijs de Valk</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/w3c-validation-seo/</loc>
+		<video:video>
+			<video:title><![CDATA[W3C Validation &amp; SEO - Yoast - Tweaking Websites]]></video:title>
+			<video:publication_date>2010-06-13T20:08:57+00:00</video:publication_date>
+			<video:description><![CDATA[It's been discussed many times before: should you W3C validate your site for perfect SEO? It's not that simple, read why here.]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/FPBACTS-tyg</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2012/01/w3c-validation-seo-yoast-tweaking-websites.jpg</video:thumbnail_loc>
+			<video:duration>126</video:duration>
+			<video:view_count>86805</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Technical SEO]]></video:tag>
+			<video:tag><![CDATA[w3c validation seo]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/joost-de-valk/'>Joost de Valk</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/yoastcon-2017-10-takeaways/</loc>
+		<video:video>
+			<video:title><![CDATA[YoastCon 2017: 10 takeaways to improve your SEO • Yoast]]></video:title>
+			<video:publication_date>2017-11-09T13:57:27+00:00</video:publication_date>
+			<video:description><![CDATA[YoastCon 2017 was an epic SEO conference. In this post, we'll present ten topics that were talked about. Find out what to do to improve your SEO.]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/vbshegP077Q</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2017/11/vbshegp077q-5.jpg</video:thumbnail_loc>
+			<video:duration>88</video:duration>
+			<video:view_count>1272</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Content SEO]]></video:tag>
+			<video:tag><![CDATA[Holistic SEO]]></video:tag>
+			<video:tag><![CDATA[improve your SEO]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/edwin-toonen/'>Edwin Toonen</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/wordpress-seo-url-permalink/</loc>
+		<video:video>
+			<video:title><![CDATA[The perfect WordPress SEO permalink structure • Yoast]]></video:title>
+			<video:publication_date>2017-02-17T14:08:43+00:00</video:publication_date>
+			<video:description><![CDATA[This post discusses the perfect WordPress SEO URL, and explains why it is important. It also covers questions on performance and migration.]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/971qGsTPs8M</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2011/05/wordpress-seo-url-permalinks-considerations-e280a2-yoast.jpg</video:thumbnail_loc>
+			<video:duration>121</video:duration>
+			<video:view_count>74586</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[URL]]></video:tag>
+			<video:tag><![CDATA[WordPress]]></video:tag>
+			<video:tag><![CDATA[WordPress SEO URL]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/joost-de-valk/'>Joost de Valk</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/yoastcon/2017-edition/</loc>
+		<video:video>
+			<video:title><![CDATA[YoastCon 2017 • Yoast]]></video:title>
+			<video:publication_date>2019-04-15T12:46:28+00:00</video:publication_date>
+			<video:description><![CDATA[YoastCon 2017 took place in De Vereeniging in Nijmegen, on the 2nd of November 2017. Several SEO experts shared their knowledge with YoastCon visitors!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/vbshegP077Q</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2019/02/vbshegp077q.jpg</video:thumbnail_loc>
+			<video:duration>88</video:duration>
+			<video:view_count>1272</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[YoastCon 2017]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/michiel-heijmans/'>Michiel Heijmans</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/yoast-seo-13-4/</loc>
+		<video:video>
+			<video:title><![CDATA[Yoast SEO 13.4: Word form support for Dutch • Yoast]]></video:title>
+			<video:publication_date>2020-03-31T07:22:17+00:00</video:publication_date>
+			<video:description><![CDATA[As of Yoast SEO 13.4, Dutch language users of the plugin can make use of complete word form support. It makes writing great content easier!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/AIdCZHjL9Qc</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2020/03/aidczhjl9qc.jpg</video:thumbnail_loc>
+			<video:duration>127</video:duration>
+			<video:view_count>575</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Software releases and updates]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO Premium]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO 13.4]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/edwin-toonen/'>Edwin Toonen</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/how-to-transition-to-the-block-editor-wordpress/</loc>
+		<video:video>
+			<video:title><![CDATA[How to make the transition to the block editor (from the classic editor) in WordPress • Yoast]]></video:title>
+			<video:publication_date>2020-04-01T12:31:12+00:00</video:publication_date>
+			<video:description><![CDATA[Learn how to make the transition to the WordPress block editor. Read how you can test it on your site and what you should pay attention to!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/TeP_KbKVkcY</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2020/03/tep_kbkvkcy.jpg</video:thumbnail_loc>
+			<video:duration>329</video:duration>
+			<video:view_count>3735</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Gutenberg]]></video:tag>
+			<video:tag><![CDATA[WordPress]]></video:tag>
+			<video:tag><![CDATA[transition to the block editor]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/iris-guelen/'>Iris Guelen</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/yoast-seo-13-5/</loc>
+		<video:video>
+			<video:title><![CDATA[Yoast SEO 13.5 adds support for Spanish word forms • Yoast]]></video:title>
+			<video:publication_date>2020-04-14T08:06:20+00:00</video:publication_date>
+			<video:description><![CDATA[Yoast SEO 13.5 is out! With this release, our Spanish lanuage users can enjoy a natural way of editing content thanks to word forms support.]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/C0j1Tip8HmQ</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2020/04/c0j1tip8hmq.jpg</video:thumbnail_loc>
+			<video:duration>115</video:duration>
+			<video:view_count>603</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Software releases and updates]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO Premium]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO 13.5]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/edwin-toonen/'>Edwin Toonen</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/yoastcon-2019-takeaways/</loc>
+		<video:video>
+			<video:title><![CDATA[Missed YoastCon 2019? Learn from our takeaways! • Yoast]]></video:title>
+			<video:publication_date>2019-02-19T13:12:45+00:00</video:publication_date>
+			<video:description><![CDATA[Missed the third edition of the YoastCon SEO conference? Here are some of our takeways from the epic event. Don't miss it next time!]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/EAM7lFxnx_0</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2019/02/eam7lfxnx_0.jpg</video:thumbnail_loc>
+			<video:duration>133</video:duration>
+			<video:view_count>1455</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[YoastCon 2019 takeaways]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/edwin-toonen/'>Edwin Toonen</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/innovations/word-forms-morphology/</loc>
+		<video:video>
+			<video:title><![CDATA[Innovations by Yoast: Word forms (morphology) • Yoast]]></video:title>
+			<video:publication_date>2019-12-09T15:11:22+00:00</video:publication_date>
+			<video:description><![CDATA[In October 2018, we added word-form recognition for English, soon followed by a similar upgrade for German, Dutch, Spanish, French, Russian, Indonesian, Portuguese, Polish and Italian. This new functionality allowed us to bring our SEO analysis to the next level. Before, we were only able to look fo]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/OZFSwc4Wp2s</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2019/12/ozfswc4wp2s.jpg</video:thumbnail_loc>
+			<video:duration>901</video:duration>
+			<video:view_count>5514</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/michiel-heijmans/'>Michiel Heijmans</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/audience-research-expert-interview/</loc>
+		<video:video>
+			<video:title><![CDATA[Audience research: pro tips to get started by Els Aerts • Yoast]]></video:title>
+			<video:publication_date>2020-04-15T12:15:28+00:00</video:publication_date>
+			<video:description><![CDATA[Proper audience research is key in maintaining and growing your customer base. So, how do you go about doing this research? And what questions do you ask?]]></video:description>
+			<video:player_loc>https://embed-ssl.wistia.com/flash/embed_player_v2.0.swf?2017-04-20&amp;banner=false&amp;controlsVisibleOnLoad=true&amp;customColor=d93f69&amp;fullscreenDisabled=true&amp;mediaDuration=2689.08&amp;quality=&amp;showVolume=true&amp;stillUrl=https%3A%2F%2Fembed-ssl.wistia.com%2Fdeliveries%2Faa76cddc859c621be6607c11e65dbb71.png%3Fimage_crop_resized%3D960x540&amp;unbufferedSeek=false&amp;videoUrl=http%3A%2F%2Fembed.wistia.com%2Fdeliveries%2F0293092892d21a3becd68198993d7bee9d473fde.bin</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2020/04/unnamed-file-1.jpg</video:thumbnail_loc>
+			<video:content_loc>http://embed.wistia.com/deliveries/0293092892d21a3becd68198993d7bee9d473fde.bin</video:content_loc>
+			<video:duration>2689</video:duration>
+			<video:width>960</video:width>
+			<video:height>540</video:height>
+			<video:tag><![CDATA[Branding]]></video:tag>
+			<video:tag><![CDATA[User eXperience (UX)]]></video:tag>
+			<video:tag><![CDATA[audience research]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/willemien-hallebeek/'>Willemien Hallebeek</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/why-use-segments-in-google-analytics/</loc>
+		<video:video>
+			<video:title><![CDATA[Why use segments in Google Analytics? • Yoast]]></video:title>
+			<video:publication_date>2017-02-24T14:12:46+00:00</video:publication_date>
+			<video:description><![CDATA[Google Analytics can be quite overwhelming when you start with it. Learn how using segments can help you get more insight in your data.]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/o0XWcn7hRGw</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2017/02/o0xwcn7hrgw.jpg</video:thumbnail_loc>
+			<video:duration>331</video:duration>
+			<video:view_count>407013</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Google Analytics]]></video:tag>
+			<video:tag><![CDATA[segments]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/annelieke-van-den-berg/'>Annelieke van den Berg</video:uploader>
+		</video:video>
+	</url>
+	<url>
+		<loc>https://yoast.com/yoast-seo-14-1/</loc>
+		<video:video>
+			<video:title><![CDATA[Yoast SEO 14.1 adds French word forms in beta • Yoast]]></video:title>
+			<video:publication_date>2020-05-13T10:40:15+00:00</video:publication_date>
+			<video:description><![CDATA[Yoast SEO 14.1 is out today! This release comes with another language addition for our Premium analysis: French. Also, fixes and enhancements.]]></video:description>
+			<video:player_loc>https://www.youtube.com/embed/nO_xUWMfUVk</video:player_loc>
+			<video:thumbnail_loc>https://yoast.com/app/uploads/2020/05/no_xuwmfuvk.jpg</video:thumbnail_loc>
+			<video:duration>110</video:duration>
+			<video:view_count>773</video:view_count>
+			<video:width>480</video:width>
+			<video:height>270</video:height>
+			<video:tag><![CDATA[Software releases and updates]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO Premium]]></video:tag>
+			<video:tag><![CDATA[Yoast SEO 14.1]]></video:tag>
+			<video:family_friendly>yes</video:family_friendly>
+			<video:uploader info='https://yoast.com/about-us/team/edwin-toonen/'>Edwin Toonen</video:uploader>
+		</video:video>
+	</url>
+	</urlset>
+<!-- XML Sitemap generated by Yoast SEO -->

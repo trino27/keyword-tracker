@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title>Semrush blog</title>
+    <link>https://www.semrush.com/blog/</link>
+    <atom:link xmlns:atom="http://www.w3.org/2005/Atom" href="https://www.semrush.com/blog/feed/" type="application/rss+xml" rel="self"/>
+    <language>en</language>
+    <lastBuildDate>Sat, 03 Oct 2026 10:11:18 +0000</lastBuildDate>
+    <item>
+      <title>Ultimate SEO checklist: 43 tips to optimize your website</title>
+      <link>https://www.semrush.com/blog/seo-checklist/</link>
+      <category domain="https://www.semrush.com/blog/category/general-seo/">general-seo</category>
+      <guid>https://www.semrush.com/blog/seo-checklist/</guid>
+      <pubDate>Thu, 01 Oct 2026 08:25:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>AEO vs SEO: core differences &amp; how to win visibility in both</title>
+      <link>https://www.semrush.com/blog/aeo-vs-seo/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/aeo-vs-seo/</guid>
+      <pubDate>Wed, 30 Sep 2026 08:36:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>The LLM positioning lag: What it is and how to avoid it</title>
+      <link>https://www.semrush.com/blog/llm-positioning-lag/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/llm-positioning-lag/</guid>
+      <pubDate>Tue, 29 Sep 2026 14:50:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Google releases September 2026 spam update</title>
+      <link>https://www.semrush.com/blog/google-spam-update-september-2026/</link>
+      <category domain="https://www.semrush.com/blog/category/industry-news/">industry-news</category>
+      <guid>https://www.semrush.com/blog/google-spam-update-september-2026/</guid>
+      <pubDate>Tue, 29 Sep 2026 08:26:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>What is llms.txt &amp; should you use it?</title>
+      <link>https://www.semrush.com/blog/llms-txt/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/llms-txt/</guid>
+      <pubDate>Mon, 28 Sep 2026 16:15:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>10 SEO best practices for Google and AI search</title>
+      <link>https://www.semrush.com/blog/seo-best-practices/</link>
+      <category domain="https://www.semrush.com/blog/category/general-seo/">general-seo</category>
+      <guid>https://www.semrush.com/blog/seo-best-practices/</guid>
+      <pubDate>Mon, 28 Sep 2026 09:18:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>How to make the most of your 7-day Semrush free trial</title>
+      <link>https://www.semrush.com/blog/free-7-day-semrush-one-trial/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/free-7-day-semrush-one-trial/</guid>
+      <pubDate>Fri, 25 Sep 2026 13:26:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>B2B answer engine optimization: How to show up in AI</title>
+      <link>https://www.semrush.com/blog/b2b-answer-engine-optimization/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/b2b-answer-engine-optimization/</guid>
+      <pubDate>Fri, 25 Sep 2026 09:06:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>How to conduct an AI visibility audit with Semrush</title>
+      <link>https://www.semrush.com/blog/ai-visibility-audit-with-semrush-one/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/ai-visibility-audit-with-semrush-one/</guid>
+      <pubDate>Wed, 23 Sep 2026 08:39:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Google's AI contribution pilot pays publishers</title>
+      <link>https://www.semrush.com/blog/google-launches-ai-contribution-pilot/</link>
+      <category domain="https://www.semrush.com/blog/category/industry-news/">industry-news</category>
+      <guid>https://www.semrush.com/blog/google-launches-ai-contribution-pilot/</guid>
+      <pubDate>Tue, 22 Sep 2026 10:22:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>AI citation outreach: a Semrush &amp; Claude workflow</title>
+      <link>https://www.semrush.com/blog/ai-citation-outreach/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/ai-citation-outreach/</guid>
+      <pubDate>Mon, 21 Sep 2026 09:49:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>What is agentic SEO? 8 workflows run on a live site</title>
+      <link>https://www.semrush.com/blog/agentic-seo/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/agentic-seo/</guid>
+      <pubDate>Fri, 18 Sep 2026 14:37:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Semrush MCP use cases: 16 prompts for Claude or ChatGPT</title>
+      <link>https://www.semrush.com/blog/semrush-mcp-use-case/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/semrush-mcp-use-case/</guid>
+      <pubDate>Fri, 18 Sep 2026 14:17:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Cloudflare's AI training block now spares Googlebot</title>
+      <link>https://www.semrush.com/blog/cloudfare-blocks-ai-training/</link>
+      <category domain="https://www.semrush.com/blog/category/industry-news/">industry-news</category>
+      <guid>https://www.semrush.com/blog/cloudfare-blocks-ai-training/</guid>
+      <pubDate>Fri, 18 Sep 2026 14:04:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>I edit 115+ articles per year. Here are the 5 ways I edit drafts.</title>
+      <link>https://www.semrush.com/blog/my-editing-approaches-framework/</link>
+      <category domain="https://www.semrush.com/blog/category/content/">content</category>
+      <guid>https://www.semrush.com/blog/my-editing-approaches-framework/</guid>
+      <pubDate>Thu, 17 Sep 2026 13:34:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>What is zero-click marketing? How to execute and measure it</title>
+      <link>https://www.semrush.com/blog/zero-click-marketing/</link>
+      <category domain="https://www.semrush.com/blog/category/general-marketing/">general-marketing</category>
+      <guid>https://www.semrush.com/blog/zero-click-marketing/</guid>
+      <pubDate>Fri, 11 Sep 2026 10:06:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>How to do keyword research with Claude and Semrush</title>
+      <link>https://www.semrush.com/blog/claude-keyword-research/</link>
+      <category domain="https://www.semrush.com/blog/category/keyword-research/">keyword-research</category>
+      <guid>https://www.semrush.com/blog/claude-keyword-research/</guid>
+      <pubDate>Thu, 10 Sep 2026 17:12:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Internal links: ultimate guide + strategies</title>
+      <link>https://www.semrush.com/blog/internal-links/</link>
+      <category domain="https://www.semrush.com/blog/category/general-seo/">general-seo</category>
+      <guid>https://www.semrush.com/blog/internal-links/</guid>
+      <pubDate>Thu, 10 Sep 2026 10:11:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>We rebuilt SEOquake, Semrush’s free SEO Chrome extension</title>
+      <link>https://www.semrush.com/blog/seoquake-relaunch/</link>
+      <category domain="https://www.semrush.com/blog/category/general-seo/">general-seo</category>
+      <guid>https://www.semrush.com/blog/seoquake-relaunch/</guid>
+      <pubDate>Wed, 09 Sep 2026 15:37:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>How to build your first AI SEO agent (full walk-through)</title>
+      <link>https://www.semrush.com/blog/seo-ai-agent/</link>
+      <category domain="https://www.semrush.com/blog/category/ai/">ai</category>
+      <guid>https://www.semrush.com/blog/seo-ai-agent/</guid>
+      <pubDate>Wed, 09 Sep 2026 09:38:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>
