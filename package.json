@@ -8,7 +8,7 @@
   "scripts": {
     "prepare": "husky",
     "build": "pnpm --filter @app/contracts run build && pnpm --filter be run build && pnpm --filter fe run build",
-    "lint": "pnpm -r run lint",
+    "lint": "pnpm --filter @app/contracts run build && pnpm -r run lint",
     "typecheck": "pnpm --filter @app/contracts run build && pnpm -r run typecheck",
     "test": "pnpm --filter @app/contracts run build && pnpm -r run test:ci",
     "format": "pnpm -r run format",
