@@ -45,6 +45,8 @@ const HEADINGS = 'h1, h2, h3, h4, h5, h6';
 const HEADING_CONTROLS = 'button, [role="button"]';
 
 const BLOCK_ELEMENTS = `${HEADINGS}, p, li, td, th, blockquote, dd, dt, figcaption, pre`;
+/** Headings are collected as headings; `blocks` is the prose around them. */
+const HEADING_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
 const LAYOUT_ELEMENTS =
   'div, section, ul, ol, table, tr, figure, br, hr, dl, details, summary';
@@ -91,6 +93,12 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
   main.find(BLOCK_ELEMENTS).each((_, element) => {
     // A block that contains blocks is read through its children instead.
     if ($(element).find(BLOCK_ELEMENTS).length > 0) return;
+    // A heading is already a field of its own, and counting it here as well paid it
+    // twice: a listicle's h2 scored its subheading weight AND a body frequency it
+    // never earned in prose, which is how "start this week" and "add specific
+    // statistics" became keywords. With a table of contents repeating every heading
+    // as an `li`, the same phrase was paid three times.
+    if (HEADING_TAGS.has(element.tagName)) return;
     const text = collapse($(element).text());
     if (text) blocks.push(text);
   });

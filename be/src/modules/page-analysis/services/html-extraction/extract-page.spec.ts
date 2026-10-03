@@ -60,12 +60,8 @@ describe('extractPage', () => {
       { level: 1, text: 'Real title' },
       { level: 2, text: 'Part' },
     ]);
-    expect(parsed.blocks).toEqual([
-      'Real title',
-      'One two three.',
-      'Part',
-      'Four five',
-    ]);
+    // Headings are read as headings; `blocks` is the prose between them.
+    expect(parsed.blocks).toEqual(['One two three.', 'Four five']);
     expect(parsed.wordCount).toBe(8);
     expect(parsed.firstParagraph).toBe('One two three.');
     expect(parsed.h1s).toEqual(['Site name', 'Real title']);
@@ -90,7 +86,7 @@ describe('extractPage', () => {
         '</main>',
     );
 
-    expect(parsed.blocks).toEqual(['Flights to Rome', 'Rome is warm.']);
+    expect(parsed.blocks).toEqual(['Rome is warm.']);
   });
 
   it('does not mistake a listing card for the article', () => {
@@ -99,7 +95,7 @@ describe('extractPage', () => {
         '<p>And the rest</p></main>',
     );
 
-    expect(parsed.blocks).toEqual(['All posts', 'A card', 'And the rest']);
+    expect(parsed.blocks).toEqual(['A card', 'And the rest']);
   });
 
   it('removes the furniture a theme builds out of plain divs', () => {
@@ -113,7 +109,7 @@ describe('extractPage', () => {
         '</main>',
     );
 
-    expect(parsed.blocks).toEqual(['Story', 'The story itself.']);
+    expect(parsed.blocks).toEqual(['The story itself.']);
   });
 
   it('reads head metadata, resolving the canonical', () => {
@@ -156,10 +152,7 @@ describe('extractPage', () => {
     expect(parsed.headings).toEqual([
       { level: 2, text: 'Agentic infrastructure' },
     ]);
-    expect(parsed.blocks).toEqual([
-      'Agentic infrastructure',
-      'The platform runs the agent.',
-    ]);
+    expect(parsed.blocks).toEqual(['The platform runs the agent.']);
   });
 
   it('strips a control from an h1 the same way, wherever the h1 sits', () => {
@@ -181,7 +174,7 @@ describe('extractPage', () => {
     );
 
     expect(parsed.headings).toEqual([{ level: 2, text: 'Rankings' }]);
-    expect(parsed.blocks).toEqual(['Rankings', 'Visible copy.']);
+    expect(parsed.blocks).toEqual(['Visible copy.']);
   });
 
   it('separates adjacent blocks so their words never fuse', () => {

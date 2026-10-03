@@ -87,7 +87,7 @@ export function extractKeywords(
       documentFrequency.set(term, (documentFrequency.get(term) ?? 0) + 1);
   }
 
-  return perPage.map((candidates) => {
+  return perPage.map((candidates, index) => {
     const scored = [...candidates].map(([term, stats]) => ({
       term,
       runs: stats.runs,
@@ -95,6 +95,6 @@ export function extractKeywords(
         pageScore(stats) *
         idfFactor(pages.length, documentFrequency.get(term) ?? 1),
     }));
-    return selectKeywords(subsume(scored));
+    return selectKeywords(subsume(scored), pages[index].parsed.wordCount);
   });
 }
