@@ -58,6 +58,11 @@ async function addPage(
   runId: number,
   url: string,
   sitemapPosition: number,
+  /** The page's score. Default: 15 of 18 passed, i.e. 83. */
+  counters: { checksApplicable: number; checksFailed: number } = {
+    checksApplicable: 18,
+    checksFailed: 3,
+  },
 ) {
   const [page] = await testDb.db
     .insert(pages)
@@ -71,6 +76,8 @@ async function addPage(
       responseMs: 100,
       htmlBytes: 1000,
       sitemapPosition,
+      checksApplicable: counters.checksApplicable,
+      checksFailed: counters.checksFailed,
       lastSeenRunId: runId,
       crawledAt: new Date(),
     })

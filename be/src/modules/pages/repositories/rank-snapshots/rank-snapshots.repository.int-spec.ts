@@ -62,6 +62,8 @@ async function seedPairs(email = 'owner@example.com', suffix = '') {
       responseMs: 100,
       htmlBytes: 1000,
       sitemapPosition: 0,
+      checksApplicable: 18,
+      checksFailed: 3,
       lastSeenRunId: currentRun.id,
       crawledAt: new Date(),
     })

@@ -53,6 +53,8 @@ async function seedPage(): Promise<{
       responseMs: 100,
       htmlBytes: 1000,
       sitemapPosition: 0,
+      checksApplicable: 18,
+      checksFailed: 3,
       lastSeenRunId: first.id,
       crawledAt: now,
     })

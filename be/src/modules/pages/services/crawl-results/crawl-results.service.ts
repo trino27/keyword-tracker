@@ -31,6 +31,9 @@ export interface IRunPage {
   /** Normalized terms; relevance in (0, 1]. */
   keywords: { term: string; relevance: number }[];
   issues: TSeoIssue[];
+  /** Written in the same statement as the page, in the same transaction as the issues. */
+  checksApplicable: number;
+  checksFailed: number;
 }
 
 export interface IRunResults {
@@ -85,6 +88,8 @@ export class CrawlResultsService {
       responseMs: page.responseMs,
       htmlBytes: page.htmlBytes,
       sitemapPosition: page.sitemapPosition,
+      checksApplicable: page.checksApplicable,
+      checksFailed: page.checksFailed,
       lastSeenRunId: results.runId,
       crawledAt: results.crawledAt,
     }));

@@ -31,6 +31,8 @@ const page = (overrides: Partial<IRunPage> = {}): IRunPage => ({
     { term: 'outreach', relevance: 0.4 },
   ],
   issues: [{ code: 'LANG_MISSING', severity: 'notice', details: {} }],
+  checksApplicable: 18,
+  checksFailed: 1,
   ...overrides,
 });
 

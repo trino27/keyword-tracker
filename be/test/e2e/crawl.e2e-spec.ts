@@ -90,6 +90,21 @@ describe('crawl (e2e, recorded sites)', () => {
       expect(pairs).toBeLessThanOrEqual(8);
     }
     expect(await testDb.db.$count(seoIssues)).toBeGreaterThan(0);
+
+    // The write path, end to end: every page carries a denominator a score can divide by,
+    // and a failed count that agrees with the issue rows written in the same transaction.
+    const issueCounts = await testDb.db
+      .select({ pageId: seoIssues.pageId, found: count() })
+      .from(seoIssues)
+      .groupBy(seoIssues.pageId);
+    const failedByPage = new Map(
+      issueCounts.map(({ pageId, found }) => [pageId, found]),
+    );
+    for (const page of stored) {
+      expect(page.checksApplicable).toBeGreaterThanOrEqual(13);
+      expect(page.checksApplicable).toBeLessThanOrEqual(18);
+      expect(page.checksFailed).toBe(failedByPage.get(page.id) ?? 0);
+    }
   });
 
   it('flags STRUCTURED_DATA_MISSING on a post that declares no article markup', async () => {
