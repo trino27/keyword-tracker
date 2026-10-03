@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
+  ACTIVE_CRAWL_RUN_STATUSES,
   CRAWL_RUN_ERRORS,
   CURRENT_CRAWL_RUN_STATUSES,
   type TCrawlTrigger,
@@ -17,9 +18,11 @@ import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type {
   IClaimedRun,
   IClientRunSummary,
+  IClientSeedState,
   ICrawlRunRecord,
   IRunDiscovery,
   IRunOutcome,
+  IRunStatus,
   IRunTarget,
 } from '../../interfaces/client-record.interface';
 
@@ -262,6 +265,37 @@ export class CrawlRunsRepository {
       })
       .from(crawlRuns)
       .innerJoin(clients, eq(clients.id, crawlRuns.clientId))
+      .where(eq(crawlRuns.id, runId))
+      .limit(1);
+    return row ?? null;
+  }
+
+  /** Whether the client has pages to show, and the run in flight if there is one. */
+  async seedStateForWorker(clientId: number): Promise<IClientSeedState> {
+    const rows = await this.db
+      .select({ id: crawlRuns.id, status: crawlRuns.status })
+      .from(crawlRuns)
+      .where(
+        and(
+          eq(crawlRuns.clientId, clientId),
+          inArray(crawlRuns.status, [
+            ...CURRENT_CRAWL_RUN_STATUSES,
+            ...ACTIVE_CRAWL_RUN_STATUSES,
+          ]),
+        ),
+      );
+    const current: readonly string[] = CURRENT_CRAWL_RUN_STATUSES;
+    return {
+      hasCurrentRun: rows.some((row) => current.includes(row.status)),
+      activeRunId:
+        rows.find((row) => !current.includes(row.status))?.id ?? null,
+    };
+  }
+
+  async findStatusForWorker(runId: number): Promise<IRunStatus | null> {
+    const [row] = await this.db
+      .select({ status: crawlRuns.status, errorCode: crawlRuns.errorCode })
+      .from(crawlRuns)
       .where(eq(crawlRuns.id, runId))
       .limit(1);
     return row ?? null;

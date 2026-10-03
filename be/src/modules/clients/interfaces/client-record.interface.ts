@@ -78,3 +78,15 @@ export interface IRunOutcome {
   errorCode: string | null;
   errorMessage: string | null;
 }
+
+/** What the seed needs to know before it enqueues a crawl. */
+export interface IClientSeedState {
+  /** A succeeded or partial run exists: the client has pages. */
+  hasCurrentRun: boolean;
+  activeRunId: number | null;
+}
+
+export interface IRunStatus {
+  status: TCrawlRunStatus;
+  errorCode: string | null;
+}

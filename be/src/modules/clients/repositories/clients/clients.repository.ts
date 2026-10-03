@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import {
   DATABASE_CONNECTION,
   type Database,
@@ -26,6 +26,19 @@ export class ClientsRepository {
 
   async insert(tx: Transaction, client: INewClient): Promise<IClientRecord> {
     const [row] = await tx.insert(clients).values(client).returning(columns);
+    return row;
+  }
+
+  /** The seed's idempotent create: one row per (user, site key), the name refreshed. */
+  async upsertForWorker(client: INewClient): Promise<IClientRecord> {
+    const [row] = await this.db
+      .insert(clients)
+      .values(client)
+      .onConflictDoUpdate({
+        target: [clients.userId, clients.siteKey],
+        set: { name: sql`excluded.name` },
+      })
+      .returning(columns);
     return row;
   }
 
