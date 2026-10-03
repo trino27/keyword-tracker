@@ -11,10 +11,10 @@ describe('TITLE_RULES', () => {
   });
 
   it.each([
-    [29, { length: 29, min: 30, max: 60 }],
+    [29, { value: 29, min: 30, max: 60 }],
     [30, null],
     [60, null],
-    [61, { length: 61, min: 30, max: 60 }],
+    [61, { value: 61, min: 30, max: 60 }],
   ])('TITLE_LENGTH at %d characters', (length, expected) => {
     expect(TITLE_RULES.TITLE_LENGTH(withTitle('x'.repeat(length)))).toEqual(
       expected,

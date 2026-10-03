@@ -24,6 +24,6 @@ export const CONTENT_RULES: TSeoRuleGroup<
 
   THIN_CONTENT: ({ parsed }) =>
     parsed.wordCount < MIN_WORDS
-      ? { words: parsed.wordCount, min: MIN_WORDS }
+      ? { value: parsed.wordCount, min: MIN_WORDS }
       : null,
 };

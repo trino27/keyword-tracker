@@ -12,6 +12,6 @@ export const TITLE_RULES: TSeoRuleGroup<'TITLE_MISSING' | 'TITLE_LENGTH'> = {
   TITLE_LENGTH: ({ parsed }) => {
     if (parsed.title === null) return null;
     const length = characterLength(parsed.title);
-    return length < min || length > max ? { length, min, max } : null;
+    return length < min || length > max ? { value: length, min, max } : null;
   },
 };

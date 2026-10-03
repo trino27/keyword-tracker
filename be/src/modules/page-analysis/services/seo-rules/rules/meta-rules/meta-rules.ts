@@ -34,7 +34,7 @@ export const META_RULES: TSeoRuleGroup<
   META_DESCRIPTION_LENGTH: ({ parsed }) => {
     if (parsed.metaDescription === null) return null;
     const length = characterLength(parsed.metaDescription);
-    return length < min || length > max ? { length, min, max } : null;
+    return length < min || length > max ? { value: length, min, max } : null;
   },
 
   CANONICAL_MISSING: ({ parsed }) => (parsed.canonical === null ? {} : null),

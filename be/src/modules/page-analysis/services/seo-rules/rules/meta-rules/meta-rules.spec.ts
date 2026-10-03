@@ -12,10 +12,10 @@ describe('META_RULES', () => {
   });
 
   it.each([
-    [69, { length: 69, min: 70, max: 160 }],
+    [69, { value: 69, min: 70, max: 160 }],
     [70, null],
     [160, null],
-    [161, { length: 161, min: 70, max: 160 }],
+    [161, { value: 161, min: 70, max: 160 }],
   ])('META_DESCRIPTION_LENGTH at %d characters', (length, expected) => {
     expect(
       META_RULES.META_DESCRIPTION_LENGTH(

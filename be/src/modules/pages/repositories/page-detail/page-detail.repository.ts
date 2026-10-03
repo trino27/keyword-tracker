@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import {
   CURRENT_CRAWL_RUN_STATUSES,
+  type TSeoIssue,
   type TSeoIssueCode,
   type TSeoIssueSeverity,
 } from '@app/contracts';
@@ -27,11 +28,12 @@ export interface ICurrentPageRecord {
   clientWebsiteUrl: string;
 }
 
-export interface IIssueRecord {
-  code: TSeoIssueCode;
-  severity: TSeoIssueSeverity;
-  details: Record<string, unknown>;
-}
+/**
+ * A stored finding, as the catalogue types it. The cast in `issuesForPage` is the
+ * trust boundary: `details_json` is whatever the crawl that wrote it stored, and this
+ * is the one place it becomes a typed value.
+ */
+export type TIssueRecord = TSeoIssue;
 
 export interface IHistoryRow {
   keywordId: number;
@@ -114,7 +116,7 @@ export class PageDetailRepository {
   }
 
   /** Call only for a page `findCurrentPage` returned. */
-  async issuesForPage(pageId: number): Promise<IIssueRecord[]> {
+  async issuesForPage(pageId: number): Promise<TIssueRecord[]> {
     const { rows } = await this.db.execute<{
       code: TSeoIssueCode;
       severity: TSeoIssueSeverity;
@@ -122,11 +124,14 @@ export class PageDetailRepository {
     }>(sql`
       select code, severity, details_json from seo_issues where page_id = ${pageId}
     `);
-    return rows.map((row) => ({
-      code: row.code,
-      severity: row.severity,
-      details: row.details_json,
-    }));
+    return rows.map(
+      (row) =>
+        ({
+          code: row.code,
+          severity: row.severity,
+          details: row.details_json,
+        }) as TIssueRecord,
+    );
   }
 
   /**

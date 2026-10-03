@@ -27,7 +27,7 @@ describe('CONTENT_RULES', () => {
   });
 
   it.each([
-    [299, { words: 299, min: 300 }],
+    [299, { value: 299, min: 300 }],
     [300, null],
   ])('THIN_CONTENT at %d words', (wordCount, expected) => {
     expect(
