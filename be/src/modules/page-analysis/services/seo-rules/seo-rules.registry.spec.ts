@@ -53,9 +53,7 @@ describe('SEO_RULES', () => {
           url,
           finalUrl: url,
           htmlBytes: Buffer.byteLength(html),
-          responseMs: entry.ttfbMs ?? 0,
           headers: entry.headers ?? {},
-          topKeyword: null,
           parsed: extractPage(html, url),
         }),
       );

@@ -13,9 +13,7 @@ export function makeRuleInput(
     finalUrl: 'https://a.example/post/',
     redirected: false,
     headers: { 'content-type': 'text/html' },
-    responseMs: 200,
     htmlBytes: 50_000,
-    topKeyword: 'link building',
     ...rest,
     parsed: {
       title: 'A complete guide to link building for small sites',

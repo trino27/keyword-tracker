@@ -25,17 +25,8 @@ describe('TRANSPORT_RULES', () => {
   });
 
   it.each([
-    [1_500, null],
-    [1_501, { ttfbMs: 1_501, max: 1_500 }],
-  ])('SLOW_RESPONSE at %d ms', (responseMs, expected) => {
-    expect(
-      TRANSPORT_RULES.SLOW_RESPONSE(makeRuleInput({ responseMs })),
-    ).toEqual(expected);
-  });
-
-  it.each([
     [1_048_576, null],
-    [1_048_577, { bytes: 1_048_577, max: 1_048_576 }],
+    [1_048_577, { value: 1_048_577, max: 1_048_576 }],
   ])('LARGE_PAGE at %d bytes', (htmlBytes, expected) => {
     expect(TRANSPORT_RULES.LARGE_PAGE(makeRuleInput({ htmlBytes }))).toEqual(
       expected,

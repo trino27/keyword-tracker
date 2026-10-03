@@ -33,7 +33,9 @@ export const pages = pgTable(
     // Words of the main content, not of the navigation around it.
     wordCount: integer('word_count').notNull(),
     httpStatus: smallint('http_status').notNull(),
-    // Time to first byte, for SLOW_RESPONSE.
+    // Time to first byte of the crawler's single fetch. A fact of the crawl, never a
+    // verdict: the same site answered in 41 ms and 1728 ms minutes apart (field study,
+    // practices/search-engines/references/field-study-2026-10.md, finding 3).
     responseMs: integer('response_ms').notNull(),
     htmlBytes: integer('html_bytes').notNull(),
     // 0-based position in the selected sitemap group — the list's secondary order.
