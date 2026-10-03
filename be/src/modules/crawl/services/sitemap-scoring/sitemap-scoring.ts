@@ -176,10 +176,11 @@ const formatScore = (value: number) => Number(value.toFixed(2)).toString();
 
 function describe(score: IGroupScore, feedSize: number): string {
   const { group } = score;
+  const siblings = group.sitemapUrls.length - 1;
   const sitemaps =
-    group.sitemapUrls.length === 1
+    siblings === 0
       ? group.sitemapUrls[0]
-      : `${group.sitemapUrls[0]} (+${group.sitemapUrls.length - 1} numbered siblings)`;
+      : `${group.sitemapUrls[0]} (+${siblings} numbered sibling${siblings === 1 ? '' : 's'})`;
   const name = score.nameTerms.length ? score.nameTerms.join(', ') : 'none';
   const path = score.pathSection
     ? `${formatScore(score.pathShareScore)} (under /${score.pathSection}/)`
