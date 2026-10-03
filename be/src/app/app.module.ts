@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { APP_GLOBAL_PROVIDERS } from '@core/bootstrap/app-globals.providers';
 import { validateEnv } from '@infrastructure/config/env.schema/env.schema';
 import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/logger.config';
+import { DatabaseModule } from '@persistence/connections/postgres/database.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/lo
       validate: validateEnv,
     }),
     LoggerModule.forRoot({ pinoHttp: pinoHttpOptions }),
+    DatabaseModule,
   ],
   providers: [...APP_GLOBAL_PROVIDERS],
 })
