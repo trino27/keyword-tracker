@@ -101,3 +101,37 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   candidates, each ranked lower than the one word deserves. It needs a stemmer per target
   language, and which languages are targets is undecided; see "Not done, and next" in the root
   README.
+
+
+## Specified invariants
+
+Deposited after archive (`openspec/README.md` §4 and §8): the permanent id, what must stay true,
+and what pins it. Kept as a trailing section so the set is greppable — ANALYSIS-011 is deposited above, beside the prose it belongs to. Unless another path is
+named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spec.md`.
+
+<!-- invariant: ANALYSIS-001 -->
+**Issues come only from the shared catalogue: one rule per code, one issue per code on a page, and the code decides the rule’s return shape.** Pinned by `services/seo-rules/seo-rules.registry.spec.ts` -> "has exactly one rule per catalogued code" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
+
+<!-- invariant: ANALYSIS-002 -->
+**The eighteen checks, their thresholds and their severities, each finding saying exactly what is wrong.** Pinned by the per-rule specs under `services/seo-rules/rules/` (title, meta, heading, content, indexing, transport, structured-data) and `seo-rules.registry.spec.ts` -> "reports catalogue severity and order".
+
+<!-- invariant: ANALYSIS-003 -->
+**The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".
+
+<!-- invariant: ANALYSIS-004 -->
+**Keyword candidates are normalized main-content phrases that never begin or end with a stop word.** Pinned by `services/keyword-extraction/collect-candidates/collect-candidates.spec.ts` -> "never starts or ends a candidate with a stop word" and "without a known language, stops at 2-grams and filters nothing"; `tokenize/tokenize.spec.ts` -> "normalizes and splits on sentence breaks".
+
+<!-- invariant: ANALYSIS-005 -->
+**Candidates are scored by field weight with subsumed duplicates removed, and the page keeps at most eight above the floor — never topped up to a minimum.** Pinned by `score-candidates/score-candidates.spec.ts` -> `describe("pageScore")`; `select-keywords/select-keywords.spec.ts` -> "keeps at most 8 above the floor, the top at relevance 1"; `extract-keywords/extract-keywords.spec.ts` -> "gives every page 1–8 keywords, the top at relevance 1".
+
+<!-- invariant: ANALYSIS-006 -->
+**Scores are damped by an IDF factor over the run’s pages, so a term on every page of a site fades.** Pinned by `score-candidates/score-candidates.spec.ts` -> `describe("idfFactor")` -> "is below 0.3 for a term on every page of 15, and 1 for a term on one of them"; `extract-keywords.spec.ts` -> "never returns the brand word at all".
+
+<!-- invariant: ANALYSIS-008 -->
+**A bounded code’s finding is a measurement carrying the bounds that were in force when the page was crawled, not today’s.** Pinned by `packages/contracts/src/domain/seo/measured-issue-codes.test.ts` -> "holds every catalogue entry that declares a min or a max"; `rules/title-rules/title-rules.spec.ts` -> the "TITLE_LENGTH at %d characters" cases; `be/test/e2e/pages.e2e-spec.ts` -> "the detail carries its score, the fetch time and a measured finding".
+
+<!-- invariant: ANALYSIS-009 -->
+**The extractor reads headings and blocks as a reader sees them: assistive-only text and in-heading controls contribute nothing.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "a copy-link control inside an h2 is not part of the heading (vercel.com)", "an element hidden from assistive technology contributes no text", "separates adjacent blocks so their words never fuse".
+
+<!-- invariant: ANALYSIS-010 -->
+**Every rule answers pass, not applicable, or a finding, and the page stores both check counts.** Pinned by `seo-rules.registry.spec.ts` -> "a clean page has no issues, and every check applied to it", "a check that could not be judged is not counted against the page", "checksFailed is always the number of issues"; the CHECKs `pages_checks_failed_range` and `pages_checks_applicable_positive`.

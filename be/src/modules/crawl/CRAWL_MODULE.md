@@ -53,3 +53,31 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   metadata addresses refused at connect time.
 - **Tests never touch the network:** `createTestApp` swaps in `FixtureHttpTransport`; an unknown
   URL is a 404. `node be/test/fixtures/record-fixtures.ts` refreshes the recordings.
+
+
+## Specified invariants
+
+Deposited after archive (`openspec/README.md` §4 and §8): the permanent id, what must stay true,
+and what pins it. Kept as a trailing section so the set is greppable — the queue’s own invariants (CRAWL-001..003) sit in `CLIENTS_MODULE.md`, which owns `crawl_runs`. Unless another path is
+named, the requirement lives in `openspec/specs/be/src/modules/crawl/spec.md`.
+
+<!-- invariant: CRAWL-004 -->
+**The blog sitemap is chosen by score from robots and well-known sources before any page URL is fetched.** Pinned by `services/sitemap-discovery/sitemap-discovery.service.spec.ts` -> "no page URL is requested before selection" and "semrush: selects /blog/sitemap/ and never reads another subdomain"; `services/sitemap-scoring/sitemap-scoring.spec.ts` -> `describe("selectBlogGroup")`.
+
+<!-- invariant: CRAWL-005 -->
+**Only the client’s own site is crawled: a foreign sitemap, a foreign URL and an off-site redirect are all refused.** Pinned by `sitemap-discovery.service.spec.ts` -> "semrush: selects /blog/sitemap/ and never reads another subdomain"; `services/post-selection/post-selection.service.spec.ts` -> "logs and skips each kind of non-post, then keeps going".
+
+<!-- invariant: CRAWL-006 -->
+**At most 15 crawled posts out of at most 30 candidates, taken in sitemap order despite fetching in parallel.** Pinned by `post-selection.service.spec.ts` -> "takes the first 15 posts in order and stops the log at the 15th" and "considers at most 30 entries"; `be/test/e2e/crawl.e2e-spec.ts` -> "crawls yoast: 15 posts, 16 log lines, /seo-blog/ skipped as a listing".
+
+<!-- invariant: CRAWL-007 -->
+**Every considered candidate becomes exactly one log row carrying its reason, and the next candidate is still tried.** Pinned by `post-selection.service.spec.ts` -> "logs and skips each kind of non-post, then keeps going"; the CHECKs `crawl_run_items_page_required` and `crawl_run_items_reason_required`.
+
+<!-- invariant: CRAWL-008 -->
+**A run ends succeeded at 15 posts, partial at 1–14 and failed at none, each with a catalogued error code.** Pinned by `crawl-run-executor.service.spec.ts` -> `describe("outcomeOf")`, its "%d posts → %s" cases and its error-code cases; `be/test/e2e/crawl.e2e-spec.ts` -> "a site with no sitemap finalizes failed SITEMAP_NOT_FOUND".
+
+<!-- invariant: CRAWL-010 -->
+**No seed client’s name, host or path appears anywhere in crawl, discovery or analysis code.** Pinned by NOT pinned by a test — this document records a manual `git grep` guard, and nothing in CI, ESLint or a spec runs it.
+
+<!-- invariant: SEED-002 -->
+**The seed enqueues a `trigger=seed` run executed by the same worker as a UI run, waits for it, and fails loudly naming the error code. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "a failed crawl makes the seed fail with its error code"; `seed-runner.service.spec.ts` -> "enqueues a seed crawl and polls until it ends" and "waits for a run already in flight instead of enqueueing another". The non-zero process exit is NOT pinned — no test runs the CLI.

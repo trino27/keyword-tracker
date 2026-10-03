@@ -25,7 +25,7 @@ resolution.
 ### Requirement [REMOTE-002]: every outbound request is bounded
 
 Every outbound request MUST time out after 10 seconds, follow at most 5 redirects, and stop
-reading past its size cap (HTML 5 MB; sitemap 50 MB compressed and 10 MB parsed).
+reading past its size cap (HTML 5 MB; a sitemap 10 MB as downloaded, inflated to at most 50 MB).
 
 #### Scenario: an oversized page
 - **WHEN** a response body exceeds its cap
