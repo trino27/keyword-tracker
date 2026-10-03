@@ -17,8 +17,10 @@ import type {
  * globalnews.ca's `c-infoBox` put other headlines in every story. Matching is
  * case-insensitive, so `infoBox` and `relatedPosts` are caught as written.
  */
+const NEVER_CONTENT = 'script, style, noscript, svg, iframe, template';
+
 const NON_CONTENT = [
-  'nav, header, footer, aside, script, style, noscript, form, svg, iframe, template',
+  'nav, header, footer, aside, form',
   '[role="navigation"], [role="complementary"], [role="banner"]',
   '[role="contentinfo"], [role="search"], [role="dialog"]',
   '[class*="related" i], [class*="infobox" i], [class*="sidebar" i]',
@@ -28,6 +30,20 @@ const NON_CONTENT = [
   '[class*="popular" i], [class*="trending" i], [class*="recommend" i]',
   '[class*="comment" i], [id*="comment" i]',
 ].join(', ');
+
+/**
+ * Share of the main content a match above may take before it is read as the content
+ * itself rather than the furniture around it.
+ *
+ * The fragments match anywhere in a class name, which is what lets them catch
+ * `relatedPosts` and `c-infoBox` as written — and what made ratehub.ca's article
+ * vanish. Its content container is `<div class="content-layout ... with-sidebar">`:
+ * the modifier naming the LAYOUT contains the word for the thing beside it, and
+ * removing it took 1,899 of the page's 1,999 words, leaving a 3,000-word guide
+ * stored as empty and keywordless. Furniture is small next to the article it sits
+ * beside; a node holding most of the page is the page.
+ */
+const FURNITURE_MAX_SHARE = 0.5;
 
 /**
  * Text present only for assistive technology, or hidden from it; neither is page content.
@@ -153,6 +169,9 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
  * keywords. An `article` WITHOUT the heading is not trusted — in a listing every card
  * is one — and the old order is kept for that case.
  */
+const wordsIn = ($: CheerioAPI, node: ReturnType<CheerioAPI>) =>
+  $(node).text().split(/\s+/).filter(Boolean).length;
+
 function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
   let withHeading: ReturnType<CheerioAPI> | null = null;
   $('article').each((_, element) => {
@@ -167,7 +186,15 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
         ? $('article').first()
         : $('body').first());
   const main = candidate.clone();
-  main.find(NON_CONTENT).remove();
+  main.find(NEVER_CONTENT).remove();
+  const total = wordsIn($, main);
+  // Document order, so a wrapper is judged before what it wraps: keeping a wrapper
+  // still lets the furniture inside it be removed on its own terms.
+  main.find(NON_CONTENT).each((_, element) => {
+    const node = $(element);
+    if (total > 0 && wordsIn($, node) > total * FURNITURE_MAX_SHARE) return;
+    node.remove();
+  });
   return main;
 }
 

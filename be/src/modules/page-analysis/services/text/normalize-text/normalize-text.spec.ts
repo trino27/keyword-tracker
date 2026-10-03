@@ -13,6 +13,13 @@ describe('normalizeText', () => {
     ["we're, they've, I'll, don't", 'we they i don'],
     // An apostrophe inside a name is not a contraction; the name closes up.
     ["O'Brien on SEO", 'obrien on seo'],
+    // French elides the particle in front, so the word AFTER the apostrophe is the
+    // one that matters. ratehub.ca's Quebec posts were filed under `labordabilite`.
+    ["L'abordabilite s'est amelioree", 'abordabilite est amelioree'],
+    ["qu'il n'y a", 'il y a'],
+    ["d'Ivoire", 'ivoire'],
+    // …and an English plural possessive is not an elision: the s ends a word.
+    ["the dogs' bowls", 'the dogs bowls'],
     ['Überprüfung der Seite', 'überprüfung der seite'],
     ['  ', ''],
   ])('%j → %j', (input, expected) => {

@@ -112,6 +112,25 @@ describe('extractPage', () => {
     expect(parsed.blocks).toEqual(['The story itself.']);
   });
 
+  it('keeps a container whose class merely NAMES the furniture beside it', () => {
+    // ratehub.ca wraps the article in `<div class="content-layout with-sidebar">`.
+    // The fragment match took the whole post with it and stored a 1,842-word guide
+    // as empty: a node holding most of the page is the page, not its furniture.
+    const parsed = page(
+      '<main><div class="content-layout with-sidebar">' +
+        '<h1>Fall home maintenance checklist</h1>' +
+        '<p>Clean the eavestroughs before the first frost arrives this year.</p>' +
+        '<p>Seal the gaps a raccoon would otherwise find before November.</p>' +
+        '<aside class="sidebar-content"><p>Compare quotes</p></aside>' +
+        '</div></main>',
+    );
+
+    expect(parsed.blocks).toEqual([
+      'Clean the eavestroughs before the first frost arrives this year.',
+      'Seal the gaps a raccoon would otherwise find before November.',
+    ]);
+  });
+
   it('reads head metadata, resolving the canonical', () => {
     const parsed = page(
       '<p>x</p>',

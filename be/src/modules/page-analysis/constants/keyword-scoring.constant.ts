@@ -264,6 +264,10 @@ export const EXTRA_ENGLISH_STOP_WORDS: readonly string[] = [
   // now normalizes to `let play`, which one does.
   'let',
   'lets',
+  // A comparison hinges on it and neither side is said by it: ratehub.ca returned
+  // `cash back vs` and `low interest vs` as the keywords of its two comparisons.
+  'vs',
+  'versus',
   // Prepositions and conjunctions the shipped list omits. Every one of them was
   // found ending or beginning a candidate on a live page: "suspected plot against",
   // "plot against us run", "against us run military" were three of one article's
