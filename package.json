@@ -20,7 +20,8 @@
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
-    "openspec": "openspec"
+    "openspec": "openspec",
+    "test:db": "pnpm --filter @app/contracts run build && pnpm --filter be run test:db"
   },
   "devDependencies": {
     "@fission-ai/openspec": "1.13.1",

@@ -2,8 +2,8 @@
 name: plan-interview
 description: >
   Dependency-ordered design interview that precedes a written implementation plan.
-  Invoke when the user asks to design or plan a non-trivial feature ("давай обсудим",
-  "спроектируем", "нужен план"), or before any change that touches ≥2 workspaces, adds a
+  Invoke when the user asks to design or plan a non-trivial feature ("let's discuss",
+  "let's design", "we need a plan"), or before any change that touches ≥2 workspaces, adds a
   table/enum/wire field, or alters a lifecycle, authorization or event flow. Runs IN THE
   MAIN SESSION — it is a conversation, and a subagent cannot hold one. Produces a decision
   log, then hands off to the `planner` agent, which owns the document.
@@ -51,8 +51,8 @@ the question lives.
   than the fix.
 - **Ordinary work** — a change on its own, no plan. `/opsx:propose` writes the delta; the main
   session works `tasks.md`.
-- **Substantial work** — the interview runs, the `planner` writes the plan (the change's
-  `design.md`) AND creates the change or changes it drives. The threshold is the repository's
+- **Substantial work** — the interview runs, the `planner` writes the plan (`docs/_plans/`)
+  AND creates the change or changes it drives. The threshold is the repository's
   existing one for orchestration: two or more workspaces, three or more new files, or something
   that cannot be undone.
 
@@ -74,15 +74,15 @@ Missing rows — a Clear row is a fact to restate, not a question to ask.
 
 | category | what makes it Clear |
 | --- | --- |
-| функциональный объём | which states/screens the change applies to, and which it deliberately does not |
-| модель данных | where the new thing lives, what it is keyed by, what nullability means |
-| инвариант и enforcement | what must always hold, and what mechanism makes violating it impossible |
-| контракт на границе | every field that crosses, what breaks, what ships together |
-| краевые случаи и отказы | concurrency, partial failure, retries, idempotency, the empty and the maximal case |
-| ограничения и tradeoffs | what is being traded for what, and what was rejected |
-| доставка и побочные эффекты | events, background jobs, what happens when a job or an external fetch fails |
-| операции | migration order, rollback, deletion, backfill |
-| критерии завершённости | the command or assertion that decides each phase is done |
+| functional scope | which states/screens the change applies to, and which it deliberately does not |
+| data model | where the new thing lives, what it is keyed by, what nullability means |
+| invariant and enforcement | what must always hold, and what mechanism makes violating it impossible |
+| boundary contract | every field that crosses, what breaks, what ships together |
+| edge cases and failures | concurrency, partial failure, retries, idempotency, the empty and the maximal case |
+| constraints and trade-offs | what is being traded for what, and what was rejected |
+| delivery and side effects | events, background jobs, what happens when a job or an external fetch fails |
+| operations | migration order, rollback, deletion, backfill |
+| completion criteria | the command or assertion that decides each phase is done |
 
 This is the polish that makes the interview finishable: the tree gives an ORDER, the table
 gives COMPLETENESS. Without it an interview can run twenty questions and still never touch
@@ -110,7 +110,7 @@ The default spine, outermost first — a later ring cannot constrain an earlier 
 7. **Surface** — endpoints, screens, copy.
 
 Publish the tree before asking anything: numbered nodes, one line each, conditional nodes
-marked with the answer that unlocks them (`3.2 — только если 1 = отдельная таблица`). The user
+marked with the answer that unlocks them (`3.2 — only if 1 = a separate table`). The user
 sees the route and can reorder it; you learn the shape you are committing to.
 
 The rings and the coverage table are two axes of the same thing: a ring says WHEN a question
@@ -127,25 +127,25 @@ whose answer moves another node goes alone.
 
 Each question turn has exactly this shape:
 
-**Контекст** — one paragraph: what has to be decided, and what in the code forces the decision.
+**Context** — one paragraph: what has to be decided, and what in the code forces the decision.
 Name the file or column, not "the architecture".
 
-**Варианты** — two to four, never more. For each: what it is concretely (a signature, a column,
-a shape — not an adjective), then `+`, `−`, and **подводные камни**: the failure that shows up
+**Options** — two to four, never more. For each: what it is concretely (a signature, a column,
+a shape — not an adjective), then `+`, `−`, and **pitfalls**: the failure that shows up
 later, in another module, at a boundary, under concurrency, on erasure, on rollback. A variant
 without a named pitfall has not been thought about yet.
 
-**Сравнение** — one table. Four fixed axes, scored 1–100, plus one to three axes specific to
+**Comparison** — one table. Four fixed axes, scored 1–100, plus one to three axes specific to
 this task (name them; they are why this question is not generic):
 
-| критерий | A | B | C |
+| criterion | A | B | C |
 | --- | --- | --- | --- |
-| явность | 90 | 55 | 70 |
-| декларативность | 85 | 40 | 60 |
-| код-стайл проекта | 95 | 60 | 75 |
-| производительность | 70 | 90 | 85 |
-| *<ось задачи>* | … | … | … |
-| **итог** | **85** | **60** | **72** |
+| explicitness | 90 | 55 | 70 |
+| declarativeness | 85 | 40 | 60 |
+| project code style | 95 | 60 | 75 |
+| performance | 70 | 90 | 85 |
+| *<task-specific axis>* | … | … | … |
+| **total** | **85** | **60** | **72** |
 
 Scoring discipline: scores are **relative within this question only** — never carried between
 questions. Every score gets a half-line reason under the table; a number without a reason is
@@ -153,14 +153,14 @@ noise. Do not manufacture precision — if two options are within a few points, 
 these axes and decide on the task-specific one. A 100 means "this is what the axis was invented
 to describe"; below 50 means "this option actively fights the axis".
 
-**Влияние на таргет** — two or three sentences: what the user gets or loses in the final
+**Effect on the target** — two or three sentences: what the user gets or loses in the final
 result, in product terms, not architectural ones.
 
-**Что это меняет дальше** — the affected later nodes by number, with the change ("4.2 исчезает",
-"5.1 получает третий вариант").
+**What this changes downstream** — the affected later nodes by number, with the change ("4.2 disappears",
+"5.1 gains a third option").
 
-**Рекомендация** — one option, with the single reason that decides it. Recommend even when the
-margin is thin; "оба хороши" is not an answer the user asked for.
+**Recommendation** — one option, with the single reason that decides it. Recommend even when the
+margin is thin; "both are fine" is not an answer the user asked for.
 
 Then call `AskUserQuestion`: the prose analysis stays in the message, the tool carries only the
 short labels (recommended option first, marked `(Recommended)`). Use `preview` when the options
@@ -171,9 +171,9 @@ differ as *code shapes* — a signature or a DDL fragment side by side decides f
 After each answer, append one line to a running log:
 
 ```
-Р7. Владелец страницы — через `client_id`, не через `user_id`. Почему: страница принадлежит
-    клиенту, а клиент — пользователю; прямой `user_id` дублирует связь и может разойтись.
-    Закрыло Р8, переписало Р11.
+D7. A page's owner is reached through `client_id`, not `user_id`. Why: a page belongs to a
+    client and a client to a user; a direct `user_id` duplicates the link and can drift.
+    Closed D8, rewrote D11.
 ```
 
 Do this **every turn, in the chat, not in a file**. Long interviews get compacted; a decision
@@ -184,13 +184,13 @@ log is also the payload the `planner` agent receives, so its quality is the plan
 
 - **Ask in the user's language.** The interview is a conversation; the plan document is English
   like every other artefact in this repository.
-- **Never ask how much work fits in an iteration.** Batch size, "всё сразу или по фазам",
+- **Never ask how much work fits in an iteration.** Batch size, "all at once or in phases",
   effort, hours, story points — none of it is yours to ask or to plan. The user decides that
   after the plan exists.
 - **A rejected premise wins.** If the user says a constraint you assumed is wrong, accept it in
   one sentence, re-derive the affected nodes, and move on. Do not re-argue a settled decision.
 - **Deferral is a valid answer.** Record it as an open question with a default, and name the
-  trigger that reopens it ("решаем, когда появится второй вид субъекта"). A deferred question
+  trigger that reopens it ("decide when a second kind of subject appears"). A deferred question
   the plan cannot proceed without is not deferrable — say so and ask again.
 - **A question you can answer by measuring is not a question.** Run the grep, count the call
   sites, read the CHECK — then ask about the decision, not the fact.
@@ -205,9 +205,9 @@ log is also the payload the `planner` agent receives, so its quality is the plan
 Invoke the `planner` agent with: the target statement, the complete decision log (every line,
 verbatim — it is the reasoning the document must preserve), the verified inventory from Step 0
 (files, columns, existing tests), the open questions with their defaults, and the branch. The agent
-writes the plan as the `design.md` of the OpenSpec change it CREATES (or the first of several),
-generates each `tasks.md`, and returns the outline; you relay the plan's path, the change names
-and the outline, nothing more.
+writes the plan in `docs/_plans/<name>.md`, CREATES the OpenSpec change or changes it drives,
+generates each `tasks.md`, and returns the plan in full; you relay the plan itself to the user —
+the decisions, the work order and the open questions — not only its path.
 
 Pass Step 0a's answer with the rest. The agent does not re-derive it — it was decided with the
 user in front of the evidence, and re-deciding it alone is how a requirement goes unwritten.

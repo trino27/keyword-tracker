@@ -71,8 +71,9 @@ without an enforcer it is enforced by review, and the skill says so.
 - **No `.md` inside `src/` except the module docs** (`_MODULE`, `_LIFECYCLE`,
   `_ARCHITECTURE`). A rules file next to a component is a
   skill that has not been filed yet.
-- **An execution plan is not a document type this tree keeps.** What will be done and how far it
-  got goes in an OpenSpec change (`tasks.md`); a spent change is harvested, then archived.
+- **An execution plan lives in `docs/_plans/` and nowhere else** — its contract is
+  [`docs/_plans/README.md`](../../docs/_plans/README.md). The work order within one requirement
+  delta is that OpenSpec change's `tasks.md`. A finished plan is archived, never left in place.
 - **A checklist a reader EXECUTES is a procedure; a checklist that RECORDS what is already done
   is a plan.** Both shapes look identical. A procedure stays where it is; a list carrying
   "done" markers is a plan, wherever it happens to be sitting.
