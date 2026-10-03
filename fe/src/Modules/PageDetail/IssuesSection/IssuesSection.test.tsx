@@ -13,7 +13,7 @@ const renderSection = (issues: Parameters<typeof IssuesSection>[0]["issues"]) =>
 describe("IssuesSection", () => {
 	it("groups by severity, worst first, with the sentence and the fix", () => {
 		renderSection([
-			{ code: "THIN_CONTENT", severity: "warning", details: { words: 120, min: 300 } },
+			{ code: "THIN_CONTENT", severity: "warning", details: { value: 120, min: 300 } },
 			{ code: "H1_MISSING", severity: "error", details: {} },
 		]);
 

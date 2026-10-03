@@ -30,15 +30,19 @@ const list = (details: TDetails, key: string) =>
 
 /**
  * One sentence per code. Typed by every catalogued code, so a new rule without its
- * sentence does not compile.
+ * sentence does not compile, and a retired one leaves an excess-property error behind.
+ *
+ * A measured code reads `value`, `min` and `max` from the finding itself — the bounds the
+ * crawl judged the page against, not today's catalogue — so an old verdict and the sentence
+ * explaining it never disagree.
  */
 const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	TITLE_MISSING: () => "The page has no <title> in its <head>.",
 	TITLE_LENGTH: (d) =>
-		`The title is ${num(d, "length")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
+		`The title is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	META_DESCRIPTION_MISSING: () => "The page has no meta description.",
 	META_DESCRIPTION_LENGTH: (d) =>
-		`The description is ${num(d, "length")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
+		`The description is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	H1_MISSING: () => "The page has no H1 heading.",
 	H1_MULTIPLE: (d) => `The page has ${num(d, "count")} H1 headings.`,
 	HEADING_SKIP: (d) =>
@@ -50,18 +54,21 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	IMAGES_MISSING_ALT: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} images in the content have no alt text.`,
 	THIN_CONTENT: (d) =>
-		`The content has ${num(d, "words")} words; aim for at least ${num(d, "min")}.`,
+		`The content has ${num(d, "value")} words; aim for at least ${num(d, "min")}.`,
 	LANG_MISSING: () => "The <html> element declares no language.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
 	NOT_HTTPS: (d) => `The page is served from ${text(d, "url")}.`,
 	REDIRECTED: (d) => `The sitemap lists ${text(d, "from")}, which redirects to ${text(d, "to")}.`,
-	SLOW_RESPONSE: (d) =>
-		`The first byte took ${num(d, "ttfbMs")} ms; aim for under ${num(d, "max")} ms.`,
 	LARGE_PAGE: (d) => {
 		const kb = (value: unknown) => (typeof value === "number" ? Math.round(value / 1024) : "?");
-		return `The HTML is ${kb(d.bytes)} KB; aim for under ${kb(d.max)} KB.`;
+		return `The HTML is ${kb(d.value)} KB; aim for under ${kb(d.max)} KB.`;
 	},
-	KEYWORD_NOT_IN_TITLE: (d) => `The top keyword "${text(d, "keyword")}" is not in the title.`,
+	STRUCTURED_DATA_MISSING: (d) => {
+		const types = list(d, "types");
+		return types
+			? `The page declares ${types}, but no Article or BlogPosting.`
+			: "The page declares no structured data.";
+	},
 };
 
 /** Issues by severity — errors first — each with its label, its sentence and the fix. */
