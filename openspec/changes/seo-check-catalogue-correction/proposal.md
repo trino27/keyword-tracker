@@ -64,4 +64,4 @@ No schema change.
 `fe/src/ViewModels/PageDetailViewModel/Services/GroupIssues/groupIssues.ts`,
 `fe/src/Modules/PageDetail/PageDetailHeader/PageDetailHeader.tsx`.
 
-Plan: `docs/_plans/seo-analysis-accuracy.md`, phase 1.
+Plan: `docs/_plans-archive/seo-analysis-accuracy.md`, phase 1.

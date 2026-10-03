@@ -11,7 +11,7 @@ export interface IHttpResponse {
   /** Lower-cased header names. */
   headers: Record<string, string>;
   body: Buffer;
-  /** Time to the response head — the SLOW_RESPONSE measurement. */
+  /** Time to the response head. A fact of this fetch, stored on the page. */
   ttfbMs: number;
 }
 

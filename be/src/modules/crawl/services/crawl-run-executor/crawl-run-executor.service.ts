@@ -23,6 +23,7 @@ import {
 import {
   BOT_CHALLENGE_REASON,
   MAX_PAGE_URL_LENGTH,
+  REDIRECTED_OFF_SITE_REASON,
 } from '../../constants/post-selection.constant';
 import type {
   ICrawledPage,
@@ -49,8 +50,8 @@ const UNANSWERED = new Set([
 
 /**
  * 15 posts: succeeded; fewer: partial; none: failed — and the failure says why: no page
- * was an article (the source was a guess), robots.txt forbids every post, or the site
- * turned the crawler away.
+ * was an article (the source was a guess), robots.txt forbids every post, every post
+ * has moved to another site, or the site turned the crawler away.
  */
 export function outcomeOf(
   crawled: number,
@@ -58,6 +59,11 @@ export function outcomeOf(
   articlesOnly = false,
 ): IRunOutcome {
   if (crawled === 0) {
+    if (
+      items.length > 0 &&
+      items.every((item) => item.reason === REDIRECTED_OFF_SITE_REASON)
+    )
+      return failed('SITE_REDIRECTS_ELSEWHERE');
     const onSite = items.filter((item) => item.status !== 'skipped_other_site');
     if (
       onSite.length > 0 &&
@@ -242,5 +248,7 @@ function toRunPage(page: ICrawledPage, analysis: IPageAnalysis): IRunPage {
     sitemapPosition: page.sitemapPosition,
     keywords: analysis.keywords,
     issues: analysis.issues,
+    checksApplicable: analysis.checksApplicable,
+    checksFailed: analysis.checksFailed,
   };
 }

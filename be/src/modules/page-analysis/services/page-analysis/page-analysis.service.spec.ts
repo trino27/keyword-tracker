@@ -1,17 +1,23 @@
 import { makeRuleInput } from '../seo-rules/_testing/make-rule-input';
+import type { IAnalysisInput } from './page-analysis.service';
 import { PageAnalysisService } from './page-analysis.service';
+
+/** The analysis carries one fact past the rules: the fetch's time to first byte. */
+const makeAnalysisInput = (
+  ...args: Parameters<typeof makeRuleInput>
+): IAnalysisInput => ({ ...makeRuleInput(...args), responseMs: 200 });
 
 describe('PageAnalysisService', () => {
   const service = new PageAnalysisService();
 
   it('gives each page its keywords and issues, in input order', () => {
     const pages = [
-      makeRuleInput({
+      makeAnalysisInput({
         url: 'https://a.example/link-building/',
         finalUrl: 'https://a.example/link-building/',
         parsed: { canonical: 'https://a.example/link-building/' },
       }),
-      makeRuleInput({
+      makeAnalysisInput({
         url: 'https://a.example/widget-pricing/',
         finalUrl: 'https://a.example/widget-pricing/',
         parsed: {
@@ -35,9 +41,6 @@ describe('PageAnalysisService', () => {
     expect(first.keywords[0].relevance).toBe(1);
     expect(first.issues).toEqual([]);
     expect(second.keywords[0].term).toBe('widget pricing');
-    expect(second.issues.map((issue) => issue.code)).toEqual([
-      'THIN_CONTENT',
-      'KEYWORD_NOT_IN_TITLE',
-    ]);
+    expect(second.issues.map((issue) => issue.code)).toEqual(['THIN_CONTENT']);
   });
 });

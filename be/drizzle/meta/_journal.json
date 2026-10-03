@@ -50,6 +50,13 @@
       "when": 1791031938068,
       "tag": "0006_fancy_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791041918946,
+      "tag": "0007_numerous_triton",
+      "breakpoints": true
     }
   ]
 }

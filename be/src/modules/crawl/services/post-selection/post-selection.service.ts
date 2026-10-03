@@ -17,6 +17,7 @@ import {
   ARTICLE_SCHEMA_TYPES,
   BOT_CHALLENGE_REASON,
   CRAWL_FETCH_CONCURRENCY,
+  REDIRECTED_OFF_SITE_REASON,
   HTML_CONTENT_TYPES,
   LISTING_SCHEMA_TYPES,
   MAX_PAGE_URL_LENGTH,
@@ -119,7 +120,7 @@ export class PostSelectionService {
     if (!isSameSite(response.finalUrl, input.siteKey))
       return skip(
         'skipped_other_site',
-        'Redirects to another site',
+        REDIRECTED_OFF_SITE_REASON,
         response.status,
       );
     if (response.headers['cf-mitigated']?.toLowerCase() === 'challenge')

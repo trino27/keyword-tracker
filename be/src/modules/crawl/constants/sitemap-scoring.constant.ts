@@ -26,6 +26,8 @@ export const WELL_KNOWN_FEED_PATHS = [
   '/feed.json',
   // Shopify's default blog.
   '/blogs/news.atom',
+  // Blogger.
+  '/feeds/posts/default',
 ] as const;
 
 /**

@@ -57,7 +57,16 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:db
   the Clients screen, with the reason.
 - **Keywords** are scored by where a phrase appears (title, H1, URL slug, description, headings,
   body), the page's own declared keywords, and an IDF penalty across the client's pages — so
-  "yoast" does not top every Yoast page. 19 SEO rules, one per catalogued code, compile-checked.
+  "yoast" does not top every Yoast page. 18 SEO rules, one per catalogued code, compile-checked.
+- **A page's score is the share of the checks that could apply to it.** Five of the eighteen are
+  conditional — a page with no images is not judged on alt text, a page with no description is not
+  judged on its length — so the denominator is counted at crawl time, while the parsed page is
+  still in hand, and shown beside the number: two pages with different denominators do not compare
+  as equals. Every check weighs the same; severity is how the screen reads, not arithmetic.
+- **The pages list is ordered worst first**, interleaving clients rather than grouping by name.
+  The score exists so a portfolio can be triaged, and an order that buries the worst page of the
+  second client under the best page of the first defeats it. The sort ends in a unique key, so a
+  page appears on exactly one page of the list.
 - **Positions are invented**, as the brief says — a mean-reverting walk seeded by `url + term`,
   so a re-seeded database regenerates the same history. `pnpm seed` (or `docker compose run --rm
   seed`) stays the way to produce them; **Generate positions** on the page detail screen runs the
@@ -76,6 +85,9 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:db
 - A browser end-to-end test (Playwright); sorting the list by position.
 - The position fill runs inside the request (a few seconds for a fresh client); it belongs on the
   crawl queue next to the crawl itself.
+- Whether a future change to the check catalogue needs a stale-analysis mechanism. There is none
+  today, deliberately: nothing has been deployed, so every page is scored by the current
+  catalogue and no row carries a verdict from an older one. The first deploy is what reopens it.
 - What changed against the plan while building is recorded as `AMENDED` lines in
   `openspec/changes/*/tasks.md`.
 

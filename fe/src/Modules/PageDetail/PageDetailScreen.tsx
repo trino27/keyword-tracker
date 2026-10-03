@@ -97,7 +97,7 @@ export function PageDetailScreen() {
 				onRetry={() => void fetchHistory(pageId, range)}
 				onFill={() => void fillPositions(pageId, range)}
 			/>
-			<IssuesSection issues={vm.detail.issues} />
+			<IssuesSection issues={vm.detail.issues} currentPages={vm.detail.client.currentPages} />
 		</Stack>
 	);
 }

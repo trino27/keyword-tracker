@@ -9,16 +9,20 @@ This skill is **knowledge about the outside world**, not a convention of this re
 in it is about our tables, our modules or our screens — strike out every product name and every
 sentence still stands. That is why it sits in `practices/` and not in `skills/`.
 
-## Status: background, binding nothing
+## Status: acted on, and still binding nothing by itself
 
-It was written to be drawn on by work that **starts after the current screens change ships**. The
-tracker's analysis already computes nineteen SEO issues and a keyword set that no screen displays
-yet; until a reviewer can see that output, nothing here should move a threshold or add a rule.
+It was written to be drawn on by work that **starts after the current screens change ships**. That
+condition has been met, and the conversation it was waiting for has happened. The OpenSpec changes
+`seo-check-catalogue-correction`, `page-health-score` and `site-wide-issue-grouping` acted on these
+findings: SLOW_RESPONSE and KEYWORD_NOT_IN_TITLE retired (findings 3 and 4),
+STRUCTURED_DATA_MISSING added (finding 8), and the extraction defect of finding 7 fixed. The
+catalogue is eighteen codes, not the nineteen described below. Why each was decided that way lives
+in those changes and in `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`, never here.
 
-**It contains no plan, by request.** Where the research meets our implementation, the finding is
-recorded as an *observation* or an *open question* and stops there. A reader looking for what to
-do next will not find it here, and should not infer it: several findings have more than one
-defensible answer, and choosing between them is a conversation that has not happened.
+**This skill still decides nothing**, and the change to its status is only that: its findings are
+no longer unexamined. Where the research meets our implementation, a finding is still recorded
+here as an *observation* or an *open question* and stops there. The references are untouched — a
+field study is a record of a day, and is never rewritten to match what was later done about it.
 
 ## What to read, and when
 

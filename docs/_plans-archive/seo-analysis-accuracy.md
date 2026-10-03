@@ -1,3 +1,56 @@
+<!-- ARCHIVED. Present tense below describes what this plan intended, not what is true. -->
+
+# ARCHIVE HEADER
+
+**Status:** archived 2026-10-03. **Branch:** `feat/page-health-and-catalogue`, 29 commits,
+branched from `feat/keyword-tracker`. The plan's own `**Branch:** feat/keyword-tracker` line
+below was written before that branch existed and is wrong; nothing else in the body was edited,
+so it still reads as the plan that was executed.
+
+**Built, and where it is pinned.** All three changes implemented in phase order, test-first.
+Final state: lint and typecheck clean, 61 contracts + 347 backend + 156 frontend unit tests, 121
+database tests, and a stack built, migrated and seeded from the live sites
+(`docker compose -p skt-accuracy`, port 8081).
+
+**Harvested into:**
+
+| fact | now lives in |
+| --- | --- |
+| the applicability table of §10.1 — which five checks are conditional and on what, and why the denominator cannot be recovered at read time | `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` |
+| why a threshold's bounds are snapshotted into the row (P3/D2) | the same document, plus `ANALYSIS-001` in `openspec/changes/page-analysis/` |
+| the three-outcome verdict and why `null` could not be kept | the same document, and the comment on `TRuleVerdict` in `seo-rule.interface.ts` |
+| why SLOW_RESPONSE and KEYWORD_NOT_IN_TITLE were retired, with the measurements | already in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and 4 — cited from the module document, never copied |
+| the score's permitted claim and the Lighthouse band precedent | `practices/search-engines/references/ranking-signals.md`, cited from `page-score.util.ts` |
+| the extraction defect and its two causes | the `HIDDEN_TEXT` comment in `extract-page.ts`, naming field study finding 7, plus the test name in `extract-page.spec.ts` |
+| the score's honest denominator and the worst-first order, for a reviewer | `README.md`, decisions section |
+| the status line that said the research binds nothing | `practices/search-engines/SKILL.md` |
+
+**Left open, for a person:**
+
+1. **The browser walks** — `seo-check-catalogue-correction` 4.6, `page-health-score` 4.4,
+   `site-wide-issue-grouping` 2.5, and `readme-and-clean-clone` 2.3 before them. No browser was
+   available where this ran. A seeded stack was left running at http://localhost:8081 for them.
+2. **The OpenSpec archive and the deposit** — `site-wide-issue-grouping` 3.3 and 3.4. Sequenced
+   after the walks, because an archive turns a delta into approved truth. Note for whoever does
+   it: `PAGE_ANALYSIS_MODULE.md` **already exists** — §18 of this plan says no `*_MODULE.md` does,
+   which stopped being true when `docs(be): module documents` landed. The deposit extends that
+   file rather than creating it, and most of its content is already there.
+3. **A stale developer database.** The shared `seo_tracker` database behind the default compose
+   project still holds `KEYWORD_NOT_IN_TITLE` and `SLOW_RESPONSE` rows, which the new validator
+   refuses — the detail screen would blank, I10 working as designed. OQ2's recovery was not run
+   there because another session owns that stack. Never `docker compose down -v`.
+4. **OQ5** — whether a future catalogue change needs the stale-analysis mechanism D9 declined.
+   Carried into the README's unfinished section. Trigger unchanged: the first production deploy.
+
+**Corrected while building** — the full trail is in the `AMENDED during implementation:` lines of
+the three `tasks.md`. The one worth reading: §13's I9 test ("two pages scoring 50 and 90 come back
+worst first") does **not** catch a missing `::numeric` cast. Under integer division both scores
+collapse to 0, the rows tie, and `checks_failed desc` happens to produce the right order anyway —
+the assertion passes while the bug is present. Catching it needs a case where the tie-break
+*inverts* the order: 3 of 4 passed (75) against 8 of 10 (80). Verified by removing the cast.
+
+---
+
 # SEO analysis accuracy — a catalogue that can fail, a score with an honest denominator
 
 The tracker already computes an SEO verdict for every crawled page and already shows it. This

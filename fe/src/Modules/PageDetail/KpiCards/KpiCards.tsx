@@ -2,6 +2,7 @@ import { Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 import type { ReactNode } from "react";
 import type { TPageDetail } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { PositionBadge } from "@Modules/_Shared/PositionBadge/PositionBadge";
+import { ScoreBadge } from "@Modules/_Shared/ScoreBadge/ScoreBadge";
 
 function Kpi({ label, value, note }: { label: string; value: ReactNode; note?: ReactNode }) {
 	return (
@@ -34,7 +35,14 @@ export function KpiCards({ detail }: { detail: TPageDetail }) {
 	const errors = detail.issues.filter((issue) => issue.severity === "error").length;
 
 	return (
-		<SimpleGrid cols={{ base: 1, xs: 2, md: 4 }} spacing="md">
+		<SimpleGrid cols={{ base: 1, xs: 2, md: 5 }} spacing="md">
+			{/* First, because it is the one number that says whether this page needs work.
+			    What it claims: no obvious technical defects. Nothing about traffic. */}
+			<Kpi
+				label="Health score"
+				value={<ScoreBadge score={detail.score} size={24} />}
+				note={`${detail.score.applicable - detail.score.failed} of ${detail.score.applicable} checks passed`}
+			/>
 			<Kpi
 				label="Best position"
 				value={<PositionBadge position={detail.bestPosition?.position ?? null} size="lg" />}
