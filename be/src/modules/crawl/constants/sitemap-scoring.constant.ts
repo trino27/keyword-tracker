@@ -23,6 +23,9 @@ export const WELL_KNOWN_FEED_PATHS = [
   '/atom.xml',
   '/index.xml',
   '/blog/rss.xml',
+  '/feed.json',
+  // Shopify's default blog.
+  '/blogs/news.atom',
 ] as const;
 
 /**
@@ -51,6 +54,8 @@ export const WELL_KNOWN_LISTING_PATHS = [
   '/articles/',
   '/insights/',
   '/stories/',
+  // Shopify's default blog; its posts are /blogs/news/<handle>.
+  '/blogs/news/',
 ] as const;
 
 /** Links under a listing that lead to more listings, not to posts. */
@@ -67,6 +72,8 @@ export const LISTING_LINK_EXCLUDED_SEGMENTS: ReadonlySet<string> = new Set([
   'feed',
   'rss',
   'search',
+  // Shopify: /blogs/news/tagged/<tag>.
+  'tagged',
 ]);
 
 export const SITEMAP_MAX_DEPTH = 3;
@@ -75,6 +82,8 @@ export const SITEMAP_MAX_FETCHES = 50;
 /** Name tokens that say "blog"; the best one counts. */
 export const POSITIVE_NAME_TOKENS: Readonly<Record<string, number>> = {
   blog: 3,
+  // Shopify: sitemap_blogs_1.xml.
+  blogs: 3,
   post: 2,
   posts: 2,
   article: 2,
@@ -115,6 +124,7 @@ export const NEGATIVE_NAME_SCORE = -3;
 /** First path segments that mark a blog section of a site. */
 export const BLOG_PATH_SECTIONS: ReadonlySet<string> = new Set([
   'blog',
+  'blogs',
   'news',
   'articles',
 ]);
