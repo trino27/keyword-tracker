@@ -1,5 +1,7 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ClientGateway } from "@Gateways/ClientGateway/ClientGateway";
 import type { TClient, TCrawlRunSummary } from "@Gateways/ClientGateway/Validation/ClientSchemas";
 import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProviders";
 import { useClientsViewModel } from "@ViewModels/ClientsViewModel/ClientsViewModel";
@@ -48,5 +50,23 @@ describe("ClientsTable", () => {
 			"href",
 			"/pages?clientId=2",
 		);
+	});
+
+	it("deletes a client only after confirming", async () => {
+		const remove = vi.spyOn(ClientGateway.prototype, "remove").mockResolvedValue();
+		useClientsViewModel.setState({
+			status: "ready",
+			clients: [client(1, "Doomed", "failed"), client(2, "Kept", "succeeded")],
+		});
+		renderWithProviders(() => <ClientsTable expandedClientId={undefined} onToggle={vi.fn()} />);
+		const user = userEvent.setup();
+
+		await user.click(await screen.findByRole("button", { name: "Delete Doomed" }));
+		expect(remove).not.toHaveBeenCalled();
+		await user.click(await screen.findByRole("button", { name: "Delete" }));
+
+		expect(remove).toHaveBeenCalledWith(1);
+		await waitFor(() => expect(screen.queryByText("Doomed")).not.toBeInTheDocument());
+		expect(screen.getByText("Kept")).toBeInTheDocument();
 	});
 });

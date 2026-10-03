@@ -2,8 +2,8 @@ import {
 	ActionIcon,
 	Anchor,
 	Button,
-	Collapse,
 	Group,
+	Modal,
 	Paper,
 	Skeleton,
 	Stack,
@@ -16,8 +16,10 @@ import {
 	IconChevronDown,
 	IconChevronRight,
 	IconRefresh,
+	IconTrash,
 } from "@tabler/icons-react";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
+import type { TClient } from "@Gateways/ClientGateway/Validation/ClientSchemas";
 import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
 import { CrawlStatusBadge } from "@Modules/_Shared/CrawlStatusBadge/CrawlStatusBadge";
 import { EmptyState } from "@Modules/_Shared/EmptyState/EmptyState";
@@ -25,8 +27,10 @@ import { ButtonLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import { useClientsViewModel } from "@ViewModels/ClientsViewModel/ClientsViewModel";
 import { isClientCrawling } from "@ViewModels/ClientsViewModel/Services/HasActiveRun/hasActiveRun";
+import { describeRunProgress } from "@ViewModels/CrawlStatusViewModel/Services/DescribeRunProgress/describeRunProgress";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
 import { RunLog } from "../RunLog/RunLog";
+import { SmoothCollapse } from "../SmoothCollapse/SmoothCollapse";
 
 interface IClientsTableProps {
 	expandedClientId: number | undefined;
@@ -40,6 +44,9 @@ export function ClientsTable({ expandedClientId, onToggle }: IClientsTableProps)
 	const rowErrors = useClientsViewModel((state) => state.rowErrors);
 	const fetchClients = useClientsViewModel((state) => state.fetchClients);
 	const recrawl = useClientsViewModel((state) => state.recrawl);
+	const deleteClient = useClientsViewModel((state) => state.deleteClient);
+	const [pendingDelete, setPendingDelete] = useState<TClient | null>(null);
+	const [deleting, setDeleting] = useState(false);
 	const timeZone = useSessionViewModel((state) => state.user?.timeZone ?? "UTC");
 
 	if (status === "error" && error) {
@@ -66,8 +73,37 @@ export function ClientsTable({ expandedClientId, onToggle }: IClientsTableProps)
 		);
 	}
 
+	const confirmDelete = async () => {
+		if (!pendingDelete) return;
+		setDeleting(true);
+		await deleteClient(pendingDelete.id);
+		setDeleting(false);
+		setPendingDelete(null);
+	};
+
 	return (
 		<Paper withBorder radius="md">
+			<Modal
+				opened={pendingDelete !== null}
+				onClose={() => setPendingDelete(null)}
+				title={`Delete ${pendingDelete?.name ?? "client"}?`}
+				centered
+			>
+				<Stack gap="md">
+					<Text size="sm">
+						This removes {pendingDelete?.siteKey} with all its crawls, pages, keywords
+						and position history. It cannot be undone.
+					</Text>
+					<Group justify="flex-end" gap="sm">
+						<Button variant="default" onClick={() => setPendingDelete(null)}>
+							Cancel
+						</Button>
+						<Button color="red" loading={deleting} onClick={() => void confirmDelete()}>
+							Delete
+						</Button>
+					</Group>
+				</Stack>
+			</Modal>
 			<Table.ScrollContainer minWidth={760}>
 				<Table highlightOnHover>
 					<Table.Thead>
@@ -136,6 +172,11 @@ export function ClientsTable({ expandedClientId, onToggle }: IClientsTableProps)
 													</Text>
 												)}
 											</Group>
+											{run?.status === "failed" && (
+												<Text size="xs" c="red.7" mt={4} maw={360}>
+													{describeRunProgress(run, client.siteKey).text}
+												</Text>
+											)}
 											{rowErrors[client.id] && (
 												<Text size="xs" c="red" mt={4}>
 													{rowErrors[client.id]}
@@ -167,19 +208,23 @@ export function ClientsTable({ expandedClientId, onToggle }: IClientsTableProps)
 														Re-crawl
 													</Button>
 												</Tooltip>
+												<ActionIcon
+													variant="subtle"
+													color="red"
+													aria-label={`Delete ${client.name}`}
+													onClick={() => setPendingDelete(client)}
+												>
+													<IconTrash size={16} />
+												</ActionIcon>
 											</Group>
 										</Table.Td>
 									</Table.Tr>
 									{run && (
 										<Table.Tr>
-											<Table.Td
-												colSpan={5}
-												p={0}
-												style={{ borderTop: expanded ? undefined : 0 }}
-											>
-												<Collapse expanded={expanded}>
-													{expanded && <RunLog runId={run.id} />}
-												</Collapse>
+											<Table.Td colSpan={5} p={0} style={{ borderTop: 0 }}>
+												<SmoothCollapse expanded={expanded}>
+													<RunLog runId={run.id} />
+												</SmoothCollapse>
 											</Table.Td>
 										</Table.Tr>
 									)}

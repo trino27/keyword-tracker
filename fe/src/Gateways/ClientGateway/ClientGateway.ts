@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { API_ERROR_CODES, type ICreateClientRequest } from "@app/contracts";
 import { ABaseGateway } from "../_Shared/ABaseGateway/ABaseGateway";
 import { ApiError } from "../_Shared/Errors/ApiError/ApiError";
@@ -62,6 +63,11 @@ export class ClientGateway extends ABaseGateway {
 				return { kind: "active" };
 			throw error;
 		}
+	}
+
+	/** Deletes the client and everything its crawls produced. */
+	public async remove(clientId: number): Promise<void> {
+		await this.request(`/clients/${clientId}`, z.undefined(), { method: "DELETE" });
 	}
 
 	public async getRun(runId: number): Promise<TCrawlRunDetail> {

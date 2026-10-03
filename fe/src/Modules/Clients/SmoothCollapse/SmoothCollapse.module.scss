@@ -1,0 +1,12 @@
+.viewport {
+	overflow: hidden;
+	transition-property: height;
+	transition-timing-function: ease;
+	will-change: height;
+}
+
+/* The divider to the row above, carried by the animated element so it comes and goes with
+   the content instead of leaving a stray line under every collapsed row. */
+.divided {
+	border-top: 1px solid var(--table-border-color, var(--mantine-color-default-border));
+}

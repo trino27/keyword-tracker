@@ -45,6 +45,8 @@ interface IClientsActions {
 	/** Resolves to the new client, or null when the form shows why not. */
 	addClient: (request: ICreateClientRequest) => Promise<TClient | null>;
 	recrawl: (clientId: number) => Promise<void>;
+	/** Resolves true when the client is gone; a failure is shown on its row. */
+	deleteClient: (clientId: number) => Promise<boolean>;
 	fetchRunLog: (runId: number) => Promise<void>;
 	/** Refreshes every 2 s while a run is queued or running, then stops by itself. */
 	startPolling: () => void;
@@ -116,6 +118,21 @@ export const useClientsViewModel = create<IClientsViewModel>()((set, get) => {
 			} catch (error: unknown) {
 				set({ submitting: false, actionError: describeError(error) });
 				return null;
+			}
+		},
+
+		deleteClient: async (clientId) => {
+			try {
+				await gateways.clients.remove(clientId);
+				const { [clientId]: _cleared, ...rowErrors } = get().rowErrors;
+				set({
+					clients: get().clients.filter((client) => client.id !== clientId),
+					rowErrors,
+				});
+				return true;
+			} catch (error: unknown) {
+				set({ rowErrors: { ...get().rowErrors, [clientId]: describeError(error) } });
+				return false;
 			}
 		},
 

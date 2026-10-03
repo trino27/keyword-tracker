@@ -130,4 +130,25 @@ describe("ClientsViewModel", () => {
 
 		expect(vm().rowErrors[7]).toBe("A crawl of this website is already running");
 	});
+
+	it("deleting a client takes it off the table", async () => {
+		vi.spyOn(ClientGateway.prototype, "list").mockResolvedValue([client(), client({ id: 8 })]);
+		vi.spyOn(ClientGateway.prototype, "remove").mockResolvedValue();
+		await vm().fetchClients();
+
+		await expect(vm().deleteClient(7)).resolves.toBe(true);
+
+		expect(vm().clients.map((c) => c.id)).toEqual([8]);
+	});
+
+	it("a failed delete keeps the row and says why on it", async () => {
+		vi.spyOn(ClientGateway.prototype, "list").mockResolvedValue([client()]);
+		vi.spyOn(ClientGateway.prototype, "remove").mockRejectedValue(new Error("offline"));
+		await vm().fetchClients();
+
+		await expect(vm().deleteClient(7)).resolves.toBe(false);
+
+		expect(vm().clients).toHaveLength(1);
+		expect(vm().rowErrors[7]).toBe("offline");
+	});
 });
