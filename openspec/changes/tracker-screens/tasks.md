@@ -1,6 +1,6 @@
 # Tasks — tracker-screens
 
-Generated from the plan `keyword-tracker` (docs/_plans/), Phase 7. Correct it through the plan;
+Generated from the plan `keyword-tracker` (docs/_plans-archive/), Phase 7. Correct it through the plan;
 record a wrong task with an `AMENDED during implementation:` line and an already-satisfied one as
 `VERIFIED, NOT BUILT`.
 

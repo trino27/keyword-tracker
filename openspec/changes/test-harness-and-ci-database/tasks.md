@@ -1,6 +1,6 @@
 # Tasks — test-harness-and-ci-database
 
-Generated from the plan `keyword-tracker` (docs/_plans/), Phase 1. Correct it through the plan;
+Generated from the plan `keyword-tracker` (docs/_plans-archive/), Phase 1. Correct it through the plan;
 record a task that turned out wrong with an `AMENDED during implementation:` line, and one that
 was already satisfied as `VERIFIED, NOT BUILT`.
 
@@ -19,5 +19,15 @@ was already satisfied as `VERIFIED, NOT BUILT`.
 
 ## 2. CI runs the database tests (1b)
 
-- [ ] 2.1 Add job `db-tests` to `.github/workflows/ci.yml`: postgres service (`seo_tracker_test`), install, `cp .env.example .env`, build contracts, `pnpm --filter be test:db` with `TEST_DATABASE_URL` and `E2E_REQUIRE_INFRA=1` (AMENDED: no such flag — see 1.6). Verify: `gh pr checks --watch` shows `db-tests` green
-- [ ] 2.2 Verify the existing jobs are untouched: `gh pr checks` shows `checks` and `docker` green in the same run
+- [x] 2.1 Add job `db-tests` to `.github/workflows/ci.yml`: postgres service (`seo_tracker_test`), install, `cp .env.example .env`, build contracts, `pnpm --filter be test:db` with `TEST_DATABASE_URL` and `E2E_REQUIRE_INFRA=1` (AMENDED: no such flag — see 1.6). Verify: `gh pr checks --watch` shows `db-tests` green
+  VERIFIED, NOT BUILT: the `db-tests` job is in `.github/workflows/ci.yml` with the postgres
+  service, `cp .env.example .env` and `pnpm test:db`, and it is GREEN on GitHub — run
+  37141900263 on `main` reports `db-tests -> success`. The verify named `gh pr checks`, which is
+  not installed here; the run's conclusion was read from the Actions API instead.
+- [x] 2.2 Verify the existing jobs are untouched: `gh pr checks` shows `checks` and `docker` green in the same run
+  AMENDED during implementation: `docker` was green in that same run and `checks` was NOT — it
+  had been red on every run since the job was written, because `pnpm lint` ran before anything
+  built `@app/contracts` and `be`'s type-aware rules then saw every import as an unresolved type.
+  Fixed in `fix(ci): lint builds the contracts package first, like typecheck and test`. The task
+  asked whether this job broke the others; it did not, and the answer came with a defect of its
+  own that predated it.

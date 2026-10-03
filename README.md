@@ -93,12 +93,14 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:db
 
 ## AI tools used
 
-Claude Code (Anthropic) throughout: interviewing the requirements into a plan
-(`docs/_plans/keyword-tracker.md`, decisions D1–D36) and OpenSpec changes, test-first
-implementation phase by phase, and review. Every line was run against the real stack.
+Claude Code (Anthropic) throughout: interviewing the requirements into a plan (decisions D1–D36)
+and OpenSpec changes, test-first implementation phase by phase, and review. Every line was run
+against the real stack. The plans are in `docs/_plans-archive/`, the changes in
+`openspec/changes/`.
 
 ## Map
 
 `be/` NestJS API · `fe/` React + Vite SPA (Mantine, zustand ViewModels, TanStack Router) ·
 `packages/contracts/` types and rules both sides share · `caddy/` web server ·
-`openspec/` requirements · `docs/_plans/` the plan · `AGENTS.md` entry point for contributors.
+`openspec/` requirements · `docs/_plans-archive/` the plans, as executed · `AGENTS.md` entry
+point for contributors.

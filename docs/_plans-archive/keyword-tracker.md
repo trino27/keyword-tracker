@@ -1,3 +1,52 @@
+<!-- ARCHIVED. Present tense below describes what this plan intended, not what is true. -->
+
+# ARCHIVE HEADER
+
+**Status:** archived 2026-10-03. **Branch:** `feat/keyword-tracker`, merged into `main` as
+pull request #6. The `**Status:** active` line below is the plan as it was executed; nothing in
+the body was edited.
+
+**Built.** All eight changes implemented in phase order, test-first: `test-harness-and-ci-database`,
+`user-sessions-and-default-deny`, `clients-and-blog-crawl`, `page-analysis`, `positions-and-seed`,
+`pages-and-position-history`, `tracker-screens`, `readme-and-clean-clone`. Verified on a clean
+clone — build, migrate, seed from the two live sites, 56 210 snapshot rows — and the README's
+command block is the one that run executed verbatim.
+
+**Harvested into** (§18's table, all six written):
+
+| document | carries |
+| --- | --- |
+| `be/src/modules/auth/AUTH_MODULE.md` | session design, scrypt parameters and `maxmem`, why scrypt over the practice's argon2/bcrypt, RLS as the next step |
+| `be/src/modules/clients/CLIENTS_MODULE.md` | site-key identity, the queue states, fencing |
+| `be/src/modules/crawl/CRAWL_MODULE.md` | discovery scoring and the rejected alternatives, the listing interpretation, fixture recording |
+| `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` | keyword method, rejected methods, where thresholds live |
+| `be/src/modules/pages/PAGES_MODULE.md` | currentness rule, read-time positions and D7's reopen trigger, the EXPLAIN result |
+| `be/skills/performance-patterns/SKILL.md` | the measured list-query plan and snapshot volume |
+| `README.md` | the decisions section, the listing-page interpretation, unfinished and next steps, AI tools |
+
+**Left open, for a person:**
+
+1. **Two browser walks** — `tracker-screens` 4.3 and `readme-and-clean-clone` 2.3. No browser was
+   available where the work ran. Both were verified as far as they could be without one: the
+   seeded stack serves every route, and a throwaway test drove the real frontend gateways against
+   it — sign-in, clients, a run log, the list, a detail and a 30-day history, all parsed through
+   the FE schemas. What is unverified is what only eyes can check: layout, and the browser console.
+2. **The OpenSpec archive and deposit.** None of this plan's changes has been archived, so
+   `openspec/specs/` still holds only `.gitkeep` and all 92 requirements across the repository
+   still live under `openspec/changes/`. That is one manual pass — archive, rewrite each delta
+   heading from `Requirement: ID — text` into §3's `[ID]` form, then deposit each requirement into
+   the module document that owns the invariant with its `<!-- invariant: … -->` marker and its
+   pinning line (`openspec/README.md` §3a, §4, §8). The harvest above is done; the deposit is not,
+   and it cannot be, because a deposit before the archive points at a proposal.
+3. **Next steps**, carried into the README's own unfinished section rather than left here:
+   Postgres row-level security behind the scoped queries, a sitemap-less HTML/feed fallback,
+   network SEO checks, a Playwright smoke test, and moving the position fill onto the crawl queue.
+
+**Followed by** `docs/_plans-archive/seo-analysis-accuracy.md`, which corrected the SEO check
+catalogue this plan's `page-analysis` change built.
+
+---
+
 # SEO keyword tracker — sessions, client crawl, analysis, positions, four screens
 
 An agency user signs in with email and password and stays signed in across refreshes; nothing
