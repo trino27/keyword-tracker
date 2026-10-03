@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { SEO_ISSUE_CATALOGUE, SEO_ISSUE_CODES } from '@app/contracts';
+import {
+  CONDITIONAL_ISSUE_CODES,
+  SEO_ISSUE_CATALOGUE,
+  SEO_ISSUE_CODES,
+  skipReasonOf,
+} from '@app/contracts';
 import {
   FIXTURES_ROOT,
   loadFixtureManifest,
@@ -26,6 +31,8 @@ describe('SEO_RULES', () => {
   it('a clean page has no issues, and every check applied to it', () => {
     expect(evaluateSeoRules(makeRuleInput())).toEqual({
       issues: [],
+      checksJudged: SEO_ISSUE_CODES,
+      checksNotApplicable: [],
       checksApplicable: SEO_ISSUE_CODES.length,
       checksFailed: 0,
     });
@@ -34,29 +41,44 @@ describe('SEO_RULES', () => {
   it('a check that could not be judged is not counted against the page', () => {
     // No title: TITLE_LENGTH has nothing to measure. Passing it would reward the page
     // for the very thing TITLE_MISSING is failing it for.
-    const { issues, checksApplicable, checksFailed } = evaluateSeoRules(
-      makeRuleInput({ parsed: { title: null } }),
-    );
+    const { issues, checksApplicable, checksFailed, checksNotApplicable } =
+      evaluateSeoRules(makeRuleInput({ parsed: { title: null } }));
 
     expect(checksApplicable).toBe(SEO_ISSUE_CODES.length - 1);
     expect(issues.map(({ code }) => code)).toEqual(['TITLE_MISSING']);
     expect(checksFailed).toBe(1);
+    // Named, not counted: the screen quotes this code's reason back to the reader, so
+    // the wrong code here would show "no title to measure" against the wrong check.
+    expect(checksNotApplicable).toEqual(['TITLE_LENGTH']);
   });
 
   it('the five conditional checks drop out together', () => {
-    const { checksApplicable } = evaluateSeoRules(
-      makeRuleInput({
-        parsed: {
-          title: null,
-          metaDescription: null,
-          canonical: null,
-          images: [],
-          headings: [{ level: 1, text: 'Only one heading' }],
-        },
-      }),
-    );
+    const { checksApplicable, checksJudged, checksNotApplicable } =
+      evaluateSeoRules(
+        makeRuleInput({
+          parsed: {
+            title: null,
+            metaDescription: null,
+            canonical: null,
+            images: [],
+            headings: [{ level: 1, text: 'Only one heading' }],
+          },
+        }),
+      );
 
     expect(checksApplicable).toBe(SEO_ISSUE_CODES.length - 5);
+    expect([...checksNotApplicable].sort()).toEqual(
+      [...CONDITIONAL_ISSUE_CODES].sort(),
+    );
+    // Disjoint, and together the whole catalogue: the pair IS the record of which
+    // checks this crawl knew about, so a code in neither would later read as one the
+    // catalogue gained since, and a code in both would render with two statuses.
+    expect(
+      checksJudged.filter((code) => checksNotApplicable.includes(code)),
+    ).toEqual([]);
+    expect([...checksJudged, ...checksNotApplicable].sort()).toEqual(
+      [...SEO_ISSUE_CODES].sort(),
+    );
   });
 
   it('checksFailed is always the number of issues', () => {
@@ -88,7 +110,13 @@ describe('SEO_RULES', () => {
         join(FIXTURES_ROOT, 'sites', entry.file!),
         'utf8',
       );
-      const { issues, checksApplicable, checksFailed } = evaluateSeoRules(
+      const {
+        issues,
+        checksApplicable,
+        checksFailed,
+        checksJudged,
+        checksNotApplicable,
+      } = evaluateSeoRules(
         makeRuleInput({
           url,
           finalUrl: url,
@@ -106,6 +134,17 @@ describe('SEO_RULES', () => {
       expect(checksApplicable).toBeGreaterThanOrEqual(13);
       expect(checksApplicable).toBeLessThanOrEqual(SEO_ISSUE_CODES.length);
       expect(checksFailed).toBe(issues.length);
+      // The pair accounts for the whole catalogue on every real page, and the count is
+      // the judged list's length — the two things the database is about to enforce as
+      // CHECK constraints, asserted here against pages nobody wrote for this test.
+      expect(checksApplicable).toBe(checksJudged.length);
+      expect([...checksJudged, ...checksNotApplicable].sort()).toEqual(
+        [...SEO_ISSUE_CODES].sort(),
+      );
+      // Every skipped code owes the reader a reason; an unreasoned one renders blank.
+      for (const code of checksNotApplicable) {
+        expect(skipReasonOf(code)).toMatch(/\S/);
+      }
     }
   });
 });

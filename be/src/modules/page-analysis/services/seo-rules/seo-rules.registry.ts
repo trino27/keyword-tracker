@@ -31,6 +31,15 @@ export const SEO_RULES: { [K in TSeoIssueCode]: TSeoRule<K> } = {
 export interface ISeoEvaluation {
   /** In catalogue order, as the screens read them. */
   issues: TSeoIssue[];
+  /**
+   * The codes that could be judged, and the codes that could not, both in catalogue
+   * order and disjoint. Their union is the catalogue AS OF THIS CRAWL, which is the
+   * only record of it there will ever be: read back later against a catalogue that has
+   * grown, a code missing from both is one that did not exist when this page was seen,
+   * and without these two lists it would be indistinguishable from one that passed.
+   */
+  checksJudged: TSeoIssueCode[];
+  checksNotApplicable: TSeoIssueCode[];
   /** Outcomes that were not `notApplicable` — the score's denominator. */
   checksApplicable: number;
   /** Outcomes that were `fails`. Always `issues.length`; see below. */
@@ -38,25 +47,31 @@ export interface ISeoEvaluation {
 }
 
 /**
- * Every issue on a page, in catalogue order with its catalogued severity, and the two
- * counts its score is derived from.
+ * Every issue on a page, in catalogue order with its catalogued severity, the record of
+ * which checks ran, and the two counts its score is derived from.
  *
- * All three come from ONE pass. Counting applicability separately is how the counts and
+ * All of it comes from ONE pass. Counting applicability separately is how the counts and
  * the issue list come to disagree, and the disagreement would be invisible: a score of 88
  * beside nine findings looks no stranger than a score of 88 beside two.
  *
- * `checksFailed` is always `issues.length`, and storing it anyway is deliberate — the
- * column is what the score reads, and a column derived from a count the reader cannot see
- * is worse than a redundant one the database can check.
+ * `checksApplicable` and `checksFailed` are `checksJudged.length` and `issues.length`,
+ * and both are kept anyway — deliberately. They are the columns the score reads and the
+ * list orders by, and a column derived from a count the reader cannot see is worse than
+ * a redundant one the database can check. Here the database does check it:
+ * `checks_applicable = cardinality(checks_judged)`.
  */
 export function evaluateSeoRules(input: ISeoRuleInput): ISeoEvaluation {
   const issues: TSeoIssue[] = [];
-  let checksApplicable = 0;
+  const checksJudged: TSeoIssueCode[] = [];
+  const checksNotApplicable: TSeoIssueCode[] = [];
 
   for (const code of SEO_ISSUE_CODES) {
     const verdict = SEO_RULES[code](input);
-    if (verdict.outcome === 'notApplicable') continue;
-    checksApplicable += 1;
+    if (verdict.outcome === 'notApplicable') {
+      checksNotApplicable.push(code);
+      continue;
+    }
+    checksJudged.push(code);
     if (verdict.outcome === 'fails')
       issues.push({
         code,
@@ -65,5 +80,11 @@ export function evaluateSeoRules(input: ISeoRuleInput): ISeoEvaluation {
       } as TSeoIssue);
   }
 
-  return { issues, checksApplicable, checksFailed: issues.length };
+  return {
+    issues,
+    checksJudged,
+    checksNotApplicable,
+    checksApplicable: checksJudged.length,
+    checksFailed: issues.length,
+  };
 }
