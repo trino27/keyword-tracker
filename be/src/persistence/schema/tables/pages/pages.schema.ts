@@ -108,14 +108,15 @@ export const pages = pgTable(
       sql`${t.checksJudged} is null
           or not (${t.checksJudged} && ${t.checksNotApplicable})`,
     ),
-    // Distinctness is NOT here: PostgreSQL forbids a subquery in a CHECK, and
-    // "this array has no duplicates" has no subquery-free spelling. One pass over
-    // SEO_ISSUE_CODES cannot emit a code twice, and the registry spec pins that.
+    // Distinct, non-null, non-empty elements. A duplicate is the one bad value the
+    // constraint above would wave through: it inflates cardinality(), so the denominator
+    // would match a judged list naming fewer checks than it counts. The predicate needs
+    // unnest, which is a subquery, which a CHECK may not contain — hence the IMMUTABLE
+    // helper created in migration 0009.
+    check('pages_checks_judged_clean', sql`array_is_clean(${t.checksJudged})`),
     check(
-      'pages_checks_codes_nonempty',
-      sql`(${t.checksJudged} is null or not ('' = any(${t.checksJudged})))
-          and (${t.checksNotApplicable} is null
-               or not ('' = any(${t.checksNotApplicable})))`,
+      'pages_checks_not_applicable_clean',
+      sql`array_is_clean(${t.checksNotApplicable})`,
     ),
   ],
 );

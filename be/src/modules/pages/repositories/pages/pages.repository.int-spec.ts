@@ -178,6 +178,65 @@ describe('PagesRepository (postgres)', () => {
     );
   });
 
+  /**
+   * The one bad value the counter constraint waves through: a duplicate inflates
+   * cardinality(), so the denominator would agree with a list naming fewer distinct
+   * checks than it counts, and the screen would show the same check twice.
+   */
+  it('refuses a judged list that names a check twice', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await expectPgError(
+      testDb.db.transaction((tx) =>
+        repository.upsertManyForWorker(tx, [
+          page(clientId, firstRunId, {
+            checksApplicable: 2,
+            checksFailed: 0,
+            checksJudged: ['TITLE_MISSING', 'TITLE_MISSING'],
+            checksNotApplicable: [],
+          }),
+        ]),
+      ),
+      { code: '23514', constraint: 'pages_checks_judged_clean' },
+    );
+  });
+
+  it('refuses a blank code', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await expectPgError(
+      testDb.db.transaction((tx) =>
+        repository.upsertManyForWorker(tx, [
+          page(clientId, firstRunId, {
+            checksApplicable: 1,
+            checksFailed: 0,
+            checksJudged: ['TITLE_MISSING'],
+            checksNotApplicable: [''] as never,
+          }),
+        ]),
+      ),
+      { code: '23514', constraint: 'pages_checks_not_applicable_clean' },
+    );
+  });
+
+  /** Phase 1: a page crawled before the record is stored, and says so by being null. */
+  it('accepts a page with neither array, as a pre-record crawl', async () => {
+    const { clientId, firstRunId } = await seedClientWithRuns();
+
+    await testDb.db.transaction((tx) =>
+      repository.upsertManyForWorker(tx, [
+        page(clientId, firstRunId, {
+          checksJudged: null as never,
+          checksNotApplicable: null as never,
+        }),
+      ]),
+    );
+
+    const [row] = await testDb.db.select().from(pages);
+    expect(row.checksJudged).toBeNull();
+    expect(row.checksNotApplicable).toBeNull();
+  });
+
   it('refuses a page with more failures than applicable checks', async () => {
     const { clientId, firstRunId } = await seedClientWithRuns();
 
