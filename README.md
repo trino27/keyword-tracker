@@ -19,7 +19,7 @@ docker compose run --rm seed
 Open http://localhost:8080 and sign in as **`semrush.manager@example.com`** or
 **`yoast.manager@example.com`**, password `demo-password-change-me` (the demo value of
 `SEED_USER_PASSWORD` in `.env`). The seed crawls both live sites (about a minute) and writes a
-year of daily positions — 56 940 snapshots. It is idempotent: run it again any time; it crawls
+year of daily positions — about 56 000 snapshots. It is idempotent: run it again any time; it crawls
 nothing twice and fills positions up to today, including for clients added in the UI.
 
 Local development and checks (Node 24, pnpm 10):
