@@ -5,11 +5,12 @@ import {
   databasePoolProvider,
   databaseProvider,
 } from './database-provider/database.provider';
+import { TransactionRunner } from './transaction-runner/transaction-runner';
 
 @Global()
 @Module({
-  providers: [databasePoolProvider, databaseProvider],
-  exports: [databaseProvider],
+  providers: [databasePoolProvider, databaseProvider, TransactionRunner],
+  exports: [databaseProvider, TransactionRunner],
 })
 export class DatabaseModule implements OnApplicationShutdown {
   constructor(@Inject(DATABASE_POOL) private readonly pool: Pool) {}
