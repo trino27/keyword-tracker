@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  // The ONE config that emits — see the `noEmit` note in `tsconfig.json`.
+  "compilerOptions": { "noEmit": false },
+  "exclude": ["node_modules", "dist", "**/*spec.ts"]
+}

@@ -1,0 +1,11 @@
+packages:
+  - "be"
+  - "fe"
+  - "packages/*"
+
+# Native builds pnpm may run on install. Everything else installs with its
+# lifecycle scripts skipped, which is pnpm's default and the one worth keeping.
+onlyBuiltDependencies:
+  - esbuild
+  - "@parcel/watcher"
+  - unrs-resolver

@@ -1,0 +1,9 @@
+# Every text file is committed with LF, whatever the developer's core.autocrlf says.
+# A CRLF shell script fails inside a Linux container with "$'\r': command not found",
+# and a CRLF env file puts a trailing \r inside every value it carries.
+* text=auto eol=lf
+
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.woff2 binary

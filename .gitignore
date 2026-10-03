@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+*.tsbuildinfo
+.tsbuildinfo
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+
+# Environment. Only the committed templates are allowed through.
+.env
+.env.*
+*.env
+!.env.example
+!**/.env.example
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+*.stackdump

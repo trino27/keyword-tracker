@@ -1,0 +1,41 @@
+{
+  "name": "seo-keyword-tracker",
+  "private": true,
+  "packageManager": "pnpm@10.18.3",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "build": "pnpm --filter @app/contracts run build && pnpm --filter be run build && pnpm --filter fe run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm --filter @app/contracts run build && pnpm -r run typecheck",
+    "test": "pnpm --filter @app/contracts run build && pnpm -r run test:ci",
+    "format": "pnpm -r run format",
+    "dev:db": "docker compose up -d postgres",
+    "dev:be": "pnpm --filter be run start:dev",
+    "dev:fe": "pnpm --filter fe run dev",
+    "db:generate": "pnpm --filter be run db:generate",
+    "db:migrate": "pnpm --filter be run db:migrate",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "openspec": "openspec"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.13.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.2"
+  },
+  "lint-staged": {
+    "be/**/*.ts": [
+      "pnpm --filter be exec prettier --write"
+    ],
+    "fe/**/*.{ts,tsx,json,css}": [
+      "pnpm --filter fe exec prettier --write"
+    ],
+    "packages/**/src/**/*.ts": [
+      "pnpm --filter @app/contracts exec prettier --write"
+    ]
+  }
+}

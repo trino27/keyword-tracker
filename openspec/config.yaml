@@ -1,0 +1,79 @@
+schema: spec-driven
+
+# Project context, shown to an agent creating an artifact here.
+#
+# It POINTS rather than restates. `openspec/README.md` owns the id convention, the deposit
+# marker and the harvest rule; a second copy of any of them in this file would be a partial
+# second copy — a reader finds it, stops there, and invents the rest.
+context: |
+  seo-keyword-tracker: a small SEO keyword tracker for a marketing agency, as a pnpm monorepo.
+  Backend (be/): NestJS 11, Drizzle ORM + PostgreSQL, pino. Frontend (fe/): React 19 +
+  Vite single-page app (MVVM), a desktop-browser English app.
+  Shared types and values live in packages/contracts (@app/contracts). Caddy serves the fe
+  build and proxies /api to be. An agency user signs in, sees the crawled pages of their
+  clients' sites with each page's keywords, SEO issues and latest rank position, opens a page
+  for its position history over a date range, and adds a client (name + website URL), which
+  triggers a crawl of the site's blog sitemap (first 15 posts). Rank snapshots are stored in UTC
+  and the user is in Toronto. A user must never reach another user's data.
+
+  READ openspec/README.md BEFORE WRITING ANYTHING IN THIS DIRECTORY. It is the contract, and
+  four of its rules are not guessable:
+
+  1. Every requirement heading in specs/ carries an authored id: `### Requirement [<CAP>-<NNN>]:
+     <what must be true>`. Append-only, never renumbered, never reused.
+  1b. A DELTA under changes/ writes the heading DIFFERENTLY, because the tool parses only its
+     own form: `### Requirement: <CAP>-<NNN> — <what must be true>`, the id AFTER the colon,
+     followed by a body line carrying MUST or SHALL, then the scenarios. A delta in the form of
+     rule 1 is refused outright — the tool reports that no requirement entries parsed. Archiving
+     leaves the heading in delta form; rewrite it into rule 1 form by hand (README §3a, §8).
+  1a. A capability's PATH mirrors what it specifies: a backend module's spec lives at
+     specs/be/src/modules/<module>/spec.md, a frontend module's at specs/fe/src/<area>/
+     spec.md. A requirement belonging to no one directory goes under specs/_root/<capability>/,
+     and so does one whose directory cannot be spelled (a path segment starting with a dot is
+     skipped by the glob that reads this corpus). changes/<name>/ is FLAT; only its spec delta
+     mirrors.
+  2. specs/ is approved truth: every class name and every file path in it must resolve. changes/
+     is exempt, because a proposal names what does not exist yet. Nothing checks this
+     mechanically; review does.
+  3. Archiving a change does NOT replace carrying its requirement into the owning module
+     document. Harvest first, archive, then deposit. Nothing enforces the order.
+
+  Run the CLI as `pnpm exec openspec`.
+
+  Requirements come from intent — module documents, lifecycle documents, decisions, existing
+  test assertions. A requirement derived from implementation says the system shall do what it
+  already does, which is unfalsifiable by construction.
+
+# Per-artifact rules. They exist because a checkbox cannot say them.
+rules:
+  tasks:
+    - |
+      A task that turned out to be WRONG carries an `AMENDED during implementation:` line saying
+      what it said, what was found, and what was built instead. A ticked box reports that a task
+      is done and is silent about a task that should never have been written that way, which is
+      the ordinary case rather than the exception. `openspec/README.md` §9 counts these lines
+      as the criterion deciding whether this lifecycle earns its keep, so the line is the record,
+      not a courtesy.
+    - |
+      A task that was already satisfied and already pinned is closed as `VERIFIED, NOT BUILT`,
+      naming what pins it. Ticking it plainly hides that the work was checking; leaving it open
+      hides that the work was done.
+    - |
+      Never tick a box whose own sentence contradicts it. A box ticked `[x]` over text beginning
+      "NOT DONE" is counted complete: `openspec status` derives progress from the checkboxes and
+      has no opinion about what they sit next to.
+
+# Per-operation guidance (optional)
+operations:
+  archive:
+    guidance:
+      - |
+        The DEPOSIT follows this archive, and cannot precede it: until the archive, the
+        requirement is still under `changes/`. After archiving, rewrite each archived heading
+        from the delta form into the `[<CAP>-<NNN>]` form (README §3a).
+      - |
+        Then carry each requirement into the document that owns the invariant: the marker, a
+        pinning line naming a spec file and an assertion that exists and passes — or the words
+        `not pinned by a test` and the reason — AND the spec file's own path, so the reader does
+        not have to derive it. Nothing checks that this happened; an un-deposited archive entry
+        is the same lost knowledge as a deletion, filed more neatly.
