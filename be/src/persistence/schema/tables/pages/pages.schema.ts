@@ -50,6 +50,8 @@ export const pages = pgTable(
   },
   (t) => [
     uniqueIndex('pages_client_id_url_uq').on(t.clientId, t.url),
+    // The list's search: url ILIKE '%term%'. Needs pg_trgm (migration 0005).
+    index('pages_url_trgm_idx').using('gin', t.url.op('gin_trgm_ops')),
     index('pages_client_id_last_seen_run_id_idx').on(
       t.clientId,
       t.lastSeenRunId,
