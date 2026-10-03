@@ -39,7 +39,14 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
 - **"The first 15 blog posts in sitemap order":** entries are considered in order, three fetched
   at a time, up to 15 crawled or 30 considered. An entry that is not a post is skipped with a
   reason — another site, the home page, a file, robots.txt, an error, a redirect off the site,
-  not HTML, or a page whose JSON-LD declares `CollectionPage`/`ItemList` (yoast's `/seo-blog/`).
+  not HTML, a page whose JSON-LD declares `CollectionPage`/`ItemList` (yoast's `/seo-blog/`), or
+  a page with fewer than `MIN_POST_WORD_COUNT` words of main content. The last one needs the
+  parse and so is checked last. It exists because an index or author card has a title and a list
+  of links, nothing for the analysis to read but the site's own navigation, and a different part
+  of that navigation on each crawl: blog.google's author pages were tracked, and their keywords
+  changed under their own recorded position history. Measured here, real posts start at 256
+  words and those pages ran 30–87, well under the catalogue's 300-word THIN_CONTENT warning,
+  which judges a page that IS a post.
   Every considered entry is logged; the log ends at the 15th post.
 - **Outbound HTTP** goes through `SiteHttpClient` (extends `RemoteApiCore`): per-kind size caps,
   `.gz` sitemaps inflated under a second cap, retries for 429/5xx/network only, private and
