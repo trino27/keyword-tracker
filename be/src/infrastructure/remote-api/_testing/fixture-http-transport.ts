@@ -23,11 +23,15 @@ export interface IFixtureEntry {
   error?: TFixtureError;
 }
 
-/** Unrecorded URLs matching `pattern` answer with a synthesized article, or fail. */
+/**
+ * Unrecorded URLs matching `pattern` answer with a synthesized article, fail like the
+ * network, or answer a bare status (a bot wall's 403).
+ */
 export interface IFixturePattern {
   pattern: string;
   synthesize?: 'article';
   error?: TFixtureError;
+  status?: number;
 }
 
 export interface IFixtureManifest {
@@ -98,6 +102,12 @@ export class FixtureHttpTransport implements IHttpTransport {
     const match = this.patterns.find(({ regex }) => regex.test(url));
     if (!match) return NOT_FOUND;
     if (match.error) return { status: 0, error: match.error };
+    if (match.status !== undefined)
+      return {
+        status: match.status,
+        headers: { 'content-type': 'text/html' },
+        body: '<html><head><title>Forbidden</title></head></html>',
+      };
     return {
       status: 200,
       headers: { 'content-type': 'text/html; charset=utf-8' },
@@ -131,6 +141,7 @@ function synthesizedArticle(url: string): string {
     `<title>${topic} explained</title>`,
     `<meta name="description" content="A practical guide to ${topic}.">`,
     `<link rel="canonical" href="${url}">`,
+    '<meta property="og:type" content="article">',
     '</head><body><main><article>',
     `<h1>${topic} explained</h1>`,
     `<p>${paragraph.repeat(30)}</p>`,

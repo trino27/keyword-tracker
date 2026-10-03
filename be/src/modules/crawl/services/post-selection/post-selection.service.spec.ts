@@ -53,6 +53,32 @@ const posts = (count: number, from = 1) =>
   Array.from({ length: count }, (_, i) => `${ORIGIN}/posts/p${from + i}/`);
 
 describe('PostSelectionService', () => {
+  it('articles only: a page that does not say it is an article is skipped', async () => {
+    const transport = new FixtureHttpTransport();
+    const service = new PostSelectionService(
+      new SiteHttpClient(transport, logger, { sleep: () => Promise.resolve() }),
+    );
+
+    const { items } = await service.select({
+      urls: [
+        'https://flat-mixed.example/web-design',
+        'https://flat-mixed.example/article-number-1',
+      ],
+      siteKey: 'flat-mixed.example',
+      robots: RobotsPolicy.allowAll(),
+      signal: AbortSignal.timeout(10_000),
+      articlesOnly: true,
+    });
+
+    expect(items.map(({ status, reason }) => [status, reason])).toEqual([
+      [
+        'skipped_listing',
+        'Not marked as an article (no og:type=article, no JSON-LD Article)',
+      ],
+      ['crawled', null],
+    ]);
+  });
+
   it('takes the first 15 posts in order and stops the log at the 15th', async () => {
     const { select } = setup();
 

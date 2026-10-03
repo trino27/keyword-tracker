@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+  <url><loc>https://newsroom.example/politics/post-number-1/</loc><news:news><news:title>https://newsroom.example/politics/post-number-1/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-2/</loc><news:news><news:title>https://newsroom.example/politics/post-number-2/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-3/</loc><news:news><news:title>https://newsroom.example/politics/post-number-3/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-4/</loc><news:news><news:title>https://newsroom.example/politics/post-number-4/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-5/</loc><news:news><news:title>https://newsroom.example/politics/post-number-5/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-6/</loc><news:news><news:title>https://newsroom.example/politics/post-number-6/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-7/</loc><news:news><news:title>https://newsroom.example/politics/post-number-7/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-8/</loc><news:news><news:title>https://newsroom.example/politics/post-number-8/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-9/</loc><news:news><news:title>https://newsroom.example/politics/post-number-9/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-10/</loc><news:news><news:title>https://newsroom.example/politics/post-number-10/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-11/</loc><news:news><news:title>https://newsroom.example/politics/post-number-11/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-12/</loc><news:news><news:title>https://newsroom.example/politics/post-number-12/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-13/</loc><news:news><news:title>https://newsroom.example/politics/post-number-13/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-14/</loc><news:news><news:title>https://newsroom.example/politics/post-number-14/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-15/</loc><news:news><news:title>https://newsroom.example/politics/post-number-15/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-16/</loc><news:news><news:title>https://newsroom.example/politics/post-number-16/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-17/</loc><news:news><news:title>https://newsroom.example/politics/post-number-17/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-18/</loc><news:news><news:title>https://newsroom.example/politics/post-number-18/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-19/</loc><news:news><news:title>https://newsroom.example/politics/post-number-19/</news:title></news:news></url>
+  <url><loc>https://newsroom.example/politics/post-number-20/</loc><news:news><news:title>https://newsroom.example/politics/post-number-20/</news:title></news:news></url>
+</urlset>

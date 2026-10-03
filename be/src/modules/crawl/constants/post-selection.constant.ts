@@ -45,3 +45,17 @@ export const HTML_CONTENT_TYPES: ReadonlySet<string> = new Set([
 
 /** The width of a stored page URL; a longer sitemap entry cannot become a page. */
 export const MAX_PAGE_URL_LENGTH = 2048;
+
+/** JSON-LD types that make a page an article when the source does not say so. */
+export const ARTICLE_SCHEMA_TYPES: ReadonlySet<string> = new Set([
+  'Article',
+  'BlogPosting',
+  'NewsArticle',
+  'TechArticle',
+  'Report',
+  'ScholarlyArticle',
+  'AnalysisNewsArticle',
+  'OpinionNewsArticle',
+  'ReportageNewsArticle',
+  'LiveBlogPosting',
+]);

@@ -1,5 +1,145 @@
 {
   "entries": {
+    "https://blog.relative-sitemap.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/blog.relative-sitemap.example/index"
+    },
+    "https://blog.relative-sitemap.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/blog.relative-sitemap.example/robots.txt"
+    },
+    "https://blog.relative-sitemap.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/blog.relative-sitemap.example/sitemap.xml"
+    },
+    "https://crosshost.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/crosshost.example/index"
+    },
+    "https://crosshost.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/crosshost.example/robots.txt"
+    },
+    "https://feed-only.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/feed-only.example/index"
+    },
+    "https://feed-only.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/feed-only.example/robots.txt"
+    },
+    "https://feed-only.example/rss/": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml; charset=utf-8"
+      },
+      "file": "synthetic/feed-only.example/rss/index"
+    },
+    "https://flat-mixed.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/index"
+    },
+    "https://flat-mixed.example/article-number-1": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-1"
+    },
+    "https://flat-mixed.example/article-number-2": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-2"
+    },
+    "https://flat-mixed.example/article-number-3": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-3"
+    },
+    "https://flat-mixed.example/article-number-4": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-4"
+    },
+    "https://flat-mixed.example/article-number-5": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-5"
+    },
+    "https://flat-mixed.example/article-number-6": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/article-number-6"
+    },
+    "https://flat-mixed.example/hosting": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/hosting"
+    },
+    "https://flat-mixed.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/robots.txt"
+    },
+    "https://flat-mixed.example/seo-audit": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/seo-audit"
+    },
+    "https://flat-mixed.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/sitemap.xml"
+    },
+    "https://flat-mixed.example/web-design": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/flat-mixed.example/web-design"
+    },
     "https://gzip-sitemap.example/": {
       "status": 200,
       "headers": {
@@ -20,6 +160,55 @@
         "content-type": "application/x-gzip"
       },
       "file": "synthetic/gzip-sitemap.example/sitemap.xml.gz"
+    },
+    "https://listing-only.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/listing-only.example/index"
+    },
+    "https://listing-only.example/blog/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/listing-only.example/blog/index"
+    },
+    "https://listing-only.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/listing-only.example/robots.txt"
+    },
+    "https://newsroom.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/index"
+    },
+    "https://newsroom.example/news-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/news-sitemap.xml"
+    },
+    "https://newsroom.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/robots.txt"
+    },
+    "https://newsroom.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/newsroom.example/sitemap.xml"
     },
     "https://no-robots.example/": {
       "status": 200,
@@ -112,6 +301,20 @@
       },
       "file": "synthetic/root-blog-no-feed.example/sitemap_index.xml"
     },
+    "https://sitemaps.crosshost.example/index.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/sitemaps.crosshost.example/index.xml"
+    },
+    "https://sitemaps.crosshost.example/post-sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/sitemaps.crosshost.example/post-sitemap.xml"
+    },
     "https://unusual-name.example/": {
       "status": 200,
       "headers": {
@@ -153,6 +356,13 @@
         "content-type": "application/rss+xml; charset=utf-8"
       },
       "file": "synthetic/unusual-name.example/updates.rss"
+    },
+    "https://walled.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "body": "User-agent: *\nAllow: /\nSitemap: https://walled.example/sitemap.xml\n"
     },
     "https://www.semrush.com/": {
       "status": 200,
@@ -1154,6 +1364,30 @@
     {
       "pattern": "^https://unreachable\\.example/",
       "error": "unavailable"
+    },
+    {
+      "pattern": "^https://blog\\.relative-sitemap\\.example/2025/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://crosshost\\.example/blog/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://newsroom\\.example/politics/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://listing-only\\.example/blog/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://feed-only\\.example/stories/post-number-\\d+/$",
+      "synthesize": "article"
+    },
+    {
+      "pattern": "^https://walled\\.example/(?!robots\\.txt$)",
+      "status": 403
     }
   ]
 }

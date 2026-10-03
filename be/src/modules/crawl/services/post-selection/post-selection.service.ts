@@ -11,8 +11,10 @@ import {
   RemoteApiTooLargeError,
   RemoteApiTooManyRedirectsError,
 } from '@infrastructure/remote-api/remote-api.errors';
+import type { IParsedPage } from '@modules/page-analysis/interfaces/parsed-page.interface';
 import { extractPage } from '@modules/page-analysis/services/html-extraction/extract-page';
 import {
+  ARTICLE_SCHEMA_TYPES,
   CRAWL_FETCH_CONCURRENCY,
   HTML_CONTENT_TYPES,
   LISTING_SCHEMA_TYPES,
@@ -34,6 +36,16 @@ export interface IPostSelectionInput {
   signal: AbortSignal;
   /** Called after each window with the number of posts crawled so far. */
   onProgress?: (crawled: number) => Promise<void>;
+  /** The candidates may not all be posts: keep only pages that declare an article. */
+  articlesOnly?: boolean;
+}
+
+/** What a page says about itself: Open Graph type, or a JSON-LD article type. */
+export function isArticle(parsed: IParsedPage): boolean {
+  return (
+    parsed.openGraph['og:type']?.toLowerCase() === 'article' ||
+    parsed.jsonLd.types.some((type) => ARTICLE_SCHEMA_TYPES.has(type))
+  );
 }
 
 type TItemWithoutPosition = Omit<ISelectedItem, 'sitemapPosition' | 'url'>;
@@ -131,6 +143,12 @@ export class PostSelectionService {
       return skip(
         'skipped_listing',
         `Declares itself a listing (JSON-LD ${listing})`,
+        response.status,
+      );
+    if (input.articlesOnly && !isArticle(parsed))
+      return skip(
+        'skipped_listing',
+        'Not marked as an article (no og:type=article, no JSON-LD Article)',
         response.status,
       );
 
