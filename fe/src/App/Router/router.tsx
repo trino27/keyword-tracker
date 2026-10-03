@@ -40,6 +40,7 @@ const signInRoute = createRoute({
 	validateSearch: signInSearchSchema,
 	beforeLoad: ({ search }) => redirectIfSignedIn({ search }),
 	component: SignInScreen,
+	errorComponent: RouteError,
 });
 
 /** Pathless: contributes the layout and the session guard, no URL segment. */
@@ -48,6 +49,9 @@ const appRoute = createRoute({
 	id: "app",
 	beforeLoad: ({ location }) => requireSession({ location }),
 	component: AppLayout,
+	// One boundary per screen, so a throw inside a table or a chart leaves the shell,
+	// and the navigation out of the broken screen, standing.
+	errorComponent: RouteError,
 });
 
 const indexRoute = createRoute({
@@ -63,6 +67,7 @@ const pagesRoute = createRoute({
 	path: "/pages",
 	validateSearch: pagesSearchSchema,
 	component: PagesScreen,
+	errorComponent: RouteError,
 });
 
 const pageDetailRoute = createRoute({
@@ -74,6 +79,7 @@ const pageDetailRoute = createRoute({
 		() => import("@Modules/PageDetail/PageDetailScreen"),
 		"PageDetailScreen",
 	),
+	errorComponent: RouteError,
 });
 
 const clientsRoute = createRoute({
@@ -81,6 +87,7 @@ const clientsRoute = createRoute({
 	path: "/clients",
 	validateSearch: clientsSearchSchema,
 	component: ClientsScreen,
+	errorComponent: RouteError,
 });
 
 const routeTree = rootRoute.addChildren([
