@@ -73,8 +73,8 @@ ends with `pnpm typecheck` FAILING on purpose; the phase, not the sub-phase, is 
 
 - [x] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test`
 - [x] 7.2 Verify: `pnpm --filter be test:db` (every `*.int-spec.ts` and `*.e2e-spec.ts`, serially)
-- [ ] 7.3 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health` — this also proves the migration order, because 0008 must create `array_is_clean` before 0009's CHECK uses it on a volume built from empty
-      - AMENDED during implementation: NOT DONE as written. `docker compose up -d --build` rebuilt and started `be` healthy, which does prove the migration order on a real stack, but `web` could not bind 8080 — another process held it — so the Caddy-served path is unverified.
+- [x] 7.3 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health` — this also proves the migration order, because 0008 must create `array_is_clean` before 0009's CHECK uses it on a volume built from empty
+      - AMENDED during implementation: done in two steps. The first `docker compose up -d --build` left `web` unable to bind 8080 because another process held it; once that freed, `docker compose up -d web` brought Caddy up and the whole path verified — `/api/health` 200, `/pages/1` serving the SPA shell with `id="root"`, and both built assets 200. The migration order is proved by `be` reaching healthy with 0008-0010 applied.
 - [x] 7.4 A signed-in `curl` of `/api/pages/<id>` shows `checks` with one entry per catalogue code. Verify: the response body
       - AMENDED during implementation: verified against a locally started API rather than the compose stack, 8080 being unavailable. The response carried 18 checks, 16 passed and 2 failed, agreeing with `score` 89 over 18 applicable.
 - [ ] 7.5 Browser walk: `/pages/<id>` shows both sections, the subtitle matches the rows, the closing line matches the failure count, and the console is clean. Verify: `docker compose up -d --build` then the page at http://localhost:8080
