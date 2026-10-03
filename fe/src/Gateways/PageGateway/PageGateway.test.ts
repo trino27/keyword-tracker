@@ -22,7 +22,7 @@ const ITEM = {
 		capturedAt: "2026-10-03T12:00:00.000Z",
 	},
 	score: { value: 94, applicable: 18, failed: 1 },
-	issues: { total: 1, error: 0, warning: 1, notice: 0 },
+	issues: { total: 1, error: 0, warning: 1, notice: 0, siteWide: 0 },
 	lastCapturedAt: "2026-10-03T12:00:00.000Z",
 };
 

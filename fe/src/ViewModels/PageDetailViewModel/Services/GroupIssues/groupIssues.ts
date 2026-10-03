@@ -12,6 +12,11 @@ export interface IIssueView {
 	/** What exactly is wrong on this page, from the issue's details. */
 	detail: string;
 	hint: string;
+	/**
+	 * How many of the client's current pages carry this code, this one included. 1 means
+	 * it is this page's problem; more means the fix probably belongs in a template.
+	 */
+	pagesAffected: number;
 }
 
 export interface IIssueGroup {
@@ -72,7 +77,7 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 };
 
 /** Issues by severity — errors first — each with its label, its sentence and the fix. */
-export function groupIssues(issues: TSeoIssue[]): IIssueGroup[] {
+export function groupIssues(issues: (TSeoIssue & { pagesAffected?: number })[]): IIssueGroup[] {
 	return SEO_ISSUE_SEVERITIES.map((severity) => ({
 		severity,
 		issues: issues
@@ -82,6 +87,7 @@ export function groupIssues(issues: TSeoIssue[]): IIssueGroup[] {
 				label: SEO_ISSUE_CATALOGUE[issue.code].label,
 				detail: DESCRIBE[issue.code](issue.details),
 				hint: SEO_ISSUE_CATALOGUE[issue.code].hint,
+				pagesAffected: issue.pagesAffected ?? 1,
 			})),
 	})).filter((group) => group.issues.length > 0);
 }

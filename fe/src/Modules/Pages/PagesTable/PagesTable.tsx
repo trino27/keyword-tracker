@@ -55,6 +55,12 @@ function IssueCounts({ issues }: { issues: TPageListItem["issues"] }) {
 					{issues.notice}
 				</Badge>
 			)}
+			{/* A number on every row of a client says the fix is in the template. */}
+			{issues.siteWide > 0 && (
+				<Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap" }}>
+					{`${issues.siteWide} site-wide`}
+				</Text>
+			)}
 		</Group>
 	);
 }

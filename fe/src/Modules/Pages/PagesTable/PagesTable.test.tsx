@@ -21,7 +21,7 @@ const ROW: TPageListItem = {
 	],
 	bestPosition: null,
 	score: { value: 83, applicable: 18, failed: 3 },
-	issues: { total: 0, error: 0, warning: 0, notice: 0 },
+	issues: { total: 0, error: 0, warning: 0, notice: 0, siteWide: 0 },
 	lastCapturedAt: null,
 };
 
@@ -100,6 +100,33 @@ describe("PagesTable", () => {
 
 	// The table renders what the gateway returned, in that order: the worst-first ordering
 	// is the database's job, and a second sort here could only disagree with it.
+	it("a row with two shared findings reads '2 site-wide'", async () => {
+		renderTable({
+			items: [
+				{
+					...ROW,
+					issues: { total: 3, error: 1, warning: 0, notice: 2, siteWide: 2 },
+				},
+			],
+		});
+
+		expect(await screen.findByText("2 site-wide")).toBeInTheDocument();
+	});
+
+	it("a row sharing nothing shows only the severity badges", async () => {
+		renderTable({
+			items: [
+				{
+					...ROW,
+					issues: { total: 1, error: 1, warning: 0, notice: 0, siteWide: 0 },
+				},
+			],
+		});
+
+		expect(await screen.findByText("1 error")).toBeInTheDocument();
+		expect(screen.queryByText(/site-wide/)).not.toBeInTheDocument();
+	});
+
 	it("the first row is the lowest score the gateway returned", async () => {
 		renderTable({
 			items: [withScore(20, 13), withScore(25, 8), withScore(18, 1)],

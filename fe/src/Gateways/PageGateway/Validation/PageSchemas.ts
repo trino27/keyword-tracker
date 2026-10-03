@@ -53,6 +53,7 @@ export const pageListItemSchema = z.object({
 		error: z.number().int(),
 		warning: z.number().int(),
 		notice: z.number().int(),
+		siteWide: z.number().int().min(0),
 	}),
 	lastCapturedAt: z.string().nullable(),
 }) satisfies z.ZodType<IPageListItem>;
@@ -105,6 +106,12 @@ export const seoIssueSchema = z.discriminatedUnion("code", [
 	...plainVariants,
 ] as [TIssueVariant, ...TIssueVariant[]]) satisfies z.ZodType<TContractSeoIssue>;
 
+/** The detail's issues carry the spread; the list's issue counts carry a total instead. */
+export const detailIssueSchema = z.intersection(
+	seoIssueSchema,
+	z.object({ pagesAffected: z.number().int().positive() }),
+) satisfies z.ZodType<TContractSeoIssue & { pagesAffected: number }>;
+
 export const pageDetailSchema = z.object({
 	page: z.object({
 		id: z.number().int(),
@@ -119,11 +126,16 @@ export const pageDetailSchema = z.object({
 		responseMs: z.number().int(),
 		crawledAt: z.string(),
 	}),
-	client: z.object({ id: z.number().int(), name: z.string(), websiteUrl: z.string() }),
+	client: z.object({
+		id: z.number().int(),
+		name: z.string(),
+		websiteUrl: z.string(),
+		currentPages: z.number().int().min(0),
+	}),
 	keywords: z.array(keywordPositionSchema),
 	bestPosition: bestPositionSchema.nullable(),
 	score: pageScoreSchema,
-	issues: z.array(seoIssueSchema),
+	issues: z.array(detailIssueSchema),
 	lastCrawl: crawlRunSummarySchema.nullable(),
 }) satisfies z.ZodType<IPageDetail>;
 
@@ -148,3 +160,4 @@ export type TKeywordPosition = z.infer<typeof keywordPositionSchema>;
 export type TPageDetail = z.infer<typeof pageDetailSchema>;
 export type TPositionHistory = z.infer<typeof positionHistorySchema>;
 export type TSeoIssue = z.infer<typeof seoIssueSchema>;
+export type TDetailIssue = z.infer<typeof detailIssueSchema>;
