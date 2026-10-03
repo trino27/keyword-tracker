@@ -9,11 +9,15 @@ import {
 import { AppLayout } from "@Modules/_Shared/AppLayout/AppLayout";
 import { NotFound } from "@Modules/_Shared/NotFound/NotFound";
 import { RouteError } from "@Modules/_Shared/RouteError/RouteError";
+import { ClientsScreen } from "@Modules/Clients/ClientsScreen";
+import { PageDetailScreen } from "@Modules/PageDetail/PageDetailScreen";
 import { PagesScreen } from "@Modules/Pages/PagesScreen";
 import { SignInScreen } from "@Modules/SignIn/SignInScreen";
 import { listenForExpiredSession } from "@ViewModels/SessionViewModel/SessionViewModel";
 import { redirectIfSignedIn } from "../Guards/redirectIfSignedIn";
 import { requireSession } from "../Guards/requireSession";
+import { clientsSearchSchema } from "./SearchSchemas/ClientsSearchSchema/clientsSearchSchema";
+import { pagesSearchSchema } from "./SearchSchemas/PagesSearchSchema/pagesSearchSchema";
 import { signInSearchSchema } from "./SearchSchemas/SignInSearchSchema/signInSearchSchema";
 
 /**
@@ -56,12 +60,26 @@ const indexRoute = createRoute({
 const pagesRoute = createRoute({
 	getParentRoute: () => appRoute,
 	path: "/pages",
+	validateSearch: pagesSearchSchema,
 	component: PagesScreen,
+});
+
+const pageDetailRoute = createRoute({
+	getParentRoute: () => appRoute,
+	path: "/pages/$pageId",
+	component: PageDetailScreen,
+});
+
+const clientsRoute = createRoute({
+	getParentRoute: () => appRoute,
+	path: "/clients",
+	validateSearch: clientsSearchSchema,
+	component: ClientsScreen,
 });
 
 const routeTree = rootRoute.addChildren([
 	signInRoute,
-	appRoute.addChildren([indexRoute, pagesRoute]),
+	appRoute.addChildren([indexRoute, pagesRoute, pageDetailRoute, clientsRoute]),
 ]);
 
 export function createAppRouter(history?: RouterHistory) {

@@ -5,7 +5,10 @@ import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewMod
 import styles from "./AppLayout.module.scss";
 
 /** The screens the navigation offers; a screen joins it when it is finished. */
-const NAVIGATION = [{ to: "/pages", label: "Pages" }] as const;
+const NAVIGATION = [
+	{ to: "/pages", label: "Pages" },
+	{ to: "/clients", label: "Clients" },
+] as const;
 
 /** The frame every signed-in screen renders inside: brand, navigation, the user. */
 export function AppLayout() {

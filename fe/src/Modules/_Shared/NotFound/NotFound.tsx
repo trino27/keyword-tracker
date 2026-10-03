@@ -1,6 +1,5 @@
-import { Button } from "@mantine/core";
 import { IconMapOff } from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
+import { ButtonLink } from "../RouterLink/RouterLink";
 import { EmptyState } from "../EmptyState/EmptyState";
 
 interface INotFoundProps {
@@ -16,9 +15,9 @@ export function NotFound({ what = "This page" }: INotFoundProps) {
 			title={`${what} was not found`}
 			description="It may have been removed by a newer crawl, or the link is wrong."
 			action={
-				<Button component={Link} to="/pages" variant="light" mt="xs">
+				<ButtonLink to="/pages" variant="light" mt="xs">
 					Go to pages
-				</Button>
+				</ButtonLink>
 			}
 		/>
 	);
