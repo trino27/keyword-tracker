@@ -1,0 +1,29 @@
+# Host node_modules never enter an image: pnpm's symlinks do not survive COPY, and
+# every image installs its own clean tree.
+**/node_modules
+
+# Build output — regenerated inside the image.
+**/dist
+**/dist-cjs
+**/.next
+**/*.tsbuildinfo
+**/.tsbuildinfo
+
+# Secrets stay out of every build layer; compose passes them at runtime.
+.env
+.env.*
+!.env.example
+
+# Not needed by any image.
+.git
+.github
+.husky
+.claude
+.idea
+.vscode
+**/coverage
+openspec
+practices
+skills
+**/skills
+**/*.md
