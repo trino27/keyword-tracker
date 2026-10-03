@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -47,5 +50,14 @@ export class ClientsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ run: ICrawlRunSummary }> {
     return { run: await this.clients.requestRecrawl(scope, id) };
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @CurrentScope() scope: IUserScope,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
+    await this.clients.deleteClient(scope, id);
   }
 }

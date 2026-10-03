@@ -55,6 +55,19 @@ export class ClientsRepository {
     return row ?? null;
   }
 
+  /**
+   * Deletes the client if the scope's user owns it; false for missing and foreign alike.
+   * Its runs, run log, pages, keyword pairs, issues and snapshots go with it (cascades);
+   * shared keyword terms stay.
+   */
+  async deleteOwned(scope: IUserScope, clientId: number): Promise<boolean> {
+    const deleted = await this.db
+      .delete(clients)
+      .where(and(eq(clients.id, clientId), eq(clients.userId, scope.userId)))
+      .returning({ id: clients.id });
+    return deleted.length > 0;
+  }
+
   listOwned(scope: IUserScope): Promise<IClientRecord[]> {
     return this.db
       .select(columns)

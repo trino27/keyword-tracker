@@ -23,7 +23,7 @@ interface IIsolationContext {
   createOwnedPage: () => Promise<{ pageId: number }>;
 }
 
-type TMethod = 'get' | 'post';
+type TMethod = 'get' | 'post' | 'delete';
 
 /**
  * User B asking for user A's object must get exactly what asking for a missing object
@@ -76,6 +76,21 @@ const ISOLATION_MATRIX: Record<
       (id) => `/api/clients/${id}/crawl-runs`,
       clientId,
     );
+  },
+  'DELETE /api/clients/:id': async (context) => {
+    const { clientId } = await context.createOwnedClient();
+    await expectSameAsMissing(
+      context,
+      'delete',
+      (id) => `/api/clients/${id}`,
+      clientId,
+    );
+    // And the intruder's attempt changed nothing.
+    await context
+      .http()
+      .get(`/api/clients/${clientId}`)
+      .set('Cookie', context.ownerCookie)
+      .expect(200);
   },
   'GET /api/pages': async (context) => {
     const { clientId } = await context.createOwnedClient();

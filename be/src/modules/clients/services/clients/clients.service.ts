@@ -89,6 +89,16 @@ export class ClientsService {
     }
   }
 
+  /**
+   * A crawl in flight is not waited for: its finalize finds the run gone, its fence
+   * fails, and it writes nothing.
+   */
+  async deleteClient(scope: IUserScope, clientId: number): Promise<void> {
+    if (!(await this.clients.deleteOwned(scope, clientId))) {
+      throw new ClientNotFoundException({ clientId });
+    }
+  }
+
   async requestRecrawl(
     scope: IUserScope,
     clientId: number,
