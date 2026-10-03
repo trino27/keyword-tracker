@@ -5,6 +5,7 @@ import type {
   IPageListFilter,
   PageListRepository,
 } from '../../repositories/page-list/page-list.repository';
+import type { PageDetailRepository } from '../../repositories/page-detail/page-detail.repository';
 import { PageReadService } from './page-read.service';
 
 const scope = { userId: 1, timeZone: 'America/Toronto' } as IUserScope;
@@ -66,6 +67,7 @@ const setup = (rowCount: number) => {
   };
   const service = new PageReadService(
     list,
+    {} as PageDetailRepository,
     clients as unknown as ClientsService,
   );
   const query = (overrides: Partial<ListPagesQueryDto> = {}) => ({

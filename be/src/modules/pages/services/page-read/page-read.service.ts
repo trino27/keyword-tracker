@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  IKeywordPosition,
-  IPageIssueCounts,
-  IPageListResponse,
+import {
+  SEO_ISSUE_CODES,
+  type IKeywordPosition,
+  type IPageDetail,
+  type IPageIssueCounts,
+  type IPageListResponse,
 } from '@app/contracts';
 import { escapeLike } from '@core/utils/escape-like/escape-like';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { ClientsService } from '@modules/clients/services/clients/clients.service';
 import { normalizeText } from '@modules/page-analysis/services/text/normalize-text/normalize-text';
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
+import { PageNotFoundException } from '../../exceptions/pages.exceptions';
+import { PageDetailRepository } from '../../repositories/page-detail/page-detail.repository';
 import {
   PageListRepository,
   type IPageKeywordRow,
@@ -44,6 +48,7 @@ export function lastCapturedAtOf(keywords: IKeywordPosition[]): string | null {
 export class PageReadService {
   constructor(
     private readonly list: PageListRepository,
+    private readonly detail: PageDetailRepository,
     private readonly clients: ClientsService,
   ) {}
 
@@ -119,6 +124,46 @@ export class PageReadService {
       page: query.page,
       pageSize: query.pageSize,
       total,
+    };
+  }
+
+  /** A current page of the user's, with its keywords, issues and the client's last crawl. */
+  async getPage(scope: IUserScope, pageId: number): Promise<IPageDetail> {
+    const page = await this.detail.findCurrentPage(scope, pageId);
+    if (!page) throw new PageNotFoundException({ pageId });
+
+    const [keywordRows, issues, client] = await Promise.all([
+      this.list.keywordsForPages(scope, [pageId]),
+      this.detail.issuesForPage(pageId),
+      this.clients.getClient(scope, page.clientId),
+    ]);
+    const keywords = keywordRows.map(toKeywordPosition);
+
+    return {
+      page: {
+        id: page.id,
+        url: page.url,
+        finalUrl: page.finalUrl,
+        title: page.title,
+        metaDescription: page.metaDescription,
+        h1: page.h1,
+        lang: page.lang,
+        wordCount: page.wordCount,
+        httpStatus: page.httpStatus,
+        crawledAt: page.crawledAt.toISOString(),
+      },
+      client: {
+        id: page.clientId,
+        name: page.clientName,
+        websiteUrl: page.clientWebsiteUrl,
+      },
+      keywords,
+      bestPosition: pickBestPosition(keywords),
+      issues: [...issues].sort(
+        (a, b) =>
+          SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),
+      ),
+      lastCrawl: client.latestRun,
     };
   }
 }

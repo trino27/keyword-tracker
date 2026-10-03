@@ -2,6 +2,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { createTestApp } from '../support/create-test-app';
 import { listRoutes } from '../support/list-routes';
+import { seedCurrentPage } from '../support/seed-page';
 import { seedTestUser, signIn } from '../support/sign-in';
 import { createTestDatabase } from '../support/test-database';
 
@@ -18,6 +19,8 @@ interface IIsolationContext {
   intruderCookie: string;
   /** A fresh client owned by A (a new site each call); returns its id and first run id. */
   createOwnedClient: () => Promise<{ clientId: number; runId: number }>;
+  /** A current page of a fresh client owned by A. */
+  createOwnedPage: () => Promise<{ pageId: number }>;
 }
 
 type TMethod = 'get' | 'post';
@@ -83,6 +86,24 @@ const ISOLATION_MATRIX: Record<
       clientId,
     );
   },
+  'GET /api/pages/:id': async (context) => {
+    const { pageId } = await context.createOwnedPage();
+    await expectSameAsMissing(
+      context,
+      'get',
+      (id) => `/api/pages/${id}`,
+      pageId,
+    );
+  },
+  'GET /api/pages/:id/positions': async (context) => {
+    const { pageId } = await context.createOwnedPage();
+    await expectSameAsMissing(
+      context,
+      'get',
+      (id) => `/api/pages/${id}/positions`,
+      pageId,
+    );
+  },
   'GET /api/crawl-runs/:id': async (context) => {
     const { runId } = await context.createOwnedClient();
     await expectSameAsMissing(
@@ -125,7 +146,7 @@ describe('isolation matrix (e2e)', () => {
   it.each(Object.keys(ISOLATION_MATRIX))(
     "%s: user B gets the not-found answer for user A's object",
     async (route) => {
-      await seedTestUser(testDb, 'owner@example.com');
+      const owner = await seedTestUser(testDb, 'owner@example.com');
       await seedTestUser(testDb, 'intruder@example.com');
       const http = () => request.agent(app.getHttpServer());
       const ownerCookie = await signIn(app, 'owner@example.com');
@@ -135,6 +156,7 @@ describe('isolation matrix (e2e)', () => {
         http,
         ownerCookie,
         intruderCookie: await signIn(app, 'intruder@example.com'),
+        createOwnedPage: () => seedCurrentPage(testDb, owner.id),
         createOwnedClient: async () => {
           site += 1;
           const response = await http()
