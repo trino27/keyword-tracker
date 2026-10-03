@@ -33,6 +33,9 @@ export function ClientsScreen() {
 					void navigate({
 						search: { expanded: expanded === clientId ? undefined : clientId },
 						replace: true,
+						// The row is expanded in place; without this the router would scroll
+						// the window back to the top on every toggle.
+						resetScroll: false,
 					})
 				}
 			/>
