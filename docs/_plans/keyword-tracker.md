@@ -1804,6 +1804,8 @@ and its FE schema change in the same commit from phase 7 on.
 
 ### Open questions
 
+Q4-Q12 below were accepted with their defaults (D36); none is open.
+
 - **Q1 — Seed credentials.** Resolved by D27.
 - **Q2 — A clients view.** Resolved by D28, then D34.
 - **Q3 — Out of scope.** Resolved by D29.
@@ -1914,3 +1916,12 @@ existing client" is served by the shared `parseWebsiteUrl` in contracts plus `si
 `IClient`, so the error body stays `{ errorCode, message }`. D35's "last crawl status" on the page
 detail and the clients table's latest run are `IPageDetail.lastCrawl` and `IClient.latestRun`
 (§5, §6).
+
+D36. The owner accepted every default: Q4 (tests, fixtures, support and e2e under `be/test/`), Q5
+     (`fetch` and `Agent` from the `undici` package), Q6 (`robots-parser`), Q7 (`stopword` lists by
+     primary language subtag), Q8 (`@nestjs/throttler`, in memory: login 10/min per IP + email,
+     add client and re-crawl 10/min per user), Q9 (no User-Agent spoofing; a refusing site fails
+     its run with the reason), Q10 (clients not paginated), Q11 (no client deletion), Q12 (Mantine
+     v8). The planner's own choices are accepted as written: the cross-module join rule, results
+     written once per attempt, LISTEN/NOTIFY wake-up with the 2 s poll as a fallback, the seed's
+     in-process worker, and the sitemap score threshold of 2. Q4-Q12 are closed.
