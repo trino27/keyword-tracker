@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { APP_GLOBAL_PROVIDERS } from '@core/bootstrap/app-globals.providers';
@@ -17,7 +17,11 @@ import { HealthModule } from '@modules/health/health.module';
       ignoreEnvFile: true,
       validate: validateEnv,
     }),
-    LoggerModule.forRoot({ pinoHttp: pinoHttpOptions }),
+    LoggerModule.forRoot({
+      pinoHttp: pinoHttpOptions,
+      // Named wildcard: the default `*` is legacy syntax for path-to-regexp v8.
+      forRoutes: [{ path: '{*path}', method: RequestMethod.ALL }],
+    }),
     DatabaseModule,
     HealthModule,
   ],
