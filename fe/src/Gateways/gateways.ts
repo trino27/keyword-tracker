@@ -1,4 +1,3 @@
-import { HealthGateway } from "./HealthGateway/HealthGateway";
 import { SessionGateway } from "./SessionGateway/SessionGateway";
 
 /**
@@ -8,6 +7,5 @@ import { SessionGateway } from "./SessionGateway/SessionGateway";
  * reaches through here.
  */
 export const gateways = {
-	health: new HealthGateway(),
 	session: new SessionGateway(),
 };
