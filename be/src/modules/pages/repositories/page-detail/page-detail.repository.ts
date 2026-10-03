@@ -25,6 +25,9 @@ export interface ICurrentPageRecord {
   responseMs: number;
   checksApplicable: number;
   checksFailed: number;
+  /** Null together when the page's last crawl predates per-check recording. */
+  checksJudged: TSeoIssueCode[] | null;
+  checksNotApplicable: TSeoIssueCode[] | null;
   crawledAt: Date;
   clientId: number;
   clientName: string;
@@ -61,6 +64,8 @@ interface IPageRow extends Record<string, unknown> {
   response_ms: number;
   checks_applicable: number;
   checks_failed: number;
+  checks_judged: string[] | null;
+  checks_not_applicable: string[] | null;
   crawled_at: string | Date;
   client_id: string;
   client_name: string;
@@ -95,7 +100,8 @@ export class PageDetailRepository {
     const { rows } = await this.db.execute<IPageRow>(sql`
       select p.id, p.url, p.final_url, p.title, p.meta_description, p.h1, p.lang,
              p.word_count, p.http_status, p.response_ms,
-             p.checks_applicable, p.checks_failed, p.crawled_at,
+             p.checks_applicable, p.checks_failed,
+             p.checks_judged, p.checks_not_applicable, p.crawled_at,
              c.id as client_id, c.name as client_name, c.website_url as client_website_url,
              (select count(*) from pages sib
                where sib.client_id = p.client_id
@@ -125,6 +131,11 @@ export class PageDetailRepository {
       responseMs: Number(row.response_ms),
       checksApplicable: Number(row.checks_applicable),
       checksFailed: Number(row.checks_failed),
+      // Cast, like `details_json` below: the driver hands back plain strings, and this
+      // is the one place a stored code becomes a catalogue code.
+      checksJudged: (row.checks_judged ?? null) as TSeoIssueCode[] | null,
+      checksNotApplicable: (row.checks_not_applicable ?? null) as
+        TSeoIssueCode[] | null,
       crawledAt: new Date(row.crawled_at),
       clientId: Number(row.client_id),
       clientName: row.client_name,
