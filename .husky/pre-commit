@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# Work happens on branches; `main` only receives merges.
+branch_name=$(git symbolic-ref --short HEAD)
+for protected in main master; do
+  if [ "$branch_name" = "$protected" ]; then
+    echo "Commit to '$branch_name' is not allowed. Create a branch: feat/..., fix/..., chore/..., docs/..."
+    exit 1
+  fi
+done
+
+# Formats staged files only. ESLint is type-aware and builds the whole program per run,
+# so it runs once in pre-push instead of on every commit.
+pnpm exec lint-staged
