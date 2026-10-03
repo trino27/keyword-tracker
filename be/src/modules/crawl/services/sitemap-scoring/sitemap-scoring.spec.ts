@@ -17,6 +17,7 @@ const group = (
   sitemapUrls: [sitemapUrl],
   urls,
   order,
+  news: false,
 });
 
 const posts = (prefix: string, count: number) =>
@@ -153,12 +154,55 @@ describe('selectBlogGroup', () => {
     expect(earlier.ok && earlier.winner.group.key).toBe('a.example/post-a.xml');
   });
 
-  it('refuses when nothing reaches the threshold', () => {
+  it('below the threshold, returns the best group unconfirmed', () => {
     const selection = selectBlogGroup(
       [group('https://a.example/sitemap.xml', posts('/', 4))],
       new Set(),
     );
 
-    expect(selection).toMatchObject({ ok: false, best: { score: 0 } });
+    expect(selection).toMatchObject({
+      ok: true,
+      confirmed: false,
+      winner: { score: 0 },
+    });
+    expect(selection.ok && selection.reason).toMatch(
+      /Only pages marked as articles count/,
+    );
+  });
+
+  it('refuses when every group is marked as something else, or empty', () => {
+    expect(
+      selectBlogGroup(
+        [
+          group('https://a.example/page-sitemap.xml', posts('/', 4)),
+          group('https://a.example/post-sitemap.xml', []),
+        ],
+        new Set(),
+      ),
+    ).toMatchObject({ ok: false, best: { score: -3 } });
+  });
+
+  it('a blog host makes every sitemap a blog: blog.example scores +3 by its name', () => {
+    const selection = selectBlogGroup(
+      [group('https://blog.a.example/sitemap.xml', posts('/2024/', 4))],
+      new Set(),
+      'blog.a.example',
+    );
+
+    expect(selection).toMatchObject({
+      ok: true,
+      confirmed: true,
+      winner: { score: 3 },
+    });
+    expect(selection.ok && selection.reason).toContain('host "blog." +3');
+  });
+
+  it('a Google News sitemap counts as articles', () => {
+    const news: ISitemapGroup = {
+      ...group('https://a.example/news-sitemap.xml', posts('/politics/', 4)),
+      news: true,
+    };
+
+    expect(scoreGroup(news, new Set()).score).toBe(3);
   });
 });

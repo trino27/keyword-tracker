@@ -10,9 +10,11 @@ export interface IFeedDiscovery {
   feedUrl: string | null;
   /** Page keys (`pageKeyOf`) of the feed's same-site items. */
   keys: ReadonlySet<string>;
+  /** The same-site item links, in feed order (newest first, as feeds list them). */
+  links: string[];
 }
 
-const NO_FEED: IFeedDiscovery = { feedUrl: null, keys: new Set() };
+const NO_FEED: IFeedDiscovery = { feedUrl: null, keys: new Set(), links: [] };
 
 /**
  * The site's own list of its latest posts: the strongest evidence of which sitemap is
@@ -44,11 +46,17 @@ export class FeedDiscoveryService {
     for (const url of candidates) {
       const links = await this.tryFeed(url, signal);
       if (links === null) continue;
-      const keys = links
-        .filter((link) => isSameSite(link, siteKey))
+      const ownLinks = links.filter((link) => isSameSite(link, siteKey));
+      // A feed of nothing on this site says nothing about it; try the next address.
+      if (ownLinks.length === 0) continue;
+      const keys = ownLinks
         .map(pageKeyOf)
         .filter((key): key is string => key !== null);
-      return { feedUrl: url, keys: new Set(keys) };
+      return {
+        feedUrl: url,
+        keys: new Set(keys),
+        links: [...new Set(ownLinks)],
+      };
     }
     return NO_FEED;
   }

@@ -18,6 +18,7 @@ describe('parseSitemap', () => {
     expect(parsed).toEqual({
       kind: 'urlset',
       urls: ['https://a.example/b/', 'https://a.example/c/?x=1&y=2'],
+      news: false,
     });
   });
 
@@ -34,7 +35,7 @@ describe('parseSitemap', () => {
       parseSitemap(
         '<ns:urlset xmlns:ns="http://www.sitemaps.org/schemas/sitemap/0.9"><ns:url><ns:loc>https://a.example/</ns:loc></ns:url></ns:urlset>',
       ),
-    ).toEqual({ kind: 'urlset', urls: ['https://a.example/'] });
+    ).toEqual({ kind: 'urlset', urls: ['https://a.example/'], news: false });
   });
 
   it('does not expand DOCTYPE entities', () => {
@@ -42,7 +43,11 @@ describe('parseSitemap', () => {
       '<!DOCTYPE x [<!ENTITY a "aaaaaaaaaa">]><urlset><url><loc>https://a.example/&a;</loc></url></urlset>',
     );
 
-    expect(parsed).toEqual({ kind: 'urlset', urls: ['https://a.example/&a;'] });
+    expect(parsed).toEqual({
+      kind: 'urlset',
+      urls: ['https://a.example/&a;'],
+      news: false,
+    });
   });
 
   it.each(['<html><body>Not a sitemap</body></html>', 'plain text', ''])(

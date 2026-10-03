@@ -24,6 +24,7 @@ import { MAX_PAGE_URL_LENGTH } from '../../constants/post-selection.constant';
 import type {
   ICrawledPage,
   IPostSelection,
+  ISelectedItem,
 } from '../../interfaces/crawled-page.interface';
 import type { ICrawlRunExecutor } from '../../ports/crawl-run-executor.port';
 import { PostSelectionService } from '../post-selection/post-selection.service';
@@ -36,9 +37,32 @@ const failed = (code: TCrawlRunErrorCode): IRunOutcome => ({
   errorMessage: CRAWL_RUN_ERRORS[code].message,
 });
 
-/** 15 posts: succeeded; fewer: partial; none: failed. */
-export function outcomeOf(crawled: number): IRunOutcome {
-  if (crawled === 0) return failed('NO_POSTS_CRAWLED');
+const REFUSED = new Set([401, 403, 429]);
+const UNANSWERED = new Set(['Timed out', 'Could not connect']);
+
+/**
+ * 15 posts: succeeded; fewer: partial; none: failed — and the failure says why: no page
+ * was an article (the source was a guess), or the site turned the crawler away.
+ */
+export function outcomeOf(
+  crawled: number,
+  items: ISelectedItem[] = [],
+  articlesOnly = false,
+): IRunOutcome {
+  if (crawled === 0) {
+    const fetched = items.filter((item) => item.status === 'failed');
+    const allRefused =
+      fetched.length > 0 &&
+      fetched.length ===
+        items.filter((item) => item.status !== 'skipped_other_site').length &&
+      fetched.every(
+        (item) =>
+          (item.httpStatus !== null && REFUSED.has(item.httpStatus)) ||
+          UNANSWERED.has(item.reason ?? ''),
+      );
+    if (allRefused) return failed('SITE_BLOCKED');
+    return failed(articlesOnly ? 'BLOG_SITEMAP_NOT_FOUND' : 'NO_POSTS_CRAWLED');
+  }
   return {
     status: crawled >= CRAWL_POST_LIMIT ? 'succeeded' : 'partial',
     pagesDone: crawled,
@@ -117,17 +141,26 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       siteKey: target.siteKey,
       robots: discovery.robots,
       signal,
+      articlesOnly: discovery.articlesOnly,
       onProgress: (crawled) =>
         this.runs.recordProgressForWorker(run.id, run.attempts, crawled),
     });
 
     // Pure and outside any transaction: the whole run is judged at once (IDF).
     const analysis = this.analysis.analyseRun(selection.pages, target.siteKey);
-    await this.finalize(run, outcomeOf(selection.pages.length), {
-      clientId: target.clientId,
-      selection,
-      pages: selection.pages.map((page, i) => toRunPage(page, analysis[i])),
-    });
+    await this.finalize(
+      run,
+      outcomeOf(
+        selection.pages.length,
+        selection.items,
+        discovery.articlesOnly,
+      ),
+      {
+        clientId: target.clientId,
+        selection,
+        pages: selection.pages.map((page, i) => toRunPage(page, analysis[i])),
+      },
+    );
   }
 
   /** Writes everything or nothing; false when a newer attempt owns the run. */

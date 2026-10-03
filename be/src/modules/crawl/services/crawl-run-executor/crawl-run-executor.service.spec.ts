@@ -137,6 +137,41 @@ describe('outcomeOf', () => {
   ])('%d posts → %s', (crawled, status, errorCode) => {
     expect(outcomeOf(crawled)).toMatchObject({ status, errorCode });
   });
+
+  const failedItem = (
+    httpStatus: number | null,
+    reason: string,
+  ): ISelectedItem => ({
+    sitemapPosition: 0,
+    url: 'https://a.example/p/',
+    status: 'failed',
+    reason,
+    httpStatus,
+    page: null,
+  });
+
+  it('nothing crawled because every request was refused: SITE_BLOCKED', () => {
+    expect(
+      outcomeOf(0, [
+        failedItem(403, 'HTTP 403'),
+        failedItem(null, 'Timed out'),
+      ]),
+    ).toMatchObject({ errorCode: 'SITE_BLOCKED' });
+  });
+
+  it('nothing crawled from a guessed source: no blog was found after all', () => {
+    const notArticle: ISelectedItem = {
+      ...failedItem(200, 'Not marked as an article'),
+      status: 'skipped_listing',
+    };
+
+    expect(outcomeOf(0, [notArticle], true)).toMatchObject({
+      errorCode: 'BLOG_SITEMAP_NOT_FOUND',
+    });
+    expect(outcomeOf(0, [failedItem(404, 'HTTP 404')])).toMatchObject({
+      errorCode: 'NO_POSTS_CRAWLED',
+    });
+  });
 });
 
 describe('CrawlRunExecutorService', () => {

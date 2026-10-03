@@ -118,6 +118,9 @@ describe('SeedRunner (postgres, recorded sites)', () => {
     const missing = { status: 404 } as const;
     transport.override('https://yoast.com/robots.txt', missing);
     transport.override('https://yoast.com/sitemap_index.xml', missing);
+    // Without a sitemap the crawl would read the feed instead; take that away too.
+    transport.override('https://yoast.com/', missing);
+    transport.override('https://yoast.com/feed/', missing);
 
     await expect(seed()).rejects.toThrow(
       new SeedFailedError('The crawl of Yoast failed (SITEMAP_NOT_FOUND).'),

@@ -1,10 +1,13 @@
 import { siteKeyOf } from '@app/contracts';
 import {
+  BLOG_HOST_LABELS,
+  BLOG_HOST_NAME_SCORE,
   BLOG_PATH_SECTIONS,
   BLOG_SITEMAP_MIN_SCORE,
   FEED_SHARE_WEIGHT,
   NEGATIVE_NAME_SCORE,
   NEGATIVE_NAME_TOKENS,
+  NEWS_SITEMAP_SCORE,
   PATH_SHARE_WEIGHT,
   POSITIVE_NAME_TOKENS,
 } from '../../constants/sitemap-scoring.constant';
@@ -14,6 +17,8 @@ export interface ISitemapLeaf {
   url: string;
   urls: string[];
   order: number;
+  /** A Google News sitemap. */
+  news?: boolean;
 }
 
 /** Numbered siblings (`post-sitemap.xml`, `post-sitemap2.xml`) read as one sitemap. */
@@ -22,6 +27,7 @@ export interface ISitemapGroup {
   sitemapUrls: string[];
   urls: string[];
   order: number;
+  news: boolean;
 }
 
 export interface IGroupScore {
@@ -35,8 +41,13 @@ export interface IGroupScore {
   feedMatches: number;
 }
 
+/**
+ * `confirmed`: the winner scored as a blog. Unconfirmed, it is only the least unlikely
+ * sitemap — the crawl then counts a page as a post only when the page says it is an
+ * article.
+ */
 export type TBlogSelection =
-  | { ok: true; winner: IGroupScore; reason: string }
+  | { ok: true; confirmed: boolean; winner: IGroupScore; reason: string }
   | { ok: false; best: IGroupScore | null };
 
 /** `/post-sitemap2.xml` → `/post-sitemap.xml`: digits right before the extension go. */
@@ -58,12 +69,14 @@ export function groupSitemaps(leaves: ISitemapLeaf[]): ISitemapGroup[] {
     if (group) {
       group.sitemapUrls.push(leaf.url);
       group.urls.push(...leaf.urls);
+      group.news ||= leaf.news === true;
     } else {
       groups.set(key, {
         key,
         sitemapUrls: [leaf.url],
         urls: [...leaf.urls],
         order: leaf.order,
+        news: leaf.news === true,
       });
     }
   }
@@ -71,7 +84,10 @@ export function groupSitemaps(leaves: ISitemapLeaf[]): ISitemapGroup[] {
 }
 
 /** The name score of a sitemap URL's path — also how the walk orders its fetches. */
-export function nameScoreOf(sitemapUrl: string): {
+export function nameScoreOf(
+  sitemapUrl: string,
+  siteKey?: string,
+): {
   score: number;
   terms: string[];
 } {
@@ -83,11 +99,18 @@ export function nameScoreOf(sitemapUrl: string): {
     .filter((token) => token in POSITIVE_NAME_TOKENS)
     .sort((a, b) => POSITIVE_NAME_TOKENS[b] - POSITIVE_NAME_TOKENS[a])[0];
   const negative = tokens.find((token) => NEGATIVE_NAME_TOKENS.has(token));
+  const hostLabel = siteKey?.split('.')[0];
+  const hostIsBlog = hostLabel !== undefined && BLOG_HOST_LABELS.has(hostLabel);
+
   const terms: string[] = [];
   let score = 0;
-  if (positive) {
-    score += POSITIVE_NAME_TOKENS[positive];
-    terms.push(`"${positive}" +${POSITIVE_NAME_TOKENS[positive]}`);
+  const pathScore = positive ? POSITIVE_NAME_TOKENS[positive] : 0;
+  if (hostIsBlog && BLOG_HOST_NAME_SCORE >= pathScore) {
+    score += BLOG_HOST_NAME_SCORE;
+    terms.push(`host "${hostLabel}." +${BLOG_HOST_NAME_SCORE}`);
+  } else if (positive) {
+    score += pathScore;
+    terms.push(`"${positive}" +${pathScore}`);
   }
   if (negative) {
     score += NEGATIVE_NAME_SCORE;
@@ -110,8 +133,13 @@ export function pageKeyOf(url: string): string | null {
 export function scoreGroup(
   group: ISitemapGroup,
   feedKeys: ReadonlySet<string>,
+  siteKey?: string,
 ): IGroupScore {
-  const name = nameScoreOf(group.sitemapUrls[0]);
+  const name = nameScoreOf(group.sitemapUrls[0], siteKey);
+  if (group.news) {
+    name.score += NEWS_SITEMAP_SCORE;
+    name.terms.push(`news sitemap +${NEWS_SITEMAP_SCORE}`);
+  }
 
   const sectionCounts = new Map<string, number>();
   for (const url of group.urls) {
@@ -144,13 +172,19 @@ export function scoreGroup(
   };
 }
 
-/** Highest score, then more URLs, then index order; below the threshold, nothing. */
+/**
+ * Highest score, then more URLs, then index order. At or above the threshold the winner
+ * is a confirmed blog; below it, the best group that is not marked as something else
+ * (score ≥ 0, with URLs) is returned unconfirmed; otherwise nothing.
+ */
 export function selectBlogGroup(
   groups: ISitemapGroup[],
   feedKeys: ReadonlySet<string>,
+  siteKey?: string,
 ): TBlogSelection {
   const ranked = groups
-    .map((group) => scoreGroup(group, feedKeys))
+    .filter((group) => group.urls.length > 0)
+    .map((group) => scoreGroup(group, feedKeys, siteKey))
     .sort(
       (a, b) =>
         b.score - a.score ||
@@ -158,8 +192,14 @@ export function selectBlogGroup(
         a.group.order - b.group.order,
     );
   const best = ranked[0] ?? null;
-  if (!best || best.score < BLOG_SITEMAP_MIN_SCORE) return { ok: false, best };
-  return { ok: true, winner: best, reason: describe(best, feedKeys.size) };
+  if (!best || best.score < 0) return { ok: false, best };
+  const confirmed = best.score >= BLOG_SITEMAP_MIN_SCORE;
+  return {
+    ok: true,
+    confirmed,
+    winner: best,
+    reason: describe(best, feedKeys.size, confirmed),
+  };
 }
 
 function firstSegmentOf(url: string): string | null {
@@ -174,7 +214,11 @@ function firstSegmentOf(url: string): string | null {
 
 const formatScore = (value: number) => Number(value.toFixed(2)).toString();
 
-function describe(score: IGroupScore, feedSize: number): string {
+function describe(
+  score: IGroupScore,
+  feedSize: number,
+  confirmed: boolean,
+): string {
   const { group } = score;
   const siblings = group.sitemapUrls.length - 1;
   const sitemaps =
@@ -189,5 +233,8 @@ function describe(score: IGroupScore, feedSize: number): string {
     feedSize === 0
       ? '0 (no feed)'
       : `${formatScore(score.feedShareScore)} (${score.feedMatches} of ${feedSize} feed items)`;
-  return `Selected ${sitemaps} with score ${formatScore(score.score)}: name ${name}; path share ${path}; feed share ${feed}.`;
+  const scored = `with score ${formatScore(score.score)}: name ${name}; path share ${path}; feed share ${feed}.`;
+  return confirmed
+    ? `Selected ${sitemaps} ${scored}`
+    : `No sitemap looks like a blog; read ${sitemaps} ${scored} Only pages marked as articles count as posts.`;
 }

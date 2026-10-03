@@ -18,7 +18,56 @@ export const WELL_KNOWN_FEED_PATHS = [
   '/feed/',
   '/blog/feed/',
   '/rss.xml',
+  '/rss/',
+  '/feed.xml',
+  '/atom.xml',
+  '/index.xml',
+  '/blog/rss.xml',
 ] as const;
+
+/**
+ * A host whose first label says "blog" (blog.google, blog.canada.ca) is a blog as a
+ * whole: every sitemap of it gets at least this name score.
+ */
+export const BLOG_HOST_LABELS: ReadonlySet<string> = new Set([
+  'blog',
+  'blogs',
+  'news',
+  'journal',
+  'magazine',
+]);
+export const BLOG_HOST_NAME_SCORE = 3;
+
+/** A Google News sitemap (`<news:news>` entries) lists articles by definition. */
+export const NEWS_SITEMAP_SCORE = 2;
+
+/**
+ * When no sitemap scores as a blog, these index pages are read instead, in order; their
+ * links one level below become the candidates, and only pages marked as articles count.
+ */
+export const WELL_KNOWN_LISTING_PATHS = [
+  '/blog/',
+  '/news/',
+  '/articles/',
+  '/insights/',
+  '/stories/',
+] as const;
+
+/** Links under a listing that lead to more listings, not to posts. */
+export const LISTING_LINK_EXCLUDED_SEGMENTS: ReadonlySet<string> = new Set([
+  'page',
+  'tag',
+  'tags',
+  'category',
+  'categories',
+  'author',
+  'authors',
+  'topic',
+  'topics',
+  'feed',
+  'rss',
+  'search',
+]);
 
 export const SITEMAP_MAX_DEPTH = 3;
 export const SITEMAP_MAX_FETCHES = 50;
