@@ -79,10 +79,14 @@ export class PageReadService {
       this.list.countMatching(scope, filter),
     ]);
     const pageIds = rows.map((row) => row.id);
-    const [keywordRows, issueRows] = await Promise.all([
+    const [keywordRows, issueRows, siteWideRows] = await Promise.all([
       this.list.keywordsForPages(scope, pageIds),
       this.list.issueCountsForPages(scope, pageIds),
+      this.list.siteWideCountsForPages(scope, pageIds),
     ]);
+    const siteWideByPage = new Map(
+      siteWideRows.map((row) => [row.pageId, row.siteWide]),
+    );
 
     const keywordsByPage = new Map<number, IKeywordPosition[]>();
     for (const row of keywordRows) {
@@ -97,6 +101,7 @@ export class PageReadService {
         error: 0,
         warning: 0,
         notice: 0,
+        siteWide: siteWideByPage.get(row.pageId) ?? 0,
       };
       counts[row.severity] += row.count;
       counts.total += row.count;
@@ -114,11 +119,13 @@ export class PageReadService {
           keywords,
           bestPosition: pickBestPosition(keywords),
           score: pageScoreOf(row.checksApplicable, row.checksFailed),
+          // A page nobody shares a finding with says zero, not nothing.
           issues: issuesByPage.get(row.id) ?? {
             total: 0,
             error: 0,
             warning: 0,
             notice: 0,
+            siteWide: 0,
           },
           lastCapturedAt: lastCapturedAtOf(keywords),
         };
@@ -159,6 +166,7 @@ export class PageReadService {
         id: page.clientId,
         name: page.clientName,
         websiteUrl: page.clientWebsiteUrl,
+        currentPages: page.clientCurrentPages,
       },
       keywords,
       bestPosition: pickBestPosition(keywords),

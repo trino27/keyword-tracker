@@ -365,6 +365,125 @@ describe('PageListRepository (postgres)', () => {
     ]);
   });
 
+  describe('the site-wide spread', () => {
+    const issue = (pageId: number, code: string, severity = 'notice') =>
+      testDb.db.execute(sql`
+        insert into seo_issues (page_id, code, severity, details_json)
+        values (${pageId}, ${code}, ${severity}, '{}')
+      `);
+
+    const seedClient = async (userId: number, name: string, count: number) => {
+      const client = await addClient(userId, name);
+      const run = await addRun(client.id, 'succeeded');
+      const pages = [];
+      for (let i = 0; i < count; i += 1) {
+        pages.push(
+          await addPage(
+            client.id,
+            run.id,
+            `https://${name.toLowerCase()}.example/post-${i}/`,
+            i,
+          ),
+        );
+      }
+      return { client, run, pages };
+    };
+
+    it('reports how many of a client’s pages carry each code', async () => {
+      const user = await seedTestUser(testDb, 'a@example.com');
+      const { client, pages } = await seedClient(user.id, 'Site', 5);
+      // A template problem: every page has it.
+      for (const page of pages) await issue(page.id, 'H1_MULTIPLE');
+      // This page's own problem.
+      await issue(pages[0].id, 'THIN_CONTENT', 'warning');
+
+      const spread = await repository.codeSpreadForClients(scopeOf(user.id), [
+        client.id,
+      ]);
+
+      expect(spread.sort((a, b) => a.code.localeCompare(b.code))).toEqual([
+        { clientId: client.id, code: 'H1_MULTIPLE', pages: 5 },
+        { clientId: client.id, code: 'THIN_CONTENT', pages: 1 },
+      ]);
+    });
+
+    // The easy way to write this query is to build it on the filtered set, and then a
+    // search matching one page reports "on 1 page" — which looks perfectly plausible and
+    // is wrong. The spread is a property of the client, not of the slice on screen.
+    it('a search matching one page still reports the code on five', async () => {
+      const user = await seedTestUser(testDb, 'a@example.com');
+      const { client, pages } = await seedClient(user.id, 'Site', 5);
+      for (const page of pages) await issue(page.id, 'H1_MULTIPLE');
+
+      const filtered = await slice(user.id, search('post-2'));
+      // The method takes no filter at all — the one way to be sure it cannot inherit one.
+      const spread = await repository.codeSpreadForClients(scopeOf(user.id), [
+        client.id,
+      ]);
+
+      expect(filtered).toHaveLength(1);
+      expect(spread).toEqual([
+        { clientId: client.id, code: 'H1_MULTIPLE', pages: 5 },
+      ]);
+    });
+
+    it('counts only the asking client’s pages, never another’s', async () => {
+      const user = await seedTestUser(testDb, 'a@example.com');
+      const alpha = await seedClient(user.id, 'Alpha', 3);
+      const zeta = await seedClient(user.id, 'Zeta', 2);
+      for (const page of [...alpha.pages, ...zeta.pages])
+        await issue(page.id, 'LANG_MISSING');
+
+      const spread = await repository.codeSpreadForClients(scopeOf(user.id), [
+        alpha.client.id,
+        zeta.client.id,
+      ]);
+
+      expect(spread.sort((a, b) => a.pages - b.pages)).toEqual([
+        { clientId: zeta.client.id, code: 'LANG_MISSING', pages: 2 },
+        { clientId: alpha.client.id, code: 'LANG_MISSING', pages: 3 },
+      ]);
+    });
+
+    it('never reports another user’s spread', async () => {
+      const owner = await seedTestUser(testDb, 'owner@example.com');
+      const intruder = await seedTestUser(testDb, 'intruder@example.com');
+      const { client, pages } = await seedClient(owner.id, 'Site', 2);
+      for (const page of pages) await issue(page.id, 'LANG_MISSING');
+
+      await expect(
+        repository.codeSpreadForClients(scopeOf(intruder.id), [client.id]),
+      ).resolves.toEqual([]);
+    });
+
+    it('a page a newer crawl no longer found is not counted', async () => {
+      const user = await seedTestUser(testDb, 'a@example.com');
+      const client = await addClient(user.id, 'Site');
+      const old = await addRun(client.id, 'succeeded');
+      const dropped = await addPage(
+        client.id,
+        old.id,
+        'https://site.example/dropped/',
+        0,
+      );
+      const current = await addRun(client.id, 'succeeded');
+      const kept = await addPage(
+        client.id,
+        current.id,
+        'https://site.example/kept/',
+        0,
+      );
+      await issue(dropped.id, 'LANG_MISSING');
+      await issue(kept.id, 'LANG_MISSING');
+
+      await expect(
+        repository.codeSpreadForClients(scopeOf(user.id), [client.id]),
+      ).resolves.toEqual([
+        { clientId: client.id, code: 'LANG_MISSING', pages: 1 },
+      ]);
+    });
+  });
+
   it('keywords carry their latest position; issue counts group by severity', async () => {
     const user = await seedTestUser(testDb, 'a@example.com');
     const client = await addClient(user.id, 'Site');

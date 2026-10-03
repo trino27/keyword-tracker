@@ -29,14 +29,17 @@ export interface ICurrentPageRecord {
   clientId: number;
   clientName: string;
   clientWebsiteUrl: string;
+  /** Pages on the client's current run — the denominator of "on 5 of 15 pages". */
+  clientCurrentPages: number;
 }
 
 /**
- * A stored finding, as the catalogue types it. The cast in `issuesForPage` is the
- * trust boundary: `details_json` is whatever the crawl that wrote it stored, and this
- * is the one place it becomes a typed value.
+ * A stored finding, as the catalogue types it, with how many of the client's current
+ * pages carry the same code. The cast in `issuesForPage` is the trust boundary:
+ * `details_json` is whatever the crawl that wrote it stored, and this is the one place
+ * it becomes a typed value.
  */
-export type TIssueRecord = TSeoIssue;
+export type TIssueRecord = TSeoIssue & { pagesAffected: number };
 
 export interface IHistoryRow {
   keywordId: number;
@@ -62,6 +65,7 @@ interface IPageRow extends Record<string, unknown> {
   client_id: string;
   client_name: string;
   client_website_url: string;
+  client_current_pages: string;
 }
 
 interface IHistoryDbRow extends Record<string, unknown> {
@@ -92,7 +96,10 @@ export class PageDetailRepository {
       select p.id, p.url, p.final_url, p.title, p.meta_description, p.h1, p.lang,
              p.word_count, p.http_status, p.response_ms,
              p.checks_applicable, p.checks_failed, p.crawled_at,
-             c.id as client_id, c.name as client_name, c.website_url as client_website_url
+             c.id as client_id, c.name as client_name, c.website_url as client_website_url,
+             (select count(*) from pages sib
+               where sib.client_id = p.client_id
+                 and sib.last_seen_run_id = p.last_seen_run_id) as client_current_pages
       from pages p
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
       where p.id = ${pageId}
@@ -122,17 +129,34 @@ export class PageDetailRepository {
       clientId: Number(row.client_id),
       clientName: row.client_name,
       clientWebsiteUrl: row.client_website_url,
+      clientCurrentPages: Number(row.client_current_pages),
     };
   }
 
-  /** Call only for a page `findCurrentPage` returned. */
+  /**
+   * Call only for a page `findCurrentPage` returned.
+   *
+   * `pages_affected` counts the client's CURRENT pages carrying the same code, this one
+   * included — one more join, no new round trip. A finding on one page is that page's
+   * problem; a finding on most of them is the template's, and that is the difference the
+   * screen exists to show.
+   */
   async issuesForPage(pageId: number): Promise<TIssueRecord[]> {
     const { rows } = await this.db.execute<{
       code: TSeoIssueCode;
       severity: TSeoIssueSeverity;
       details_json: Record<string, unknown>;
+      pages_affected: string;
     }>(sql`
-      select code, severity, details_json from seo_issues where page_id = ${pageId}
+      select i.code, i.severity, i.details_json,
+             (select count(distinct sib.id)
+                from pages sib
+                join seo_issues si on si.page_id = sib.id and si.code = i.code
+               where sib.client_id = p.client_id
+                 and sib.last_seen_run_id = p.last_seen_run_id) as pages_affected
+      from seo_issues i
+      join pages p on p.id = i.page_id
+      where i.page_id = ${pageId}
     `);
     return rows.map(
       (row) =>
@@ -140,6 +164,7 @@ export class PageDetailRepository {
           code: row.code,
           severity: row.severity,
           details: row.details_json,
+          pagesAffected: Number(row.pages_affected),
         }) as TIssueRecord,
     );
   }

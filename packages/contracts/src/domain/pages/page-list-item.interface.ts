@@ -7,6 +7,12 @@ export interface IPageIssueCounts {
   error: number;
   warning: number;
   notice: number;
+  /**
+   * Of this page's findings, how many also appear on at least one other current page of
+   * the same client. A number that shows on every row of a client is the signal that the
+   * fix belongs in a template, not on a page. Derived at read time, never stored.
+   */
+  siteWide: number;
 }
 
 /** One row of the pages list: a page of the client's current crawl. */

@@ -145,6 +145,32 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     }
   });
 
+  it('a finding shared across the client’s pages says how many it is on', async () => {
+    const { body } = await list('?pageSize=20').expect(200);
+    const detail = await http()
+      .get(`/api/pages/${body.items[0].id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    const issues = detail.body.issues as {
+      code: string;
+      pagesAffected: number;
+    }[];
+    expect(issues.length).toBeGreaterThan(0);
+    for (const issue of issues) {
+      expect(issue.pagesAffected).toBeGreaterThanOrEqual(1);
+      expect(issue.pagesAffected).toBeLessThanOrEqual(15);
+    }
+    // Yoast's fifteen posts come from one template, so at least one finding is shared.
+    expect(issues.some((issue) => issue.pagesAffected > 1)).toBe(true);
+    expect(detail.body.client.currentPages).toBe(15);
+
+    // And the list's own count agrees: it is the number of THIS page's codes that
+    // another page of the client also carries.
+    const shared = issues.filter((issue) => issue.pagesAffected > 1).length;
+    expect(body.items[0].issues.siteWide).toBe(shared);
+  });
+
   it("another user's clientId is a 404, and their list is empty", async () => {
     const other = await signIn(app, 'other@example.com');
 
