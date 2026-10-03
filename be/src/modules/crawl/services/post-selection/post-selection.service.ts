@@ -15,6 +15,7 @@ import type { IParsedPage } from '@modules/page-analysis/interfaces/parsed-page.
 import { extractPage } from '@modules/page-analysis/services/html-extraction/extract-page';
 import {
   ARTICLE_SCHEMA_TYPES,
+  BOT_CHALLENGE_REASON,
   CRAWL_FETCH_CONCURRENCY,
   HTML_CONTENT_TYPES,
   LISTING_SCHEMA_TYPES,
@@ -121,6 +122,8 @@ export class PostSelectionService {
         'Redirects to another site',
         response.status,
       );
+    if (response.headers['cf-mitigated']?.toLowerCase() === 'challenge')
+      return skip('failed', BOT_CHALLENGE_REASON, response.status);
     if (response.status >= 300)
       return skip('failed', `HTTP ${response.status}`, response.status);
 
