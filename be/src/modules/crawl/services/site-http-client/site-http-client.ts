@@ -64,7 +64,7 @@ export class SiteHttpClient extends RemoteApiCore {
       await this.get(url, {
         maxBytes: SITE_FETCH_LIMITS.feedBytes,
         accept:
-          'application/rss+xml, application/atom+xml, application/xml;q=0.9',
+          'application/rss+xml, application/atom+xml, application/feed+json, application/xml;q=0.9',
         signal,
       }),
     );
@@ -107,10 +107,46 @@ function toText(response: IRemoteResponse): ISiteResponse {
   };
 }
 
+const BOMS: readonly [number[], string][] = [
+  [[0xef, 0xbb, 0xbf], 'utf-8'],
+  [[0xfe, 0xff], 'utf-16be'],
+  [[0xff, 0xfe], 'utf-16le'],
+];
+/** How far into the body a `<meta charset>` or XML declaration is looked for. */
+const PRESCAN_BYTES = 1024;
+const DECLARED_CHARSET = [
+  /<meta[^>]+charset\s*=\s*["']?\s*([\w-]+)/i,
+  /<\?xml[^>]+encoding\s*=\s*["']([\w-]+)/i,
+];
+
+/**
+ * The HTML standard's order: a byte order mark, then the header's charset, then what
+ * the document declares in its first bytes (`<meta charset>`, `http-equiv`, the XML
+ * declaration) — many Cyrillic sites declare windows-1251 only in the page.
+ */
 function decode(body: Buffer, contentType: string | undefined): string {
-  const charset = /charset=["']?([\w-]+)/i.exec(contentType ?? '')?.[1];
+  const bom = BOMS.find(([bytes]) =>
+    bytes.every((byte, i) => body[i] === byte),
+  );
+  if (bom) return decodeAs(body.subarray(bom[0].length), bom[1]);
+  const charset =
+    /charset=["']?([\w-]+)/i.exec(contentType ?? '')?.[1] ??
+    declaredCharset(body);
+  return decodeAs(body, charset ?? 'utf-8');
+}
+
+function declaredCharset(body: Buffer): string | undefined {
+  const head = body.subarray(0, PRESCAN_BYTES).toString('latin1');
+  for (const pattern of DECLARED_CHARSET) {
+    const charset = pattern.exec(head)?.[1];
+    if (charset) return charset;
+  }
+  return undefined;
+}
+
+function decodeAs(body: Buffer, charset: string): string {
   try {
-    return new TextDecoder(charset ?? 'utf-8').decode(body);
+    return new TextDecoder(charset, { ignoreBOM: true }).decode(body);
   } catch {
     return new TextDecoder('utf-8').decode(body);
   }
