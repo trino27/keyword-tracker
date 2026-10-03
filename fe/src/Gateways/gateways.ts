@@ -1,4 +1,5 @@
 import { HealthGateway } from "./HealthGateway/HealthGateway";
+import { SessionGateway } from "./SessionGateway/SessionGateway";
 
 /**
  * One instance of each gateway, imported by ViewModels only (ESLint enforces it).
@@ -8,4 +9,5 @@ import { HealthGateway } from "./HealthGateway/HealthGateway";
  */
 export const gateways = {
 	health: new HealthGateway(),
+	session: new SessionGateway(),
 };
