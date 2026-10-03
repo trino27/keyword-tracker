@@ -5,6 +5,7 @@ import { APP_GLOBAL_PROVIDERS } from '@core/bootstrap/app-globals.providers';
 import { validateEnv } from '@infrastructure/config/env.schema/env.schema';
 import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/logger.config';
 import { DatabaseModule } from '@persistence/connections/postgres/database.module';
+import { HealthModule } from '@modules/health/health.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { DatabaseModule } from '@persistence/connections/postgres/database.modul
     }),
     LoggerModule.forRoot({ pinoHttp: pinoHttpOptions }),
     DatabaseModule,
+    HealthModule,
   ],
   providers: [...APP_GLOBAL_PROVIDERS],
 })
