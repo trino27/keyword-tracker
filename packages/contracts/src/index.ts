@@ -9,4 +9,8 @@
  * file can move inside `src/` without breaking either application.
  */
 export * from './domain/http/api-prefix.constant.js';
+export * from './domain/http/api-error-code.constant.js';
 export * from './domain/http/health-response.interface.js';
+export * from './domain/auth/session-user.interface.js';
+export * from './domain/auth/login-request.interface.js';
+export * from './domain/time/is-time-zone/is-time-zone.util.js';
