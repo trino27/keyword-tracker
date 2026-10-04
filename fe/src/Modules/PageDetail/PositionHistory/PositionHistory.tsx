@@ -82,7 +82,10 @@ export function PositionHistory(props: IPositionHistoryProps) {
 			<div style={{ opacity: status === "loading" && history ? 0.6 : 1 }}>
 				<Stack gap="sm">
 					{status !== "error" && !history && <KeywordTogglesSkeleton />}
-					{history && !empty && view === "chart" && (
+					{/* The chips are the chart's legend, so the table does without them — except
+					    when there is no history at all: the page's keywords are worth seeing
+					    before any position has been generated for them. */}
+					{history && (view === "chart" || empty) && (
 						<KeywordToggles
 							series={history.series}
 							hidden={hidden}
