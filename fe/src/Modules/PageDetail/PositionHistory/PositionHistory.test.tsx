@@ -58,6 +58,23 @@ describe("PositionHistory", () => {
 		expect(screen.getByRole("checkbox", { name: "remove www" })).toBeInTheDocument();
 	});
 
+	it("names the page's keywords even when no position has been generated", () => {
+		const bare = { ...HISTORY, series: HISTORY.series.map((s) => ({ ...s, points: [] })) };
+
+		show({ history: bare, status: "ready" });
+
+		expect(screen.getByRole("checkbox", { name: "remove www" })).toBeInTheDocument();
+		expect(screen.getByText(/No positions in this range/)).toBeInTheDocument();
+	});
+
+	it("names them in the table view too while there is nothing to tabulate", () => {
+		const bare = { ...HISTORY, series: HISTORY.series.map((s) => ({ ...s, points: [] })) };
+
+		show({ history: bare, status: "ready", view: "table" });
+
+		expect(screen.getByRole("checkbox", { name: "remove www" })).toBeInTheDocument();
+	});
+
 	it("shows no stand-in when the history failed", () => {
 		show({ status: "error", error: "Nope" });
 
