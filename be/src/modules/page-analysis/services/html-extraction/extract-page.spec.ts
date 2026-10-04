@@ -225,6 +225,114 @@ describe('extractPage', () => {
     ]);
   });
 
+  it('reads the viewport and the meta refresh, however the tag is cased', () => {
+    const parsed = page(
+      '',
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+        '<meta HTTP-EQUIV="Refresh" content="0; url=/moved/">',
+    );
+
+    expect(parsed.viewport).toBe('width=device-width, initial-scale=1');
+    expect(parsed.metaRefresh).toBe('0; url=/moved/');
+    expect(page('').viewport).toBeNull();
+    expect(page('').metaRefresh).toBeNull();
+  });
+
+  /**
+   * Order and duplicates are kept: a page naming one language twice with two URLs has a
+   * defect HREFLANG_INVALID exists to report, and de-duplicating here would hide it
+   * before the check could see it. The href is resolved as a browser resolves it.
+   */
+  it('reads hreflang alternates as written, with their URLs resolved', () => {
+    expect(
+      page(
+        '',
+        '<link rel="alternate" hreflang="en" href="/post/">' +
+          '<link rel="alternate" hreflang="en_US" href="https://a.example/us/">' +
+          '<link rel="alternate" href="/feed/" type="application/rss+xml">',
+      ).alternates,
+    ).toEqual([
+      { lang: 'en', href: 'https://a.example/post/' },
+      { lang: 'en_US', href: 'https://a.example/us/' },
+    ]);
+  });
+
+  /**
+   * The whole document, not the main content: a tracking script in <head> fetched over
+   * plain HTTP breaks the padlock exactly as a body image does. `srcset` and `data-src`
+   * are read because a lazy-loading theme puts the real image in one of them and a
+   * placeholder in `src` — reading `src` alone would call such a page clean.
+   */
+  it('collects every subresource URL, srcset candidates and lazy sources included', () => {
+    const parsed = page(
+      '<main><p>Copy.</p>' +
+        '<img src="http://a.example/one.png" ' +
+        'srcset="http://a.example/two.png 1x, /three.png 2x">' +
+        '<img data-src="http://a.example/lazy.png" src="/placeholder.gif">' +
+        '</main>',
+      '<script src="http://cdn.example/t.js"></script>' +
+        '<link rel="stylesheet" href="/site.css">',
+    );
+
+    expect([...parsed.resourceUrls].sort()).toEqual([
+      'http://a.example/lazy.png',
+      'http://a.example/one.png',
+      'http://a.example/two.png',
+      'http://cdn.example/t.js',
+      'https://a.example/placeholder.gif',
+      'https://a.example/site.css',
+      'https://a.example/three.png',
+    ]);
+  });
+
+  /**
+   * Links come from the main content only, so what is collected is what the author wrote.
+   * The nav and the related-posts rail are gone by then — counting them would make "this
+   * page links somewhere" true of every page a theme renders.
+   */
+  it('collects the main content links and not the furniture around them', () => {
+    expect(
+      page(
+        '<nav><a href="/home/">Home</a></nav>' +
+          '<main><p>See <a href="/other/">the other post</a> and ' +
+          '<a href="https://b.example/x">theirs</a>.</p>' +
+          '<aside class="related"><a href="/related/">Related</a></aside></main>',
+      ).links,
+    ).toEqual(['https://a.example/other/', 'https://b.example/x']);
+  });
+
+  /**
+   * Only the article node's own properties, and only those carrying something. A
+   * BreadcrumbList beside the post has an `itemListElement` and no `author`, and a union
+   * over every node would report the breadcrumb's fields as the article's; WordPress
+   * emits `"author": ""` for a field nobody filled in.
+   */
+  it('reads the filled-in fields of an article node, and no other node', () => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">' +
+        JSON.stringify({
+          '@graph': [
+            {
+              '@type': 'BlogPosting',
+              headline: 'A post',
+              author: { '@id': '#person' },
+              image: [],
+              publisher: '',
+            },
+            { '@type': 'BreadcrumbList', itemListElement: ['Home'] },
+          ],
+        }) +
+        '</script>',
+    );
+
+    expect([...parsed.jsonLd.articleFields].sort()).toEqual([
+      'author',
+      'headline',
+    ]);
+    expect(parsed.jsonLd.types).toContain('BreadcrumbList');
+  });
+
   it('survives broken JSON-LD and missing everything', () => {
     const parsed = extractPage(
       '<script type="application/ld+json">{broken</script>',
@@ -235,7 +343,7 @@ describe('extractPage', () => {
       title: null,
       lang: null,
       canonical: null,
-      jsonLd: { types: [], keywords: [] },
+      jsonLd: { types: [], keywords: [], articleFields: [] },
       wordCount: 0,
     });
   });

@@ -1,5 +1,7 @@
 import { load, type CheerioAPI } from 'cheerio';
+import { ARTICLE_TYPES } from '../../constants/article-types.constant';
 import type {
+  IAlternateLink,
   IHeading,
   IPageImage,
   IParsedPage,
@@ -73,6 +75,23 @@ const HEADING_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 const LAYOUT_ELEMENTS =
   'div, section, ul, ol, table, tr, figure, br, hr, dl, details, summary';
 
+/**
+ * Every attribute by which a document fetches a subresource. `srcset` and `data-src` are
+ * here because a lazy-loading theme puts the real image in one of them and a 1x1
+ * placeholder in `src`; reading `src` alone would call a page clean whose every
+ * illustration arrives over plain HTTP.
+ */
+const RESOURCE_ATTRIBUTES: readonly [string, string][] = [
+  ['img[src]', 'src'],
+  ['img[srcset], source[srcset]', 'srcset'],
+  ['img[data-src]', 'data-src'],
+  ['script[src]', 'src'],
+  ['link[rel~="stylesheet"][href]', 'href'],
+  ['iframe[src], frame[src], embed[src]', 'src'],
+  ['video[src], audio[src], source[src], track[src]', 'src'],
+  ['object[data]', 'data'],
+];
+
 const WORD = /[\p{L}\p{N}]/u;
 
 const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
@@ -124,6 +143,12 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
     const text = collapse($(element).text());
     if (text) blocks.push(text);
   });
+  const links: string[] = [];
+  main.find('a[href]').each((_, element) => {
+    const href = absolute($(element).attr('href'), baseUrl);
+    if (href) links.push(href);
+  });
+
   const mainText = collapse(main.text());
   if (blocks.length === 0 && mainText) blocks.push(mainText);
 
@@ -140,7 +165,10 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
     title: orNull($('head > title').first().text()),
     metaDescription: orNull(metaContent($, 'name', 'description')),
     metaRobots: orNull(metaContent($, 'name', 'robots')),
+    metaRefresh: orNull(httpEquivContent($, 'refresh')),
+    viewport: orNull(metaContent($, 'name', 'viewport')),
     canonical: canonicalOf($, baseUrl),
+    alternates: alternatesOf($, baseUrl),
     openGraph: openGraphOf($),
     articleTags: $('meta[property="article:tag"]')
       .map((_, element) => collapse($(element).attr('content') ?? ''))
@@ -160,6 +188,8 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
         .get()
         .find((text) => text.length > 0) ?? null,
     images,
+    resourceUrls: resourceUrlsOf($, baseUrl),
+    links,
     blocks,
     wordCount: mainText.split(' ').filter((token) => WORD.test(token)).length,
   };
@@ -229,14 +259,70 @@ function metaContent(
   return content;
 }
 
-function canonicalOf($: CheerioAPI, baseUrl: string): string | null {
-  const href = $('link[rel~="canonical"]').first().attr('href');
-  if (!href?.trim()) return null;
+/** A URL as a browser would resolve it, or null where there is nothing resolvable. */
+function absolute(value: string | undefined, baseUrl: string): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
   try {
-    return new URL(href.trim(), baseUrl).href;
+    return new URL(raw, baseUrl).href;
   } catch {
     return null;
   }
+}
+
+function canonicalOf($: CheerioAPI, baseUrl: string): string | null {
+  return absolute($('link[rel~="canonical"]').first().attr('href'), baseUrl);
+}
+
+/** `http-equiv` is matched case-insensitively: `HTTP-EQUIV="Refresh"` is the same tag. */
+function httpEquivContent($: CheerioAPI, value: string): string | undefined {
+  let content: string | undefined;
+  $('meta[http-equiv]').each((_, element) => {
+    if (content !== undefined) return;
+    if (($(element).attr('http-equiv') ?? '').toLowerCase() === value)
+      content = $(element).attr('content');
+  });
+  return content;
+}
+
+/**
+ * Alternates keep their order and their duplicates. A page naming `en-US` twice with two
+ * different URLs has a defect the check is there to report, and de-duplicating here would
+ * hide it before the check ever saw it.
+ */
+function alternatesOf($: CheerioAPI, baseUrl: string): IAlternateLink[] {
+  const alternates: IAlternateLink[] = [];
+  $('link[rel~="alternate"][hreflang]').each((_, element) => {
+    const lang = collapse($(element).attr('hreflang') ?? '');
+    const href = absolute($(element).attr('href'), baseUrl);
+    if (lang && href) alternates.push({ lang, href });
+  });
+  return alternates;
+}
+
+/**
+ * Every subresource URL the document names, de-duplicated. A `srcset` is a comma-separated
+ * list of candidates with descriptors ("a.png 1x, b.png 2x"), so each candidate's first
+ * token is the URL.
+ */
+function resourceUrlsOf($: CheerioAPI, baseUrl: string): string[] {
+  const urls = new Set<string>();
+  const add = (value: string | undefined) => {
+    const url = absolute(value, baseUrl);
+    if (url) urls.add(url);
+  };
+  for (const [selector, attribute] of RESOURCE_ATTRIBUTES) {
+    $(selector).each((_, element) => {
+      const value = $(element).attr(attribute);
+      if (attribute !== 'srcset') {
+        add(value);
+        return;
+      }
+      for (const candidate of (value ?? '').split(','))
+        add(candidate.trim().split(/\s+/)[0]);
+    });
+  }
+  return [...urls];
 }
 
 function openGraphOf($: CheerioAPI): Record<string, string> {
@@ -249,10 +335,18 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
   return properties;
 }
 
-/** Types and keywords of every JSON-LD node, `@graph` and nested arrays flattened. */
+/**
+ * Types and keywords of every JSON-LD node, `@graph` and nested arrays flattened, plus
+ * the property names of the nodes that are articles.
+ *
+ * A property counts only when it carries something: WordPress emits `"author": ""` and
+ * `"image": []` for fields nobody filled in, and treating a present-but-empty key as the
+ * field being there would pass every page a CMS half-populated.
+ */
 function jsonLdOf($: CheerioAPI): IParsedPage['jsonLd'] {
   const types = new Set<string>();
   const keywords = new Set<string>();
+  const articleFields = new Set<string>();
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
       node.forEach(visit);
@@ -260,9 +354,19 @@ function jsonLdOf($: CheerioAPI): IParsedPage['jsonLd'] {
     }
     if (!node || typeof node !== 'object') return;
     const record = node as Record<string, unknown>;
-    for (const type of [record['@type']].flat()) {
+    const nodeTypes = [record['@type']].flat();
+    for (const type of nodeTypes) {
       if (typeof type === 'string') types.add(type);
     }
+    if (
+      nodeTypes.some(
+        (type) => typeof type === 'string' && ARTICLE_TYPES.has(type),
+      )
+    )
+      for (const [field, value] of Object.entries(record)) {
+        if (!field.startsWith('@') && isPresent(value))
+          articleFields.add(field);
+      }
     for (const keyword of keywordsOf(record.keywords)) keywords.add(keyword);
     if (record['@graph'] !== undefined) visit(record['@graph']);
   };
@@ -273,7 +377,19 @@ function jsonLdOf($: CheerioAPI): IParsedPage['jsonLd'] {
       // Broken JSON-LD is common and says nothing about the page itself.
     }
   });
-  return { types: [...types], keywords: [...keywords] };
+  return {
+    types: [...types],
+    keywords: [...keywords],
+    articleFields: [...articleFields],
+  };
+}
+
+/** A JSON-LD value that actually says something: not null, not '', not []. */
+function isPresent(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (Array.isArray(value)) return value.some(isPresent);
+  return true;
 }
 
 function keywordsOf(value: unknown): string[] {

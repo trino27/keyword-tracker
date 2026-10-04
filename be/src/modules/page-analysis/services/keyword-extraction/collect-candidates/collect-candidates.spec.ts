@@ -176,7 +176,7 @@ describe('collectCandidates', () => {
 
   it('marks candidates the page declares itself', () => {
     const candidates = collect({
-      jsonLd: { types: [], keywords: ['Technical SEO'] },
+      jsonLd: { types: [], keywords: ['Technical SEO'], articleFields: [] },
       blocks: ['Technical SEO matters. SEO too.'],
     });
 
