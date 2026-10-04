@@ -83,9 +83,28 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${num(d, "count")} of ${num(d, "total")} images in the content have no alt text.`,
 	THIN_CONTENT: (d) =>
 		`The content has ${num(d, "value")} words; aim for at least ${num(d, "min")}.`,
+	NO_INTERNAL_LINKS: (d) => {
+		const external = num(d, "external");
+		return external === 0
+			? "The content contains no links at all."
+			: `The content links out ${external} time${external === 1 ? "" : "s"}, never to this site.`;
+	},
 	LANG_MISSING: () => "The <html> element declares no language.",
+	HREFLANG_INVALID: (d) => {
+		const invalid = list(d, "invalid");
+		const parts = [
+			invalid && `not a language code: ${invalid}`,
+			d.selfReferenced === false && "the alternates never name this page",
+		].filter((part): part is string => typeof part === "string");
+		return `The hreflang set is ignored — ${parts.join("; ")}.`;
+	},
+	VIEWPORT_MISSING: () => "The page has no viewport meta tag.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
 	NOT_HTTPS: (d) => `The page is served from ${text(d, "url")}.`,
+	MIXED_CONTENT: (d) =>
+		`${num(d, "count")} resources load over plain HTTP, including ${list(d, "examples")}.`,
+	META_REFRESH: (d) =>
+		`The page carries <meta http-equiv="refresh" content="${text(d, "content")}">.`,
 	REDIRECTED: (d) => `The sitemap lists ${text(d, "from")}, which redirects to ${text(d, "to")}.`,
 	LARGE_PAGE: (d) => {
 		const kb = (value: unknown) => (typeof value === "number" ? Math.round(value / 1024) : "?");
@@ -97,6 +116,7 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 			? `The page declares ${types}, but no Article or BlogPosting.`
 			: "The page declares no structured data.";
 	},
+	STRUCTURED_DATA_INCOMPLETE: (d) => `The article markup omits ${list(d, "missing")}.`,
 };
 
 /** Issues by severity — errors first — each with its label, its sentence and the fix. */
