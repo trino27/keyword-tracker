@@ -1,16 +1,17 @@
 import type { IParsedPage } from '../../../interfaces/parsed-page.interface';
 import {
-  MAX_NGRAM,
-  MAX_NGRAM_UNKNOWN_LANG,
   MAX_TERM_LENGTH,
   REPEATED_RUN_MAX_TOKENS,
   REPEATED_RUN_MIN,
   TITLE_SEPARATORS,
   type TKeywordField,
 } from '../../../constants/keyword-scoring.constant';
+import {
+  MAX_NGRAM_UNKNOWN_LANG,
+  profileFor,
+} from '../../../languages/language-profile';
 import { normalizeText } from '../../text/normalize-text/normalize-text';
 import { properNounsOf } from '../proper-nouns/proper-nouns';
-import { stopWordsFor } from '../stop-words/stop-words';
 import { isWeakToken, tokenize } from '../tokenize/tokenize';
 
 export interface ICandidateStats {
@@ -255,9 +256,12 @@ export function collectCandidates(
   source: ICandidateSource,
 ): Map<string, ICandidateStats> {
   const { parsed } = source;
-  const stopWords = stopWordsFor(parsed.lang);
-  const maxNgram = stopWords ? MAX_NGRAM : MAX_NGRAM_UNKNOWN_LANG;
-  const nonBounding = new Set([...(stopWords ?? []), siteWord(source.siteKey)]);
+  const profile = profileFor(parsed.lang);
+  const maxNgram = profile ? profile.maxNgram : MAX_NGRAM_UNKNOWN_LANG;
+  const nonBounding = new Set([
+    ...(profile?.stopWords ?? []),
+    siteWord(source.siteKey),
+  ]);
   const taxonomy = source.taxonomyKeywords ?? new Set<string>();
   const declared = [...parsed.jsonLd.keywords, ...parsed.articleTags]
     .map((keyword) => normalizeText(keyword))

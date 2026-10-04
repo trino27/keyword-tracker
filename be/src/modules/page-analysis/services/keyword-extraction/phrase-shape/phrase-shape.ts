@@ -9,125 +9,13 @@
  * with them. What the two groups do NOT share is grammar: a keyword is a noun
  * phrase, and the junk is a verb phrase with its subject cut off.
  *
- * English is identified here by its verbs rather than parsed, because the module has
- * no part-of-speech tagger and a closed list of the commonest verbs covers what the
- * catalogue actually produced. Pages in a language with no list fall through
- * unchanged — the test is skipped, not guessed at.
+ * A language is identified here by its verbs rather than parsed, because the module
+ * has no part-of-speech tagger and a closed list of the commonest verbs covers what
+ * the catalogue actually produced. The list belongs to the language profile, never to
+ * this file: `set`, `test` and `plan` are English verbs and ordinary words elsewhere,
+ * so a page in a language with no list falls through unchanged — the test is skipped,
+ * not guessed at.
  */
-
-/**
- * Base-form verbs common enough in web prose to end a clause. Every one of them was
- * found ending a junk candidate on a live page, or is a near neighbour of one.
- */
-const VERBS = new Set([
-  'add',
-  'ask',
-  'avoid',
-  'become',
-  'begin',
-  'believe',
-  'break',
-  'bring',
-  'build',
-  'buy',
-  'call',
-  'change',
-  'charge',
-  'check',
-  'choose',
-  'click',
-  'come',
-  'continue',
-  'create',
-  'decide',
-  'do',
-  'drive',
-  'earn',
-  'enter',
-  'expect',
-  'explain',
-  'fail',
-  'fill',
-  'find',
-  'fix',
-  'focus',
-  'follow',
-  'get',
-  'give',
-  'go',
-  'grow',
-  'happen',
-  'help',
-  'hire',
-  'hold',
-  'improve',
-  'include',
-  'increase',
-  'invest',
-  'keep',
-  'know',
-  'learn',
-  'leave',
-  'like',
-  'live',
-  'look',
-  'lose',
-  'love',
-  'make',
-  'manage',
-  'mean',
-  'measure',
-  'meet',
-  'move',
-  'need',
-  'offer',
-  'open',
-  'pay',
-  'pick',
-  'place',
-  'plan',
-  'play',
-  'put',
-  'reach',
-  'read',
-  'remember',
-  'remove',
-  'rank',
-  'run',
-  'save',
-  'say',
-  'see',
-  'sell',
-  'send',
-  'serve',
-  'set',
-  'share',
-  'show',
-  'sign',
-  'solve',
-  'spend',
-  'start',
-  'stay',
-  'stop',
-  'take',
-  'talk',
-  'tell',
-  'test',
-  'think',
-  'try',
-  'turn',
-  'understand',
-  'update',
-  'use',
-  'verify',
-  'wait',
-  'walk',
-  'want',
-  'watch',
-  'win',
-  'work',
-  'write',
-]);
 
 /**
  * The phrase is a clause, not a query: it ENDS on a verb — "ways to increase",
@@ -141,8 +29,14 @@ const VERBS = new Set([
  * damped in place behaves whenever the fragment it leaves behind is still a
  * candidate.
  */
-export function isClauseShaped(term: string): boolean {
+export function isClauseShaped(
+  term: string,
+  clauseVerbs: ReadonlySet<string>,
+): boolean {
+  // No list, no test. A page in a language this build has no profile for is left
+  // alone rather than read through English grammar.
+  if (clauseVerbs.size === 0) return false;
   const tokens = term.split(' ');
   if (tokens.length < 2) return false;
-  return VERBS.has(tokens[tokens.length - 1]);
+  return clauseVerbs.has(tokens[tokens.length - 1]);
 }
