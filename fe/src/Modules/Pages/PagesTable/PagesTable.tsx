@@ -59,7 +59,10 @@ export function PagesTable({
 							<Table.Th>Score</Table.Th>
 							{showClient && <Table.Th>Client</Table.Th>}
 							<Table.Th>Keywords</Table.Th>
-							<Table.Th>Best position</Table.Th>
+							{/* The page's latest position: the strongest of its keywords' current
+							    ones, with that keyword named beside it, so the number says which
+							    term it belongs to rather than standing for the page as a whole. */}
+							<Table.Th>Latest position</Table.Th>
 							<Table.Th>SEO issues</Table.Th>
 							<Table.Th>Updated</Table.Th>
 						</Table.Tr>

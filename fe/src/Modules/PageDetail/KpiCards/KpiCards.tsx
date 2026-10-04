@@ -23,8 +23,10 @@ export function KpiCards({ detail }: { detail: TPageDetail }) {
 				value={<ScoreBadge score={detail.score} size={24} />}
 				note={`${detail.score.applicable - detail.score.failed} of ${detail.score.applicable} checks passed`}
 			/>
+			{/* The strongest of the page's current keyword positions; the note names the
+			    keyword, because a position means nothing without the term it is for. */}
 			<Kpi
-				label="Best position"
+				label="Latest position"
 				value={<PositionBadge position={detail.bestPosition?.position ?? null} size="lg" />}
 				note={detail.bestPosition?.term ?? "Positions appear after the next seed run"}
 			/>
