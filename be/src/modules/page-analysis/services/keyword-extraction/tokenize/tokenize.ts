@@ -1,8 +1,15 @@
 import { MIN_TOKEN_LENGTH } from '../../../constants/keyword-scoring.constant';
 import { normalizeText } from '../../text/normalize-text/normalize-text';
 
-/** Sentence ends and clause breaks a keyword phrase must not cross. */
-const SENTENCE_BREAK = /[.!?;:…()[\]{}"“”«»|/\\]+(?:\s|$)|[\r\n]+|\s[-–—]\s/u;
+/**
+ * Sentence ends and clause breaks a keyword phrase must not cross. The comma is one of
+ * them: css-tricks titles a post "What's !important #18: <geolocation>, Syntax
+ * ::highlight()ing, named-feature(), and More", and a phrase free to cross its commas
+ * was stored as `geolocation syntax highlight ing named` — one window over a list of
+ * three unrelated features, read as though it were a subject. Requiring whitespace
+ * after the mark is what keeps `1,000` and `e.g.` whole.
+ */
+const SENTENCE_BREAK = /[.,!?;:…()[\]{}"“”«»|/\\]+(?:\s|$)|[\r\n]+|\s[-–—]\s/u;
 const DIGITS_ONLY = /^\p{N}+$/u;
 /**
  * A word the page itself cut off for display, "Kent Walker, Presiden…" — the ellipsis
@@ -10,6 +17,16 @@ const DIGITS_ONLY = /^\p{N}+$/u;
  * candidates: blog.google returned `walker presiden` as a keyword.
  */
 const TRUNCATED_WORD = /[\p{L}\p{N}]+(?:…|\.\.\.)/gu;
+
+/**
+ * A word a bracket cut in two with no space on either side — `::highlight()ing`, where
+ * the page is writing code and the suffix belongs to the call before it. The tail is
+ * the end of a word, not a word: left alone it reaches the candidates as `ing`, and a
+ * token of three letters may bound a phrase. The head is kept and the tail goes, the
+ * same way a word the page truncated goes — a fragment is not a term anyone searches
+ * for.
+ */
+const SPLIT_WORD = /([\p{L}\p{N}]+)[()[\]{}]+[\p{L}\p{N}]+/gu;
 
 /**
  * A token that may sit INSIDE a phrase but never at either end: one character, or
@@ -31,6 +48,7 @@ export function tokenize(text: string): string[][] {
   const runs: string[][] = [];
   for (const sentence of text
     .replace(TRUNCATED_WORD, ' ')
+    .replace(SPLIT_WORD, '$1 ')
     .split(SENTENCE_BREAK)) {
     const run = normalizeText(sentence).split(' ').filter(Boolean);
     // A run of nothing but weak tokens can yield no candidate at all.
