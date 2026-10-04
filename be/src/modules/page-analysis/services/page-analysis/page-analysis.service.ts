@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { extractKeywords } from '../keyword-extraction/extract-keywords/extract-keywords';
-import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
-import type { ISeoRuleInput } from '../seo-rules/seo-rule.interface';
 import {
-  evaluateSeoRules,
-  type ISeoEvaluation,
-} from '../seo-rules/seo-rules.registry';
+  ANALYSIS_PIPELINE,
+  emptyAnalysisContext,
+  runAnalysisPipeline,
+} from '../../pipelines/analysis-pipeline/analysis-pipeline';
+import type {
+  IAnalysisInput,
+  IAnalysisStep,
+} from '../../pipelines/analysis-pipeline/analysis-step.interface';
+import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
+import type { ISeoEvaluation } from '../seo-rules/seo-rules.registry';
 
-/** One fetched page, as the analysis needs it. */
-export interface IAnalysisInput extends ISeoRuleInput {
-  /**
-   * Time to first byte. Stored on the page as a fact of the crawl; no rule reads it,
-   * because a measurement of the crawler is not a property of the page.
-   */
-  responseMs: number;
-}
+export type { IAnalysisInput };
 
 /**
  * The whole verdict on one page: its keywords, and everything one pass over the rules
@@ -26,18 +23,27 @@ export interface IPageAnalysis extends ISeoEvaluation {
 }
 
 /**
- * The business opinions about a run's pages — which keywords each targets and what
- * is wrong with it. Pure: no I/O, no clock, so the crawl can run it outside any
+ * The business opinions about a run's pages — which keywords each targets and what is
+ * wrong with it. Pure: no I/O, no clock, so the crawl can run it outside any
  * transaction and a test can run it on fixtures.
+ *
+ * The work itself is `ANALYSIS_PIPELINE`; this is the crawl's door to it, and the one
+ * place the per-page shape is assembled from what the steps left.
  */
 @Injectable()
 export class PageAnalysisService {
-  /** Keywords need the whole run (IDF); the rules need only the page in front of them. */
-  analyseRun(pages: IAnalysisInput[], siteKey: string): IPageAnalysis[] {
-    const keywords = extractKeywords(pages, siteKey);
-    return pages.map((page, i) => ({
-      keywords: keywords[i],
-      ...evaluateSeoRules(page),
+  analyseRun(
+    pages: IAnalysisInput[],
+    siteKey: string,
+    pipeline: readonly IAnalysisStep[] = ANALYSIS_PIPELINE,
+  ): IPageAnalysis[] {
+    const context = runAnalysisPipeline(
+      emptyAnalysisContext(pages, siteKey),
+      pipeline,
+    );
+    return pages.map((_, index) => ({
+      keywords: context.keywords[index],
+      ...context.evaluations[index],
     }));
   }
 }
