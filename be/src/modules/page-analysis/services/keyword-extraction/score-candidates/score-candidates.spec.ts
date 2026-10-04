@@ -3,12 +3,18 @@ import { idfFactor, pageScore } from './score-candidates';
 
 const stats = (
   fields: TKeywordField[],
-  overrides: { tokens?: number; bodyTf?: number; declared?: boolean } = {},
+  overrides: {
+    tokens?: number;
+    bodyTf?: number;
+    declared?: boolean;
+    properNoun?: boolean;
+  } = {},
 ) => ({
   tokens: overrides.tokens ?? 1,
   fields: new Set(fields),
   bodyTf: overrides.bodyTf ?? 0,
   declared: overrides.declared ?? false,
+  properNoun: overrides.properNoun ?? false,
   runs: new Set([1]),
 });
 
@@ -64,6 +70,21 @@ describe('pageScore', () => {
     expect(pageScore(stats(['body'], { bodyTf: 40 }))).toBeGreaterThan(
       pageScore(stats(['subheading', 'body'], { bodyTf: 1 })),
     );
+  });
+
+  it('does not damp a name the prose writes, only a bare word of a heading', () => {
+    const body = { bodyTf: 6 };
+    // `gutenberg`: a subheading and six occurrences, against the same word damped.
+    expect(
+      pageScore(stats(['subheading', 'body'], { ...body, properNoun: true })),
+    ).toBeCloseTo(pageScore(stats(['subheading', 'body'], body)) / 0.6);
+    // Anchored, the title's weight is exactly what the damping is there for, and a
+    // name keeps it: `url` must not outrank "remove www from your url".
+    expect(
+      pageScore(
+        stats(['title', 'slug', 'body'], { ...body, properNoun: true }),
+      ),
+    ).toBeCloseTo(pageScore(stats(['title', 'slug', 'body'], body)));
   });
 
   it('still ranks a title-and-slug phrase above a body-only word', () => {

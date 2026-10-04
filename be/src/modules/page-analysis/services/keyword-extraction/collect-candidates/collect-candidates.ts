@@ -9,6 +9,7 @@ import {
   type TKeywordField,
 } from '../../../constants/keyword-scoring.constant';
 import { normalizeText } from '../../text/normalize-text/normalize-text';
+import { properNounsOf } from '../proper-nouns/proper-nouns';
 import { stopWordsFor } from '../stop-words/stop-words';
 import { isWeakToken, tokenize } from '../tokenize/tokenize';
 
@@ -20,6 +21,8 @@ export interface ICandidateStats {
   bodyTf: number;
   /** Equals, or is part of, a keyword the page declares itself. */
   declared: boolean;
+  /** A single word the page's prose writes as a name; see `properNounsOf`. */
+  properNoun: boolean;
   /**
    * Ids of the runs of text this term was read from — one per DISTINCT sentence or
    * heading it occurs in. Selection uses them to tell several subjects from several
@@ -231,6 +234,7 @@ export function collectCandidates(
   ];
 
   const repeated = repeatedBodyRuns(parsed.blocks);
+  const properNouns = properNounsOf(parsed.blocks);
   const candidates = new Map<string, ICandidateStats>();
   // Keyed by the run's own words, not by a counter. A post's title, its h1 and its
   // slug are usually the same sentence written three times, and counting them as
@@ -260,6 +264,7 @@ export function collectCandidates(
               declared: declared.some((keyword) =>
                 keyword.includes(` ${term} `),
               ),
+              properNoun: tokens === 1 && properNouns.has(term),
               runs: new Set(),
             };
             candidates.set(term, stats);
