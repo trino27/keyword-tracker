@@ -32,12 +32,12 @@ export interface IPageAnalysis extends ISeoEvaluation {
  */
 @Injectable()
 export class PageAnalysisService {
-  analyseRun(
+  async analyseRun(
     pages: IAnalysisInput[],
     siteKey: string,
     pipeline: readonly IAnalysisStep[] = ANALYSIS_PIPELINE,
-  ): IPageAnalysis[] {
-    const context = runAnalysisPipeline(
+  ): Promise<IPageAnalysis[]> {
+    const context = await runAnalysisPipeline(
       emptyAnalysisContext(pages, siteKey),
       pipeline,
     );

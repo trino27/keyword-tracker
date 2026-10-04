@@ -1,3 +1,4 @@
+import type { IPipelineStep } from '../pipeline';
 import type { IParsedPage } from '../../interfaces/parsed-page.interface';
 import type { ICandidateStats } from '../../services/keyword-extraction/collect-candidates/collect-candidates';
 import type {
@@ -38,10 +39,7 @@ export interface IKeywordContext {
 }
 
 /**
- * One step of keyword extraction, named so a pipeline reads as its steps and a test can
- * replace one by name. A step is pure in everything but the context it fills.
+ * One step of keyword extraction. The contract is `IPipelineStep`, shared with the
+ * analysis pipeline; this name is what the steps and their tests read as.
  */
-export interface IKeywordStep {
-  readonly name: string;
-  run(context: IKeywordContext): void;
-}
+export type IKeywordStep = IPipelineStep<IKeywordContext>;

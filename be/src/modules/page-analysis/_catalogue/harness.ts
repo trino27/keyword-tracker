@@ -67,8 +67,21 @@ export interface IRunRow {
  * Runs the real pipeline with `overrides` applied to the scoring constants. Modules are
  * re-required per arm so the constants are read at their real import sites.
  */
-export function runArm(overrides: Record<string, unknown>): IRunRow[] {
-  let rows: IRunRow[] = [];
+export async function runArm(
+  overrides: Record<string, unknown>,
+): Promise<IRunRow[]> {
+  type TParsed = { url: string; parsed: { wordCount: number } };
+  type TExtract = (
+    pages: TParsed[],
+    siteKey: string,
+  ) => Promise<{ term: string; relevance: number }[][]>;
+  type TParse = (html: string, url: string) => { wordCount: number };
+  let extract: TExtract = () => Promise.resolve([]);
+  const batches: { site: string; pages: IPageRef[]; parsed: TParsed[] }[] = [];
+
+  // `isolateModules` takes a SYNCHRONOUS callback, so it can only require the modules
+  // and parse the HTML; the pipeline is awaited after it returns. The function it
+  // handed back keeps the module registry this arm required, mocked constants and all.
   jest.isolateModules(() => {
     jest.doMock('../constants/keyword-scoring.constant', () => {
       const actual = jest.requireActual(
@@ -76,35 +89,41 @@ export function runArm(overrides: Record<string, unknown>): IRunRow[] {
       );
       return { ...actual, ...overrides };
     });
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
     const { extractPage } = require('../services/html-extraction/extract-page');
+    const parse = extractPage as TParse;
     const {
       extractKeywords,
     } = require('../services/keyword-extraction/extract-keywords/extract-keywords');
+    extract = extractKeywords;
     const all = corpus();
-    rows = [];
     for (const site of ['semrush', 'yoast']) {
-      const pages = all.filter((p) => p.site === site);
+      const pages = all.filter((page) => page.site === site);
       if (pages.length === 0) continue;
-      const parsed = pages.map((p) => ({
-        url: p.url,
-        parsed: extractPage(p.html, p.url),
-      }));
-      const keywords = extractKeywords(parsed, pages[0].siteKey);
-      pages.forEach((p, i) => {
-        rows.push({
-          site,
-          slug: p.slug,
-          words: parsed[i].parsed.wordCount,
-          keywords: keywords[i].map(
-            (k: { term: string; relevance: number }) => ({
-              term: k.term,
-              relevance: k.relevance,
-            }),
-          ),
-        });
+      batches.push({
+        site,
+        pages,
+        parsed: pages.map((page) => ({
+          url: page.url,
+          parsed: parse(page.html, page.url),
+        })),
       });
     }
   });
+
+  const rows: IRunRow[] = [];
+  for (const { site, pages, parsed } of batches) {
+    const keywords = await extract(parsed, pages[0].siteKey);
+    pages.forEach((page, index) => {
+      rows.push({
+        site,
+        slug: page.slug,
+        words: parsed[index].parsed.wordCount,
+        keywords: keywords[index].map((keyword) => ({
+          term: keyword.term,
+          relevance: keyword.relevance,
+        })),
+      });
+    });
+  }
   return rows;
 }

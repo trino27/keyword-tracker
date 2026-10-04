@@ -15,8 +15,10 @@ import { score, summary } from './score';
  * and why.
  */
 describe('keyword catalogue', () => {
-  const rows = runArm({});
-  const s = score(rows);
+  let s: ReturnType<typeof score>;
+  beforeAll(async () => {
+    s = score(await runArm({}));
+  });
 
   it('names the right subject on all but one page', () => {
     expect(s.primaryGood).toBeGreaterThanOrEqual(40);

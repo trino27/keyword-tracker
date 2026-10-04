@@ -12,6 +12,7 @@ import {
 import { extractPage } from '../../html-extraction/extract-page';
 import { normalizeText } from '../../text/normalize-text/normalize-text';
 import { extractKeywords } from './extract-keywords';
+import type { ISelectedKeyword } from '../select-keywords/select-keywords';
 
 /** The 15 posts a yoast crawl stores: post-sitemap positions 1–15 (0 is a listing). */
 function yoastRun() {
@@ -34,11 +35,16 @@ function yoastRun() {
 
 describe('extractKeywords (golden, recorded yoast posts)', () => {
   const pages = yoastRun();
-  const keywords = extractKeywords(pages, 'yoast.com');
+  // The pipeline is async now, so the corpus is built once here rather than in the
+  // describe body, which may not await.
+  let keywords: ISelectedKeyword[][];
+  beforeAll(async () => {
+    keywords = await extractKeywords(pages, 'yoast.com');
+  });
   const slugText = (url: string) =>
     normalizeText(new URL(url).pathname.split('/').filter(Boolean).pop()!);
 
-  it('gives every page 1–8 keywords, the top at relevance 1', () => {
+  it('gives every page 1–8 keywords, the top at relevance 1', async () => {
     expect(keywords).toHaveLength(15);
     for (const pageKeywords of keywords) {
       expect(pageKeywords.length).toBeGreaterThanOrEqual(1);
@@ -47,7 +53,7 @@ describe('extractKeywords (golden, recorded yoast posts)', () => {
     }
   });
 
-  it('keeps nothing under the floor: a page about one thing returns one keyword', () => {
+  it('keeps nothing under the floor: a page about one thing returns one keyword', async () => {
     for (const pageKeywords of keywords) {
       for (const keyword of pageKeywords) {
         expect(keyword.relevance).toBeGreaterThanOrEqual(FLOOR_RATIO);
@@ -65,7 +71,7 @@ describe('extractKeywords (golden, recorded yoast posts)', () => {
     ]);
   });
 
-  it('takes at most two keywords out of one sentence', () => {
+  it('takes at most two keywords out of one sentence', async () => {
     // The long headline of a news story has several windows and one subject.
     const perRun = new Map<string, number>();
     const index = pages.findIndex((page) =>
@@ -82,7 +88,7 @@ describe('extractKeywords (golden, recorded yoast posts)', () => {
     expect(perRun.get('title') ?? 0).toBeLessThanOrEqual(MAX_KEYWORDS_PER_RUN);
   });
 
-  it('never returns two keywords that are windows of one phrase', () => {
+  it('never returns two keywords that are windows of one phrase', async () => {
     const words = (term: string) =>
       new Set(term.split(' ').filter((token) => token.length > 1));
     for (const pageKeywords of keywords) {
@@ -99,7 +105,7 @@ describe('extractKeywords (golden, recorded yoast posts)', () => {
     }
   });
 
-  it('puts a phrase of the URL slug in the top 3 of "how to remove www from your url"', () => {
+  it('puts a phrase of the URL slug in the top 3 of "how to remove www from your url"', async () => {
     const index = pages.findIndex((page) =>
       page.url.endsWith('/how-to-remove-www-from-your-url/'),
     );
@@ -112,7 +118,7 @@ describe('extractKeywords (golden, recorded yoast posts)', () => {
     ).toBe(true);
   });
 
-  it('puts a slug phrase in the top 3 of most pages', () => {
+  it('puts a slug phrase in the top 3 of most pages', async () => {
     const matching = pages.filter((page, i) =>
       keywords[i]
         .slice(0, 3)
@@ -124,7 +130,7 @@ describe('extractKeywords (golden, recorded yoast posts)', () => {
     expect(matching.length).toBeGreaterThanOrEqual(12);
   });
 
-  it('never returns the brand word at all ("yoastcon", an event, is a topic)', () => {
+  it('never returns the brand word at all ("yoastcon", an event, is a topic)', async () => {
     for (const pageKeywords of keywords) {
       expect(
         pageKeywords.some((keyword) => ` ${keyword.term} `.includes(' yoast ')),

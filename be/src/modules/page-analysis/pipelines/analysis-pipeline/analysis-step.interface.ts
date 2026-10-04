@@ -1,3 +1,4 @@
+import type { IPipelineStep } from '../pipeline';
 import type { ISelectedKeyword } from '../../services/keyword-extraction/select-keywords/select-keywords';
 import type { ISeoRuleInput } from '../../services/seo-rules/seo-rule.interface';
 import type { ISeoEvaluation } from '../../services/seo-rules/seo-rules.registry';
@@ -30,10 +31,7 @@ export interface IAnalysisContext {
 }
 
 /**
- * One step of the analysis, named so the pipeline reads as what it does and a test or
- * an experiment can replace a step by name. A step is pure but for the context.
+ * One step of the analysis. The contract is `IPipelineStep`, shared with keyword
+ * extraction; this name is what the steps and their tests read as.
  */
-export interface IAnalysisStep {
-  readonly name: string;
-  run(context: IAnalysisContext): void;
-}
+export type IAnalysisStep = IPipelineStep<IAnalysisContext>;

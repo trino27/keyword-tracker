@@ -19,23 +19,25 @@ const RUN: IAnalysisInput[] = [
 ];
 
 describe('ANALYSIS_PIPELINE', () => {
-  it('is what the analysis does, in the order it does it', () => {
+  it('is what the analysis does, in the order it does it', async () => {
     expect(ANALYSIS_PIPELINE.map((step) => step.name)).toEqual([
       'keywords',
       'page-rules',
     ]);
   });
 
-  it('fills one verdict per page per step', () => {
-    const context = runAnalysisPipeline(emptyAnalysisContext(RUN, 'a.example'));
+  it('fills one verdict per page per step', async () => {
+    const context = await runAnalysisPipeline(
+      emptyAnalysisContext(RUN, 'a.example'),
+    );
 
     expect(context.keywords).toHaveLength(RUN.length);
     expect(context.evaluations).toHaveLength(RUN.length);
     expect(context.evaluations[0].checksApplicable).toBeGreaterThan(0);
   });
 
-  it('runs only the steps it is given', () => {
-    const context = runAnalysisPipeline(
+  it('runs only the steps it is given', async () => {
+    const context = await runAnalysisPipeline(
       emptyAnalysisContext(RUN, 'a.example'),
       [PAGE_RULES_STEP],
     );
@@ -44,7 +46,7 @@ describe('ANALYSIS_PIPELINE', () => {
     expect(context.keywords).toEqual([]);
   });
 
-  it('lets a later step add a finding to the evaluation the rules left', () => {
+  it('lets a later step add a finding to the evaluation the rules left', async () => {
     /** The shape a run-scoped check has: it judges the run, it writes per page. */
     const duplicateTitles: IAnalysisStep = {
       name: 'run-rules',
@@ -55,11 +57,13 @@ describe('ANALYSIS_PIPELINE', () => {
         }
       },
     };
-    const context = runAnalysisPipeline(
+    const context = await runAnalysisPipeline(
       emptyAnalysisContext(RUN, 'a.example'),
       [...ANALYSIS_PIPELINE, duplicateTitles],
     );
-    const plain = runAnalysisPipeline(emptyAnalysisContext(RUN, 'a.example'));
+    const plain = await runAnalysisPipeline(
+      emptyAnalysisContext(RUN, 'a.example'),
+    );
 
     // One page, one evaluation, one denominator — however many steps contributed.
     expect(context.evaluations[0].checksApplicable).toBe(
@@ -67,8 +71,8 @@ describe('ANALYSIS_PIPELINE', () => {
     );
   });
 
-  it('is the list the keywords step reads the whole run from', () => {
-    const one = runAnalysisPipeline(
+  it('is the list the keywords step reads the whole run from', async () => {
+    const one = await runAnalysisPipeline(
       emptyAnalysisContext([RUN[0]], 'a.example'),
       [KEYWORDS_STEP],
     );

@@ -1,4 +1,5 @@
 import { RUN_BOILERPLATE_SHARE } from '../../constants/keyword-scoring.constant';
+import { runPipeline } from '../pipeline';
 import { normalizeText } from '../../services/text/normalize-text/normalize-text';
 import {
   collectCandidates,
@@ -189,7 +190,6 @@ export function emptyContext(
 export function runKeywordPipeline(
   context: IKeywordContext,
   pipeline: readonly IKeywordStep[] = KEYWORD_PIPELINE,
-): IKeywordContext {
-  for (const step of pipeline) step.run(context);
-  return context;
+): Promise<IKeywordContext> {
+  return runPipeline(context, pipeline);
 }

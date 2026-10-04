@@ -215,11 +215,14 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
   }
 
   /** Pure and outside any transaction: the whole run is judged at once (IDF). */
-  private analyse(context: IRunContext): Promise<void> {
+  private async analyse(context: IRunContext): Promise<void> {
     const { selection, discovery, target } = context;
-    if (!selection || !discovery || !target) return Promise.resolve();
+    if (!selection || !discovery || !target) return;
 
-    const analysis = this.analysis.analyseRun(selection.pages, target.siteKey);
+    const analysis = await this.analysis.analyseRun(
+      selection.pages,
+      target.siteKey,
+    );
     context.pages = selection.pages.map((page, index) =>
       toRunPage(page, analysis[index]),
     );

@@ -1,4 +1,5 @@
 import { extractKeywords } from '../../services/keyword-extraction/extract-keywords/extract-keywords';
+import { runPipeline } from '../pipeline';
 import { evaluateSeoRules } from '../../services/seo-rules/seo-rules.registry';
 import type {
   IAnalysisContext,
@@ -9,8 +10,8 @@ import type {
 /** Which keywords each page of the run targets; needs every page at once (IDF). */
 export const KEYWORDS_STEP: IAnalysisStep = {
   name: 'keywords',
-  run(context) {
-    context.keywords = extractKeywords(context.pages, context.siteKey);
+  async run(context) {
+    context.keywords = await extractKeywords(context.pages, context.siteKey);
   },
 };
 
@@ -52,7 +53,6 @@ export function emptyAnalysisContext(
 export function runAnalysisPipeline(
   context: IAnalysisContext,
   pipeline: readonly IAnalysisStep[] = ANALYSIS_PIPELINE,
-): IAnalysisContext {
-  for (const step of pipeline) step.run(context);
-  return context;
+): Promise<IAnalysisContext> {
+  return runPipeline(context, pipeline);
 }

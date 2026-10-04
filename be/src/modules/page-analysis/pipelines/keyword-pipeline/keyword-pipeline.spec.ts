@@ -8,6 +8,7 @@ import {
   emptyContext,
   runKeywordPipeline,
 } from './keyword-pipeline';
+import { insertAfter, stepNames } from '../pipeline';
 import type { IKeywordSource, IKeywordStep } from './keyword-step.interface';
 
 function page(title: string, blocks: string[], url = 'https://a.example/p/') {
@@ -27,7 +28,7 @@ const RUN: IKeywordSource[] = [
 ];
 
 describe('KEYWORD_PIPELINE', () => {
-  it('is the algorithm in the order it runs', () => {
+  it('is the algorithm in the order it runs', async () => {
     expect(KEYWORD_PIPELINE.map((step) => step.name)).toEqual([
       'run-boilerplate',
       'collect',
@@ -37,22 +38,22 @@ describe('KEYWORD_PIPELINE', () => {
     ]);
   });
 
-  it('fills one field per step, in order', () => {
+  it('fills one field per step, in order', async () => {
     const context = emptyContext(RUN, 'a.example');
-    runKeywordPipeline(context, [RUN_BOILERPLATE_STEP]);
+    await runKeywordPipeline(context, [RUN_BOILERPLATE_STEP]);
     expect(context.candidates).toEqual([]);
 
-    runKeywordPipeline(context, [COLLECT_STEP]);
+    await runKeywordPipeline(context, [COLLECT_STEP]);
     expect(context.candidates).toHaveLength(RUN.length);
     expect(context.documentFrequency.size).toBe(0);
 
-    runKeywordPipeline(context, [DOCUMENT_FREQUENCY_STEP]);
+    await runKeywordPipeline(context, [DOCUMENT_FREQUENCY_STEP]);
     expect(context.documentFrequency.size).toBeGreaterThan(0);
     expect(context.keywords).toEqual([]);
   });
 
-  it('runs the default pipeline when the caller names none', () => {
-    const keywords = extractKeywords(RUN, 'a.example');
+  it('runs the default pipeline when the caller names none', async () => {
+    const keywords = await extractKeywords(RUN, 'a.example');
     expect(keywords).toHaveLength(RUN.length);
     expect(keywords[0].length).toBeGreaterThan(0);
   });
@@ -68,8 +69,8 @@ describe('a step inserted into the pipeline', () => {
     },
   };
 
-  it('is seen by every step after it and by nothing before it', () => {
-    const [before] = extractKeywords(RUN, 'a.example');
+  it('is seen by every step after it and by nothing before it', async () => {
+    const [before] = await extractKeywords(RUN, 'a.example');
     expect(before.map((keyword) => keyword.term)).toContain('link building');
 
     const index = KEYWORD_PIPELINE.indexOf(DOCUMENT_FREQUENCY_STEP);
@@ -78,12 +79,49 @@ describe('a step inserted into the pipeline', () => {
       dropLinkBuilding,
       ...KEYWORD_PIPELINE.slice(index),
     ];
-    const [after] = extractKeywords(RUN, 'a.example', withStep);
+    const [after] = await extractKeywords(RUN, 'a.example', withStep);
 
     expect(after.map((keyword) => keyword.term)).not.toContain('link building');
   });
 
-  it('replaces a step by position without touching its neighbours', () => {
+  it('takes an ASYNC step inserted between two others, and uses what it wrote', async () => {
+    // The shape a model step has: it awaits something, rewrites the scores `score`
+    // produced, and `select` reads the result without knowing it arrived. Nothing in
+    // KEYWORD_PIPELINE is edited to let it in.
+    const rerank: IKeywordStep = {
+      name: 'rerank',
+      async run(context) {
+        await Promise.resolve();
+        context.scored = context.scored.map((candidates) =>
+          candidates.map((candidate) => ({
+            ...candidate,
+            score: candidate.term === 'small sites' ? 1000 : candidate.score,
+          })),
+        );
+      },
+    };
+    const withModel = insertAfter(KEYWORD_PIPELINE, 'score', rerank);
+
+    expect(stepNames(withModel)).toEqual([
+      'run-boilerplate',
+      'collect',
+      'document-frequency',
+      'score',
+      'rerank',
+      'select',
+    ]);
+    const context = await runKeywordPipeline(
+      emptyContext(RUN, 'a.example'),
+      withModel,
+    );
+    expect(context.keywords[0][0].term).toBe('small sites');
+
+    // And the default pipeline is unchanged by having been composed from.
+    const plain = await runKeywordPipeline(emptyContext(RUN, 'a.example'));
+    expect(plain.keywords[0][0].term).not.toBe('small sites');
+  });
+
+  it('replaces a step by position without touching its neighbours', async () => {
     const noKeywords: IKeywordStep = {
       name: 'select',
       run(context) {
@@ -93,7 +131,7 @@ describe('a step inserted into the pipeline', () => {
     const replaced = KEYWORD_PIPELINE.map((step) =>
       step.name === 'select' ? noKeywords : step,
     );
-    const context = runKeywordPipeline(
+    const context = await runKeywordPipeline(
       emptyContext(RUN, 'a.example'),
       replaced,
     );
