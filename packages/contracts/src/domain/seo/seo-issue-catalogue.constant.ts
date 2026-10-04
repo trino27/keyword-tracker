@@ -17,6 +17,14 @@ export interface ISeoIssueDefinition {
    */
   skipReason?: string;
   /**
+   * `false` takes the check out of circulation without removing its code. Removing the
+   * code is not an option: a page crawled while the check ran keeps it in
+   * `checks_judged` and may hold a finding under it, and both are read back through
+   * this catalogue — a missing entry would fail the gateway's own validation of data it
+   * stored itself. Absent means the ordinary thing: the check runs.
+   */
+  enabled?: false;
+  /**
    * `run` marks a check that cannot be answered from one page — it compares the page
    * with the others crawled in the same run. Absent means the ordinary thing: the
    * page judges itself.
@@ -193,3 +201,22 @@ export const RUN_ISSUE_CODES = SEO_ISSUE_CODES.filter(
 export const PAGE_ISSUE_CODES = SEO_ISSUE_CODES.filter(
   (code) => !('scope' in SEO_ISSUE_CATALOGUE[code]),
 ) as TPageIssueCode[];
+
+/**
+ * The codes a crawl runs and a screen lists — the catalogue minus what `enabled: false`
+ * has retired.
+ *
+ * Both sides iterate THIS, never `SEO_ISSUE_CODES`: the analysis so a retired check
+ * produces no verdict, and `composePageChecks` so it produces no row. Lookups by code
+ * keep using the catalogue itself, which is the point of retiring rather than deleting —
+ * a finding stored under a retired code still has a label, a hint and a severity to be
+ * rendered with.
+ *
+ * A page crawled before a check was retired keeps it in its stored denominator, so its
+ * score counts a check the list no longer shows. That is the same arrangement a page
+ * already has with a check added after it was crawled, and it is why the score is
+ * explained as what applied WHEN THE PAGE WAS CRAWLED; the next crawl settles it.
+ */
+export const ACTIVE_ISSUE_CODES = SEO_ISSUE_CODES.filter(
+  (code) => !('enabled' in SEO_ISSUE_CATALOGUE[code]),
+);

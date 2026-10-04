@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ACTIVE_ISSUE_CODES,
   PAGE_ISSUE_CODES,
   RUN_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
@@ -42,5 +43,36 @@ describe('the catalogue split by scope', () => {
     for (const code of RUN_ISSUE_CODES) {
       expect(SEO_ISSUE_CATALOGUE[code].skipReason).toMatch(/\S/);
     }
+  });
+});
+
+describe('the catalogue split by whether the check still runs', () => {
+  it('holds every code the catalogue has not retired', () => {
+    const running = Object.entries(SEO_ISSUE_CATALOGUE)
+      .filter(([, entry]) => !('enabled' in entry))
+      .map(([code]) => code)
+      .sort();
+
+    expect([...ACTIVE_ISSUE_CODES].sort()).toEqual(running);
+  });
+
+  /**
+   * A retired code keeps its entry on purpose, so a finding stored under it still has a
+   * label, a hint and a severity to be read back with. Pinned because deleting the entry
+   * is the obvious shortcut and it breaks pages already crawled.
+   */
+  it('leaves a retired code in the catalogue it was retired from', () => {
+    for (const code of SEO_ISSUE_CODES) {
+      expect(SEO_ISSUE_CATALOGUE[code].label).toMatch(/\S/);
+      expect(SEO_ISSUE_CATALOGUE[code].hint).toMatch(/\S/);
+    }
+    expect(ACTIVE_ISSUE_CODES.length).toBeLessThanOrEqual(
+      SEO_ISSUE_CODES.length,
+    );
+  });
+
+  /** Nothing is retired today; this says so out loud rather than by silence. */
+  it('runs every catalogued check right now', () => {
+    expect([...ACTIVE_ISSUE_CODES].sort()).toEqual([...SEO_ISSUE_CODES].sort());
   });
 });
