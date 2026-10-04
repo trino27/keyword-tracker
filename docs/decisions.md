@@ -79,7 +79,7 @@ catalogue by type rather than kept beside it. One pass produces the issues, both
 the score, and the record of which codes were judged and which were not — the only account there
 will ever be of how the catalogue looked at that crawl.
 
-**A page's score is the share of the checks that could apply to it.** Five of the eighteen are
+**A page's score is the share of the checks that could apply to it.** Eight of the twenty-one are
 conditional — a page with no images is not judged on alt text, a page with no description is not
 judged on its length — so the denominator is counted at crawl time, while the parsed page is
 still in hand, and shown beside the number: 100 out of 13 and 100 out of 18 are not the same

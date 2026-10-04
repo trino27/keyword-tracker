@@ -38,8 +38,10 @@ Local development (Node 24, pnpm 10): `pnpm install`, then `pnpm dev:db`, `pnpm 
 - **Keywords come from the whole crawl, not one page** — a subject can only be told from the
   site's vocabulary by comparing pages. Phrases score on the fields they appear in, pay a corpus
   penalty that strips what every page says, then compete for a budget of 2–6 slots.
-- **The checks are not invented here:** 18 rules, one per catalogued code, from Google's SEO
-  Starter Guide, Search Central and the set Lighthouse audits. Each answers pass, fail or *not
+- **The checks are not invented here:** 21 checks, one unit per catalogued code, from Google's
+  SEO Starter Guide, Search Central and the set Lighthouse audits. Eighteen judge a page by
+  itself and three compare it with the rest of the crawl; which of the two a check is follows
+  from its catalogue entry, so the wrong shape does not compile. Each answers pass, fail or *not
   applicable*; a page's score is the share of the checks that could apply to it, equally weighted
   — weighting by severity would invent a ranking model nobody can justify.
 - **Positions are computed at read time** (`LATERAL … LIMIT 1` on the snapshot primary key),
@@ -66,13 +68,48 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
   person types into Google. Embeddings fold the paraphrases together; a model asked for the
   queries a page targets reads it as a person does. It would re-rank what this extractor
   generates, never replace it — a crawl must still answer when the model is away.
+- **Co-occurrence, before reaching for a model.** The paraphrase problem above needs embeddings;
+  a weaker and cheaper reading does not. TextRank ranks a term by how connected it is to the
+  terms it is written beside, evidence the field weights cannot see at all — and the runs
+  `tokenize` already produces are the windows it needs, so it asks nothing of a language. Worth
+  having as a second opinion against the fixture catalogue; worth adopting only where it
+  disagrees with the current ranking and is right.
+- **Intent, which the catalogue has no word for.** "How to track rankings" and "rank tracking
+  tool pricing" are one subject and two different jobs, and an agency acts on the difference —
+  one gets a guide, the other a landing page. The signal is in hand and thrown away: `vs`,
+  `versus`, `why`, `when` and the rest are stop words precisely because they cannot bound a
+  phrase, so the words that say what the searcher wants are the ones extraction discards. A
+  label on a keyword already found, not a second extraction.
 - **Language as a configurable abstraction** — stop words, stemmer and weights per site rather
   than compiled in; today an inflected language counts one word as several.
+- **The zones the parser reads and the scoring ignores.** `alt` text and `og:title` are extracted
+  — one for IMAGES_MISSING_ALT, one for OG_TAGS_MISSING — and never scored, though an author
+  writes both out of the subject the way they write the slug. Each is a field weight and a line
+  in `collect-candidates` and no more than that, which is also the reason to measure before
+  believing it: a decorative alt is noise at whatever weight it is given.
 - **Tuning the hyperparameters**, set by hand against two sites, on a labelled corpus against a
   measurable outcome.
-- **Site-level checks** a page cannot see about itself — duplicate titles, cannibalisation,
-  orphan pages — the network ones (Lighthouse, Core Web Vitals), and more crawl parallelism,
-  which `SKIP LOCKED` already leaves as only a second worker process away.
+- **The site-level checks still missing** — orphan pages, internal linking, a sitemap that
+  disagrees with what the crawl found; duplicate titles, duplicate descriptions and
+  cannibalisation already ship as the three run-scoped codes. Then the network ones (Lighthouse,
+  Core Web Vitals), and more crawl parallelism, which `SKIP LOCKED` already leaves as only a
+  second worker process away.
+- **Keyword stuffing, the one spam rule the catalogue is missing.** The 21 checks are what Google
+  and Lighthouse document, and Google's spam policies document this one too — a page repeating
+  its term past the point of being written for a person. It is absent because the trigger is not
+  published as a number, and inventing a density threshold is the same mistake as inventing the
+  severity weights below. The honest form is comparative: the extractor already knows how far a
+  term's body frequency carries it past everything else on its page, and a run of pages says
+  what that distance normally looks like on this site.
+- **A ranked impact weight per check.** Today every check counts the same in the score, and
+  deliberately so: weighting by severity would invent a ranking model nobody can justify. The
+  honest version of that weight is measured, not asserted — the checks regressed against
+  observed position movement, or impact data published by a source that has it. It costs more
+  than a constant: weights break the comparability the equal denominator gives (100 out of 13
+  applicable checks and 100 out of 21 are already different claims), the stored
+  `checks_applicable = cardinality(checks_judged)` would have to become a weight sum, and a
+  score whose weights moved is not the score crawled last month. Until the evidence exists,
+  equal weight is the claim the data supports.
 
 ## AI tools used
 
