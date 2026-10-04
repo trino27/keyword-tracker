@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Paper, Skeleton, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Paper, Skeleton, Stack, Text, Title } from "@mantine/core";
 import type { TIsoDay } from "@app/contracts";
 import type { TPositionHistory } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
@@ -8,6 +8,7 @@ import type {
 	TRangePreset,
 } from "@ViewModels/PageDetailViewModel/Services/ResolveRange/resolveRange";
 import { KeywordToggles } from "./KeywordToggles/KeywordToggles";
+import { KeywordTogglesSkeleton } from "./KeywordTogglesSkeleton/KeywordTogglesSkeleton";
 import { PositionChart } from "./PositionChart/PositionChart";
 import { PositionTable } from "./PositionTable/PositionTable";
 import { RangeControls } from "./RangeControls/RangeControls";
@@ -29,22 +30,6 @@ interface IPositionHistoryProps {
 	onToggle: (keywordId: number) => void;
 	onRetry: () => void;
 	onFill: () => void;
-}
-
-/**
- * Stands in for the keyword chips until the history arrives. Without it the range
- * buttons appeared at once, the space under them stayed blank, and the chips then
- * dropped in and pushed the chart down — the reader could not tell a page with no
- * keywords from one still loading. Same height and shape as a chip, so nothing moves.
- */
-function KeywordTogglesSkeleton() {
-	return (
-		<Group gap={6} wrap="wrap" aria-label="Loading keywords">
-			{[112, 84, 136, 96, 120].map((width) => (
-				<Skeleton key={width} height={26} width={width} radius="xl" />
-			))}
-		</Group>
-	);
 }
 
 /** Where the page ranked over the chosen days, for each of its keywords. */

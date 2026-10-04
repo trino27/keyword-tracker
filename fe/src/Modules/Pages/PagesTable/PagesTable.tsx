@@ -1,19 +1,14 @@
-import { Badge, Button, Group, Paper, Skeleton, Stack, Table, Text, Tooltip } from "@mantine/core";
-import {
-	IconBuildingStore,
-	IconFileSearch,
-	IconHourglass,
-	IconSearchOff,
-} from "@tabler/icons-react";
+import { Badge, Group, Paper, Skeleton, Stack, Table, Text, Tooltip } from "@mantine/core";
 import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
 import type { TPageListItem } from "@Gateways/PageGateway/Validation/PageSchemas";
-import { EmptyState } from "@Modules/_Shared/EmptyState/EmptyState";
 import { PositionBadge } from "@Modules/_Shared/PositionBadge/PositionBadge";
 import { ScoreBadge } from "@Modules/_Shared/ScoreBadge/ScoreBadge";
-import { AnchorLink, ButtonLink } from "@Modules/_Shared/RouterLink/RouterLink";
+import { AnchorLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import type { TLoadStatus } from "@ViewModels/ClientsViewModel/ClientsViewModel";
 import type { TEmptyKind } from "@ViewModels/PagesViewModel/Services/ToEmptyKind/toEmptyKind";
+import { EmptyList } from "./EmptyList/EmptyList";
+import { IssueCounts } from "./IssueCounts/IssueCounts";
 import styles from "./PagesTable.module.scss";
 
 const SHOWN_KEYWORDS = 3;
@@ -28,88 +23,6 @@ interface IPagesTableProps {
 	showClient: boolean;
 	onRetry: () => void;
 	onClearSearch: () => void;
-}
-
-function IssueCounts({ issues }: { issues: TPageListItem["issues"] }) {
-	if (issues.total === 0) {
-		return (
-			<Text size="sm" c="dimmed">
-				None
-			</Text>
-		);
-	}
-	return (
-		<Group gap={4} wrap="nowrap">
-			{issues.error > 0 && (
-				<Badge color="red" variant="light" size="sm">
-					{issues.error} error{issues.error === 1 ? "" : "s"}
-				</Badge>
-			)}
-			{issues.warning > 0 && (
-				<Badge color="yellow" variant="light" size="sm">
-					{issues.warning} warning{issues.warning === 1 ? "" : "s"}
-				</Badge>
-			)}
-			{issues.notice > 0 && (
-				<Badge color="gray" variant="light" size="sm">
-					{issues.notice}
-				</Badge>
-			)}
-			{/* A number on every row of a client says the fix is in the template. */}
-			{issues.siteWide > 0 && (
-				<Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap" }}>
-					{`${issues.siteWide} site-wide`}
-				</Text>
-			)}
-		</Group>
-	);
-}
-
-function EmptyList({ kind, onClearSearch }: { kind: TEmptyKind; onClearSearch: () => void }) {
-	switch (kind) {
-		case "noClients":
-			return (
-				<EmptyState
-					icon={<IconBuildingStore size={22} />}
-					title="No clients yet"
-					description="Add a client: we find its blog, crawl the first 15 posts and extract their keywords."
-					action={
-						<ButtonLink to="/clients" mt="xs">
-							Add a client
-						</ButtonLink>
-					}
-				/>
-			);
-		case "noMatches":
-			return (
-				<EmptyState
-					icon={<IconSearchOff size={22} />}
-					title="No pages match this search"
-					description="The search looks at page URLs and keywords."
-					action={
-						<Button variant="light" mt="xs" onClick={onClearSearch}>
-							Clear the search
-						</Button>
-					}
-				/>
-			);
-		case "noPagesYet":
-			return (
-				<EmptyState
-					icon={<IconHourglass size={22} />}
-					title="This client has no pages yet"
-					description="Its posts appear here when a crawl finishes; the banner above shows where it is."
-				/>
-			);
-		case "noPages":
-			return (
-				<EmptyState
-					icon={<IconFileSearch size={22} />}
-					title="No crawled pages yet"
-					description="Crawls run in the background; pages appear as each one finishes."
-				/>
-			);
-	}
 }
 
 export function PagesTable({
