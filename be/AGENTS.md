@@ -18,6 +18,8 @@ src/
   infrastructure/              config (env schema), logging
   persistence/                 Postgres connection, schema tables, column factories
   modules/<module>/            controllers/, dto/, services/, repositories/, interfaces/
+                               pipelines/ where a module's work is an ordered list of
+                               steps over one context (crawl, page-analysis)
 drizzle/                       generated migrations — never edited by hand
 ```
 

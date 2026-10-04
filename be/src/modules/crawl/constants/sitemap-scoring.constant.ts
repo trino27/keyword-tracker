@@ -60,6 +60,9 @@ export const WELL_KNOWN_LISTING_PATHS = [
   '/blogs/news/',
 ] as const;
 
+/** A listing with fewer post links than this is not a blog index. */
+export const MIN_LISTING_LINKS = 3;
+
 /** Links under a listing that lead to more listings, not to posts. */
 export const LISTING_LINK_EXCLUDED_SEGMENTS: ReadonlySet<string> = new Set([
   'page',
