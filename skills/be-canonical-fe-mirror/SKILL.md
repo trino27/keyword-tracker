@@ -217,3 +217,12 @@ its end day) stay backend-side.
 - [ ] Both spec/test files assert the same inputs → outputs
 - [ ] Backend service registered in the module's `providers` array
 - [ ] The module's `*_MODULE.md` (if it has one) updated with the new rule description
+
+
+## Specified invariants
+
+Deposited after archive (`openspec/README.md` §4 and §8): the permanent id, what must stay true,
+and what pins it. Kept as a trailing section so the set is greppable.
+
+<!-- invariant: TZ-002 -->
+**A calendar range in the user’s zone becomes a half-open UTC interval, and the conversion exists once, in `@app/contracts`, for both sides.** Pinned by `packages/contracts/src/domain/time/day-range-to-utc/day-range-to-utc.util.test.ts` -> "the spring-forward day in Toronto is 23 hours", "the fall-back day in Toronto is 25 hours", "Tokyo starts its day the evening before in UTC"; `be/test/e2e/pages-history.e2e-spec.ts` -> "the fall-back day in Toronto (25 h) holds exactly its own noon point". "Exists once" is NOT pinned by a lint rule — no rule bans a second implementation. Specified in `openspec/specs/_root/time-zones/spec.md`.

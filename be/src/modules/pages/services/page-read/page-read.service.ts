@@ -144,7 +144,7 @@ export class PageReadService {
 
     const [keywordRows, issues, client] = await Promise.all([
       this.list.keywordsForPages(scope, [pageId]),
-      this.detail.issuesForPage(pageId),
+      this.detail.issuesForPage(scope, pageId),
       this.clients.getClient(scope, page.clientId),
     ]);
     const keywords = keywordRows.map(toKeywordPosition);

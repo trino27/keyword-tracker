@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { count, eq } from 'drizzle-orm';
+import { MAX_KEYWORDS } from '../../src/modules/page-analysis/constants/keyword-scoring.constant';
 import request from 'supertest';
 import {
   FIXTURES_ROOT,
@@ -86,8 +87,14 @@ describe('crawl (e2e, recorded sites)', () => {
       .groupBy(pageKeywords.pageId);
     expect(pairCounts).toHaveLength(15);
     for (const { pairs } of pairCounts) {
-      expect(pairs).toBeGreaterThanOrEqual(5);
-      expect(pairs).toBeLessThanOrEqual(8);
+      // At least one, no more than the cap. The lower bound is 1 and not 5 because
+      // selection takes the candidates above the floor and stops: "a page with one
+      // subject returns one keyword" (select-keywords.ts). Topping a short list up to a
+      // minimum is what PAGE_ANALYSIS_MODULE.md records as rejected — it produced five
+      // keywords for a page with one, four below the floor the scoring had just applied.
+      // A test demanding five demands that back.
+      expect(pairs).toBeGreaterThanOrEqual(1);
+      expect(pairs).toBeLessThanOrEqual(MAX_KEYWORDS);
     }
     expect(await testDb.db.$count(seoIssues)).toBeGreaterThan(0);
 

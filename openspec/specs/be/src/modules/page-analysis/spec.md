@@ -86,7 +86,7 @@ inline SVG in the body MUST be ignored.
 
 ### Requirement [ANALYSIS-004]: keyword candidates are clean on-page phrases
 
-Keyword candidates MUST be 1–3-word phrases from the page's main content and fields (navigation,
+Keyword candidates MUST be 1–4-word phrases from the page's main content and fields (navigation,
 header, footer, aside and scripts removed), normalized (NFKC, lower case, punctuation stripped,
 whitespace collapsed), never starting or ending with a stop word of the page's language; with an
 unknown language no stop words apply and phrases are at most 2 words.
@@ -95,12 +95,13 @@ unknown language no stop words apply and phrases are at most 2 words.
 - **WHEN** a heading reads "Optimize the"
 - **THEN** "optimize the" is not a candidate
 
-### Requirement [ANALYSIS-005]: each page keeps its 5 to 8 most relevant phrases
+### Requirement [ANALYSIS-005]: each page keeps up to 8 of its most relevant phrases
 
 Candidates MUST be scored by field weight (title 5 with the brand suffix removed, h1 4, URL slug 3,
 meta description 2, h2/h3 2, first paragraph 1.5, body 1), a bonus for presence in several strong
 fields, a small bonus for declared metadata (JSON-LD keywords, `article:tag`), with subsumed
-duplicates removed; at most 8 above the floor are kept (at least 5 when available), with relevance
+duplicates removed; at most 8 above the floor are kept, and no page is topped up to a minimum — a page
+with one subject keeps one phrase — with relevance
 in (0, 1] where the top keyword is 1.
 
 #### Scenario: a typical post

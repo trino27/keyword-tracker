@@ -11,7 +11,9 @@ Lighthouse bands, and states plainly what the score is not allowed to claim. For
 those to be true rather than plausible, the crawl begins recording the outcome of every code: two
 disjoint array columns on the `pages` row, written by the same upsert that writes the counters.
 
-**Status:** active
+**Status:** executed, 2026-10-04. Phase 1 shipped whole; phase 2 was withdrawn, and D9 at the
+foot of the decision log says why. §15's phase 2 and §16's R3 and R7 are kept as written, because
+a plan records the intended future it was approved as, not a tidied one.
 **Branch:** `feat/page-check-status-sections` (based on `fix/keyword-extraction-accuracy`)
 **Changes:** page-check-status-sections, page-checks-required
 
@@ -1044,3 +1046,29 @@ vary by page, so storing it on the page pays storage for a constant.
 `checks_failed` stay stored: applicability cannot be derived from the current catalogue, because a
 page crawled under 18 checks and read under 20 would claim what its crawl never saw.
 `order by (checks_applicable - checks_failed)::numeric / checks_applicable` is untouched.
+
+
+**D9 (reversal of D5's second phase, 2026-10-04).** The tightening to NOT NULL is withdrawn, and
+the columns stay nullable permanently. D5 rested on "after every client has been re-crawled";
+every client WAS re-crawled, and O1 answers 17 of 105. It cannot reach zero, for a reason D5 did
+not consider: a re-crawl refreshes the pages the crawl STILL FINDS, so the rows it no longer finds
+keep their null, and `PAGES_MODULE.md` keeps those rows on purpose. Backfilling them is not merely
+dishonest but unrepresentable — CHECK `checks_applicable = cardinality(checks_judged)`, written
+under D4 to protect the column, refuses an invented `'{}'` on a row claiming eighteen applicable
+checks. NOT NULL would therefore require deleting pages, which an invariant forbids.
+
+Removing the null from the WIRE alone was tried and reverted the same day. It is unsound rather
+than merely bold: `findCurrentPage` returns any page on its client's latest succeeded or partial
+run, so a database where migration 0008 has run and a re-crawl has not has CURRENT pages with null
+lists, and a non-null contract turns each into a failed request. It also contradicts PAGES-012,
+which requires that a page whose crawl predates the recording says so.
+
+What stands: `IPageDetail.checks` is `IPageCheck[] | null`, and the section says "Re-crawl this
+page to see each check." for a page it cannot enumerate. Harvested to `PAGES_MODULE.md` and to
+`be/skills/architecture-decisions/SKILL.md` — ask which rows the refilling act cannot reach before
+promising a tightening phase.
+
+**D10 (O4, answered).** The arithmetic sentence renders the quotient to two decimals with `≈` when
+it does not terminate, not to one. At one decimal, 1 of 16 passed prints "6.3" above "rounded
+half-up to 6". Pinned by `explainScore.test.ts` -> "never prints a quotient that rounds away from
+the score", which walks every denominator the catalogue allows.

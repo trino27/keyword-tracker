@@ -73,7 +73,6 @@ export class PagesRepository {
           checksNotApplicable: sql`excluded.checks_not_applicable`,
           lastSeenRunId: sql`excluded.last_seen_run_id`,
           crawledAt: sql`excluded.crawled_at`,
-          updatedAt: new Date(),
         },
       })
       .returning({ id: pages.id, url: pages.url });

@@ -68,7 +68,10 @@ export const usePagesViewModel = create<IPagesViewModel>()((set, get) => {
 		...initialState,
 		fetchPages: (query, clientCount) => load(query, clientCount, false),
 		refreshPages: (query, clientCount) => load(query, clientCount, true),
-		reset: () => set(initialState),
+		// The request counter is NOT rewound. Restoring it from initialState would hand the
+		// next load the id an in-flight request already holds, so the previous user's answer
+		// would pass the identity check and land in the new session's store.
+		reset: () => set({ ...initialState, requestId: get().requestId }),
 	};
 });
 

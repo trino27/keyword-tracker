@@ -74,6 +74,7 @@ export class CrawlRunsRepository {
    * the latest succeeded/partial one, whose `pages_done` IS its number of pages.
    */
   async summariesForClients(
+    scope: IUserScope,
     clientIds: number[],
   ): Promise<Map<number, IClientRunSummary>> {
     const summaries = new Map<number, IClientRunSummary>(
@@ -84,6 +85,13 @@ export class CrawlRunsRepository {
     const latest = await this.db
       .selectDistinctOn([crawlRuns.clientId], runColumns)
       .from(crawlRuns)
+      .innerJoin(
+        clients,
+        and(
+          eq(clients.id, crawlRuns.clientId),
+          eq(clients.userId, scope.userId),
+        ),
+      )
       .where(inArray(crawlRuns.clientId, clientIds))
       .orderBy(
         crawlRuns.clientId,

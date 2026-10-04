@@ -77,3 +77,21 @@ The core against a scripted fake transport: the redirect limit, a redirect to a 
 refused without being requested, retry 503 then 200, no retry on 404, `Retry-After` waited (an
 injected sleep), the user agent sent. The undici transport against a local `http.createServer`:
 the body cap, gzip, no redirect following, and the production lookup refusing 127.0.0.1.
+
+
+## Specified invariants
+
+Deposited after archive (`openspec/README.md` §4 and §8): the permanent id, what must stay true,
+and what pins it. Kept as a trailing section so the set is greppable.
+
+<!-- invariant: REMOTE-001 -->
+**No outbound connection reaches a non-public address, and the check is made per hop on the address actually connected to — not on the hostname.** Pinned by `be/src/infrastructure/remote-api/address-guard/address-guard.spec.ts` -> the "refuses %s (%s)" cases, including `169.254.169.254` and IPv4-mapped forms; `guarded-lookup/guarded-lookup.spec.ts` -> "refuses when ANY resolved address is private — no picking the safe one"; `remote-api.core.spec.ts` -> "refuses a redirect to a private IP literal without requesting it". Specified in `openspec/specs/be/src/infrastructure/remote-api/spec.md`.
+
+<!-- invariant: REMOTE-002 -->
+**Every outbound request times out, follows at most five redirects, and stops reading at its size cap — counted on DECODED bytes.** Pinned by `remote-api.core.spec.ts` -> "refuses the 6th redirect"; `undici-http-transport/undici-http-transport.spec.ts` -> "stops reading past maxBytes" and "counts DECODED bytes against the cap — a small gzip bomb is refused". The timeout VALUE is NOT pinned — only the behaviour is. Specified in `openspec/specs/be/src/infrastructure/remote-api/spec.md`.
+
+<!-- invariant: REMOTE-003 -->
+**At most two retries, with backoff and jitter, only for a network error, a timeout, a 429 or a 5xx; `Retry-After` is honoured and capped.** Pinned by `remote-api.core.spec.ts` -> "retries a 503 and returns the following 200", "does not retry a 404", "waits what Retry-After asks before retrying a 429", "gives up after 2 retries of a timeout". The cap on `Retry-After` and the jitter formula are NOT separately asserted. Specified in `openspec/specs/be/src/infrastructure/remote-api/spec.md`.
+
+<!-- invariant: REMOTE-004 -->
+**Every outbound request identifies this crawler in its User-Agent.** Pinned by `remote-api.core.spec.ts` -> "sends the bot user agent". The contact-URL suffix is NOT asserted. Specified in `openspec/specs/be/src/infrastructure/remote-api/spec.md`.

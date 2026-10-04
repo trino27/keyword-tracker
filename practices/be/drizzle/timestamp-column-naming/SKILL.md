@@ -49,3 +49,12 @@ capturedAt: timestamp('captured_at', { withTimezone: true }).notNull(),
 | seo issue resolved | `resolved_at` (null until resolved) |
 
 Related: [database-patterns](../database-patterns/SKILL.md).
+
+
+## Specified invariants
+
+Deposited after archive (`openspec/README.md` §4 and §8): the permanent id, what must stay true,
+and what pins it. Kept as a trailing section so the set is greppable.
+
+<!-- invariant: TZ-001 -->
+**Every instant is a `timestamptz`, the process and the database run in UTC, and the wire carries ISO-8601 UTC.** Pinned by the ESLint `no-restricted-syntax` timestamp selector in `be/eslint.config.mjs`, which refuses a `timestamp()` column without `withTimezone`. That the PROCESS runs in UTC is NOT pinned by a test — it rests on `be/src/core/bootstrap/tz.ts` being each entry point’s first import, and on `TZ: UTC` in `docker-compose.yml`. Specified in `openspec/specs/_root/time-zones/spec.md`.

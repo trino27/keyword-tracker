@@ -64,7 +64,18 @@ export const usePageDetailViewModel = create<IPageDetailViewModel>()((set, get) 
 			detailStatus: "loading",
 			detailError: null,
 			notFound: false,
-			...(samePage ? {} : { detail: null, history: null, historyStatus: "idle" }),
+			// Cleared on the way IN to another page, not on every re-read: fillPositions
+			// refreshes through this action, and clearing then would wipe the outcome it
+			// just set. A refused fill must not follow the reader to the next page.
+			...(samePage
+				? {}
+				: {
+						detail: null,
+						history: null,
+						historyStatus: "idle" as const,
+						fillStatus: "idle" as const,
+						fillError: null,
+					}),
 		});
 		try {
 			const detail = await gateways.pages.get(pageId);
@@ -102,16 +113,27 @@ export const usePageDetailViewModel = create<IPageDetailViewModel>()((set, get) 
 		set({ fillStatus: "loading", fillError: null });
 		try {
 			await gateways.positions.fill();
-			set({ fillStatus: "ready" });
 			// The fill touches every client of this user, so the page's own numbers
 			// (best position, average) are re-read too, not only the chart.
 			await Promise.all([get().fetchDetail(pageId), get().fetchHistory(pageId, range)]);
+			// Set AFTER the refresh, not before it: "ready" should mean the screen shows the
+			// new positions, and it leaves fetchDetail free to clear the fill state when it
+			// opens a different page — which is where a refusal must not follow the reader.
+			set({ fillStatus: "ready" });
 		} catch (error: unknown) {
 			set({ fillStatus: "error", fillError: describeError(error) });
 		}
 	},
 
-	reset: () => set(initialState),
+	// The request counter is NOT rewound. Restoring it from initialState would hand the
+	// next load the id an in-flight request already holds, so the previous user's answer
+	// would pass the identity check and land in the new session's store.
+	reset: () =>
+		set({
+			...initialState,
+			detailRequest: get().detailRequest,
+			historyRequest: get().historyRequest,
+		}),
 }));
 
 registerUserStoreReset(() => usePageDetailViewModel.getState().reset());

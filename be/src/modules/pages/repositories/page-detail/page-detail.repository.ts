@@ -145,14 +145,19 @@ export class PageDetailRepository {
   }
 
   /**
-   * Call only for a page `findCurrentPage` returned.
+   * The owner is in the WHERE, not in the caller. `findCurrentPage` checks it too, but a
+   * second caller — or a reorder inside one — would silently remove that, which is the
+   * arrangement `practices/be/security-patterns` exists to forbid.
    *
    * `pages_affected` counts the client's CURRENT pages carrying the same code, this one
    * included — one more join, no new round trip. A finding on one page is that page's
    * problem; a finding on most of them is the template's, and that is the difference the
    * screen exists to show.
    */
-  async issuesForPage(pageId: number): Promise<TIssueRecord[]> {
+  async issuesForPage(
+    scope: IUserScope,
+    pageId: number,
+  ): Promise<TIssueRecord[]> {
     const { rows } = await this.db.execute<{
       code: TSeoIssueCode;
       severity: TSeoIssueSeverity;
@@ -167,6 +172,7 @@ export class PageDetailRepository {
                  and sib.last_seen_run_id = p.last_seen_run_id) as pages_affected
       from seo_issues i
       join pages p on p.id = i.page_id
+      join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
       where i.page_id = ${pageId}
     `);
     return rows.map(

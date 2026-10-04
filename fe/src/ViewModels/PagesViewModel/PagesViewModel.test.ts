@@ -59,3 +59,31 @@ describe("PagesViewModel", () => {
 		expect(vm()).toMatchObject({ status: "error", error: "offline" });
 	});
 });
+
+describe("PagesViewModel.reset", () => {
+	/**
+	 * Sign-out resets every store. If reset restored the request counter from the initial
+	 * state, the next load would compute the very id an in-flight request already holds,
+	 * and the PREVIOUS user's answer would pass the identity check into the new session.
+	 */
+	it("drops a load in flight when the user signs out, rather than reusing its id", async () => {
+		let answerFirst: (value: TPageListResponse) => void = () => {};
+		vi.spyOn(PageGateway.prototype, "list")
+			.mockImplementationOnce(
+				() =>
+					new Promise<TPageListResponse>((resolve) => {
+						answerFirst = resolve;
+					}),
+			)
+			.mockResolvedValueOnce(response(7));
+
+		const inFlight = vm().fetchPages(QUERY, 1);
+		vm().reset();
+		await vm().fetchPages(QUERY, 1);
+		answerFirst(response(999));
+		await inFlight;
+
+		// 7 from the second load, never 999 from the signed-out user's.
+		expect(vm().total).toBe(7);
+	});
+});

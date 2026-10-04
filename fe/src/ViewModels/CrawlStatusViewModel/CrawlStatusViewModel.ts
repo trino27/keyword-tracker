@@ -52,8 +52,10 @@ export const useCrawlStatusViewModel = create<ICrawlStatusViewModel>()((set, get
 			});
 			if (isActive(client))
 				timer = setTimeout(() => void poll(clientId), CRAWL_STATUS_POLL_MS);
-		} catch {
-			// The banner is a convenience: a failed poll retries on the next screen visit.
+		} catch (error) {
+			// Silent to the reader — the banner is a convenience and retries on the next
+			// visit — but never silent to a developer with the console open.
+			console.error("[CrawlStatusViewModel] poll failed", error);
 		}
 	};
 

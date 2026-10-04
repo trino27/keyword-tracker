@@ -113,7 +113,7 @@ export class RemoteApiCore {
           throw error;
         if (options.signal?.aborted) throw error;
         this.logger.debug(
-          { host: url.host, path: url.pathname, attempt, error: error.name },
+          { host: url.host, path: url.pathname, attempt, err: error },
           'remote request failed',
         );
       }
