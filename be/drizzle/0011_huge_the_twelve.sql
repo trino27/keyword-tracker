@@ -1,0 +1,2 @@
+CREATE INDEX "crawl_run_items_page_id_idx" ON "crawl_run_items" USING btree ("page_id");--> statement-breakpoint
+CREATE INDEX "page_keywords_last_seen_run_id_idx" ON "page_keywords" USING btree ("last_seen_run_id");

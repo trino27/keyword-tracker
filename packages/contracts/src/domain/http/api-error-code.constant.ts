@@ -3,11 +3,14 @@
  *
  * The backend builds its exception classes from these keys and the frontend branches
  * only on them, so a code cannot exist on one side and not the other. Codes Nest
- * produces itself (BAD_REQUEST, TOO_MANY_REQUESTS, INTERNAL_ERROR) are listed too:
- * the frontend reads them the same way.
+ * produces itself (BAD_REQUEST, NOT_FOUND, TOO_MANY_REQUESTS, INTERNAL_ERROR) are
+ * listed too: the frontend reads them the same way.
  */
 export const API_ERROR_CODES = {
   BAD_REQUEST: 'BAD_REQUEST',
+  /** A route that does not exist. A known route answering about a missing row uses its
+   *  own code (CLIENT_NOT_FOUND, PAGE_NOT_FOUND, CRAWL_RUN_NOT_FOUND) instead. */
+  NOT_FOUND: 'NOT_FOUND',
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   SESSION_REQUIRED: 'SESSION_REQUIRED',
   JSON_REQUIRED: 'JSON_REQUIRED',

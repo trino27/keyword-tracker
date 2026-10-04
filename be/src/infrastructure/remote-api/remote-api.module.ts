@@ -1,6 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
 import { createGuardedLookup } from './guarded-lookup/guarded-lookup';
-import { HTTP_TRANSPORT } from './http-transport/http-transport.interface';
+import {
+  HTTP_TRANSPORT,
+  type IHttpTransport,
+} from './http-transport/http-transport.interface';
 import { RemoteApiCore } from './remote-api.core';
 import { UndiciHttpTransport } from './undici-http-transport/undici-http-transport';
 
@@ -18,4 +21,16 @@ import { UndiciHttpTransport } from './undici-http-transport/undici-http-transpo
   ],
   exports: [HTTP_TRANSPORT, RemoteApiCore],
 })
-export class RemoteApiModule {}
+export class RemoteApiModule implements OnApplicationShutdown {
+  constructor(
+    @Inject(HTTP_TRANSPORT) private readonly transport: IHttpTransport,
+  ) {}
+
+  /**
+   * Closes the connection pool on shutdown. Without this the agent's keep-alive
+   * sockets stay open and hold the process up past a graceful stop.
+   */
+  async onApplicationShutdown(): Promise<void> {
+    await this.transport.close?.();
+  }
+}

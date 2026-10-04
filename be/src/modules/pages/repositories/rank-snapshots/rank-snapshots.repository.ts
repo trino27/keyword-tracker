@@ -5,6 +5,7 @@ import {
   DATABASE_CONNECTION,
   type Database,
 } from '@persistence/connections/postgres/database-provider/database.provider';
+import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import { rankSnapshots } from '@persistence/schema/tables/rank-snapshots/rank-snapshots.schema';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 
@@ -41,9 +42,12 @@ export class RankSnapshotsRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
 
   /** Inserts what is new; a row already there (same pair, same instant) is kept as is. */
-  async insertManyForWorker(rows: INewSnapshot[]): Promise<number> {
+  async insertManyForWorker(
+    rows: INewSnapshot[],
+    tx?: Transaction,
+  ): Promise<number> {
     if (rows.length === 0) return 0;
-    const result = await this.db
+    const result = await (tx ?? this.db)
       .insert(rankSnapshots)
       .values(rows)
       .onConflictDoNothing();

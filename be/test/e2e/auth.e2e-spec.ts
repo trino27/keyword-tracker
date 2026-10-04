@@ -72,6 +72,7 @@ describe('auth (e2e)', () => {
 
     const response = await http()
       .post('/api/auth/logout')
+      .set('Content-Type', 'application/json')
       .set('Cookie', cookie)
       .expect(204);
 

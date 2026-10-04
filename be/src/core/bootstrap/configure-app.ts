@@ -3,6 +3,7 @@ import { Logger as NestPinoLogger } from 'nestjs-pino';
 import { API_PREFIX } from '@app/contracts';
 import cookieParser from 'cookie-parser';
 import { jsonOnlyMiddleware } from '../middleware/json-only/json-only.middleware';
+import { traceMiddleware } from '../middleware/trace/trace.middleware';
 
 /**
  * The imperative wiring the HTTP server needs, in the order it must run.
@@ -20,6 +21,8 @@ export function configureApp(app: NestExpressApplication): void {
 
   app.useLogger(app.get(NestPinoLogger));
   app.setGlobalPrefix(API_PREFIX);
+  // First of the middlewares: everything after it logs under the request's trace id.
+  app.use(traceMiddleware);
   // The session lives in the `sid` cookie; the guard reads it from `request.cookies`.
   app.use(cookieParser());
   // Before the body parser can accept a cross-site form post (CSRF, with SameSite=Lax).

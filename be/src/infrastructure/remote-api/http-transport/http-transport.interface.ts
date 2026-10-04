@@ -21,6 +21,8 @@ export interface IHttpResponse {
  */
 export interface IHttpTransport {
   send(request: IHttpRequest): Promise<IHttpResponse>;
+  /** Releases the connection pool, if the implementation keeps one. */
+  close?(): Promise<void>;
 }
 
 export const HTTP_TRANSPORT = Symbol('HTTP_TRANSPORT');

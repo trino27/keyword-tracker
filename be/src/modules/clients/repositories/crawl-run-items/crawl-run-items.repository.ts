@@ -16,8 +16,10 @@ export class CrawlRunItemsRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
 
   /**
-   * A run's log in sitemap order, for a run the scope's user owns. The caller checks
-   * ownership too; this join is what keeps that true when a second caller appears.
+   * A run's log in sitemap order, for a run the scope's user owns. The owner is in
+   * the query: a run id belonging to someone else comes back empty rather than
+   * relying on the caller having looked first, and that stays true when a second
+   * caller appears.
    */
   listByRun(scope: IUserScope, runId: number): Promise<ICrawlRunItemRecord[]> {
     return this.db

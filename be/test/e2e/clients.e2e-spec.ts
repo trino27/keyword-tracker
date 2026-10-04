@@ -74,6 +74,7 @@ describe('clients (e2e)', () => {
 
     const response = await http()
       .post(`/api/clients/${created.body.client.id}/crawl-runs`)
+      .set('Content-Type', 'application/json')
       .set('Cookie', cookie)
       .expect(409);
     expect(response.body).toMatchObject({ errorCode: 'CRAWL_ALREADY_ACTIVE' });

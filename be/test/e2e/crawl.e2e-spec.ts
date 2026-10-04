@@ -166,6 +166,7 @@ describe('crawl (e2e, recorded sites)', () => {
     try {
       const recrawl = await http()
         .post(`/api/clients/${client.id}/crawl-runs`)
+        .set('Content-Type', 'application/json')
         .set('Cookie', cookie)
         .expect(201);
       await app.get(CrawlWorker).runOnce();
