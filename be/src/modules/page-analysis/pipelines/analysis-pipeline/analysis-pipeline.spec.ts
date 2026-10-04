@@ -23,6 +23,7 @@ describe('ANALYSIS_PIPELINE', () => {
     expect(ANALYSIS_PIPELINE.map((step) => step.name)).toEqual([
       'keywords',
       'page-rules',
+      'run-rules',
     ]);
   });
 

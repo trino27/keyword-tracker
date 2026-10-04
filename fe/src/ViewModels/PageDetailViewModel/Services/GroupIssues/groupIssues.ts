@@ -42,6 +42,10 @@ const list = (details: TDetails, key: string) =>
  * explaining it never disagree.
  */
 const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
+	KEYWORD_CANNIBALISATION: (d) =>
+		`"${text(d, "term")}" is also the top keyword of ${list(d, "otherUrls")}.`,
+	TITLE_DUPLICATE: (d) => `The same title is used by ${list(d, "otherUrls")}.`,
+	META_DESCRIPTION_DUPLICATE: (d) => `The same description is used by ${list(d, "otherUrls")}.`,
 	TITLE_MISSING: () => "The page has no <title> in its <head>.",
 	TITLE_LENGTH: (d) =>
 		`The title is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,

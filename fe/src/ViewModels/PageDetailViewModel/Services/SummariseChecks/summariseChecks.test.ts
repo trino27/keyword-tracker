@@ -9,6 +9,13 @@ const allPassing = (): TPageCheck[] =>
 const withStatus = (code: string, status: TPageCheck["status"]): TPageCheck[] =>
 	allPassing().map((check) => (check.code === code ? { ...check, status } : check));
 
+/**
+ * Counted from the catalogue rather than written in: the subtitle is about how many
+ * checks there are, and a test that hard-codes the number fails on the next check
+ * added without anything being wrong.
+ */
+const ALL = SEO_ISSUE_CODES.length;
+
 describe("summariseChecks", () => {
 	it("keeps the order it was given", () => {
 		expect(summariseChecks(allPassing()).rows.map((row) => row.code)).toEqual(SEO_ISSUE_CODES);
@@ -24,14 +31,14 @@ describe("summariseChecks", () => {
 	it("counts a failed check as judged", () => {
 		const summary = summariseChecks(withStatus("TITLE_LENGTH", "failed"));
 
-		expect(summary.subtitle).toBe("18 judged");
+		expect(summary.subtitle).toBe(`${ALL} judged`);
 		expect(summary.failed).toBe(1);
 	});
 
 	it("names only the groups that are not empty", () => {
-		expect(summariseChecks(allPassing()).subtitle).toBe("18 judged");
+		expect(summariseChecks(allPassing()).subtitle).toBe(`${ALL} judged`);
 		expect(summariseChecks(withStatus("HEADING_SKIP", "notApplicable")).subtitle).toBe(
-			"17 judged · 1 not applicable",
+			`${ALL - 1} judged · 1 not applicable`,
 		);
 	});
 
@@ -75,7 +82,7 @@ describe("summariseChecks subtitle", () => {
 		}));
 
 		expect(summariseChecks(checks).subtitle).toBe(
-			"16 judged · 1 not applicable · 1 not yet checked",
+			`${ALL - 2} judged · 1 not applicable · 1 not yet checked`,
 		);
 	});
 
@@ -86,7 +93,7 @@ describe("summariseChecks subtitle", () => {
 		}));
 
 		expect(summariseChecks(checks).counts).toEqual({
-			passed: 17,
+			passed: ALL - 1,
 			failed: 1,
 			notApplicable: 0,
 			notYetChecked: 0,
