@@ -28,6 +28,20 @@ describe("KeywordToggles", () => {
 		expect(screen.getByRole("checkbox", { name: "new keyword" })).toBeDisabled();
 	});
 
+	it("strikes through none of them when not one has a position", () => {
+		const none = SERIES.map((keyword) => ({ ...keyword, points: [] }));
+		render(
+			<MantineProvider>
+				<KeywordToggles series={none} hidden={[]} onToggle={vi.fn()} />
+			</MantineProvider>,
+		);
+
+		expect(screen.getByText("remove www")).not.toHaveStyle({
+			textDecoration: "line-through",
+		});
+		expect(screen.getByRole("checkbox", { name: "new keyword" })).toBeEnabled();
+	});
+
 	it("shows a hidden keyword unchecked", () => {
 		render(
 			<MantineProvider>

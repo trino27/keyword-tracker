@@ -30,11 +30,16 @@ export function AppLayout() {
 				<Container size={CONTENT_WIDTH} h="100%">
 					<Group h="100%" justify="space-between" wrap="nowrap">
 						<Group gap="xl" wrap="nowrap">
-							<Link to="/pages" className={styles.brand}>
+							<Link to="/pages" className={styles.brand} aria-label="Keyword Tracker">
 								<IconChartLine size={22} />
-								<span>Keyword Tracker</span>
+								{/* On a phone the mark stands for the brand on its own: with the
+								    name beside it the navigation had no room left and fell to a
+								    second line, out of the header's 60px. */}
+								<Text span inherit visibleFrom="xs">
+									Keyword Tracker
+								</Text>
 							</Link>
-							<Group gap={4} component="nav" aria-label="Main">
+							<Group gap={4} wrap="nowrap" component="nav" aria-label="Main">
 								{NAVIGATION.map((item) => (
 									<Link
 										key={item.to}

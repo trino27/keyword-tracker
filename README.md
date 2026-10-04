@@ -39,7 +39,7 @@ Local development (Node 24, pnpm 10): `pnpm install`, then `pnpm dev:db`, `pnpm 
   site's vocabulary by comparing pages. Phrases score on the fields they appear in, pay a corpus
   penalty that strips what every page says, then compete for a budget of 2–6 slots.
 - **The checks are not invented here:** 27 checks, one unit per catalogued code, from Google's
-  SEO Starter Guide, Search Central and the set Lighthouse audits. Eighteen judge a page by
+  SEO Starter Guide, Search Central and the set Lighthouse audits. Twenty-four judge a page by
   itself and three compare it with the rest of the crawl; which of the two a check is follows
   from its catalogue entry, so the wrong shape does not compile. Each answers pass, fail or *not
   applicable*; a page's score is the share of the checks that could apply to it, equally weighted
@@ -93,9 +93,9 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
   the crawl found. Both need a crawler that FOLLOWS LINKS; this one visits the URLs a sitemap
   lists, so "nothing links here" is a conclusion from evidence it never gathered. Outgoing
   internal links ship as `NO_INTERNAL_LINKS`, which one page can answer about itself; duplicate
-  titles, duplicate descriptions and cannibalisation ship as the three run-scoped codes. Then the network ones (Lighthouse,
-  Core Web Vitals), and more crawl parallelism, which `SKIP LOCKED` already leaves as only a
-  second worker process away.
+  titles, duplicate descriptions and cannibalisation ship as the three run-scoped codes. Then
+  the network ones (Lighthouse, Core Web Vitals), and more crawl parallelism, which
+  `SKIP LOCKED` already leaves as only a second worker process away.
 - **Keyword stuffing, the one spam rule the catalogue is missing.** The 27 checks are what Google
   and Lighthouse document, and Google's spam policies document this one too — a page repeating
   its term past the point of being written for a person. It is absent because the trigger is not
@@ -107,7 +107,7 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
   deliberately so: weighting by severity would invent a ranking model nobody can justify. The
   honest version of that weight is measured, not asserted — the checks regressed against
   observed position movement, or impact data published by a source that has it. It costs more
-  than a constant: weights break the comparability the equal denominator gives (100 out of 13
+  than a constant: weights break the comparability the equal denominator gives (100 out of 16
   applicable checks and 100 out of 27 are already different claims), the stored
   `checks_applicable = cardinality(checks_judged)` would have to become a weight sum, and a
   score whose weights moved is not the score crawled last month. Until the evidence exists,
