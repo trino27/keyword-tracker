@@ -7,7 +7,7 @@ import {
 } from '@app/contracts';
 import { UserAccountsService } from '@modules/auth/services/user-accounts/user-accounts.service';
 import { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
-import { MIN_SNAPSHOTS } from '@modules/pages/services/position-generator/position-generator.constant';
+import { MIN_SNAPSHOTS } from '@modules/pages/constants/rank-capture.constant';
 import {
   PositionSeedService,
   type IPositionFill,

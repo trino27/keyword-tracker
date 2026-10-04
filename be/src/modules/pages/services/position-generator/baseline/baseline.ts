@@ -1,9 +1,11 @@
 import {
+  MAX_POSITION,
+  MIN_POSITION,
+} from '../../../constants/rank-capture.constant';
+import {
   BASELINE_BEST,
   BASELINE_JITTER,
   BASELINE_SPREAD,
-  MAX_POSITION,
-  MIN_POSITION,
 } from '../position-generator.constant';
 import { prng } from '../prng/prng';
 

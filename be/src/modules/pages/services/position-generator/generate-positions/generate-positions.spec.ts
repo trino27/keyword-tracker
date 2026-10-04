@@ -1,4 +1,4 @@
-import { DAY_MS } from '../history-days/history-days';
+import { DAY_MS } from '../../capture-schedule/capture-schedule';
 import { generatePositions } from './generate-positions';
 
 const pair = {

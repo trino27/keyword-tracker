@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PositionFillService } from '@modules/pages/services/position-fill/position-fill.service';
-import { historyDays } from '@modules/pages/services/position-generator/history-days/history-days';
+import { historyDays } from '@modules/pages/services/capture-schedule/capture-schedule';
 import { SnapshotWriterService } from '@modules/pages/services/snapshot-writer/snapshot-writer.service';
 
 export interface IPositionFill {

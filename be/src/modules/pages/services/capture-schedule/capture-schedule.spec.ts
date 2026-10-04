@@ -1,4 +1,4 @@
-import { historyDays, latestCapture } from './history-days';
+import { historyDays, latestCapture } from './capture-schedule';
 
 describe('historyDays', () => {
   it.each([

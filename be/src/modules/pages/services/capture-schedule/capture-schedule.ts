@@ -2,7 +2,7 @@ import {
   CAPTURE_HOUR_UTC,
   MIN_HISTORY_DAYS,
   MIN_SNAPSHOTS,
-} from '../position-generator.constant';
+} from '../../constants/rank-capture.constant';
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -10,6 +10,9 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
  * The SEED's span: enough days that every pair in the WHOLE database together reaches
  * the brief's snapshot minimum. It is a property of the database, not of one account —
  * a user's own fill spans `MAX_HISTORY_DAYS`, the most the UI can ask to see.
+ *
+ * Only an inventing provider can answer for a span like this; the seed asks the
+ * simulation directly for that reason.
  */
 export function historyDays(pairCount: number): number {
   if (pairCount <= 0) return MIN_HISTORY_DAYS;

@@ -1,10 +1,7 @@
-/** The brief: "at least 50,000 rank snapshots". */
-export const MIN_SNAPSHOTS = 50_000;
-/** A year of history at least, so every range the UI offers has data. */
-export const MIN_HISTORY_DAYS = 365;
-
-/** Snapshots are captured once a day at this UTC hour (D2). */
-export const CAPTURE_HOUR_UTC = 12;
+/**
+ * How the SIMULATED walk behaves. These are the knobs of one provider, not facts about
+ * rank captures — those are in `modules/pages/constants/rank-capture.constant.ts`.
+ */
 
 /** Share of the distance to the baseline a position closes each day. */
 export const REVERT = 0.15;
@@ -19,6 +16,3 @@ export const JUMP_MAX = 15;
 export const BASELINE_BEST = 3;
 export const BASELINE_SPREAD = 85;
 export const BASELINE_JITTER = 12;
-
-export const MIN_POSITION = 1;
-export const MAX_POSITION = 100;
