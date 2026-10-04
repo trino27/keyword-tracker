@@ -69,20 +69,21 @@ asks of a page; the rest follows Google Search Central on
 [`noindex`](https://developers.google.com/search/docs/crawling-indexing/block-indexing) and
 [structured data](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data),
 and the set as a whole is the one
-[Lighthouse audits under SEO](https://developer.chrome.com/docs/lighthouse/seo/). 18 rules,
-exactly one per catalogued code: a code without a rule does not compile. A rule answers `pass`,
-`fails` or `notApplicable`; the third outcome exists because without it "the title is 45
-characters" and "there is no title to measure" looked the same, and a page with no title was
-silently rewarded for a check that never ran. Severity is not the rule's —
-it comes from the catalogue, and the lists of measured and conditional codes are derived from the
+[Lighthouse audits under SEO](https://developer.chrome.com/docs/lighthouse/seo/). 27 checks,
+exactly one unit per catalogued code: a code without a check does not compile, and neither does a
+check registered under another code or given a shape its catalogue scope does not call for. A check
+answers `pass`, `fails` or `notApplicable`; the third outcome exists because without it "the title
+is 45 characters" and "there is no title to measure" looked the same, and a page with no title was
+silently rewarded for a check that never ran. Severity is not the check's — it comes from the
+catalogue, and the lists of measured and conditional codes are derived from the
 catalogue by type rather than kept beside it. One pass produces the issues, both counts behind
 the score, and the record of which codes were judged and which were not — the only account there
 will ever be of how the catalogue looked at that crawl.
 
-**A page's score is the share of the checks that could apply to it.** Five of the eighteen are
-conditional — a page with no images is not judged on alt text, a page with no description is not
-judged on its length — so the denominator is counted at crawl time, while the parsed page is
-still in hand, and shown beside the number: 100 out of 13 and 100 out of 18 are not the same
+**A page's score is the share of the checks that could apply to it.** Eleven of the twenty-seven
+are conditional — a page with no images is not judged on alt text, a page with no description is
+not judged on its length — so the denominator is counted at crawl time, while the parsed page is
+still in hand, and shown beside the number: 100 out of 16 and 100 out of 27 are not the same
 claim. Every check weighs the same; weighting by severity would invent a model of ranking nobody
 can justify, and Lighthouse does the same and says so — "each SEO audit is weighted equally in
 the Lighthouse SEO Score"

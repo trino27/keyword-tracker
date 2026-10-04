@@ -1,7 +1,6 @@
+import { evaluateChecks } from '../../services/checks/checks.registry';
 import { extractKeywords } from '../../services/keyword-extraction/extract-keywords/extract-keywords';
 import { runPipeline } from '../pipeline';
-import { applyRunRules } from '../../services/run-rules/run-rules.registry';
-import { evaluateSeoRules } from '../../services/seo-rules/seo-rules.registry';
 import type {
   IAnalysisContext,
   IAnalysisInput,
@@ -16,48 +15,40 @@ export const KEYWORDS_STEP: IAnalysisStep = {
   },
 };
 
-/** What is wrong with each page, judged on the page alone, one pass over the rules. */
-export const PAGE_RULES_STEP: IAnalysisStep = {
-  name: 'page-rules',
-  run(context) {
-    context.evaluations = context.pages.map((page) => evaluateSeoRules(page));
-  },
-};
-
 /**
- * What the pages share, which no page can see about itself: two of them written for
- * one query, or given one title. It EXTENDS the evaluations the page rules filled
- * rather than reporting separately, so a page keeps one score over one denominator.
+ * What is wrong with each page: one pass over the catalogue per page, covering both the
+ * checks a page answers about itself and the ones that compare it with the rest of the
+ * crawl. One step rather than two, because they fill ONE evaluation per page — split in
+ * two, the second had to rebuild what the first left and sort it back into catalogue
+ * order.
  *
- * Last in the list, and after `keywords`, because it reads both of their outputs.
+ * It reads `context.keywords`, which is why `keywords` runs first.
  */
-export const RUN_RULES_STEP: IAnalysisStep = {
-  name: 'run-rules',
+export const CHECKS_STEP: IAnalysisStep = {
+  name: 'checks',
   run(context) {
-    context.evaluations = applyRunRules(
-      { pages: context.pages, keywords: context.keywords },
-      context.evaluations,
-    );
+    context.evaluations = evaluateChecks({
+      pages: context.pages,
+      keywords: context.keywords,
+    });
   },
 };
 
 /**
  * Everything the analysis says about one crawl, as the ordered list of what it does.
  *
- * Two steps today, and the list earns itself on the third: the checks this needs next
- * are run-scoped (titles duplicated across the site, keyword cannibalisation, orphan
- * pages) and network-bound (Lighthouse, broken links). Each of those is a step added
- * here that extends the same `evaluations` — not a second analysis beside this one,
- * which is how a page would end up with two scores and two denominators.
+ * The step is the unit of extension for a KIND of work, not for a single check: a new
+ * check is an entry in `CHECKS`, while a step is what the next network-bound pass
+ * (Lighthouse, broken links) will be — it fetches, so it cannot sit inside a pass that
+ * is arithmetic over already-fetched pages. Such a step extends the same `evaluations`
+ * rather than reporting beside them, which is how a page would otherwise end up with two
+ * scores and two denominators.
  *
- * The first two steps are independent of each other; `run-rules` is not, and says so
- * above — it reads what both of them left. What the list fixes is WHICH work is done,
- * and, where a step declares it, the order its inputs require.
+ * The order here is load-bearing exactly once: `checks` reads what `keywords` left.
  */
 export const ANALYSIS_PIPELINE: readonly IAnalysisStep[] = [
   KEYWORDS_STEP,
-  PAGE_RULES_STEP,
-  RUN_RULES_STEP,
+  CHECKS_STEP,
 ];
 
 /** A context no step has written to yet. */

@@ -7,7 +7,7 @@ const arithmeticOf = (applicable: number, failed: number, value: number) =>
 describe("explainScore", () => {
 	it("says how many of the applicable checks passed", () => {
 		expect(arithmeticOf(18, 2, 89)).toContain(
-			"16 of the 18 checks that applied to this page passed.",
+			"16 of the 18 checks that applied to this page when it was crawled passed.",
 		);
 	});
 

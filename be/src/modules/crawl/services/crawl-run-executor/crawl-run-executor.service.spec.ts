@@ -8,7 +8,7 @@ import type {
 import type { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import type { CrawlResultsService } from '@modules/pages/services/crawl-results/crawl-results.service';
 import { PageAnalysisService } from '@modules/page-analysis/services/page-analysis/page-analysis.service';
-import { makeRuleInput } from '@modules/page-analysis/services/seo-rules/_testing/make-rule-input';
+import { makeCheckInput } from '@modules/page-analysis/services/checks/_testing/make-check-input';
 import type {
   ICrawledPage,
   ISelectedItem,
@@ -37,7 +37,7 @@ const crawledItem = (position: number): ISelectedItem => {
     headers: {},
     responseMs: 100,
     htmlBytes: 1000,
-    parsed: makeRuleInput().parsed,
+    parsed: makeCheckInput().parsed,
   };
   return {
     sitemapPosition: position,

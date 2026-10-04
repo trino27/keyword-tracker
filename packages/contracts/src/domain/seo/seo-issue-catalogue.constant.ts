@@ -33,9 +33,9 @@ export interface ISeoIssueDefinition {
 }
 
 /**
- * Every SEO issue the analysis can report — the backend's rules are typed by these
- * keys, so a code without a rule does not compile, and the frontend renders labels and
- * hints from here. Thresholds live here too: the rule and the screen quote one number.
+ * Every SEO issue the analysis can report — the backend's checks are typed by these
+ * keys, so a code without a check does not compile, and the frontend renders labels and
+ * hints from here. Thresholds live here too: the check and the screen quote one number.
  */
 export const SEO_ISSUE_CATALOGUE = {
   TITLE_MISSING: {
@@ -110,10 +110,36 @@ export const SEO_ISSUE_CATALOGUE = {
     hint: 'Posts under 300 words rarely answer a query well enough to rank.',
     min: 300,
   },
+  NO_INTERNAL_LINKS: {
+    // The content's own links, not the template's: the extractor has already removed the
+    // nav, the related-posts rail and the share bar, so what is left is what the author
+    // wrote. A page the theme links from every sidebar still fails this, correctly.
+    severity: 'notice',
+    label: 'Content links nowhere on the site',
+    hint: 'Links written into the text carry readers and crawlers on to the pages they name.',
+  },
   LANG_MISSING: {
     severity: 'notice',
     label: 'Language is not declared',
     hint: 'The lang attribute on <html> tells search engines which audience to serve.',
+  },
+  HREFLANG_INVALID: {
+    // Reciprocity — does the page named back link here — is the other half of Google's
+    // requirement and is deliberately not checked: it needs the other document, which
+    // is usually on another site and never in this crawl. What is checked is what one
+    // page can answer about itself.
+    severity: 'notice',
+    label: 'Hreflang is malformed',
+    hint: 'A hreflang with an invalid language code, or that never names this page, is ignored.',
+    skipReason: 'The page declares no hreflang.',
+  },
+  VIEWPORT_MISSING: {
+    // A warning and not an error, by the line ranking-signals.md draws: an error is for
+    // what keeps a page out of the running — unreachable, noindexed, canonicalised away.
+    // A page without a viewport is indexed; it is just indexed as rendered on a phone.
+    severity: 'warning',
+    label: 'No mobile viewport',
+    hint: 'Google indexes the mobile version; without a viewport the page renders at desktop width on a phone.',
   },
   OG_TAGS_MISSING: {
     severity: 'notice',
@@ -125,10 +151,23 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Not served over HTTPS',
     hint: 'Browsers mark plain HTTP pages as not secure, and search engines prefer HTTPS.',
   },
+  MIXED_CONTENT: {
+    // Skipped rather than passed on an http page: there is no mixing, and passing would
+    // reward the page for the very thing NOT_HTTPS is failing it for.
+    severity: 'warning',
+    label: 'Insecure resources on a secure page',
+    hint: 'Browsers block images and scripts fetched over plain HTTP on an HTTPS page; serve them over HTTPS.',
+    skipReason: 'The page is not served over HTTPS, so nothing is mixed.',
+  },
   REDIRECTED: {
     severity: 'notice',
     label: 'Sitemap URL redirects',
     hint: 'The sitemap lists a URL that redirects; list the final URL instead.',
+  },
+  META_REFRESH: {
+    severity: 'warning',
+    label: 'Redirects with a meta refresh',
+    hint: 'Google asks for a server-side 301; a meta refresh is slower and states the move less clearly.',
   },
   LARGE_PAGE: {
     severity: 'notice',
@@ -167,6 +206,17 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'No article structured data',
     hint: 'Article or BlogPosting markup makes the post eligible for rich results; Google requires none.',
   },
+  STRUCTURED_DATA_INCOMPLETE: {
+    // Google's Article type has NO required properties — the documentation says to supply
+    // what applies. So this cannot be a violation either, and the severity and the wording
+    // follow STRUCTURED_DATA_MISSING: a missing recommended field costs eligibility for
+    // part of the rich result, and nothing else. Skipped where there is no article node,
+    // because that page is already failing the check above and would be told twice.
+    severity: 'notice',
+    label: 'Article markup is missing recommended fields',
+    hint: 'Google recommends headline, image, datePublished, dateModified and author; it requires none of them.',
+    skipReason: 'The page declares no article structured data.',
+  },
 } as const satisfies Record<string, ISeoIssueDefinition>;
 
 export type TSeoIssueCode = keyof typeof SEO_ISSUE_CATALOGUE;
@@ -179,10 +229,11 @@ export const SEO_ISSUE_CODES = Object.keys(
  * The catalogue split by what a check can see. Derived from the entries, so a code is
  * in exactly one of them and neither list can drift from the catalogue.
  *
- * The split is what lets the page rules stay typed as complete: `SEO_RULES` covers
- * every PAGE code and would not compile if one were missing, and a run check — which
- * takes the whole crawl rather than a page — is answered by its own registry instead
- * of being forced into a shape it cannot have.
+ * The split is what decides a check's SHAPE from its code rather than from the check:
+ * a run code's unit takes the whole crawl and answers once per page, every other code's
+ * takes one page. So the wrong shape under a code is a compile error, not a check that
+ * runs and never fires — which is what it would be, since "is another page using this
+ * title" cannot be answered from one page at all.
  */
 export type TRunIssueCode = {
   [K in TSeoIssueCode]: (typeof SEO_ISSUE_CATALOGUE)[K] extends {

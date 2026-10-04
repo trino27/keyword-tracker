@@ -125,15 +125,23 @@ describe('PagesRepository (postgres)', () => {
    * and the screen would quote a reason for a check this crawl actually judged.
    */
   it('a re-crawl that skips nothing clears the skipped list', async () => {
+    const JUDGED = 16;
     const { clientId, firstRunId, secondRunId } = await seedClientWithRuns();
 
     await testDb.db.transaction((tx) =>
       repository.upsertManyForWorker(tx, [
-        page(clientId, firstRunId, { checksApplicable: 16, checksFailed: 2 }),
+        page(clientId, firstRunId, {
+          checksApplicable: JUDGED,
+          checksFailed: 2,
+        }),
       ]),
     );
+    // Counted off the catalogue, not written as a number: the seed splits the codes at
+    // `checksApplicable`, so a literal here goes stale the day a check is added.
     const [before] = await testDb.db.select().from(pages);
-    expect(before.checksNotApplicable).toHaveLength(2);
+    expect(before.checksNotApplicable).toHaveLength(
+      SEO_ISSUE_CODES.length - JUDGED,
+    );
 
     await testDb.db.transaction((tx) =>
       repository.upsertManyForWorker(tx, [page(clientId, secondRunId)]),

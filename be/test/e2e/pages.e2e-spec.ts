@@ -1,6 +1,6 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
-import { SEO_ISSUE_CODES } from '@app/contracts';
+import { ACTIVE_ISSUE_CODES, CONDITIONAL_ISSUE_CODES } from '@app/contracts';
 import { MAX_KEYWORDS } from '../../src/modules/page-analysis/constants/keyword-scoring.constant';
 import { CrawlWorker } from '../../src/modules/crawl/workers/crawl-worker/crawl-worker';
 import { createTestApp } from '../support/create-test-app';
@@ -117,8 +117,12 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     for (const item of response.body.items as {
       score: { value: number; applicable: number; failed: number };
     }[]) {
-      expect(item.score.applicable).toBeGreaterThanOrEqual(13);
-      expect(item.score.applicable).toBeLessThanOrEqual(18);
+      expect(item.score.applicable).toBeGreaterThanOrEqual(
+        ACTIVE_ISSUE_CODES.length - CONDITIONAL_ISSUE_CODES.length,
+      );
+      expect(item.score.applicable).toBeLessThanOrEqual(
+        ACTIVE_ISSUE_CODES.length,
+      );
       expect(item.score.failed).toBeLessThanOrEqual(item.score.applicable);
       expect(item.score.value).toBe(
         Math.round(
@@ -173,7 +177,7 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
       .expect(200);
 
     const checks = detail.body.checks as { code: string; status: string }[];
-    expect(checks.map(({ code }) => code)).toEqual(SEO_ISSUE_CODES);
+    expect(checks.map(({ code }) => code)).toEqual(ACTIVE_ISSUE_CODES);
 
     const count = (status: string) =>
       checks.filter((check) => check.status === status).length;

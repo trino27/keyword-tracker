@@ -1,4 +1,4 @@
-import { makeRuleInput } from '../../seo-rules/_testing/make-rule-input';
+import { makeCheckInput } from '../../checks/_testing/make-check-input';
 import type { IParsedPage } from '../../../interfaces/parsed-page.interface';
 import {
   collectCandidates,
@@ -13,7 +13,7 @@ const collect = (
   collectCandidates({
     url,
     siteKey: 'a.example',
-    parsed: { ...makeRuleInput().parsed, ...parsed },
+    parsed: { ...makeCheckInput().parsed, ...parsed },
   });
 
 describe('stripTitleChrome', () => {
@@ -176,7 +176,7 @@ describe('collectCandidates', () => {
 
   it('marks candidates the page declares itself', () => {
     const candidates = collect({
-      jsonLd: { types: [], keywords: ['Technical SEO'] },
+      jsonLd: { types: [], keywords: ['Technical SEO'], articleFields: [] },
       blocks: ['Technical SEO matters. SEO too.'],
     });
 
