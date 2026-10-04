@@ -14,7 +14,6 @@ import {
   loadFixtureManifest,
 } from '@infrastructure/remote-api/_testing/fixture-http-transport';
 import { extractPage } from '../html-extraction/extract-page';
-import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 import { makeCheckInput } from './_testing/make-check-input';
 import { keywordsOf, makeRunInput, runPage } from './_testing/make-run-input';
 import { CHECKS, evaluateChecks } from './checks.registry';
@@ -94,7 +93,7 @@ describe('evaluateChecks', () => {
       evaluateChecks(
         makeRunInput(
           [runPage('a', { parsed: { title: null } }), run.pages[1]],
-          run.keywords as ISelectedKeyword[][],
+          [keywordsOf('link building'), keywordsOf('technical audits')],
         ),
       )[0];
 

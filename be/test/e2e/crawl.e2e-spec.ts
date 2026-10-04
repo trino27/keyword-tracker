@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { ACTIVE_ISSUE_CODES } from '@app/contracts';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { count, eq } from 'drizzle-orm';
 import { MAX_KEYWORDS } from '../../src/modules/page-analysis/constants/keyword-scoring.constant';
@@ -109,7 +110,9 @@ describe('crawl (e2e, recorded sites)', () => {
     );
     for (const page of stored) {
       expect(page.checksApplicable).toBeGreaterThanOrEqual(13);
-      expect(page.checksApplicable).toBeLessThanOrEqual(18);
+      expect(page.checksApplicable).toBeLessThanOrEqual(
+        ACTIVE_ISSUE_CODES.length,
+      );
       expect(page.checksFailed).toBe(failedByPage.get(page.id) ?? 0);
     }
   });
