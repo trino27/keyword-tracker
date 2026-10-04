@@ -165,6 +165,14 @@ time (no DNS-rebinding window), with size caps, timeouts and bounded retries.
 - Tuning the hyperparameters. Every weight and threshold in keyword extraction and blog discovery
   was set by hand against two sites and recorded fixtures; they want fitting on a larger labelled
   corpus, and against a measurable outcome — impressions and clicks per keyword.
+
+  The keyword half now has the corpus, if not the outcome: `be/src/modules/page-analysis/
+  _catalogue/` labels every keyword the 41 recorded pages produce and asserts the counts, and
+  `runArm` moves one constant across the whole catalogue at a time. Sweeping them is what
+  established that none of them is the lever: the good long tail and the junk occupy the same
+  band of relevance — `schema markup` at 0.30 against `every dollar` at 0.26 — so a threshold
+  that removes one removes the other, and the separation that worked was grammatical rather than
+  numeric. A larger corpus would move this; real impressions per keyword would settle it.
 - Sites without a blog sitemap: an HTML/feed-only fallback.
 - More checks and metrics: network ones (Lighthouse, Core Web Vitals, broken links) and the
   site-level ones a page cannot see about itself — duplicate titles and descriptions, keyword
