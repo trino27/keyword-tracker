@@ -5,9 +5,9 @@ import { makeCheckInput } from './make-check-input';
 /**
  * One page of a run, named by its path so a duplication finding reads as URLs.
  *
- * Its canonical follows its URL, because `makeCheckInput` builds a page that passes
- * every check and a fixed canonical would make every page but one fail
- * CANONICAL_MISMATCH — a failure about the fixture, not about the check under test.
+ * Its canonical and its hreflang self-reference follow its URL, because `makeCheckInput`
+ * builds a page that passes every check and a fixed URL in either would make every page
+ * but one fail — a failure about the fixture, not about the check under test.
  */
 export const runPage = (
   path: string,
@@ -19,7 +19,11 @@ export const runPage = (
     url,
     finalUrl: url,
     ...rest,
-    parsed: { canonical: url, ...parsed },
+    parsed: {
+      canonical: url,
+      alternates: [{ lang: 'en', href: url }],
+      ...parsed,
+    },
   });
 };
 

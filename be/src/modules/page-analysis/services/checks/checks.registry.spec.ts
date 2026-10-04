@@ -116,13 +116,19 @@ describe('evaluateChecks', () => {
               canonical: null,
               images: [],
               headings: [{ level: 1, text: 'Only one heading' }],
+              alternates: [],
+              jsonLd: { types: [], keywords: [], articleFields: [] },
             },
+            // http, so MIXED_CONTENT has nothing to mix. The page is bare in every
+            // sense a check can be skipped for, which is what this case is for.
+            url: 'http://a.example/post/',
+            finalUrl: 'http://a.example/post/',
           }),
         ]),
       )[0];
 
     // A run of one page cannot answer a run-scoped check either, so this is the whole
-    // conditional set at once — the five a page can skip and the three a run can.
+    // conditional set at once — the eight a page can skip and the three a run can.
     expect(checksApplicable).toBe(
       ACTIVE_ISSUE_CODES.length - CONDITIONAL_ISSUE_CODES.length,
     );
@@ -236,10 +242,12 @@ describe('evaluateChecks', () => {
       for (const issue of issues) {
         expect(SEO_ISSUE_CATALOGUE[issue.code].severity).toBe(issue.severity);
       }
-      // Thirteen checks always apply and the rest are conditional, so no real page can
+      // Sixteen checks always apply and the rest are conditional, so no real page can
       // produce a denominator small enough to make its score meaningless. This is the
       // assertion that fails the day an applicability condition is written too broadly.
-      expect(checksApplicable).toBeGreaterThanOrEqual(13);
+      expect(checksApplicable).toBeGreaterThanOrEqual(
+        ACTIVE_ISSUE_CODES.length - CONDITIONAL_ISSUE_CODES.length,
+      );
       expect(checksApplicable).toBeLessThanOrEqual(ACTIVE_ISSUE_CODES.length);
       expect(checksFailed).toBe(issues.length);
       // The pair accounts for the whole active catalogue on every real page, and the

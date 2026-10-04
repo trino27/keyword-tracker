@@ -9,6 +9,7 @@ import { CANONICAL_MISSING_CHECK } from './canonical-missing/canonical-missing.c
 import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
+import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
 import { IMAGES_MISSING_ALT_CHECK } from './images-missing-alt/images-missing-alt.check';
 import { KEYWORD_CANNIBALISATION_CHECK } from './keyword-cannibalisation/keyword-cannibalisation.check';
 import { LANG_MISSING_CHECK } from './lang-missing/lang-missing.check';
@@ -16,15 +17,20 @@ import { LARGE_PAGE_CHECK } from './large-page/large-page.check';
 import { META_DESCRIPTION_DUPLICATE_CHECK } from './meta-description-duplicate/meta-description-duplicate.check';
 import { META_DESCRIPTION_LENGTH_CHECK } from './meta-description-length/meta-description-length.check';
 import { META_DESCRIPTION_MISSING_CHECK } from './meta-description-missing/meta-description-missing.check';
+import { META_REFRESH_CHECK } from './meta-refresh/meta-refresh.check';
+import { MIXED_CONTENT_CHECK } from './mixed-content/mixed-content.check';
+import { NO_INTERNAL_LINKS_CHECK } from './no-internal-links/no-internal-links.check';
 import { NOINDEX_CHECK } from './noindex/noindex.check';
 import { NOT_HTTPS_CHECK } from './not-https/not-https.check';
 import { OG_TAGS_MISSING_CHECK } from './og-tags-missing/og-tags-missing.check';
 import { REDIRECTED_CHECK } from './redirected/redirected.check';
 import { STRUCTURED_DATA_MISSING_CHECK } from './structured-data-missing/structured-data-missing.check';
+import { STRUCTURED_DATA_INCOMPLETE_CHECK } from './structured-data-incomplete/structured-data-incomplete.check';
 import { THIN_CONTENT_CHECK } from './thin-content/thin-content.check';
 import { TITLE_DUPLICATE_CHECK } from './title-duplicate/title-duplicate.check';
 import { TITLE_LENGTH_CHECK } from './title-length/title-length.check';
 import { TITLE_MISSING_CHECK } from './title-missing/title-missing.check';
+import { VIEWPORT_MISSING_CHECK } from './viewport-missing/viewport-missing.check';
 import type { IRunInput, TCheck, TVerdict } from './check.interface';
 
 /**
@@ -54,15 +60,21 @@ export const CHECKS: TCheckRegistry = {
   NOINDEX: NOINDEX_CHECK,
   IMAGES_MISSING_ALT: IMAGES_MISSING_ALT_CHECK,
   THIN_CONTENT: THIN_CONTENT_CHECK,
+  NO_INTERNAL_LINKS: NO_INTERNAL_LINKS_CHECK,
   LANG_MISSING: LANG_MISSING_CHECK,
+  HREFLANG_INVALID: HREFLANG_INVALID_CHECK,
+  VIEWPORT_MISSING: VIEWPORT_MISSING_CHECK,
   OG_TAGS_MISSING: OG_TAGS_MISSING_CHECK,
   NOT_HTTPS: NOT_HTTPS_CHECK,
+  MIXED_CONTENT: MIXED_CONTENT_CHECK,
   REDIRECTED: REDIRECTED_CHECK,
+  META_REFRESH: META_REFRESH_CHECK,
   LARGE_PAGE: LARGE_PAGE_CHECK,
   KEYWORD_CANNIBALISATION: KEYWORD_CANNIBALISATION_CHECK,
   TITLE_DUPLICATE: TITLE_DUPLICATE_CHECK,
   META_DESCRIPTION_DUPLICATE: META_DESCRIPTION_DUPLICATE_CHECK,
   STRUCTURED_DATA_MISSING: STRUCTURED_DATA_MISSING_CHECK,
+  STRUCTURED_DATA_INCOMPLETE: STRUCTURED_DATA_INCOMPLETE_CHECK,
 };
 
 /** What one pass over the checks concluded about a page. */

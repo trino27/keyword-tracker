@@ -3,7 +3,9 @@ import { makeCheckInput } from '../_testing/make-check-input';
 import { STRUCTURED_DATA_MISSING_CHECK } from './structured-data-missing.check';
 
 const withTypes = (types: string[]) =>
-  makeCheckInput({ parsed: { jsonLd: { types, keywords: [] } } });
+  makeCheckInput({
+    parsed: { jsonLd: { types, keywords: [], articleFields: [] } },
+  });
 
 describe('STRUCTURED_DATA_MISSING', () => {
   it.each([['Article'], ['BlogPosting'], ['NewsArticle'], ['TechArticle']])(
