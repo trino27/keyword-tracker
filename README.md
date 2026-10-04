@@ -22,9 +22,22 @@ Open http://localhost:8080 and sign in as **`semrush.manager@example.com`** or
 year of daily positions — about 56 000 snapshots. It is idempotent: run it again any time; it
 crawls nothing twice and fills positions up to today, including for clients added in the UI.
 
-Local development (Node 24, pnpm 10): `pnpm install`, then `pnpm dev:db`, `pnpm db:migrate`,
-`pnpm dev:be` (:3000) and `pnpm dev:fe` (:5173). Checks: `pnpm lint`, `pnpm typecheck`,
-`pnpm test`, `pnpm test:db`.
+## Local development
+
+Node 24 and pnpm 10, with Postgres in Docker and the two apps on the host. The same
+`cp .env.example .env` as above; nothing else is configured.
+
+```bash
+pnpm install
+pnpm dev:db                  # Postgres only, on 55433
+pnpm db:migrate
+pnpm dev:be                  # API on :3000
+pnpm dev:fe                  # SPA on :5173, proxying /api to :3000
+pnpm seed                    # the same demo data, against the local database
+
+pnpm lint && pnpm typecheck && pnpm test   # what pre-push and CI run
+pnpm test:db                 # the integration and e2e suites, against pnpm dev:db
+```
 
 ## Decisions, and why
 
@@ -34,10 +47,14 @@ Local development (Node 24, pnpm 10): `pnpm install`, then `pnpm dev:db`, `pnpm 
 - **Finding the blog without knowing the site.** Sitemaps come from robots.txt or the usual
   addresses; a candidate group scores on its name, the share of its URLs in a blog path, and the
   share of the site's RSS feed it covers — the strongest signal, because a feed lists posts and
-  nothing else. With none, listing pages are read instead. Neither seed site is special-cased.
+  nothing else. With no blog sitemap at all the feed itself is the source, and failing that the
+  site's listing pages are read. Neither seed site is special-cased.
 - **Keywords come from the whole crawl, not one page** — a subject can only be told from the
   site's vocabulary by comparing pages. Phrases score on the fields they appear in, pay a corpus
-  penalty that strips what every page says, then compete for a budget of 2–6 slots.
+  penalty that strips what every page says, then compete for a budget of 2–6 slots. A title is
+  tokenized into every window it contains, so a phrase the prose never repeats is damped and a
+  bare common word is not selected at all — otherwise a page is filed under `nlds thriller` or
+  `exercises` while its subject sits one line below.
 - **The checks are not invented here:** 27 checks, one unit per catalogued code, from Google's
   SEO Starter Guide, Search Central and the set Lighthouse audits. Twenty-four judge a page by
   itself and three compare it with the rest of the crawl; which of the two a check is follows
@@ -117,7 +134,7 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
 
 Claude Code (Anthropic) throughout: interviewing the requirements into a plan and OpenSpec
 changes, test-first implementation phase by phase, and review. The plans are in
-`docs/_plans-archive/`, the changes in `openspec/changes/`.
+`docs/_plans-archive/`, the thirteen changes they drove in `openspec/changes/archive/`.
 
 `be/` NestJS API · `fe/` React + Vite SPA · `packages/contracts/` what both sides share ·
 `caddy/` web server · `openspec/` requirements · `AGENTS.md` entry point for contributors.
