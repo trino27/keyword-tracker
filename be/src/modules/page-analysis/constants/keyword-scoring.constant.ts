@@ -71,6 +71,10 @@ export const METADATA_BONUS = 1.15;
  * `посока`, `national`, `ръчен`, `чекиран` — because an elliptical heading ("Ръчен и
  * чекиран") hands the adjective the title's whole weight while the phrase it belongs
  * to lives only in the text.
+ *
+ * The single-word entry is spent where that weight comes from — see `ngramFactor`,
+ * which damps a bare word the title, h1 or slug names and leaves one the prose
+ * earned alone.
  */
 export const NGRAM_FACTOR: readonly number[] = [0, 0.6, 1.15, 1.15, 1.0, 0.85];
 

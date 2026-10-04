@@ -45,7 +45,34 @@ export function pageScore(stats: ICandidateStats): number {
     score += FIELD_WEIGHTS.body * Math.log(1 + stats.bodyTf);
   score *= 1 + MULTI_FIELD_BONUS * Math.max(0, strongFields - 1);
   if (stats.declared) score *= METADATA_BONUS;
-  return score * (NGRAM_FACTOR[stats.tokens] ?? 1);
+  return score * ngramFactor(stats);
+}
+
+/**
+ * The phrase preference, and the single-word damping spent only on the words it was
+ * written against.
+ *
+ * Every bad bare word it answers was read out of an elliptical heading — `евро`,
+ * `посока`, `national`, `ръчен` — a common word handed a title's whole weight while
+ * the phrase it belongs to was never a candidate. A name is the other kind of single
+ * word: `gutenberg`, `perplexity`, `wordpress` are what a person types into a search
+ * box, and there is no phrase they are a fragment of.
+ *
+ * An ANCHORED word stays damped whether it is a name or not: the title's weight is
+ * the thing being guarded against, and undamping it made `url` the top keyword of
+ * "How to remove WWW from your URL" and `facebook` of "Traffic from Facebook is
+ * decreasing", each over the phrase that says what the post is for.
+ *
+ * Yoast's "Should you update to WordPress 5.0?" is the page that separates them.
+ * `gutenberg` — six times in 494 words, and in a subheading — scored 3.06 against a
+ * floor of 4.20 purely for being one word, and the post about Gutenberg returned a
+ * single keyword that was not it. Lifting every undamped single word instead let in
+ * `drinks`, `noticed`, `direct` and `updating`, which is the junk the damping exists
+ * for: the capitalisation is what tells the two apart.
+ */
+function ngramFactor(stats: ICandidateStats): number {
+  if (stats.tokens === 1 && stats.properNoun && !isAnchored(stats)) return 1;
+  return NGRAM_FACTOR[stats.tokens] ?? 1;
 }
 
 /**
