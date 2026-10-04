@@ -5,6 +5,7 @@ import {
   MAX_SUBSUME_GROWTH,
   MAX_KEYWORDS_PER_RUN,
   MAX_OVERLAP_RATIO,
+  SUBSUME_EXTENSION_RATIO,
   SUBSUME_RATIO,
   WORDS_PER_KEYWORD,
 } from '../../../constants/keyword-scoring.constant';
@@ -35,12 +36,38 @@ const contains = (longer: string, shorter: string) =>
   tokenCount(longer) - tokenCount(shorter) <= MAX_SUBSUME_GROWTH;
 
 /**
+ * `longer` continues `shorter` at one end — it starts or finishes with it — rather
+ * than wrapping around it. See SUBSUME_EXTENSION_RATIO.
+ */
+const extends_ = (longer: string, shorter: string) =>
+  longer.startsWith(`${shorter} `) || longer.endsWith(` ${shorter}`);
+
+/**
  * §10.4 step 10: "seo" gives way to "seo audit" when the phrase scores at least
  * SUBSUME_RATIO of the word — the phrase says the same and more.
  */
-export function subsume(candidates: IScoredCandidate[]): IScoredCandidate[] {
+export function subsume(
+  candidates: IScoredCandidate[],
+  titleHead?: string,
+): IScoredCandidate[] {
+  // The page's own first title clause, when it survived as a candidate, is what the
+  // page says it is about. Scoring reads it as one window among its own: "Data
+  // Science for SEO" ranked FOURTH behind `data science`, `science for seo` and
+  // `science`, and the post about data science for SEO was filed under the far
+  // broader `data science`. A declared subject does not have to outscore the words
+  // it is made of.
+  const head = titleHead
+    ? candidates.find((candidate) => candidate.term === titleHead)
+    : undefined;
   return candidates.filter(
     (candidate) =>
+      !(
+        head !== undefined &&
+        candidate.term !== head.term &&
+        contains(head.term, candidate.term) &&
+        extends_(head.term, candidate.term) &&
+        head.score >= SUBSUME_EXTENSION_RATIO * candidate.score
+      ) &&
       !candidates.some(
         (other) =>
           contains(other.term, candidate.term) &&

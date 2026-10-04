@@ -103,6 +103,65 @@ export function stripTitleChrome(
   return segments.join(' - ');
 }
 
+/**
+ * The clause boundaries inside a title — a colon, a question or exclamation mark, a
+ * plus, or a separator `stripTitleChrome` left behind. A title is not one phrase:
+ * "Local SEO ranking factors: Your complete guide" is a subject and a promise, and
+ * "Facebook Audience Overlap Explained + Ways to Avoid It" is two claims the plus
+ * once glued into `overlap explained ways to avoid`, a phrase the page never says.
+ */
+const TITLE_CLAUSE = /[:?!+]+|\s[-–—|·•]\s/u;
+
+/** A title cut into its clauses, in the order written. */
+export function titleClauses(title: string): string[] {
+  return title
+    .split(TITLE_CLAUSE)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+}
+
+/**
+ * The clause that NAMES the page, and the clauses that merely describe it.
+ *
+ * Position alone was tried first and is wrong often enough to matter. It holds for
+ * "Local SEO ranking factors: Your complete guide", and it inverts for "Optimizing a
+ * single page: One page website SEO", where the subject is second and demoting it
+ * filed the post under `single page`. The slug settles it: an author writes the URL
+ * out of the subject, so the clause whose words the slug repeats is the subject —
+ * here `one-page-website-seo`. With no slug, or no clause it shares a word with, the
+ * first clause is still the best guess.
+ */
+export function namedClause(
+  title: string,
+  slug: string,
+): { head: string; tail: string[] } {
+  const clauses = titleClauses(title);
+  if (clauses.length === 0) return { head: '', tail: [] };
+  const slugTokens = new Set(normalizeText(slug).split(' ').filter(Boolean));
+  let best = 0;
+  let bestShare = 0;
+  clauses.forEach((clause, index) => {
+    const tokens = normalizeText(clause).split(' ').filter(Boolean);
+    if (tokens.length === 0) return;
+    // The SHARE of the clause that the slug repeats, not the count. Counting matches
+    // outright hands it to whichever clause is longer, and a slug written out of the
+    // whole title then names the wrong one: "Facebook traffic: What's the current
+    // status?" scored 2 for its subject and 3 for its question, and the post was
+    // filed under `current status`.
+    const share =
+      tokens.filter((token) => slugTokens.has(token)).length / tokens.length;
+    // Strictly greater, so a tie leaves the clause the author wrote first in front.
+    if (share > bestShare) {
+      bestShare = share;
+      best = index;
+    }
+  });
+  return {
+    head: clauses[best],
+    tail: clauses.filter((_, index) => index !== best),
+  };
+}
+
 const VOWEL = /[aeiouyàâäåæéèêëíìîïóòôöøœúùûüýÿаеёиоуыэюяіїєўъ]/i;
 
 /**
@@ -123,7 +182,7 @@ function looksLikeId(token: string): boolean {
  * weight its fragments outscore real body terms. A slug is either words or an
  * identifier; a mixed verdict is the identifier's.
  */
-function slugOf(url: string): string {
+export function slugOf(url: string): string {
   let segment: string;
   try {
     const segments = new URL(url).pathname.split('/').filter(Boolean);
@@ -206,22 +265,30 @@ export function collectCandidates(
     .map((keyword) => ` ${keyword} `);
 
   const mainH1 = parsed.headings.find((heading) => heading.level === 1)?.text;
+  const slug = slugOf(source.url);
+  const { head: h1Head, tail: h1Tail } = namedClause(
+    mainH1 ?? parsed.h1s[0] ?? '',
+    slug,
+  );
+  const { head: titleHead, tail: titleTail } = namedClause(
+    parsed.title
+      ? stripTitleChrome(
+          parsed.title,
+          source.siteKey,
+          parsed.openGraph['og:site_name'],
+          source.titleChrome,
+        )
+      : '',
+    slug,
+  );
   const fields: [TKeywordField, string[]][] = [
-    [
-      'title',
-      parsed.title
-        ? [
-            stripTitleChrome(
-              parsed.title,
-              source.siteKey,
-              parsed.openGraph['og:site_name'],
-              source.titleChrome,
-            ),
-          ]
-        : [],
-    ],
-    ['h1', [mainH1 ?? parsed.h1s[0] ?? ''].filter(Boolean)],
-    ['slug', [slugOf(source.url)]],
+    ['title', titleHead ? [titleHead] : []],
+    // The h1 is the title written again on nearly every blog theme, so a tail demoted
+    // in one and left whole in the other is not demoted at all: `complete guide` kept
+    // the h1's weight of 4 and its anchor, and nothing moved.
+    ['h1', h1Head ? [h1Head] : []],
+    ['titleTail', [...titleTail, ...h1Tail]],
+    ['slug', [slug]],
     ['meta', parsed.metaDescription ? [parsed.metaDescription] : []],
     [
       'subheading',

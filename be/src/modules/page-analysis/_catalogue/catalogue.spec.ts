@@ -18,17 +18,17 @@ describe('keyword catalogue', () => {
   const rows = runArm({});
   const s = score(rows);
 
-  it('names the right subject on all but two pages', () => {
-    expect(s.primaryGood).toBeGreaterThanOrEqual(39);
+  it('names the right subject on all but one page', () => {
+    expect(s.primaryGood).toBeGreaterThanOrEqual(40);
     expect(s.pages).toBe(41);
   });
 
-  it('returns at least 50 labelled-good keywords', () => {
-    expect(s.good).toBeGreaterThanOrEqual(50);
+  it('returns at least 52 labelled-good keywords', () => {
+    expect(s.good).toBeGreaterThanOrEqual(52);
   });
 
-  it('returns no more than 46 labelled-junk keywords', () => {
-    expect(s.junk).toBeLessThanOrEqual(46);
+  it('returns no more than 37 labelled-junk keywords', () => {
+    expect(s.junk).toBeLessThanOrEqual(37);
   });
 
   it('leaves no page without a keyword', () => {
