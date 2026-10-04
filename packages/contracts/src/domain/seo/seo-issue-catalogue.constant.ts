@@ -33,9 +33,9 @@ export interface ISeoIssueDefinition {
 }
 
 /**
- * Every SEO issue the analysis can report — the backend's rules are typed by these
- * keys, so a code without a rule does not compile, and the frontend renders labels and
- * hints from here. Thresholds live here too: the rule and the screen quote one number.
+ * Every SEO issue the analysis can report — the backend's checks are typed by these
+ * keys, so a code without a check does not compile, and the frontend renders labels and
+ * hints from here. Thresholds live here too: the check and the screen quote one number.
  */
 export const SEO_ISSUE_CATALOGUE = {
   TITLE_MISSING: {
@@ -179,10 +179,11 @@ export const SEO_ISSUE_CODES = Object.keys(
  * The catalogue split by what a check can see. Derived from the entries, so a code is
  * in exactly one of them and neither list can drift from the catalogue.
  *
- * The split is what lets the page rules stay typed as complete: `SEO_RULES` covers
- * every PAGE code and would not compile if one were missing, and a run check — which
- * takes the whole crawl rather than a page — is answered by its own registry instead
- * of being forced into a shape it cannot have.
+ * The split is what decides a check's SHAPE from its code rather than from the check:
+ * a run code's unit takes the whole crawl and answers once per page, every other code's
+ * takes one page. So the wrong shape under a code is a compile error, not a check that
+ * runs and never fires — which is what it would be, since "is another page using this
+ * title" cannot be answered from one page at all.
  */
 export type TRunIssueCode = {
   [K in TSeoIssueCode]: (typeof SEO_ISSUE_CATALOGUE)[K] extends {
