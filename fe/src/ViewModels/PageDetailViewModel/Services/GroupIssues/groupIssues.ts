@@ -17,6 +17,15 @@ export interface IIssueView {
 	 * it is this page's problem; more means the fix probably belongs in a template.
 	 */
 	pagesAffected: number;
+	/**
+	 * The other pages this finding is ABOUT — the ones sharing the keyword, the title
+	 * or the description. Empty for every finding a page makes on its own.
+	 *
+	 * They are URLs rather than links into the tracker because the analysis names them
+	 * before anything is stored: at the moment a run is judged the pages have no ids
+	 * yet, so the URL is the only handle that exists.
+	 */
+	relatedUrls: string[];
 }
 
 export interface IIssueGroup {
@@ -32,6 +41,15 @@ const text = (details: TDetails, key: string) =>
 	typeof details[key] === "string" ? details[key] : "";
 const list = (details: TDetails, key: string) =>
 	Array.isArray(details[key]) ? (details[key] as unknown[]).map(String).join(", ") : "";
+const urls = (details: TDetails, key: string): string[] =>
+	Array.isArray(details[key])
+		? (details[key] as unknown[]).filter((url): url is string => typeof url === "string")
+		: [];
+/** "Another page" / "3 other pages", with the verb the count needs. */
+const others = (details: TDetails, verb: string) => {
+	const count = urls(details, "otherUrls").length;
+	return count === 1 ? `Another page ${verb}s` : `${count} other pages ${verb}`;
+};
 
 /**
  * One sentence per code. Typed by every catalogued code, so a new rule without its
@@ -42,10 +60,11 @@ const list = (details: TDetails, key: string) =>
  * explaining it never disagree.
  */
 const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
-	KEYWORD_CANNIBALISATION: (d) =>
-		`"${text(d, "term")}" is also the top keyword of ${list(d, "otherUrls")}.`,
-	TITLE_DUPLICATE: (d) => `The same title is used by ${list(d, "otherUrls")}.`,
-	META_DESCRIPTION_DUPLICATE: (d) => `The same description is used by ${list(d, "otherUrls")}.`,
+	// These three name the pages themselves, which are rendered as links from
+	// `relatedUrls`; the sentence says how many and leaves the list to them.
+	KEYWORD_CANNIBALISATION: (d) => `${others(d, "lead")} with "${text(d, "term")}".`,
+	TITLE_DUPLICATE: (d) => `${others(d, "use")} the same title.`,
+	META_DESCRIPTION_DUPLICATE: (d) => `${others(d, "use")} the same description.`,
 	TITLE_MISSING: () => "The page has no <title> in its <head>.",
 	TITLE_LENGTH: (d) =>
 		`The title is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
@@ -92,6 +111,7 @@ export function groupIssues(issues: (TSeoIssue & { pagesAffected?: number })[]):
 				detail: DESCRIBE[issue.code](issue.details),
 				hint: SEO_ISSUE_CATALOGUE[issue.code].hint,
 				pagesAffected: issue.pagesAffected ?? 1,
+				relatedUrls: urls(issue.details, "otherUrls"),
 			})),
 	})).filter((group) => group.issues.length > 0);
 }

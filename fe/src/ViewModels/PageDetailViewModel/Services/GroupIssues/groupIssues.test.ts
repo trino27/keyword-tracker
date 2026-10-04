@@ -78,4 +78,40 @@ describe("groupIssues", () => {
 
 		expect(group.issues[0].detail).toBe("The page declares no structured data.");
 	});
+
+	it("hands the pages a run finding is about to the view as links, not as prose", () => {
+		const [group] = groupIssues([
+			{
+				code: "KEYWORD_CANNIBALISATION",
+				severity: "warning",
+				details: {
+					term: "ai marketing",
+					otherUrls: ["https://a.example/guide/", "https://a.example/what/"],
+				},
+			},
+		]);
+
+		expect(group.issues[0]).toMatchObject({
+			detail: '2 other pages lead with "ai marketing".',
+			relatedUrls: ["https://a.example/guide/", "https://a.example/what/"],
+		});
+	});
+
+	it("counts one other page in the singular", () => {
+		const [group] = groupIssues([
+			{
+				code: "TITLE_DUPLICATE",
+				severity: "warning",
+				details: { otherUrls: ["https://a.example/b/"] },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe("Another page uses the same title.");
+	});
+
+	it("gives a page's own finding no related pages", () => {
+		const [group] = groupIssues([{ code: "H1_MISSING", severity: "error", details: {} }]);
+
+		expect(group.issues[0].relatedUrls).toEqual([]);
+	});
 });

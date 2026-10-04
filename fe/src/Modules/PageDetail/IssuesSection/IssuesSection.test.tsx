@@ -72,4 +72,26 @@ describe("IssuesSection", () => {
 
 		expect(screen.queryByText(/of 15 pages/)).not.toBeInTheDocument();
 	});
+
+	it("links to the pages a run finding is about", () => {
+		renderSection([
+			{
+				code: "KEYWORD_CANNIBALISATION",
+				severity: "warning",
+				details: { term: "ai marketing", otherUrls: ["https://a.example/guide/"] },
+				pagesAffected: 2,
+			},
+		]);
+
+		const link = screen.getByRole("link", { name: "https://a.example/guide/" });
+		expect(link).toHaveAttribute("href", "https://a.example/guide/");
+		expect(link).toHaveAttribute("target", "_blank");
+		expect(screen.getByText('Another page leads with "ai marketing".')).toBeInTheDocument();
+	});
+
+	it("renders no link for a finding about the page alone", () => {
+		renderSection([{ code: "H1_MISSING", severity: "error", details: {}, pagesAffected: 1 }]);
+
+		expect(screen.queryByRole("link")).not.toBeInTheDocument();
+	});
 });

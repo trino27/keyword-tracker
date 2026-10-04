@@ -1,4 +1,4 @@
-import { Badge, Group, Paper, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { Anchor, Badge, Group, Paper, Stack, Text, ThemeIcon, Title } from "@mantine/core";
 import {
 	IconAlertOctagon,
 	IconAlertTriangle,
@@ -75,6 +75,25 @@ export function IssuesSection({ issues, currentPages }: IIssuesSectionProps) {
 											</Text>
 										)}
 									</Group>
+									{/* The pages the finding is about — a shared
+									    keyword, title or description. Opened directly,
+									    because the analysis names them by URL before
+									    any of them has an id. */}
+									{issue.relatedUrls.length > 0 && (
+										<Group gap={6} wrap="wrap">
+											{issue.relatedUrls.map((url) => (
+												<Anchor
+													key={url}
+													href={url}
+													target="_blank"
+													rel="noreferrer"
+													size="sm"
+												>
+													{url}
+												</Anchor>
+											))}
+										</Group>
+									)}
 									<Text size="xs" c="dimmed">
 										{issue.hint}
 									</Text>
