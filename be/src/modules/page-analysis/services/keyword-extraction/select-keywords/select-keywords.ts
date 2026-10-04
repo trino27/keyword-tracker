@@ -16,6 +16,8 @@ export interface IScoredCandidate {
   score: number;
   /** Ids of the runs of text the term was read from; see ICandidateStats.runs. */
   runs?: ReadonlySet<number>;
+  /** The page's prose writes this single word as a name; see `properNounsOf`. */
+  properNoun?: boolean;
 }
 
 export interface ISelectedKeyword {
@@ -107,6 +109,26 @@ export function keywordBudget(wordCount: number): number {
 }
 
 /**
+ * A bare common word is a word the page uses, not a subject it has.
+ *
+ * `ngramFactor` damps single words rather than dropping them, and spends the
+ * exemption on names: `gutenberg`, `perplexity`, `usc`, `yoastcon` are what a person
+ * types into a search box. The damping is enough while the word competes — it is not
+ * enough when the word RANKS FIRST, because relevance is a share of the top score and
+ * whatever wins defines the page. "3 exercises to have more fun with Google
+ * Analytics" was filed under `exercises`, "5 Google Analytics segments for your blog"
+ * under `blog`, and the subject of each sat one line below.
+ *
+ * Dropping rather than damping further, because every one of these the catalogue
+ * produced was junk at any rank — `exercises`, `blog`, `candidate`, `women`,
+ * `emails`, `engagement`, `campus` — while the names the rule spares keep the full
+ * weight they already had. A single word with no capital is a fragment of something
+ * the page said better, or it is nothing.
+ */
+const isSubjectShaped = (candidate: IScoredCandidate): boolean =>
+  tokenCount(candidate.term) > 1 || candidate.properNoun === true;
+
+/**
  * §10.4 step 11: the best keywords above FLOOR_RATIO of the top score, within the
  * page's budget, no two of them covering the same words and no more than
  * MAX_KEYWORDS_PER_RUN of them read out of one sentence. Nothing is added below the
@@ -117,7 +139,7 @@ export function selectKeywords(
   wordCount = Number.POSITIVE_INFINITY,
 ): ISelectedKeyword[] {
   const ranked = candidates
-    .filter((candidate) => candidate.score > 0)
+    .filter((candidate) => candidate.score > 0 && isSubjectShaped(candidate))
     .sort((a, b) => b.score - a.score || a.term.localeCompare(b.term));
   if (ranked.length === 0) return [];
 

@@ -185,6 +185,43 @@ export const ANCHOR_FIELDS: ReadonlySet<TKeywordField> = new Set([
 export const MIN_UNANCHORED_TF = 2;
 
 /**
+ * What an ANCHORED candidate keeps when the prose never says it — bodyTf of 0.
+ *
+ * `MIN_UNANCHORED_TF` asks the body to corroborate a phrase before it counts as a
+ * subject, and exempts anything in the title, h1 or slug outright. That exemption is
+ * right for the phrase an author put there; it is wrong for the other nine. A title
+ * is tokenized into every window it contains, and each one inherits the title's
+ * weight of 5 whether or not the article ever uses it again: "Brewers stadium roof
+ * saves Milwaukee vs Padres in NLDS thriller" produced `brewers stadium`, `stadium
+ * roof`, `roof saves`, `saves milwaukee`, `milwaukee vs padres`, `padres in nlds` and
+ * `nlds thriller` at one score, none of them said once in the story.
+ *
+ * Left at full weight they do not merely take slots — they take the page's entities
+ * with them through subsumption, which reads a window as "the same subject said
+ * better": `brewers` gave way to `brewers stadium`, `padres` to `padres in nlds`,
+ * `nlds` to `nlds thriller`, and a report on a baseball game was filed under `padres
+ * in nlds thriller` with no team in it.
+ *
+ * Damped rather than dropped, because a headline sometimes names a subject the body
+ * then refers to by other words — `bizarre roof rule`, `facebook traffic` — and
+ * because a phrase removed outright promotes the fragment it leaves behind, which is
+ * the failure recorded in `isClauseShaped`. The page's own named head clause is
+ * exempt: that one IS the declaration, and `subsume` already treats it as such.
+ *
+ * What it costs, and what was measured against it. A damped window stops SUPPRESSING
+ * the fragment inside it, and the freed fragment sometimes outscores the head clause
+ * it is a piece of: `technology report` over "Technology report in Google Analytics",
+ * `visibility data` over "AI Visibility Data Paralysis". The floor being a share of
+ * the top, a page that loses its head that way loses its other keywords with it.
+ * Subsuming on the UNDAMPED score fixes exactly that — it keeps the suppression
+ * structural and leaves the damping to ranking — and on the catalogue it gave the
+ * primaries back by giving the junk back too: 30 junk against 27, precision 57.8%
+ * against 60.2%. On a held-out site it split four pages to three. It is not worth a
+ * second score per candidate, so the collapse stands as a known cost.
+ */
+export const UNCORROBORATED_TITLE_FACTOR = 0.5;
+
+/**
  * How much of the corpus penalty a term still pays when the page names it in its own
  * title, h1 or slug. The penalty is there to strip the site's vocabulary from pages
  * that merely mention it, and a term in the title is not mentioned — it is declared.

@@ -1,8 +1,13 @@
 import { MAX_KEYWORDS } from '../../../constants/keyword-scoring.constant';
 import { selectKeywords, subsume } from './select-keywords';
 
+/**
+ * Candidates count as names, so a single-word term here is read as `yoastcon` rather
+ * than as `blog` — see `isSubjectShaped`. These specs are about the budget, the floor
+ * and the overlap rules; the one about names says so in its own title.
+ */
 const scored = (pairs: [string, number][]) =>
-  pairs.map(([term, score]) => ({ term, score }));
+  pairs.map(([term, score]) => ({ term, score, properNoun: true }));
 
 describe('subsume', () => {
   it('drops a word when a phrase containing it scores at least half of it', () => {
@@ -128,6 +133,26 @@ describe('selectKeywords', () => {
       'flights to rome',
       'hotels in rome',
     ]);
+  });
+
+  it('will not let a bare common word be the page that a name could be', () => {
+    // "3 exercises to have more fun with Google Analytics" ranked `exercises` first
+    // and the subject second, and relevance being a share of the top made the page
+    // about the word rather than about the tool.
+    const selected = selectKeywords(
+      [
+        { term: 'exercises', score: 100, properNoun: false },
+        { term: 'google analytics', score: 90 },
+        { term: 'gutenberg', score: 40, properNoun: true },
+      ],
+      10_000,
+    );
+
+    expect(selected.map((k) => k.term)).toEqual([
+      'google analytics',
+      'gutenberg',
+    ]);
+    expect(selected[0].relevance).toBe(1);
   });
 
   it('never selects a zero score, and handles nothing at all', () => {
