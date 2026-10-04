@@ -2,6 +2,9 @@ import { RUN_BOILERPLATE_SHARE } from '../../constants/keyword-scoring.constant'
 import { normalizeText } from '../../services/text/normalize-text/normalize-text';
 import {
   collectCandidates,
+  stripTitleChrome,
+  namedClause,
+  slugOf,
   titleSegments,
 } from '../../services/keyword-extraction/collect-candidates/collect-candidates';
 import {
@@ -113,7 +116,7 @@ export const SCORE_STEP: IKeywordStep = {
         term,
         runs: stats.runs,
         score:
-          pageScore(stats) *
+          pageScore(stats, term) *
           idfFactor(
             pageCount,
             context.documentFrequency.get(term) ?? 1,
@@ -128,9 +131,22 @@ export const SCORE_STEP: IKeywordStep = {
 export const SELECT_STEP: IKeywordStep = {
   name: 'select',
   run(context) {
-    context.keywords = context.scored.map((scored, index) =>
-      selectKeywords(subsume(scored), context.pages[index].parsed.wordCount),
-    );
+    context.keywords = context.scored.map((scored, index) => {
+      const { parsed } = context.pages[index];
+      const { head } = namedClause(
+        stripTitleChrome(
+          parsed.title ?? '',
+          context.siteKey,
+          parsed.openGraph['og:site_name'],
+          context.titleChrome,
+        ),
+        slugOf(context.pages[index].url),
+      );
+      return selectKeywords(
+        subsume(scored, head ? normalizeText(head) : undefined),
+        parsed.wordCount,
+      );
+    });
   },
 };
 

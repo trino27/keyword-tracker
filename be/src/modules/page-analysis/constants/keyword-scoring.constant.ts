@@ -19,8 +19,23 @@ export const MIN_TOKEN_LENGTH = 2;
 /** A stored keyword term is at most this long (the column width). */
 export const MAX_TERM_LENGTH = 200;
 
+/**
+ * A title's SECOND clause and beyond — what follows the colon, the question mark or
+ * the plus in "Local SEO ranking factors: Your complete guide".
+ *
+ * The first clause names the page; the rest promises a format. At the title's own
+ * weight of 5 that promise outscores the article, and the catalogue filled up with
+ * `complete guide`, `statistics you need to know`, `tools use cases for marketers`
+ * and `current status`. The weight stays positive because a tail sometimes carries
+ * the subject ("Gutenberg: the new editor in WordPress 5.0") — it is demoted, not
+ * discarded, and it stops ANCHORING, so a phrase said once in a tail and never again
+ * is no longer treated as a declared subject.
+ */
+export const TITLE_TAIL_WEIGHT = 2;
+
 export const KEYWORD_FIELDS = [
   'title',
+  'titleTail',
   'h1',
   'slug',
   'meta',
@@ -44,6 +59,7 @@ export type TKeywordField = (typeof KEYWORD_FIELDS)[number];
  */
 export const FIELD_WEIGHTS: Readonly<Record<TKeywordField, number>> = {
   title: 5,
+  titleTail: TITLE_TAIL_WEIGHT,
   h1: 4,
   slug: 3,
   meta: 2,
@@ -55,6 +71,7 @@ export const FIELD_WEIGHTS: Readonly<Record<TKeywordField, number>> = {
 /** Fields an author writes on purpose; appearing in several of them is a signal. */
 export const STRONG_FIELDS: ReadonlySet<TKeywordField> = new Set([
   'title',
+  'titleTail',
   'h1',
   'slug',
   'meta',
@@ -95,6 +112,27 @@ export const SUBSUME_RATIO = 0.5;
  * the same subject said better, and the overlap rule decides between them on score.
  */
 export const MAX_SUBSUME_GROWTH = 2;
+
+/**
+ * The ratio for a longer phrase that EXTENDS the shorter one at one end rather than
+ * wrapping around it — "data science" inside "data science for seo".
+ *
+ * Lowering SUBSUME_RATIO outright was measured and rejected: at 0.35 it did rescue
+ * `data science for seo` and `secondary dimensions in google analytics`, and in the
+ * same run it let `algorithm changes seo becomes crucial` swallow `facebook
+ * algorithm` and a sentence became the page's keyword. The difference is where the
+ * added words sit. A phrase that continues the term — `… for seo`, `… in google
+ * analytics` — is the same subject said more precisely. A phrase that contains the
+ * term in its middle is a sentence the term happens to appear in, and it still has
+ * to win on score.
+ */
+export const SUBSUME_EXTENSION_RATIO = 0.4;
+
+/**
+ * What a candidate shaped like a clause rather than a query keeps of its score; see
+ * `isClauseShaped`. 1 disables the test, 0 removes the candidate outright.
+ */
+export const CLAUSE_SHAPE_FACTOR = 0;
 
 /**
  * Two selected keywords may not share more than this share of the shorter one's

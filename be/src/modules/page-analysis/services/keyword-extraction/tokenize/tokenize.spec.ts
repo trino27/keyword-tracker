@@ -2,9 +2,36 @@ import { isWeakToken, tokenize } from './tokenize';
 
 describe('tokenize', () => {
   it('normalizes and splits on sentence breaks', () => {
-    expect(tokenize('Link Building works. Outreach, too!')).toEqual([
+    expect(tokenize('Link Building works. Outreach helps too!')).toEqual([
       ['link', 'building', 'works'],
-      ['outreach', 'too'],
+      ['outreach', 'helps', 'too'],
+    ]);
+  });
+
+  it('ends a run at a comma, so a phrase cannot cross a list', () => {
+    expect(tokenize('Flex wrap, grid and subgrid')).toEqual([
+      ['flex', 'wrap'],
+      ['grid', 'and', 'subgrid'],
+    ]);
+  });
+
+  it('does not end the run at a comma inside a number', () => {
+    expect(tokenize('Plans from 1,000 USD a year')).toEqual([
+      ['plans', 'from', '1', '000', 'usd', 'a', 'year'],
+    ]);
+  });
+
+  it('drops the tail a bracket cut off a word, and the list it sits in', () => {
+    expect(
+      tokenize(
+        'What’s !important #18: <geolocation>, Syntax ::highlight()ing, named-feature(), and More',
+      ),
+    ).toEqual([
+      ['what', 'important', '18'],
+      ['geolocation'],
+      ['syntax', 'highlight'],
+      ['named', 'feature'],
+      ['and', 'more'],
     ]);
   });
 
@@ -24,7 +51,7 @@ describe('tokenize', () => {
     expect(tokenize('Read remarks from Kent Walker, Presiden…')).toEqual([
       ['read', 'remarks', 'from', 'kent', 'walker'],
     ]);
-    expect(tokenize('Making our marketing, and Cannes, more acce...')).toEqual([
+    expect(tokenize('Making our marketing and Cannes more acce...')).toEqual([
       ['making', 'our', 'marketing', 'and', 'cannes', 'more'],
     ]);
   });

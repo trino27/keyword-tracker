@@ -1,6 +1,10 @@
 import { makeRuleInput } from '../../seo-rules/_testing/make-rule-input';
 import type { IParsedPage } from '../../../interfaces/parsed-page.interface';
-import { collectCandidates, stripTitleChrome } from './collect-candidates';
+import {
+  collectCandidates,
+  namedClause,
+  stripTitleChrome,
+} from './collect-candidates';
 
 const collect = (
   parsed: Partial<IParsedPage>,
@@ -248,5 +252,61 @@ describe('repeated body runs', () => {
 
   it('leaves a phrase the page says twice alone', () => {
     expect(label(2).get('quick action')?.bodyTf).toBe(2);
+  });
+});
+
+describe('namedClause', () => {
+  it('takes the first clause when the rest only describe the page', () => {
+    expect(
+      namedClause(
+        'Local SEO ranking factors: Your complete guide',
+        'local-seo-ranking-factors',
+      ),
+    ).toEqual({
+      head: 'Local SEO ranking factors',
+      tail: ['Your complete guide'],
+    });
+  });
+
+  it('takes a LATER clause when that is the one the slug repeats', () => {
+    // "Optimizing a single page: One page website SEO" — position alone filed this
+    // post under `single page`.
+    expect(
+      namedClause(
+        'Optimizing a single page: One page website SEO',
+        'one-page-website-seo',
+      ).head,
+    ).toBe('One page website SEO');
+  });
+
+  it('weighs the SHARE of a clause the slug repeats, not the count', () => {
+    // The question is longer, so it matched more words outright and won; by share
+    // the subject wins, which is what the slug was written from.
+    expect(
+      namedClause(
+        "Facebook traffic: What's the current status?",
+        'facebook-traffic-the-current-status',
+      ).head,
+    ).toBe('Facebook traffic');
+  });
+
+  it('splits on a plus, which glues two claims into a phrase no page says', () => {
+    expect(
+      namedClause(
+        'Facebook Audience Overlap Explained + Ways to Avoid It',
+        'facebook-audience-overlap',
+      ),
+    ).toEqual({
+      head: 'Facebook Audience Overlap Explained',
+      tail: ['Ways to Avoid It'],
+    });
+  });
+
+  it('keeps the first clause when no slug tells them apart', () => {
+    expect(namedClause('One thing: another thing', '').head).toBe('One thing');
+  });
+
+  it('has nothing to name for an empty title', () => {
+    expect(namedClause('', 'slug')).toEqual({ head: '', tail: [] });
   });
 });
