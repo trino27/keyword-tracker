@@ -70,11 +70,13 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Thirteen of the twenty-one checks always apply; eight are conditional. Five of those are
+  Sixteen of the twenty-seven checks always apply; eleven are conditional. Eight of those are
   page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing, CANONICAL_MISMATCH
   on there being a canonical to disagree with, IMAGES_MISSING_ALT on there being an image,
-  HEADING_SKIP on there being two or more headings — and three are run-scoped, skipped when the run
-  holds one page or the page has no value to compare. So `13 <= checks_applicable <= 21`, which
+  HEADING_SKIP on there being two or more headings, HREFLANG_INVALID on the page declaring an
+  alternate, MIXED_CONTENT on the page being served over HTTPS at all, STRUCTURED_DATA_INCOMPLETE
+  on there being an article node to inspect — and three are run-scoped, skipped when the run
+  holds one page or the page has no value to compare. So `16 <= checks_applicable <= 27`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -103,6 +105,26 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   presence rather than repeated as a second list. The registry spec asserts the skipped set over
   the corpus is exactly those codes, which is what fails when a check learns to skip and the
   catalogue is not told why.
+- **Six checks added from what Lighthouse, Google and the audit vendors document (2026-10-04).**
+  `VIEWPORT_MISSING`, `HREFLANG_INVALID` and `NO_INTERNAL_LINKS` close the three gaps against
+  Lighthouse's SEO category; `MIXED_CONTENT` and `META_REFRESH` are errors Semrush and Ahrefs both
+  raise and HTML answers for free; `STRUCTURED_DATA_INCOMPLETE` reads the article node the
+  extractor was already parsing and never consulting. Each is severity-ranked by the line
+  `ranking-signals.md` draws: an error is for what keeps a page OUT OF THE RUNNING, so none of the
+  six is one. Measured on the 43 recorded posts before being believed: they fire 1, 0, 0, 0, 0 and
+  0 times, and `HREFLANG_INVALID` is skipped on 39 of 43 — which is the shape wanted, since the
+  corpus is two competent publishers and a check that fired across it would be reporting a house
+  style. The one firing is a page with no server-rendered content at all.
+- **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
+  answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
+  never fetches, and the extractor removes the nav and the related-posts rail that carry most
+  internal links. It would report an orphan on evidence we never had. Link-text quality is
+  measured in `field-study-2026-10.md` and fires on effectively every page without `aria-label`
+  and nested-alt handling. URL hygiene — underscores, length, parameter count — is finding 1
+  again: a rule reporting a house style. Core Web Vitals and anything built on one server-side
+  timing stay out for the reason `SLOW_RESPONSE` was retired. `llms.txt` is not a ratified
+  standard and not a confirmed signal, and a check would manufacture the urgency the catalogue's
+  wording is careful to avoid.
 - **Two checks are deliberately absent.** `SLOW_RESPONSE` measured the crawler's network position
   rather than the page, and `KEYWORD_NOT_IN_TITLE` could not fail by construction. The
   measurements are in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and
@@ -137,7 +159,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per catalogued code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The twenty-one checks, their thresholds and their severities, each finding saying exactly what is wrong.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code) and `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place".
+**The twenty-seven checks, their thresholds and their severities, each finding saying exactly what is wrong.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code) and `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".
