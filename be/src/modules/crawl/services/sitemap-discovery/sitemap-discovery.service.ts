@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { isSameSite, siteKeyOf, type TCrawlRunErrorCode } from '@app/contracts';
 import { RemoteApiError } from '@infrastructure/remote-api/remote-api.errors';
@@ -6,15 +6,17 @@ import type { ISiteResponse } from '../site-http-client/site-http-client';
 import {
   SITEMAP_MAX_DEPTH,
   SITEMAP_MAX_FETCHES,
-  WELL_KNOWN_LISTING_PATHS,
   WELL_KNOWN_SITEMAP_PATHS,
 } from '../../constants/sitemap-scoring.constant';
 import {
-  FeedDiscoveryService,
-  type IFeedDiscovery,
-} from '../feed-discovery/feed-discovery.service';
+  BLOG_SOURCE_ORDER,
+  type IBlogSource,
+  type IBlogSourceContext,
+  type IBlogSourceFound,
+} from '../blog-sources/blog-source.interface';
+import { BLOG_SOURCES } from '../blog-sources/blog-sources';
+import { FeedDiscoveryService } from '../feed-discovery/feed-discovery.service';
 import { parseFeedLinks } from '../feed-parser/feed-parser';
-import { extractListingLinks } from '../listing-links/listing-links';
 import { RobotsPolicy } from '../robots-policy/robots-policy';
 import { SiteHttpClient } from '../site-http-client/site-http-client';
 import {
@@ -93,19 +95,16 @@ type TDiscoveryFailure = Extract<TSitemapDiscovery, { ok: false }>;
 /** Below this, a sitemap on a sibling subdomain waits for the site's own. */
 const OTHER_HOST_PRIORITY = -10;
 const REFUSAL_STATUSES = new Set([401, 403, 429]);
-/** A listing with fewer post links than this is not a blog index. */
-const MIN_LISTING_LINKS = 3;
 
 /**
- * Finds the blog without knowing the site (§10.1), in order of confidence:
+ * Finds the blog without knowing the site (§10.1): reads robots.txt, walks the sitemaps
+ * within a fetch budget, reads the home page and the feed — and then asks each of
+ * `BLOG_SOURCES` in turn, which is where the order of confidence lives and the only
+ * place it is written down. No post page is fetched here.
  *
- * 1. a sitemap that scores as a blog;
- * 2. the site's feed — its items are posts by definition;
- * 3. a blog index page (/blog/, /news/, …) and the posts it links to;
- * 4. the least unlikely sitemap, unconfirmed.
- *
- * 3 and 4 do not know which entries are posts, so the crawl then keeps only pages that
- * declare themselves articles. No post page is fetched here.
+ * What this service owns is the evidence: every request goes through it, so the counts
+ * behind a failed run's verdict (unreachable, blocked, moved elsewhere) stay complete
+ * however many sources ask for a page.
  */
 @Injectable()
 export class SitemapDiscoveryService {
@@ -114,6 +113,9 @@ export class SitemapDiscoveryService {
     private readonly feeds: FeedDiscoveryService,
     @InjectPinoLogger(SitemapDiscoveryService.name)
     private readonly logger: PinoLogger,
+    @Optional()
+    @Inject(BLOG_SOURCE_ORDER)
+    private readonly sources: readonly IBlogSource[] = BLOG_SOURCES,
   ) {}
 
   async discover(
@@ -158,60 +160,23 @@ export class SitemapDiscoveryService {
       signal,
       state.feeds,
     );
-    const selection = selectBlogGroup(
-      groupSitemaps(state.leaves),
-      feed.keys,
-      siteKey,
-    );
-
-    if (selection.ok && selection.confirmed) {
-      const { group } = selection.winner;
-      return this.found(
-        robots,
-        siteKey,
-        group.sitemapUrls,
-        group.urls,
-        selection.reason,
-        false,
-      );
-    }
-    if (feed.feedUrl && feed.links.length > 0) {
-      return this.found(
-        robots,
-        siteKey,
-        [feed.feedUrl],
-        feed.links,
-        feedReason(feed, state.leaves.length),
-        false,
-      );
-    }
-    const listing = await this.readListing(
+    const context: IBlogSourceContext = {
       origin,
       siteKey,
       robots,
-      state,
-      signal,
-    );
-    if (listing) {
-      return this.found(
-        robots,
+      sitemapsRead: state.leaves.length,
+      selection: selectBlogGroup(
+        groupSitemaps(state.leaves),
+        feed.keys,
         siteKey,
-        [listing.url],
-        listing.links,
-        `No sitemap looks like a blog; read the index page ${listing.url} (${listing.links.length} links below it). Only pages marked as articles count as posts.`,
-        true,
-      );
-    }
-    if (selection.ok) {
-      const { group } = selection.winner;
-      return this.found(
-        robots,
-        siteKey,
-        group.sitemapUrls,
-        group.urls,
-        selection.reason,
-        true,
-      );
+      ),
+      feed,
+      fetchHtml: (url) => this.fetchHtml(url, state, signal),
+    };
+
+    for (const source of this.sources) {
+      const found = await source.find(context);
+      if (found) return this.found(robots, siteKey, source.name, found);
     }
     return this.failure(robots, origin, state);
   }
@@ -219,25 +184,29 @@ export class SitemapDiscoveryService {
   private found(
     robots: RobotsPolicy,
     siteKey: string,
-    sources: string[],
-    candidates: string[],
-    reason: string,
-    articlesOnly: boolean,
+    source: string,
+    found: IBlogSourceFound,
   ): TSitemapDiscovery {
     const urls = [
-      ...new Set(candidates.filter((url) => isSameSite(url, siteKey))),
+      ...new Set(found.candidates.filter((url) => isSameSite(url, siteKey))),
     ];
     this.logger.info(
-      { siteKey, sources, urls: urls.length, articlesOnly },
+      {
+        siteKey,
+        source,
+        sources: found.sources,
+        urls: urls.length,
+        articlesOnly: found.articlesOnly,
+      },
       'blog source selected',
     );
     return {
       ok: true,
       robots,
-      sitemapUrls: sources,
+      sitemapUrls: found.sources,
       urls,
-      reason,
-      articlesOnly,
+      reason: found.reason,
+      articlesOnly: found.articlesOnly,
     };
   }
 
@@ -342,31 +311,7 @@ export class SitemapDiscoveryService {
     return response?.status === 200 ? response.text : null;
   }
 
-  /** The first well-known blog index that links to enough posts below itself. */
-  private async readListing(
-    origin: string,
-    siteKey: string,
-    robots: RobotsPolicy,
-    state: IWalkState,
-    signal: AbortSignal,
-  ): Promise<{ url: string; links: string[] } | null> {
-    for (const path of WELL_KNOWN_LISTING_PATHS) {
-      const url = `${origin}${path}`;
-      if (!robots.isAllowed(url)) continue;
-      const response = await this.fetchHtml(url, state, signal);
-      if (response?.status !== 200 || !isSameSite(response.finalUrl, siteKey))
-        continue;
-      const links = extractListingLinks(
-        response.text,
-        response.finalUrl,
-        siteKey,
-      );
-      if (links.length >= MIN_LISTING_LINKS)
-        return { url: response.finalUrl, links };
-    }
-    return null;
-  }
-
+  /** Every HTML answer a source asks for passes here, so the walk counts it. */
   private async fetchHtml(
     url: string,
     state: IWalkState,
@@ -517,10 +462,4 @@ function isSiteHost(url: string, siteKey: string): boolean {
   } catch {
     return false;
   }
-}
-
-function feedReason(feed: IFeedDiscovery, sitemaps: number): string {
-  const why =
-    sitemaps === 0 ? 'No sitemap found' : 'No sitemap looks like a blog';
-  return `${why}; read the feed ${feed.feedUrl} (${feed.links.length} posts, newest first).`;
 }
