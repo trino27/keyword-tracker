@@ -1,7 +1,7 @@
 import { Controller, Post, UseGuards } from '@nestjs/common';
 import type { IPositionFillResult } from '@app/contracts';
 import { CurrentScope } from '@core/decorators/current-scope/current-scope.decorator';
-import { UserThrottlerGuard } from '@modules/clients/guards/user-throttler/user-throttler.guard';
+import { UserThrottlerGuard } from '@core/guards/user-throttler/user-throttler.guard';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { PositionFillService } from '../../services/position-fill/position-fill.service';
 

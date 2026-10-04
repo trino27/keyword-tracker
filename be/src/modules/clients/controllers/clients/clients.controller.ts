@@ -14,7 +14,7 @@ import { CurrentScope } from '@core/decorators/current-scope/current-scope.decor
 import { ParseIdPipe } from '@core/pipes/parse-id/parse-id.pipe';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { CreateClientDto } from '../../dto/create-client/create-client.dto';
-import { UserThrottlerGuard } from '../../guards/user-throttler/user-throttler.guard';
+import { UserThrottlerGuard } from '@core/guards/user-throttler/user-throttler.guard';
 import { ClientsService } from '../../services/clients/clients.service';
 
 @Controller('clients')
