@@ -106,6 +106,36 @@ post rather than as a card listing one.
 Findings 9 and 10 are the reason to run against unfamiliar sites at all. Both are total failures,
 both are silent, and both were invisible across 42 pages of the two sites the test suite records.
 
+## Follow-up — the single-word damping, measured again
+
+Finding 7 damps every single word by 0.6, and the recorded e2e caught what that costs. Yoast's
+"Should you update to WordPress 5.0?" says `Gutenberg` six times in 494 words and names it in a
+subheading, against `update to wordpress` in the title, the h1 and the slug. Damped, `gutenberg`
+scored 3.06 against a floor of 4.20, and the post about Gutenberg returned one keyword that was
+not it.
+
+Three rules were measured against the 43 recorded pages before one was kept:
+
+| rule | what it did |
+| --- | --- |
+| lift every undamped single word | admitted `drinks`, `workshops`, `noticed`, `direct`, `updating` |
+| lift one a deliberate field names | the same, minus two: a subheading is Title Case too |
+| lift one the prose capitalises | `gutenberg`, `perplexity`, `mckinsey`, and nothing else |
+
+Density does not separate them — `drinks` (4 in 607 words) is three times denser than
+`perplexity` (7 in 3,296), and `perplexity` is the keyword. Capitalisation does: a name is what a
+person types, and a common word is not. The third rule changed four of 43 pages, added no page a
+keyword it should not have, and removed none.
+
+It is gated on the word being **unanchored**. Lifting an anchored name is the failure finding 7
+exists for, measured again: `url` became the top keyword of "How to remove WWW from your URL" and
+`facebook` of "Traffic from Facebook is decreasing", each over the phrase that says what the post
+is for.
+
+Where this still stops: a page that capitalises nothing gets no relief, and a language that
+capitalises every noun gets it everywhere — German single words fall back to the weight they
+carried before the damping. Neither is new; both are the ceiling below.
+
 ## Left alone on purpose
 
 - **Captions.** canadiangeographic.ca ends seven of one feature's captions with
