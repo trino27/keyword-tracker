@@ -4,12 +4,15 @@
  */
 
 /**
- * Four, not three: the queries a page is actually written for run longer than three
+ * Five, not three: the queries a page is actually written for run longer than three
  * words once a language puts particles between them — "южна африка без виза",
  * "самолетни билети до рим". At three the selection returned two overlapping windows
- * of the phrase instead of the phrase.
+ * of the phrase instead of the phrase. At four it returned the phrase with its last
+ * word missing, which is worse, because that is what the page is shown as being
+ * about: "Email performance in Google Analytics" was stored as `email performance in
+ * google`, "Technology report in Google Analytics" as `technology report in google`.
  */
-export const MAX_NGRAM = 4;
+export const MAX_NGRAM = 5;
 /** Without a stop-word list, 3-grams are mostly noise ("of the best"). */
 export const MAX_NGRAM_UNKNOWN_LANG = 2;
 export const MIN_TOKEN_LENGTH = 2;
@@ -69,7 +72,7 @@ export const METADATA_BONUS = 1.15;
  * чекиран") hands the adjective the title's whole weight while the phrase it belongs
  * to lives only in the text.
  */
-export const NGRAM_FACTOR: readonly number[] = [0, 0.6, 1.15, 1.15, 1.05];
+export const NGRAM_FACTOR: readonly number[] = [0, 0.6, 1.15, 1.15, 1.0, 0.85];
 
 /**
  * A shorter candidate gives way to a longer one containing it that scores this close.
@@ -80,6 +83,16 @@ export const NGRAM_FACTOR: readonly number[] = [0, 0.6, 1.15, 1.15, 1.05];
 export const SUBSUME_RATIO = 0.5;
 
 /**
+ * Tokens a phrase may add and still swallow the term inside it. Subsumption was
+ * written for "seo" giving way to "seo audit" — the phrase says the same and more.
+ * A whole headline says something else: once five-word candidates existed,
+ * `reasons to come to yoastcon` subsumed `yoastcon`, and the page about an event was
+ * shown as being about coming to it. Past two tokens the longer string is no longer
+ * the same subject said better, and the overlap rule decides between them on score.
+ */
+export const MAX_SUBSUME_GROWTH = 2;
+
+/**
  * Two selected keywords may not share more than this share of the shorter one's
  * content tokens. Without it the sliding windows of one sentence take every slot:
  * `южна африка` + `африка без виза` + `пътуват до южна`, or eight windows of one
@@ -88,7 +101,20 @@ export const SUBSUME_RATIO = 0.5;
  */
 export const MAX_OVERLAP_RATIO = 0.5;
 
-export const MAX_KEYWORDS = 8;
+/**
+ * The ceiling, for an article long enough to be about several things. Eight was a
+ * budget no page in the catalogue could spend honestly: a 585-word post returned
+ * `food and drinks`, `awesome line` and `venue and nijmegen` to fill it.
+ */
+export const MAX_KEYWORDS = 6;
+/**
+ * Slots a page gets before its length earns it more, and the prose it must carry per
+ * further slot. A page states its subject in the first slot or two; everything after
+ * that has to be paid for in words actually written. 267 words → 2, 850 → 4,
+ * anything past ~1600 → the ceiling.
+ */
+export const KEYWORD_BUDGET_BASE = 2;
+export const WORDS_PER_KEYWORD = 400;
 /**
  * Kept only while scoring at least this share of the top keyword — and nothing is
  * added below it. A `MIN_KEYWORDS` backstop used to top every page up to five, which
@@ -96,7 +122,7 @@ export const MAX_KEYWORDS = 8;
  * an author page returned `matt brittin` at 1.0 and four more at 0.12–0.14. Fewer
  * honest keywords beat five invented ones.
  */
-export const FLOOR_RATIO = 0.15;
+export const FLOOR_RATIO = 0.2;
 
 /**
  * Fields that NAME a subject rather than describe it. A description and a lede are
@@ -104,16 +130,43 @@ export const FLOOR_RATIO = 0.15;
  * that matters: "want to explain", "messages of businesses" and "oh the wonders" all
  * came from a meta description repeated as the opening paragraph. A candidate with
  * no anchor has to earn its place by recurring instead.
+ *
+ * A subheading is NOT one of them, though it keeps its weight. The h2s of a how-to
+ * listicle are instructions, not subjects — "Add specific statistics to your
+ * content", "Test your topics on AI platforms", "Next steps: start this week" — and
+ * anchoring them meant a page said once in a heading what it never says again still
+ * returned eight keywords, seven of them its own table of contents. Said twice in
+ * the body a heading's phrase still passes; said once it is a section label.
  */
 export const ANCHOR_FIELDS: ReadonlySet<TKeywordField> = new Set([
   'title',
   'h1',
   'slug',
-  'subheading',
 ]);
 
 /** Occurrences that make an unanchored term the page's subject rather than a phrase in it. */
 export const MIN_UNANCHORED_TF = 2;
+
+/**
+ * How much of the corpus penalty a term still pays when the page names it in its own
+ * title, h1 or slug. The penalty is there to strip the site's vocabulary from pages
+ * that merely mention it, and a term in the title is not mentioned — it is declared.
+ * Yoast has three posts about Facebook traffic, enough that `facebook traffic` paid a
+ * third of its score and "Facebook traffic: What's the current status?" was filed
+ * under `current status`. A section a site writes about repeatedly is still what its
+ * posts are about.
+ */
+export const ANCHORED_IDF_SHARE = 0.5;
+/**
+ * …but only while the term is one section's and not the whole site's. Half of Yoast's
+ * posts put "Google Analytics" in the title, and forgiving an anchored term outright
+ * made `google analytics` the keyword of the post about dashboards and the post about
+ * assisted conversions alike; on Semrush the same relief handed a 3,300-word guide to
+ * `ai search` and left no room under the floor for `schema markup` or `generative
+ * engine optimization`. Past this share of the run a title says where on the site the
+ * page lives rather than what it says, and the penalty applies in full.
+ */
+export const ANCHORED_IDF_MAX_SHARE = 0.15;
 
 /**
  * A title tail segment, or a declared keyword, that this share of the run's pages
@@ -122,6 +175,20 @@ export const MIN_UNANCHORED_TF = 2;
  * read before scoring rather than after.
  */
 export const RUN_BOILERPLATE_SHARE = 0.5;
+
+/**
+ * A short block of text the page repeats verbatim this many times is its own
+ * furniture, not its prose: a recurring callout label, a CTA, a caption. The AI
+ * search post prints `Quick action:` before twenty of its paragraphs, and twenty
+ * body occurrences of a two-word label outscored almost everything the article is
+ * about. The run-level boilerplate pass cannot see it — it is one page's habit, not
+ * the site's — and the IDF step sees it on one page and rewards it.
+ *
+ * Only a SHORT run counts: a sentence repeated three times is emphasis, a two-word
+ * fragment repeated three times is a template.
+ */
+export const REPEATED_RUN_MIN = 3;
+export const REPEATED_RUN_MAX_TOKENS = 4;
 
 /**
  * Selected keywords that may come from one run of text — one sentence, one heading.
@@ -192,6 +259,15 @@ export const EXTRA_ENGLISH_STOP_WORDS: readonly string[] = [
   'should',
   'yet',
   'etc',
+  // Folding contractions into their stem makes these bound a phrase for the first
+  // time: "Let's play" normalized to `let s play`, which no list had to reject, and
+  // now normalizes to `let play`, which one does.
+  'let',
+  'lets',
+  // A comparison hinges on it and neither side is said by it: ratehub.ca returned
+  // `cash back vs` and `low interest vs` as the keywords of its two comparisons.
+  'vs',
+  'versus',
   // Prepositions and conjunctions the shipped list omits. Every one of them was
   // found ending or beginning a candidate on a live page: "suspected plot against",
   // "plot against us run", "against us run military" were three of one article's

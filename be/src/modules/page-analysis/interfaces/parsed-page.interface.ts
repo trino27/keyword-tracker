@@ -29,8 +29,9 @@ export interface IParsedPage {
   firstParagraph: string | null;
   images: IPageImage[];
   /**
-   * Text blocks of the main content — headings, paragraphs, list items, cells —
-   * so keyword candidates never cross a block boundary.
+   * Prose blocks of the main content — paragraphs, list items, cells — so keyword
+   * candidates never cross a block boundary. Headings are NOT here: they are read
+   * through `headings`, and counting them in both paid a section label twice.
    */
   blocks: string[];
   wordCount: number;

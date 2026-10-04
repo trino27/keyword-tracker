@@ -194,3 +194,59 @@ describe('collectCandidates', () => {
     expect(candidates.has('big red house')).toBe(false);
   });
 });
+
+describe('runs', () => {
+  it('reads one headline as one run, though it is written three times', () => {
+    // A post's title, its h1 and its slug are usually the same sentence. Counted as
+    // three, one headline could spend a list that allows two keywords per sentence
+    // three times over.
+    const headline =
+      'Canadian astronaut Joshua Kutryk launches on a long mission';
+    const candidates = collect(
+      {
+        title: headline,
+        headings: [{ level: 1, text: headline }],
+        h1s: [headline],
+        blocks: ['He trained in Houston.'],
+      },
+      'https://a.example/canadian-astronaut-joshua-kutryk-launches-on-a-long-mission/',
+    );
+
+    expect(candidates.get('joshua kutryk')?.runs.size).toBe(1);
+    expect(candidates.get('joshua kutryk')?.fields).toEqual(
+      new Set(['title', 'h1', 'slug']),
+    );
+    // A sentence that is genuinely another sentence is still another run.
+    expect(candidates.get('trained in houston')?.runs.size).toBe(1);
+  });
+});
+
+describe('repeated body runs', () => {
+  const TAILS = [
+    'audit your schema markup.',
+    'test five rival prompts.',
+    'refresh the quarterly statistics.',
+  ];
+  const label = (times: number) =>
+    collect({
+      title: 'How to optimize for AI search',
+      headings: [{ level: 1, text: 'How to optimize for AI search' }],
+      h1s: ['How to optimize for AI search'],
+      blocks: Array.from(
+        { length: times },
+        (_, i) => `Quick action: ${TAILS[i]}`,
+      ),
+    });
+
+  it('reads a short block the page repeats as furniture, not as prose', () => {
+    // semrush.com prints "Quick action:" before twenty of one post's paragraphs,
+    // and twenty body occurrences of a label outscored the article's subject.
+    expect(label(3).has('quick action')).toBe(false);
+    // What follows the label is prose, and stays.
+    expect(label(3).get('schema markup')?.bodyTf).toBe(1);
+  });
+
+  it('leaves a phrase the page says twice alone', () => {
+    expect(label(2).get('quick action')?.bodyTf).toBe(2);
+  });
+});

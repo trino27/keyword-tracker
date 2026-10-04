@@ -17,8 +17,10 @@ import type {
  * globalnews.ca's `c-infoBox` put other headlines in every story. Matching is
  * case-insensitive, so `infoBox` and `relatedPosts` are caught as written.
  */
+const NEVER_CONTENT = 'script, style, noscript, svg, iframe, template';
+
 const NON_CONTENT = [
-  'nav, header, footer, aside, script, style, noscript, form, svg, iframe, template',
+  'nav, header, footer, aside, form',
   '[role="navigation"], [role="complementary"], [role="banner"]',
   '[role="contentinfo"], [role="search"], [role="dialog"]',
   '[class*="related" i], [class*="infobox" i], [class*="sidebar" i]',
@@ -28,6 +30,26 @@ const NON_CONTENT = [
   '[class*="popular" i], [class*="trending" i], [class*="recommend" i]',
   '[class*="comment" i], [id*="comment" i]',
 ].join(', ');
+
+/**
+ * Share of the main content a match above may take before it is read as the content
+ * itself rather than the furniture around it.
+ *
+ * The fragments match anywhere in a class name, which is what lets them catch
+ * `relatedPosts` and `c-infoBox` as written — and what made ratehub.ca's article
+ * vanish. Its content container is `<div class="content-layout ... with-sidebar">`:
+ * the modifier naming the LAYOUT contains the word for the thing beside it, and
+ * removing it took 1,899 of the page's 1,999 words, leaving a 3,000-word guide
+ * stored as empty and keywordless. Furniture is small next to the article it sits
+ * beside; a node holding most of the page is the page.
+ */
+const FURNITURE_MAX_SHARE = 0.5;
+
+/**
+ * Share of the page an `<article>` must hold before it is read as the post rather
+ * than as a card listing one. See `mainContent`.
+ */
+const ARTICLE_MIN_SHARE = 0.3;
 
 /**
  * Text present only for assistive technology, or hidden from it; neither is page content.
@@ -45,6 +67,8 @@ const HEADINGS = 'h1, h2, h3, h4, h5, h6';
 const HEADING_CONTROLS = 'button, [role="button"]';
 
 const BLOCK_ELEMENTS = `${HEADINGS}, p, li, td, th, blockquote, dd, dt, figcaption, pre`;
+/** Headings are collected as headings; `blocks` is the prose around them. */
+const HEADING_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
 const LAYOUT_ELEMENTS =
   'div, section, ul, ol, table, tr, figure, br, hr, dl, details, summary';
@@ -91,6 +115,12 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
   main.find(BLOCK_ELEMENTS).each((_, element) => {
     // A block that contains blocks is read through its children instead.
     if ($(element).find(BLOCK_ELEMENTS).length > 0) return;
+    // A heading is already a field of its own, and counting it here as well paid it
+    // twice: a listicle's h2 scored its subheading weight AND a body frequency it
+    // never earned in prose, which is how "start this week" and "add specific
+    // statistics" became keywords. With a table of contents repeating every heading
+    // as an `li`, the same phrase was paid three times.
+    if (HEADING_TAGS.has(element.tagName)) return;
     const text = collapse($(element).text());
     if (text) blocks.push(text);
   });
@@ -145,21 +175,43 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
  * keywords. An `article` WITHOUT the heading is not trusted — in a listing every card
  * is one — and the old order is kept for that case.
  */
+const wordsIn = ($: CheerioAPI, node: ReturnType<CheerioAPI>) =>
+  $(node).text().split(/\s+/).filter(Boolean).length;
+
 function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
+  const mainEl = $('main').first();
+  const whole = mainEl.length ? mainEl : $('body').first();
+  const wholeWords = wordsIn($, whole);
+
   let withHeading: ReturnType<CheerioAPI> | null = null;
   $('article').each((_, element) => {
     const article = $(element);
-    if (!withHeading && article.find('h1').length > 0) withHeading = article;
+    if (withHeading || article.find('h1').length === 0) return;
+    // A related-post card is an <article> with an <h1> in it too, and on
+    // canadiangeographic.ca the post itself is not in an <article> at all: the first
+    // one on the page is the first card, and reading it gave a 2,555-word feature a
+    // word count of 30. The post is most of what the page holds; a card is a sliver.
+    if (wholeWords > 0 && wordsIn($, article) < wholeWords * ARTICLE_MIN_SHARE)
+      return;
+    withHeading = article;
   });
   const candidate =
     withHeading ??
-    ($('main').first().length
-      ? $('main').first()
+    (mainEl.length
+      ? mainEl
       : $('article').first().length
         ? $('article').first()
         : $('body').first());
   const main = candidate.clone();
-  main.find(NON_CONTENT).remove();
+  main.find(NEVER_CONTENT).remove();
+  const total = wordsIn($, main);
+  // Document order, so a wrapper is judged before what it wraps: keeping a wrapper
+  // still lets the furniture inside it be removed on its own terms.
+  main.find(NON_CONTENT).each((_, element) => {
+    const node = $(element);
+    if (total > 0 && wordsIn($, node) > total * FURNITURE_MAX_SHARE) return;
+    node.remove();
+  });
   return main;
 }
 

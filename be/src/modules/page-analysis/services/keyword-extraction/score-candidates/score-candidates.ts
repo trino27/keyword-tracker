@@ -1,4 +1,6 @@
 import {
+  ANCHORED_IDF_MAX_SHARE,
+  ANCHORED_IDF_SHARE,
   ANCHOR_FIELDS,
   FIELD_WEIGHTS,
   METADATA_BONUS,
@@ -14,10 +16,15 @@ import type { ICandidateStats } from '../collect-candidates/collect-candidates';
  * a subject — "oh the wonders", "world will be joining". Four-word candidates made
  * these numerous enough to fill a list on any page whose own top score is modest.
  */
+/** The page names the term where it names its subject: the title, the h1, the slug. */
+export function isAnchored(stats: ICandidateStats): boolean {
+  for (const field of stats.fields) if (ANCHOR_FIELDS.has(field)) return true;
+  return false;
+}
+
 function isPassingMention(stats: ICandidateStats): boolean {
   if (stats.bodyTf >= MIN_UNANCHORED_TF) return false;
-  for (const field of stats.fields) if (ANCHOR_FIELDS.has(field)) return false;
-  return true;
+  return !isAnchored(stats);
 }
 
 /**
@@ -49,7 +56,12 @@ export function pageScore(stats: ICandidateStats): number {
 export function idfFactor(
   pageCount: number,
   documentFrequency: number,
+  anchored = false,
 ): number {
   if (pageCount <= 1) return 1;
-  return Math.log(1 + pageCount / documentFrequency) / Math.log(1 + pageCount);
+  const idf =
+    Math.log(1 + pageCount / documentFrequency) / Math.log(1 + pageCount);
+  const declared =
+    anchored && documentFrequency <= pageCount * ANCHORED_IDF_MAX_SHARE;
+  return declared ? 1 - ANCHORED_IDF_SHARE * (1 - idf) : idf;
 }
