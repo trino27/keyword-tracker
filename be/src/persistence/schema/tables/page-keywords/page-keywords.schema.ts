@@ -39,6 +39,9 @@ export const pageKeywords = pgTable(
     primaryKey({ name: 'page_keywords_pk', columns: [t.pageId, t.keywordId] }),
     // Search: a matching term leads to its pages.
     index('page_keywords_keyword_id_idx').on(t.keywordId),
+    // Every list, detail and history query joins on this column, and deleting a client
+    // cascades crawl_runs -> page_keywords through it.
+    index('page_keywords_last_seen_run_id_idx').on(t.lastSeenRunId),
     check(
       'page_keywords_relevance_range',
       sql`${t.relevance} > 0 and ${t.relevance} <= 1`,

@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { EnvKeys } from '@infrastructure/config/env-keys.constant';
+import { runWithTraceId } from '@infrastructure/observability/trace/trace-context';
 import type { IClaimedRun } from '@modules/clients/interfaces/client-record.interface';
 import { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import { PgNotificationListener } from '@persistence/connections/postgres/notification-listener/pg-notification-listener';
@@ -65,12 +66,20 @@ export class CrawlWorker
     this.logger.info({ slots: CRAWL_WORKER_SLOTS }, 'Crawl worker started');
   }
 
-  /** Stops claiming, aborts what is in flight; the leases then expire and are reclaimed. */
+  /**
+   * Stops claiming, aborts what is in flight, and waits for every slot to leave
+   * `runOnce()` before returning. Without that wait a slot could still be writing when
+   * the database module ends the pool underneath it; anything the abort leaves half
+   * done is reclaimed when its lease expires.
+   */
   async stop(): Promise<void> {
     if (!this.running) return;
     this.running = false;
     this.wakeAll();
     for (const controller of this.inFlight) controller.abort();
+    const loops = this.loops;
+    this.loops = [];
+    await Promise.all(loops);
     await this.listener.close();
     this.logger.info('Crawl worker stopped');
   }
@@ -78,13 +87,18 @@ export class CrawlWorker
   /**
    * Claims and executes at most one run; true when one was executed. The loop is built
    * on it, and tests and the seed call it directly.
+   *
+   * A run starts outside any request, so it mints its own trace id: every line one
+   * execution produces carries the same one, as a request's lines do.
    */
-  async runOnce(): Promise<boolean> {
-    await this.runs.failAbandonedForWorker();
-    const run = await this.runs.claimNextForWorker(CRAWL_LEASE_MS);
-    if (!run) return false;
-    await this.execute(run);
-    return true;
+  runOnce(): Promise<boolean> {
+    return runWithTraceId(undefined, async () => {
+      await this.runs.failAbandonedForWorker();
+      const run = await this.runs.claimNextForWorker(CRAWL_LEASE_MS);
+      if (!run) return false;
+      await this.execute(run);
+      return true;
+    });
   }
 
   private async loop(): Promise<void> {

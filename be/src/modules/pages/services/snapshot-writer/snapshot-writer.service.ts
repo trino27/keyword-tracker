@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import {
   RankSnapshotsRepository,
@@ -26,8 +27,8 @@ export class SnapshotWriterService {
   }
 
   /** Returns how many rows were new; existing (pair, instant) rows are kept. */
-  insertManyForWorker(rows: INewSnapshot[]): Promise<number> {
-    return this.snapshots.insertManyForWorker(rows);
+  insertManyForWorker(rows: INewSnapshot[], tx?: Transaction): Promise<number> {
+    return this.snapshots.insertManyForWorker(rows, tx);
   }
 
   countForWorker(): Promise<number> {

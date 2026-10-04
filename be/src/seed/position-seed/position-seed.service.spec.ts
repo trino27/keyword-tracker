@@ -5,6 +5,7 @@ import type {
 } from '@modules/pages/services/snapshot-writer/snapshot-writer.service';
 import { generatePositions } from '@modules/pages/services/position-generator/generate-positions/generate-positions';
 import { PositionFillService } from '@modules/pages/services/position-fill/position-fill.service';
+import type { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
 import { PositionSeedService } from './position-seed.service';
 
 const NOW = new Date('2026-10-03T15:00:00Z');
@@ -34,9 +35,14 @@ const setup = (pairs: ICurrentPairRecord[]) => {
     },
     countForWorker: () => Promise.resolve(inserted.flat().length),
   } as unknown as SnapshotWriterService;
+  // The fill runs in one transaction; here it runs straight through, and the batches
+  // the assertions count are the same either way.
+  const transactions = {
+    run: <T>(work: (tx: never) => Promise<T>) => work(undefined as never),
+  } as unknown as TransactionRunner;
   const service = new PositionSeedService(
     writer,
-    new PositionFillService(writer),
+    new PositionFillService(writer, transactions),
   );
   return { service, inserted };
 };

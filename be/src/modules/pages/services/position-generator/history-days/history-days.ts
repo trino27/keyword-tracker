@@ -6,7 +6,11 @@ import {
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Enough days that every pair's history together reaches the snapshot minimum. */
+/**
+ * The SEED's span: enough days that every pair in the WHOLE database together reaches
+ * the brief's snapshot minimum. It is a property of the database, not of one account —
+ * a user's own fill spans `MAX_HISTORY_DAYS`, the most the UI can ask to see.
+ */
 export function historyDays(pairCount: number): number {
   if (pairCount <= 0) return MIN_HISTORY_DAYS;
   return Math.max(MIN_HISTORY_DAYS, Math.ceil(MIN_SNAPSHOTS / pairCount));

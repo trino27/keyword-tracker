@@ -109,29 +109,36 @@ export class SeedRunner {
     name: string,
   ): Promise<ISeedCrawl> {
     const state = await this.runs.getSeedStateForWorker(clientId);
+    // The log carries the client id, never its name: a log line is not the place a
+    // client's identity should be readable. The returned report keeps the name — it is
+    // printed to the console of whoever ran the seed.
     if (state.hasCurrentRun) {
       this.logger.info(
-        { client: name },
+        { clientId },
         'Client already crawled; not crawling again',
       );
       return { client: name, runId: null, status: 'skipped' };
     }
     const runId =
       state.activeRunId ?? (await this.runs.enqueueForWorker(clientId, 'seed'));
-    this.logger.info({ client: name, runId }, 'Waiting for the crawl');
-    const status = await this.waitFor(runId, name);
+    this.logger.info({ clientId, runId }, 'Waiting for the crawl');
+    const status = await this.waitFor(runId, clientId, name);
     return { client: name, runId, status };
   }
 
   /** Polls the run until it ends; the worker — in this process or the API's — runs it. */
-  private async waitFor(runId: number, name: string): Promise<TCrawlRunStatus> {
+  private async waitFor(
+    runId: number,
+    clientId: number,
+    name: string,
+  ): Promise<TCrawlRunStatus> {
     const deadline = this.timing.now().getTime() + SEED_CRAWL_TIMEOUT_MS;
     for (;;) {
       const run = await this.runs.getRunStatusForWorker(runId);
       if (run && current.includes(run.status)) {
         if (run.status === 'partial')
           this.logger.warn(
-            { client: name, runId },
+            { clientId, runId },
             'Crawl found fewer than 15 posts',
           );
         return run.status;

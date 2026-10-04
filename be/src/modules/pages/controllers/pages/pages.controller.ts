@@ -1,10 +1,11 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import type {
   IPageDetail,
   IPageListResponse,
   IPositionHistory,
 } from '@app/contracts';
 import { CurrentScope } from '@core/decorators/current-scope/current-scope.decorator';
+import { ParseIdPipe } from '@core/pipes/parse-id/parse-id.pipe';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
 import { PositionsQueryDto } from '../../dto/positions-query/positions-query.dto';
@@ -29,7 +30,7 @@ export class PagesController {
   @Get(':id')
   get(
     @CurrentScope() scope: IUserScope,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ): Promise<IPageDetail> {
     return this.pages.getPage(scope, id);
   }
@@ -37,7 +38,7 @@ export class PagesController {
   @Get(':id/positions')
   positions(
     @CurrentScope() scope: IUserScope,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
     @Query() query: PositionsQueryDto,
   ): Promise<IPositionHistory> {
     return this.history.getHistory(scope, id, query);

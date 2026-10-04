@@ -1,8 +1,12 @@
 import pino from 'pino';
 import type { Params as PinoModuleParams } from 'nestjs-pino';
+import { currentTraceId } from '../../trace/trace-context';
 import { SERVICE_NAME } from '../constants/logger.constant';
 import { REDACT_CENSOR, REDACT_PATHS } from './redact/redact.config';
 
+// The one place `process.env` is read outside the config module, and it has to be: the
+// logger is built before Nest exists, so there is no ConfigService to ask. `envSchema`
+// still validates both of these at startup.
 const isProd = process.env.NODE_ENV === 'production';
 const level = process.env.LOG_LEVEL ?? (isProd ? 'info' : 'debug');
 
@@ -21,6 +25,12 @@ const transport: pino.TransportSingleOptions | undefined = isProd
 export const pinoHttpOptions: PinoModuleParams['pinoHttp'] = {
   level,
   base: { service: SERVICE_NAME },
+  // Correlation: never stamped by hand at a call site. A line produced outside a
+  // request or a job simply has no trace id.
+  mixin: () => {
+    const traceId = currentTraceId();
+    return traceId === undefined ? {} : { traceId };
+  },
   timestamp: pino.stdTimeFunctions.isoTime,
   redact: { paths: [...REDACT_PATHS], censor: REDACT_CENSOR },
   serializers: {

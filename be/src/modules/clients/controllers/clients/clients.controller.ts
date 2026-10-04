@@ -6,12 +6,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import type { IClient, ICrawlRunSummary } from '@app/contracts';
 import { CurrentScope } from '@core/decorators/current-scope/current-scope.decorator';
+import { ParseIdPipe } from '@core/pipes/parse-id/parse-id.pipe';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { CreateClientDto } from '../../dto/create-client/create-client.dto';
 import { UserThrottlerGuard } from '../../guards/user-throttler/user-throttler.guard';
@@ -38,7 +38,7 @@ export class ClientsController {
   @Get(':id')
   async get(
     @CurrentScope() scope: IUserScope,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ): Promise<{ client: IClient }> {
     return { client: await this.clients.getClient(scope, id) };
   }
@@ -47,7 +47,7 @@ export class ClientsController {
   @Post(':id/crawl-runs')
   async recrawl(
     @CurrentScope() scope: IUserScope,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ): Promise<{ run: ICrawlRunSummary }> {
     return { run: await this.clients.requestRecrawl(scope, id) };
   }
@@ -56,7 +56,7 @@ export class ClientsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
     @CurrentScope() scope: IUserScope,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ): Promise<void> {
     await this.clients.deleteClient(scope, id);
   }

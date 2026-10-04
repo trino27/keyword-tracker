@@ -145,7 +145,7 @@ export class PageDetailRepository {
   }
 
   /**
-   * The owner is in the WHERE, not in the caller. `findCurrentPage` checks it too, but a
+   * The owner is in the join, not in the caller. `findCurrentPage` checks it too, but a
    * second caller — or a reorder inside one — would silently remove that, which is the
    * arrangement `practices/be/security-patterns` exists to forbid.
    *

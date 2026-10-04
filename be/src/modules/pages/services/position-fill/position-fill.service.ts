@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import type { IPositionFillResult } from '@app/contracts';
+import { MAX_HISTORY_DAYS, type IPositionFillResult } from '@app/contracts';
+import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
+import { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { generatePositions } from '../position-generator/generate-positions/generate-positions';
 import {
   DAY_MS,
-  historyDays,
   latestCapture,
 } from '../position-generator/history-days/history-days';
 import {
@@ -27,48 +28,65 @@ export interface IFilledPositions {
  * a fill-up from the last stored day for an existing one — continuing its walk, so a
  * second run on the same day adds nothing.
  *
- * Who the pairs belong to is the caller's decision: the seed fills every user's,
- * `fillForScope` fills only the signed-in user's.
+ * Both who the pairs belong to and how far back to go are the caller's decision: the
+ * seed fills every user's pairs over the span its snapshot target needs, `fillForScope`
+ * fills only the signed-in user's and only as far back as the UI can ask to see.
+ *
+ * One fill is one transaction. The batches below are a bind-parameter limit, not a
+ * commit boundary — a fill that fails halfway must leave no partial history behind.
  */
 @Injectable()
 export class PositionFillService {
-  constructor(private readonly snapshots: SnapshotWriterService) {}
+  constructor(
+    private readonly snapshots: SnapshotWriterService,
+    private readonly transactions: TransactionRunner,
+  ) {}
 
-  /** The UI's "generate positions" action — the user's own clients and nothing else. */
+  /**
+   * The UI's "generate positions" action — the user's own clients and nothing else,
+   * over `MAX_HISTORY_DAYS`. A longer span is not a kindness: no range the history
+   * screen offers reaches past it, so the extra rows could never be displayed.
+   */
   async fillForScope(
     scope: IUserScope,
     now: Date = new Date(),
   ): Promise<IPositionFillResult> {
     const pairs = await this.snapshots.listCurrentPairs(scope);
-    const filled = await this.fill(pairs, now);
+    const filled = await this.fill(pairs, now, MAX_HISTORY_DAYS);
     return { pairs: filled.pairs, added: filled.rowsAdded };
   }
 
   async fill(
     pairs: ICurrentPairRecord[],
     now: Date,
+    days: number,
   ): Promise<IFilledPositions> {
-    const days = historyDays(pairs.length);
     const end = latestCapture(now);
 
-    let batch: INewSnapshot[] = [];
-    let rowsAdded = 0;
-    for (const pair of pairs) {
-      for (const position of this.positionsFor(pair, end, days)) {
-        batch.push({
-          pageId: pair.pageId,
-          keywordId: pair.keywordId,
-          ...position,
-        });
-        if (batch.length >= SNAPSHOT_BATCH) {
-          rowsAdded += await this.snapshots.insertManyForWorker(batch);
-          batch = [];
+    const rowsAdded = await this.transactions.run(async (tx) => {
+      let batch: INewSnapshot[] = [];
+      let added = 0;
+      for (const pair of pairs) {
+        for (const position of this.positionsFor(pair, end, days)) {
+          batch.push({
+            pageId: pair.pageId,
+            keywordId: pair.keywordId,
+            ...position,
+          });
+          if (batch.length >= SNAPSHOT_BATCH) {
+            added += await this.flush(batch, tx);
+            batch = [];
+          }
         }
       }
-    }
-    rowsAdded += await this.snapshots.insertManyForWorker(batch);
+      return added + (await this.flush(batch, tx));
+    });
 
     return { pairs: pairs.length, days, rowsAdded };
+  }
+
+  private flush(batch: INewSnapshot[], tx: Transaction): Promise<number> {
+    return this.snapshots.insertManyForWorker(batch, tx);
   }
 
   private positionsFor(pair: ICurrentPairRecord, end: Date, days: number) {

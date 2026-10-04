@@ -7,12 +7,28 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { API_ERROR_CODES, type TApiErrorCode } from '@app/contracts';
 import { BusinessException } from '../../exceptions/business-exception/business.exception';
 
 export interface IErrorResponseBody {
   errorCode: string;
   message: string | string[];
 }
+
+/**
+ * The codes Nest produces itself, as `@app/contracts` declares them. `HttpStatus[status]`
+ * would be shorter, but it invents a code for every status Nest can raise — a route miss
+ * answered `NOT_FOUND` before that name existed on either side, and a status outside the
+ * enum answered `undefined`, which drops out of the JSON body entirely. Anything not
+ * named here is, from the client's side, a request it got wrong.
+ */
+const NEST_ERROR_CODES: Record<number, TApiErrorCode> = {
+  [HttpStatus.BAD_REQUEST]: API_ERROR_CODES.BAD_REQUEST,
+  [HttpStatus.UNAUTHORIZED]: API_ERROR_CODES.SESSION_REQUIRED,
+  [HttpStatus.NOT_FOUND]: API_ERROR_CODES.NOT_FOUND,
+  [HttpStatus.UNSUPPORTED_MEDIA_TYPE]: API_ERROR_CODES.JSON_REQUIRED,
+  [HttpStatus.TOO_MANY_REQUESTS]: API_ERROR_CODES.TOO_MANY_REQUESTS,
+};
 
 const INTERNAL_ERROR_BODY: IErrorResponseBody = {
   errorCode: 'INTERNAL_ERROR',
@@ -63,6 +79,10 @@ export class SecureExceptionsFilter implements ExceptionFilter {
       typeof body === 'object' && body !== null && 'message' in body
         ? (body as { message: string | string[] }).message
         : exception.message;
-    return { errorCode: HttpStatus[exception.getStatus()], message };
+    return {
+      errorCode:
+        NEST_ERROR_CODES[exception.getStatus()] ?? API_ERROR_CODES.BAD_REQUEST,
+      message,
+    };
   }
 }

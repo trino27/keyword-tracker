@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   bigint,
   check,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -45,6 +46,8 @@ export const crawlRunItems = pgTable(
       name: 'crawl_run_items_pk',
       columns: [t.runId, t.sitemapPosition],
     }),
+    // Deleting a page sets this column null on every row that points at it.
+    index('crawl_run_items_page_id_idx').on(t.pageId),
     check(
       'crawl_run_items_page_required',
       sql`${t.status} <> 'crawled' or ${t.pageId} is not null`,

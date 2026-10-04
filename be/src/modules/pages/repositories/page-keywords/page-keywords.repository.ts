@@ -35,7 +35,9 @@ export class PageKeywordsRepository {
         set: {
           relevance: sql`excluded.relevance`,
           lastSeenRunId: sql`excluded.last_seen_run_id`,
-          updatedAt: new Date(),
+          // Stamped here because `$onUpdate` does not fire for an upsert's set clause,
+          // and from the database clock like every other timestamp this API writes.
+          updatedAt: sql`now()`,
         },
       });
   }

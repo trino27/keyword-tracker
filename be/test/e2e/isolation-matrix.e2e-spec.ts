@@ -35,13 +35,17 @@ async function expectSameAsMissing(
   pathFor: (id: number) => string,
   ownedId: number,
 ): Promise<void> {
+  // A mutating method must declare JSON or the middleware answers 415 before the
+  // route is reached, and the comparison below would prove nothing.
   const foreign = await context
     .http()
     [method](pathFor(ownedId))
+    .set('Content-Type', 'application/json')
     .set('Cookie', context.intruderCookie);
   const missing = await context
     .http()
     [method](pathFor(MISSING_ID))
+    .set('Content-Type', 'application/json')
     .set('Cookie', context.intruderCookie);
 
   expect(foreign.status).toBe(404);

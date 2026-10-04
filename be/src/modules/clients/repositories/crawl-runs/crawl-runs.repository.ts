@@ -72,6 +72,9 @@ export class CrawlRunsRepository {
   /**
    * Per client: the latest run (any status) and the page count of the current run —
    * the latest succeeded/partial one, whose `pages_done` IS its number of pages.
+   *
+   * The owner is in both queries: an id the user does not own contributes no runs, so
+   * its summary stays the empty one seeded below.
    */
   async summariesForClients(
     scope: IUserScope,
@@ -104,6 +107,13 @@ export class CrawlRunsRepository {
         pagesDone: crawlRuns.pagesDone,
       })
       .from(crawlRuns)
+      .innerJoin(
+        clients,
+        and(
+          eq(clients.id, crawlRuns.clientId),
+          eq(clients.userId, scope.userId),
+        ),
+      )
       .where(
         and(
           inArray(crawlRuns.clientId, clientIds),

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import {
   DATABASE_CONNECTION,
   type Database,
@@ -43,7 +43,9 @@ export class UsersRepository {
         set: {
           passwordHash: account.passwordHash,
           timeZone: account.timeZone,
-          updatedAt: new Date(),
+          // Stamped here because `$onUpdate` does not fire for an upsert's set clause,
+          // and from the database clock like every other timestamp this API writes.
+          updatedAt: sql`now()`,
         },
       })
       .returning();

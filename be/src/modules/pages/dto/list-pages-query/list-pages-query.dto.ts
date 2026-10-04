@@ -12,6 +12,7 @@ import {
   MAX_PAGE_SEARCH_LENGTH,
   MAX_PAGE_SIZE,
 } from '@app/contracts';
+import { MAX_ID } from '@core/constants/id.constant';
 
 /** `?q=` and `?q=   ` mean "no search", not a 400. */
 const trimToUndefined = ({ value }: { value: unknown }) => {
@@ -25,6 +26,7 @@ export class ListPagesQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(MAX_ID)
   clientId?: number;
 
   @IsOptional()
@@ -33,10 +35,13 @@ export class ListPagesQueryDto {
   @MaxLength(MAX_PAGE_SEARCH_LENGTH)
   q?: string;
 
+  // Bounded like an id: an offset past the column's range is a malformed request,
+  // not a 500 from Postgres.
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(MAX_ID)
   page: number = 1;
 
   @IsOptional()

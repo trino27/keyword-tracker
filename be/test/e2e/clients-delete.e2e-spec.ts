@@ -43,7 +43,11 @@ describe('deleting a client (e2e)', () => {
     );
     await seedCurrentPage(testDb, Number(owner.rows[0].user_id), ['seo'], id);
 
-    await http().delete(`/api/clients/${id}`).set('Cookie', cookie).expect(204);
+    await http()
+      .delete(`/api/clients/${id}`)
+      .set('Content-Type', 'application/json')
+      .set('Cookie', cookie)
+      .expect(204);
 
     await http().get(`/api/clients/${id}`).set('Cookie', cookie).expect(404);
     await http()
@@ -60,6 +64,7 @@ describe('deleting a client (e2e)', () => {
   it('deleting a missing client is a 404', async () => {
     const response = await http()
       .delete('/api/clients/999999')
+      .set('Content-Type', 'application/json')
       .set('Cookie', cookie)
       .expect(404);
 

@@ -48,9 +48,23 @@ describe('jsonOnlyMiddleware', () => {
     ).toHaveBeenCalled();
   });
 
-  it('accepts a mutating request without a body', () => {
-    expect(run('POST', {}).next).toHaveBeenCalled();
-    expect(run('DELETE', { 'content-length': '0' }).next).toHaveBeenCalled();
+  it('refuses a mutating request that declares nothing, body or not', () => {
+    expect(run('POST', {}).response.status).toHaveBeenCalledWith(415);
+    expect(
+      run('DELETE', { 'content-length': '0' }).response.status,
+    ).toHaveBeenCalledWith(415);
+  });
+
+  it('accepts a bodyless mutating request that declares JSON', () => {
+    expect(
+      run('POST', { 'content-type': 'application/json' }).next,
+    ).toHaveBeenCalled();
+    expect(
+      run('DELETE', {
+        'content-type': 'application/json',
+        'content-length': '0',
+      }).next,
+    ).toHaveBeenCalled();
   });
 
   it('ignores safe methods', () => {
