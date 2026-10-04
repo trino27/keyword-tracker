@@ -29,6 +29,10 @@ export function KeywordToggles({ series, hidden, onToggle }: IKeywordTogglesProp
 						onChange={() => onToggle(keyword.keywordId)}
 						disabled={empty}
 						icon={<ColorSwatch color={keywordColor(index)} size={10} />}
+						// The icon slot is sized for the check mark it usually holds — 9px at
+						// this chip size, with its overflow hidden — which sliced the top and
+						// bottom off the colour dot. The slot takes the dot's height instead.
+						styles={{ iconWrapper: { height: "auto", overflow: "visible" } }}
 					>
 						<Text span size="xs" td={empty ? "line-through" : undefined}>
 							{keyword.term}
