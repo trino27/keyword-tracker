@@ -1,0 +1,438 @@
+/**
+ * Hand-labelled keywords for the fixture corpus.
+ *
+ * GOOD: a phrase a person could plausibly type into a search engine AND that names
+ * what the page is about, or a genuine sub-topic of it.
+ * JUNK: a sentence fragment, a verb phrase, title-format boilerplate (complete
+ * guide), the name of a cited source, a truncated compound, or a subject the page
+ * does not actually target.
+ *
+ * A term produced by an arm and absent from both lists is reported as UNLABELLED and
+ * must be judged before the arm's score is trusted.
+ */
+export const GOOD: Record<string, string[]> = {
+  'semrush/ai-marketing': [
+    'ai marketing',
+    'ai marketing tools',
+    'ai marketing guide',
+    'ai in marketing',
+    'use ai in marketing',
+    'ways to use ai in marketing',
+  ],
+  'semrush/ai-search-optimization': [
+    'optimize for ai search',
+    'ai search optimization',
+    'ai search',
+    'schema markup',
+    'generative engine optimization',
+    'direct answers',
+    'query fan out',
+  ],
+  'semrush/artificial-intelligence-stats': [
+    'artificial intelligence statistics',
+    'ai statistics',
+    'global market size for ai',
+    'ai market size',
+    'ai adoption',
+  ],
+  'semrush/data-driven-marketing': [
+    'data driven marketing',
+    'data driven marketing strategy',
+  ],
+  'semrush/digital-marketing-agency-pricing': [
+    'digital marketing agency pricing',
+    'agency pricing',
+    'digital marketing pricing',
+    'pricing models',
+    'marketing agency pricing models',
+  ],
+  'semrush/facebook-audience-overlap': [
+    'frequency cap',
+    'ad sets',
+    'learning phase',
+    'meta ads manager',
+    'custom audiences',
+    'audience overlap tool',
+    'facebook audience overlap',
+    'audience overlap',
+    'avoid audience overlap on facebook',
+    'facebook ad targeting',
+  ],
+  'semrush/how-to-find-youtube-influencers': [
+    'find youtube influencers',
+    'youtube influencers',
+    'how to find youtube influencers',
+  ],
+  'semrush/how-to-reply-to-google-reviews': [
+    'reply to google reviews',
+    'google reviews',
+    'respond to google reviews',
+  ],
+  'semrush/keyword-bidding': [
+    'keyword bidding',
+    'keyword bidding strategies',
+    'keyword bidding process',
+  ],
+  'semrush/keyword-research-tools': [
+    'keyword research tools',
+    'free keyword research tools',
+    'keyword research tool',
+  ],
+  'semrush/local-seo-ranking-factors': [
+    'local seo ranking factors',
+    'local ranking factors',
+    'local seo',
+  ],
+  'semrush/local-seo-statistics': [
+    'local seo statistics',
+    'local seo stats',
+    'local map pack',
+  ],
+  'semrush/martech-tools': [
+    'martech tools',
+    'martech stack',
+    'marketing technology tools',
+  ],
+  'semrush/seo-data-science': ['data science for seo', 'seo data science'],
+  'semrush/seo-specialist': [
+    'seo specialist',
+    'become an seo specialist',
+    'seo specialist skills',
+    'hire an seo specialist',
+  ],
+  'semrush/seo-split-test-result-does-bolded-text-help-your-seo': [
+    'seo split test result',
+    'seo split test',
+    'bolded text help your seo',
+    'bolded text',
+    'bold text seo',
+  ],
+  'semrush/seo-traffic-generation': [
+    'seo traffic',
+    'increase seo traffic',
+    'seo traffic generation',
+    'organic traffic',
+  ],
+  'semrush/what-is-ai-marketing': ['ai marketing'],
+  'semrush/what-is-keyword-analysis': ['keyword analysis'],
+  'semrush/why-ai-search-is-the-new-reality-for-brands': [
+    'ai search',
+    'llm visibility',
+    'ai search for brands',
+  ],
+  'yoast/3-exercises-google-analytics-fun': [
+    'google analytics',
+    'google analytics exercises',
+  ],
+  'yoast/7-reasons-to-come-to-yoastcon': ['yoastcon'],
+  'yoast/assisted-conversions-google-analytics': [
+    'assisted conversions',
+    'assisted conversions in google analytics',
+  ],
+  'yoast/conversion-rate-optimization-hypothesise-test': [
+    'conversion rate optimization',
+    'conversion rate',
+  ],
+  'yoast/email-performance-in-google-analytics': [
+    'email performance in google analytics',
+    'email performance',
+    'utm source',
+    'campaign tracking',
+  ],
+  'yoast/facebook-changes-make-seo-important': [
+    'facebook algorithm',
+    'facebook algorithm changes',
+  ],
+  'yoast/facebook-traffic-decreasing-what-to-do': [
+    'traffic from facebook is decreasing',
+    'facebook traffic',
+    'facebook traffic decreasing',
+  ],
+  'yoast/facebook-traffic-the-current-status': ['facebook traffic'],
+  'yoast/google-analytics-dashboards': [
+    'google analytics dashboards',
+    'ecommerce dashboard',
+    'dashboards in google analytics',
+  ],
+  'yoast/google-analytics-segments-blog': [
+    'google analytics segments',
+    'analytics segments',
+  ],
+  'yoast/how-to-remove-www-from-your-url': [
+    'remove www',
+    'remove www from your url',
+    'htaccess file',
+  ],
+  'yoast/live-indexing-bing-google-yoast-seo': [
+    'live indexing',
+    'live indexing for bing',
+    'yoast seo',
+  ],
+  'yoast/on-gutenberg-and-wordpress-5-0': [
+    'gutenberg and wordpress',
+    'gutenberg',
+    'wordpress 5 0',
+  ],
+  'yoast/one-page-website-seo': ['one page website seo', 'one page website'],
+  'yoast/online-marketing-tools': [
+    'online marketing',
+    'online marketing tools',
+    'online marketing campaign',
+  ],
+  'yoast/pressing-questions-about-gutenberg-the-new-editor-in-wordpress-5-0': [
+    'page builder',
+    'new editor in wordpress',
+    'gutenberg',
+    'wordpress 5 0',
+  ],
+  'yoast/secondary-dimensions-in-google-analytics': [
+    'secondary dimensions',
+    'secondary dimensions in google analytics',
+  ],
+  'yoast/sequence-segments-google-analytics': [
+    'sequence segments',
+    'sequence segments in google analytics',
+  ],
+  'yoast/should-you-update-to-wordpress-5-0': [
+    'update to wordpress',
+    'gutenberg',
+    'wordpress 5 0',
+  ],
+  'yoast/technology-report-in-google-analytics': [
+    'technology report in google analytics',
+    'technology report',
+  ],
+  'yoast/what-is-http2': ['http 2', 'what is http 2', 'site speed'],
+};
+
+/** Terms seen from some arm and judged not to be keywords. */
+export const JUNK: Record<string, string[]> = {
+  'semrush/ai-marketing': [
+    'blog posts',
+    'language app',
+    'social media content',
+    'kpis',
+    'tools use cases for marketers',
+    'use cases',
+    'tools use',
+    'tools use cases',
+    'cases for marketers',
+    'marketing guide',
+    'cases',
+  ],
+  'semrush/ai-search-optimization': [
+    'query fan',
+    'content quotable',
+    'ai search results',
+    'optimize for ai',
+  ],
+  'semrush/artificial-intelligence-stats': [
+    'key ai stats',
+    'precedence research',
+    'mckinsey',
+    'million unique visitors',
+    'ai stats',
+    'key ai',
+  ],
+  'semrush/data-driven-marketing': [
+    'driven marketing',
+    'traditional marketing',
+  ],
+  'semrush/digital-marketing-agency-pricing': [
+    'charging enough',
+    'project based',
+    'agencies charge',
+    'every dollar',
+    'save money',
+    'marketing agency',
+    'agency pricing guide',
+  ],
+  'semrush/facebook-audience-overlap': [
+    'facebook audience overlap explained',
+    'ad set',
+    'two or more ads',
+    'overlap explained ways to avoid',
+    'audience overlap explained',
+    'ways to avoid',
+  ],
+  'semrush/how-to-find-youtube-influencers': [
+    'influencer analytics',
+    'youtube influencer',
+    'match made in marketing',
+  ],
+  'semrush/how-to-reply-to-google-reviews': [
+    'google review',
+    'reply to google',
+    'google reviews tips examples',
+    'verify your business',
+    'help you build',
+    'best practices',
+    'customer feedback',
+    'reviewer',
+  ],
+  'semrush/keyword-bidding': [
+    'beginner step',
+    'bidding process',
+    'step by step guide',
+  ],
+  'semrush/keyword-research-tools': [
+    'keyword magic tool',
+    'free paid',
+    'tools to try',
+    'good keyword research tool',
+  ],
+  'semrush/local-seo-ranking-factors': [
+    'complete guide',
+    'ranking factors',
+    'local seo ranking',
+    'seo ranking',
+    'seo ranking factors',
+  ],
+  'semrush/local-seo-statistics': [
+    'statistics you need to know',
+    'need to know',
+    'local seo statistics you need',
+    'succeeding in local search',
+    'online at least once',
+    'business visibility',
+  ],
+  'semrush/martech-tools': [
+    'martech tool',
+    'tools for marketers',
+    'best martech tools',
+    'adcreative ai',
+    'social tracker',
+    'databox',
+    'storychief',
+    'supermetrics',
+  ],
+  'semrush/seo-data-science': [
+    'measure results',
+    'data science',
+    'science for seo',
+    'science',
+    'large datasets',
+    'using data science',
+  ],
+  'semrush/seo-specialist': [
+    'become one',
+    'specialist and how to become',
+    'successful seo',
+    'seo skills',
+    'specialist',
+  ],
+  'semrush/seo-split-test-result-does-bolded-text-help-your-seo': [
+    'blog pages',
+    'pieces of text',
+    'split test result',
+  ],
+  'semrush/seo-traffic-generation': ['ways to increase', 'traffic generation'],
+  'semrush/what-is-ai-marketing': ['marketing processes'],
+  'semrush/what-is-keyword-analysis': [
+    'search engines',
+    'keyword analysis is the process',
+  ],
+  'semrush/why-ai-search-is-the-new-reality-for-brands': [
+    'new reality for brands',
+    'new reality',
+    'key takeaways',
+  ],
+  'yoast/3-exercises-google-analytics-fun': [
+    'fun with google analytics',
+    'exercises to have more fun',
+    'reporting section',
+    'break something',
+    'more fun',
+    'exercises',
+  ],
+  'yoast/7-reasons-to-come-to-yoastcon': [
+    'netherlands',
+    'reasons to come',
+    'reasons to come to yoastcon',
+    'reasons',
+  ],
+  'yoast/assisted-conversions-google-analytics': [
+    'final conversion interaction',
+    'website owners',
+    'indirect value',
+    'conversions',
+  ],
+  'yoast/conversion-rate-optimization-hypothesise-test': [
+    'hypothesise first',
+    'hypotheses',
+    'then test',
+  ],
+  'yoast/email-performance-in-google-analytics': [
+    'want to know',
+    'summer sale',
+    'email performance in google',
+  ],
+  'yoast/facebook-changes-make-seo-important': [
+    'algorithm changes seo becomes crucial',
+    'invest',
+    'become less important',
+    'news outlets',
+    'seo becomes crucial',
+    'algorithm changes',
+  ],
+  'yoast/facebook-traffic-decreasing-what-to-do': [
+    'news feeds',
+    'facebook to your website',
+    'become less important',
+    'what to do',
+  ],
+  'yoast/facebook-traffic-the-current-status': [
+    'current status',
+    'social media platforms',
+  ],
+  'yoast/google-analytics-dashboards': [
+    'create and use dashboards',
+    'use dashboards',
+  ],
+  'yoast/google-analytics-segments-blog': [
+    'loyal traffic',
+    'specifying your data',
+    'segments for your blog',
+  ],
+  'yoast/how-to-remove-www-from-your-url': ['your url', 'url'],
+  'yoast/live-indexing-bing-google-yoast-seo': [
+    'google coming to yoast seo',
+    'indexing for bing google coming',
+    'bing google',
+    'coming to yoast',
+  ],
+  'yoast/on-gutenberg-and-wordpress-5-0': [],
+  'yoast/one-page-website-seo': ['optimizing a single page', 'single page'],
+  'yoast/online-marketing-tools': [
+    'wirify',
+    'contrast ratio',
+    'google adwords',
+    'tracking code',
+    'improve your online marketing',
+    'marketing campaign',
+  ],
+  'yoast/pressing-questions-about-gutenberg-the-new-editor-in-wordpress-5-0': [
+    'continue to work',
+    'existing content',
+    'want to test',
+    'pressing questions about gutenberg',
+    'pressing questions',
+    'new editor',
+  ],
+  'yoast/secondary-dimensions-in-google-analytics': [
+    'dimensions',
+    'context to your data',
+  ],
+  'yoast/sequence-segments-google-analytics': [
+    'segments',
+    'sequenced segment',
+    'add steps',
+    'complete a form',
+  ],
+  'yoast/should-you-update-to-wordpress-5-0': ['should you update'],
+  'yoast/technology-report-in-google-analytics': [
+    'operating system',
+    'screen resolution',
+  ],
+  'yoast/what-is-http2': ['http', 'seo for beginners', 'what is http'],
+};
