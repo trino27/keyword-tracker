@@ -16,6 +16,12 @@ export interface ISeoIssueDefinition {
    * Its presence is what `CONDITIONAL_ISSUE_CODES` reads.
    */
   skipReason?: string;
+  /**
+   * `run` marks a check that cannot be answered from one page — it compares the page
+   * with the others crawled in the same run. Absent means the ordinary thing: the
+   * page judges itself.
+   */
+  scope?: 'run';
 }
 
 /**
@@ -122,6 +128,30 @@ export const SEO_ISSUE_CATALOGUE = {
     hint: 'HTML over 1 MB is slow to download and parse.',
     max: 1_048_576,
   },
+  KEYWORD_CANNIBALISATION: {
+    scope: 'run',
+    severity: 'warning',
+    label: 'Two pages target the same keyword',
+    hint: 'Pages competing for one query split its links and rankings; merge them or retarget one.',
+    skipReason:
+      'Nothing to compare — the run holds one page, or this page has no keyword.',
+  },
+  TITLE_DUPLICATE: {
+    scope: 'run',
+    severity: 'warning',
+    label: 'Title is used by another page',
+    hint: 'Identical titles give search engines no way to tell the pages apart in results.',
+    skipReason:
+      'Nothing to compare — the run holds one page, or this page has no title.',
+  },
+  META_DESCRIPTION_DUPLICATE: {
+    scope: 'run',
+    severity: 'notice',
+    label: 'Meta description is used by another page',
+    hint: 'A description written for one page describes the others worse; write one per page.',
+    skipReason:
+      'Nothing to compare — the run holds one page, or this page has no description.',
+  },
   STRUCTURED_DATA_MISSING: {
     // The hint speaks about eligibility, never about a violation: Google requires no
     // structured data, and a hint implying otherwise manufactures urgency.
@@ -136,3 +166,30 @@ export type TSeoIssueCode = keyof typeof SEO_ISSUE_CATALOGUE;
 export const SEO_ISSUE_CODES = Object.keys(
   SEO_ISSUE_CATALOGUE,
 ) as TSeoIssueCode[];
+
+/**
+ * The catalogue split by what a check can see. Derived from the entries, so a code is
+ * in exactly one of them and neither list can drift from the catalogue.
+ *
+ * The split is what lets the page rules stay typed as complete: `SEO_RULES` covers
+ * every PAGE code and would not compile if one were missing, and a run check — which
+ * takes the whole crawl rather than a page — is answered by its own registry instead
+ * of being forced into a shape it cannot have.
+ */
+export type TRunIssueCode = {
+  [K in TSeoIssueCode]: (typeof SEO_ISSUE_CATALOGUE)[K] extends {
+    scope: 'run';
+  }
+    ? K
+    : never;
+}[TSeoIssueCode];
+
+export type TPageIssueCode = Exclude<TSeoIssueCode, TRunIssueCode>;
+
+export const RUN_ISSUE_CODES = SEO_ISSUE_CODES.filter(
+  (code) => 'scope' in SEO_ISSUE_CATALOGUE[code],
+) as TRunIssueCode[];
+
+export const PAGE_ISSUE_CODES = SEO_ISSUE_CODES.filter(
+  (code) => !('scope' in SEO_ISSUE_CATALOGUE[code]),
+) as TPageIssueCode[];

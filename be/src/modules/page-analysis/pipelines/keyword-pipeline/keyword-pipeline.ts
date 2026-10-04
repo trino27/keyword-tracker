@@ -1,4 +1,6 @@
 import { RUN_BOILERPLATE_SHARE } from '../../constants/keyword-scoring.constant';
+import { profileFor } from '../../languages/language-profile';
+import { runPipeline } from '../pipeline';
 import { normalizeText } from '../../services/text/normalize-text/normalize-text';
 import {
   collectCandidates,
@@ -111,19 +113,22 @@ export const SCORE_STEP: IKeywordStep = {
   name: 'score',
   run(context) {
     const pageCount = context.pages.length;
-    context.scored = context.candidates.map((candidates) =>
-      [...candidates].map(([term, stats]) => ({
+    context.scored = context.candidates.map((candidates, index) => {
+      // Per PAGE, because a run may mix languages and the rules of one are not the
+      // rules of another.
+      const profile = profileFor(context.pages[index].parsed.lang);
+      return [...candidates].map(([term, stats]) => ({
         term,
         runs: stats.runs,
         score:
-          pageScore(stats, term) *
+          pageScore(stats, term, profile) *
           idfFactor(
             pageCount,
             context.documentFrequency.get(term) ?? 1,
             isAnchored(stats),
           ),
-      })),
-    );
+      }));
+    });
   },
 };
 
@@ -189,7 +194,6 @@ export function emptyContext(
 export function runKeywordPipeline(
   context: IKeywordContext,
   pipeline: readonly IKeywordStep[] = KEYWORD_PIPELINE,
-): IKeywordContext {
-  for (const step of pipeline) step.run(context);
-  return context;
+): Promise<IKeywordContext> {
+  return runPipeline(context, pipeline);
 }

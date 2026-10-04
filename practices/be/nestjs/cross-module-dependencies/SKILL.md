@@ -9,10 +9,12 @@ description: How one backend module uses another - through an exported service, 
 its internal services or its exceptions. *Why: B's tables and rules stay B's to change.*
 
 ```ts
-// crawl needs the client's website URL and to know the caller owns the client
+// crawl executes a run; the rows it walks belong to the clients module, so it reads
+// and advances them through the service that module exports
 constructor(
-  private readonly runs: CrawlRunsRepository,   // own repository
-  private readonly clients: ClientsService,     // exported by ClientsModule
+  private readonly runs: ClientCrawlRunsService, // exported by ClientsModule
+  private readonly results: CrawlResultsService, // exported by PagesModule
+  private readonly analysis: PageAnalysisService,// exported by PageAnalysisModule
 ) {}
 ```
 
@@ -37,8 +39,21 @@ Fix by:
 2. **Moving the orchestration up.** An endpoint that needs both goes in the module that already
    depends on both (`crawl` depends on `clients` and `pages`; neither depends on `crawl`).
 3. **Dropping the reverse call.** The owner of a fact never imports its consumer; the consumer
-   passes in what the owner needs (`ClientsService.create` returns the client, the caller then
-   starts the crawl).
+   passes in what the owner needs.
+4. **Giving the table to the writer that needs it atomically.** When the two needs are a write
+   that must be in one transaction and a read that happens later, the table goes to the writer
+   and the reader gets an exported service.
+
+   This is the one the crawl queue took, and it is worth reading before deciding a module looks
+   wrong. `crawl_runs` and `crawl_run_items` live in `clients`, not in `crawl`: creating a client
+   enqueues its first run in the same transaction as the client row, so a client with no queued
+   run cannot exist, while `crawl` only ever claims and advances rows and can do that through
+   `ClientCrawlRunsService`. Had the queue gone to `crawl`, clients would need crawl to enqueue
+   and crawl would need clients to resolve the site — a cycle, and `forwardRef` is not allowed.
+
+   The visible cost is that `crawl` owns no table and `clients` holds two aggregates and two
+   route prefixes (`/clients`, `/crawl-runs`). That is the price of the acyclic graph, and it is
+   recorded in `clients.module.ts` so the next reader does not take it for an accident.
 
 ## Side effects after a commit
 

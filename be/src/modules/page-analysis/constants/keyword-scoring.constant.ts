@@ -4,17 +4,12 @@
  */
 
 /**
- * Five, not three: the queries a page is actually written for run longer than three
- * words once a language puts particles between them — "южна африка без виза",
- * "самолетни билети до рим". At three the selection returned two overlapping windows
- * of the phrase instead of the phrase. At four it returned the phrase with its last
- * word missing, which is worse, because that is what the page is shown as being
- * about: "Email performance in Google Analytics" was stored as `email performance in
- * google`, "Technology report in Google Analytics" as `technology report in google`.
+ * Language is NOT tuned here. Stop words, the verbs that tell a clause from a query
+ * and the longest phrase a language supports live in `../languages/`, one profile per
+ * language, because they are linguistics rather than hyperparameters: a second
+ * language is a file added there and nothing changed here. What stays in this file
+ * applies to every language the crawler meets.
  */
-export const MAX_NGRAM = 5;
-/** Without a stop-word list, 3-grams are mostly noise ("of the best"). */
-export const MAX_NGRAM_UNKNOWN_LANG = 2;
 export const MIN_TOKEN_LENGTH = 2;
 /** A stored keyword term is at most this long (the column width). */
 export const MAX_TERM_LENGTH = 200;
@@ -251,92 +246,3 @@ export const TITLE_SEPARATORS = [
   ' · ',
   ' • ',
 ] as const;
-
-/**
- * Words the `stopword` English list lacks but web prose is full of. Applied only to
- * English pages; other languages use their list as shipped.
- */
-export const EXTRA_ENGLISH_STOP_WORDS: readonly string[] = [
-  'why',
-  'will',
-  'its',
-  'does',
-  'just',
-  'may',
-  'might',
-  'must',
-  'here',
-  'there',
-  'which',
-  'who',
-  'whom',
-  'whose',
-  'when',
-  'where',
-  'while',
-  'than',
-  'then',
-  'them',
-  'they',
-  'their',
-  'our',
-  'ours',
-  'we',
-  'us',
-  'my',
-  'me',
-  're',
-  've',
-  'll',
-  'don',
-  'doesn',
-  'didn',
-  'isn',
-  'aren',
-  'wasn',
-  'can',
-  'cannot',
-  'could',
-  'would',
-  'should',
-  'yet',
-  'etc',
-  // Folding contractions into their stem makes these bound a phrase for the first
-  // time: "Let's play" normalized to `let s play`, which no list had to reject, and
-  // now normalizes to `let play`, which one does.
-  'let',
-  'lets',
-  // A comparison hinges on it and neither side is said by it: ratehub.ca returned
-  // `cash back vs` and `low interest vs` as the keywords of its two comparisons.
-  'vs',
-  'versus',
-  // Prepositions and conjunctions the shipped list omits. Every one of them was
-  // found ending or beginning a candidate on a live page: "suspected plot against",
-  // "plot against us run", "against us run military" were three of one article's
-  // eight keywords.
-  'against',
-  'among',
-  'across',
-  'although',
-  'behind',
-  'between',
-  'beyond',
-  'despite',
-  'during',
-  'even',
-  'except',
-  'however',
-  'into',
-  'onto',
-  'over',
-  'since',
-  'through',
-  'toward',
-  'towards',
-  'under',
-  'unless',
-  'until',
-  'upon',
-  'within',
-  'without',
-];

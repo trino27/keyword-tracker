@@ -21,10 +21,14 @@ export type { IKeywordSource };
  * stemming step, a replaced corpus penalty — runs beside the default rather than
  * instead of it.
  */
-export function extractKeywords(
+export async function extractKeywords(
   pages: readonly IKeywordSource[],
   siteKey: string,
   pipeline: readonly IKeywordStep[] = KEYWORD_PIPELINE,
-): ISelectedKeyword[][] {
-  return runKeywordPipeline(emptyContext(pages, siteKey), pipeline).keywords;
+): Promise<ISelectedKeyword[][]> {
+  const context = await runKeywordPipeline(
+    emptyContext(pages, siteKey),
+    pipeline,
+  );
+  return context.keywords;
 }

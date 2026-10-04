@@ -7,15 +7,19 @@ import { SEO_ISSUE_CATALOGUE } from './seo-issue-catalogue.constant';
 
 describe('CONDITIONAL_ISSUE_CODES', () => {
   /**
-   * Pinned by name, not by count: a sixth conditional check must be a conscious edit
-   * here, which is the prompt to give it a reason rather than ship an empty line.
+   * Pinned by name, not by count: another conditional check must be a conscious edit
+   * here, which is the prompt to give it a reason rather than ship an empty line. A
+   * run-scoped check is conditional too — it is skipped when the run holds one page.
    */
-  it('is exactly the five codes whose rule can skip', () => {
+  it('is exactly the codes whose rule can skip', () => {
     expect([...CONDITIONAL_ISSUE_CODES].sort()).toEqual([
       'CANONICAL_MISMATCH',
       'HEADING_SKIP',
       'IMAGES_MISSING_ALT',
+      'KEYWORD_CANNIBALISATION',
+      'META_DESCRIPTION_DUPLICATE',
       'META_DESCRIPTION_LENGTH',
+      'TITLE_DUPLICATE',
       'TITLE_LENGTH',
     ]);
   });

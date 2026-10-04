@@ -39,6 +39,9 @@ export const envSchema = z.object({
     .optional(),
   // "true" starts the crawl worker in this process; anything else leaves runs queued.
   [K.CRAWL_WORKER_ENABLED]: z.enum(['true', 'false']).optional(),
+  // The provider's id, checked against the providers this build has at module setup —
+  // an unknown one must name what IS available, which a schema here could not.
+  [K.RANK_PROVIDER]: z.string().min(1).optional(),
   // Optional: only the seed process needs it. Set but too short is a mistake worth
   // failing on, since it becomes the password of both demo accounts.
   [K.SEED_USER_PASSWORD]: z

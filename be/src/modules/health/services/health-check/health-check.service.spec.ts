@@ -1,4 +1,4 @@
-import type { DatabaseProbeRepository } from '../../../repositories/database-probe/database-probe.repository';
+import type { DatabaseProbeRepository } from '../../repositories/database-probe/database-probe.repository';
 import { HealthCheckService } from './health-check.service';
 
 const makeService = (isReachable: boolean) =>

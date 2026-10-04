@@ -3,7 +3,8 @@ import { join } from 'node:path';
 import {
   CONDITIONAL_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
-  SEO_ISSUE_CODES,
+  PAGE_ISSUE_CODES,
+  type TSeoIssueCode,
   skipReasonOf,
 } from '@app/contracts';
 import {
@@ -24,16 +25,16 @@ const recordedPosts = () =>
   );
 
 describe('SEO_RULES', () => {
-  it('has exactly one rule per catalogued code', () => {
-    expect(Object.keys(SEO_RULES).sort()).toEqual([...SEO_ISSUE_CODES].sort());
+  it('has exactly one rule per catalogued PAGE code', () => {
+    expect(Object.keys(SEO_RULES).sort()).toEqual([...PAGE_ISSUE_CODES].sort());
   });
 
   it('a clean page has no issues, and every check applied to it', () => {
     expect(evaluateSeoRules(makeRuleInput())).toEqual({
       issues: [],
-      checksJudged: SEO_ISSUE_CODES,
+      checksJudged: PAGE_ISSUE_CODES,
       checksNotApplicable: [],
-      checksApplicable: SEO_ISSUE_CODES.length,
+      checksApplicable: PAGE_ISSUE_CODES.length,
       checksFailed: 0,
     });
   });
@@ -44,7 +45,7 @@ describe('SEO_RULES', () => {
     const { issues, checksApplicable, checksFailed, checksNotApplicable } =
       evaluateSeoRules(makeRuleInput({ parsed: { title: null } }));
 
-    expect(checksApplicable).toBe(SEO_ISSUE_CODES.length - 1);
+    expect(checksApplicable).toBe(PAGE_ISSUE_CODES.length - 1);
     expect(issues.map(({ code }) => code)).toEqual(['TITLE_MISSING']);
     expect(checksFailed).toBe(1);
     // Named, not counted: the screen quotes this code's reason back to the reader, so
@@ -66,9 +67,13 @@ describe('SEO_RULES', () => {
         }),
       );
 
-    expect(checksApplicable).toBe(SEO_ISSUE_CODES.length - 5);
+    expect(checksApplicable).toBe(PAGE_ISSUE_CODES.length - 5);
+    // The conditional codes this pass can reach: a run-scoped check is conditional
+    // too — it is skipped when the run holds one page — but `RUN_RULES` answers it.
     expect([...checksNotApplicable].sort()).toEqual(
-      [...CONDITIONAL_ISSUE_CODES].sort(),
+      CONDITIONAL_ISSUE_CODES.filter((code) =>
+        (PAGE_ISSUE_CODES as TSeoIssueCode[]).includes(code),
+      ).sort(),
     );
     // Disjoint, and together the whole catalogue: the pair IS the record of which
     // checks this crawl knew about, so a code in neither would later read as one the
@@ -77,7 +82,7 @@ describe('SEO_RULES', () => {
       checksJudged.filter((code) => checksNotApplicable.includes(code)),
     ).toEqual([]);
     expect([...checksJudged, ...checksNotApplicable].sort()).toEqual(
-      [...SEO_ISSUE_CODES].sort(),
+      [...PAGE_ISSUE_CODES].sort(),
     );
   });
 
@@ -132,14 +137,14 @@ describe('SEO_RULES', () => {
       // produce a denominator small enough to make its score meaningless. This is the
       // assertion that fails the day an applicability condition is written too broadly.
       expect(checksApplicable).toBeGreaterThanOrEqual(13);
-      expect(checksApplicable).toBeLessThanOrEqual(SEO_ISSUE_CODES.length);
+      expect(checksApplicable).toBeLessThanOrEqual(PAGE_ISSUE_CODES.length);
       expect(checksFailed).toBe(issues.length);
       // The pair accounts for the whole catalogue on every real page, and the count is
       // the judged list's length — the two things the database is about to enforce as
       // CHECK constraints, asserted here against pages nobody wrote for this test.
       expect(checksApplicable).toBe(checksJudged.length);
       expect([...checksJudged, ...checksNotApplicable].sort()).toEqual(
-        [...SEO_ISSUE_CODES].sort(),
+        [...PAGE_ISSUE_CODES].sort(),
       );
       // Every skipped code owes the reader a reason; an unreasoned one renders blank.
       for (const code of checksNotApplicable) {

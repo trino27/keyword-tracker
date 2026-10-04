@@ -25,7 +25,9 @@ describe("ChecksSection", () => {
 	it("shows the denominator as a subtitle", async () => {
 		render(withStatus("HEADING_SKIP", "notApplicable"));
 
-		expect(await screen.findByText("17 judged · 1 not applicable")).toBeInTheDocument();
+		expect(
+			await screen.findByText(`${SEO_ISSUE_CODES.length - 1} judged · 1 not applicable`),
+		).toBeInTheDocument();
 	});
 
 	it("says why a check was skipped", async () => {

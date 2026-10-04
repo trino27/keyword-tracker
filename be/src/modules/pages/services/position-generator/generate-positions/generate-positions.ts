@@ -7,7 +7,7 @@ import {
 } from '../position-generator.constant';
 import { baseline, clampPosition } from '../baseline/baseline';
 import { hashSeed } from '../hash-seed/hash-seed';
-import { DAY_MS } from '../history-days/history-days';
+import { DAY_MS } from '../../capture-schedule/capture-schedule';
 import { prng } from '../prng/prng';
 
 export interface IPairWalk {

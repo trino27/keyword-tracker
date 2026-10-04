@@ -10,7 +10,7 @@ const makeAnalysisInput = (
 describe('PageAnalysisService', () => {
   const service = new PageAnalysisService();
 
-  it('gives each page its keywords and issues, in input order', () => {
+  it('gives each page its keywords and issues, in input order', async () => {
     const pages = [
       makeAnalysisInput({
         url: 'https://a.example/link-building/',
@@ -36,7 +36,7 @@ describe('PageAnalysisService', () => {
       }),
     ];
 
-    const [first, second] = service.analyseRun(pages, 'a.example');
+    const [first, second] = await service.analyseRun(pages, 'a.example');
 
     expect(first.keywords[0].relevance).toBe(1);
     expect(first.issues).toEqual([]);

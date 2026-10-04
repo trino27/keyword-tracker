@@ -10,6 +10,7 @@ import {
   NGRAM_FACTOR,
   STRONG_FIELDS,
 } from '../../../constants/keyword-scoring.constant';
+import type { ILanguageProfile } from '../../../languages/language-profile';
 import type { ICandidateStats } from '../collect-candidates/collect-candidates';
 import { isClauseShaped } from '../phrase-shape/phrase-shape';
 
@@ -35,7 +36,11 @@ function isPassingMention(stats: ICandidateStats): boolean {
  * the page's own declared keywords, and a preference for phrases over bare words.
  * Zero means the candidate is not a keyword at all, and selection drops it.
  */
-export function pageScore(stats: ICandidateStats, term = ''): number {
+export function pageScore(
+  stats: ICandidateStats,
+  term = '',
+  profile: ILanguageProfile | null = null,
+): number {
   if (isPassingMention(stats)) return 0;
   let score = 0;
   let strongFields = 0;
@@ -47,7 +52,8 @@ export function pageScore(stats: ICandidateStats, term = ''): number {
     score += FIELD_WEIGHTS.body * Math.log(1 + stats.bodyTf);
   score *= 1 + MULTI_FIELD_BONUS * Math.max(0, strongFields - 1);
   if (stats.declared) score *= METADATA_BONUS;
-  if (term && isClauseShaped(term)) score *= CLAUSE_SHAPE_FACTOR;
+  if (term && profile && isClauseShaped(term, profile.clauseVerbs))
+    score *= CLAUSE_SHAPE_FACTOR;
   return score * ngramFactor(stats);
 }
 

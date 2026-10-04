@@ -1,6 +1,7 @@
 import {
+  PAGE_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
-  SEO_ISSUE_CODES,
+  type TPageIssueCode,
   type TSeoIssue,
   type TSeoIssueCode,
 } from '@app/contracts';
@@ -14,10 +15,12 @@ import { TRANSPORT_RULES } from './rules/transport-rules/transport-rules';
 import type { ISeoRuleInput, TSeoRule } from './seo-rule.interface';
 
 /**
- * One rule per catalogued code. The type is the completeness check: a code added to
- * the catalogue without a rule — or a rule group left out here — does not compile.
+ * One rule per catalogued PAGE code. The type is the completeness check: a code added
+ * to the catalogue without a rule — or a rule group left out here — does not compile.
+ * A run-scoped code is answered by `RUN_RULES` instead, because it reads the whole
+ * crawl and no rule of this shape could.
  */
-export const SEO_RULES: { [K in TSeoIssueCode]: TSeoRule<K> } = {
+export const SEO_RULES: { [K in TPageIssueCode]: TSeoRule<K> } = {
   ...TITLE_RULES,
   ...META_RULES,
   ...HEADING_RULES,
@@ -65,7 +68,7 @@ export function evaluateSeoRules(input: ISeoRuleInput): ISeoEvaluation {
   const checksJudged: TSeoIssueCode[] = [];
   const checksNotApplicable: TSeoIssueCode[] = [];
 
-  for (const code of SEO_ISSUE_CODES) {
+  for (const code of PAGE_ISSUE_CODES) {
     const verdict = SEO_RULES[code](input);
     if (verdict.outcome === 'notApplicable') {
       checksNotApplicable.push(code);
