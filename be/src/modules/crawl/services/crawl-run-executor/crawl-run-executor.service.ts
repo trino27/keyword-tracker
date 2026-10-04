@@ -27,9 +27,18 @@ import {
 } from '../../constants/post-selection.constant';
 import type {
   ICrawledPage,
-  IPostSelection,
   ISelectedItem,
 } from '../../interfaces/crawled-page.interface';
+import {
+  assertRunPipeline,
+  emptyRunContext,
+  runCrawlPipeline,
+} from '../../pipelines/run-pipeline/run-pipeline';
+import { RunStages } from '../../pipelines/run-pipeline/run-stages';
+import type {
+  IRunContext,
+  IRunStep,
+} from '../../pipelines/run-pipeline/run-step.interface';
 import type { ICrawlRunExecutor } from '../../ports/crawl-run-executor.port';
 import { PostSelectionService } from '../post-selection/post-selection.service';
 import { SitemapDiscoveryService } from '../sitemap-discovery/sitemap-discovery.service';
@@ -91,12 +100,29 @@ export function outcomeOf(
 }
 
 /**
- * One run, start to end: discovery → selection and fetching (progress recorded under
- * the attempt fence) → one finalize transaction. All network work happens before the
- * transaction opens, so a slow site never holds a database connection or a lock.
+ * One run, start to end, as the stages it is made of: discovery → fetching (progress
+ * recorded under the attempt fence) → analysis → one transaction that writes it all.
+ *
+ * The stages are a list, so the next one this needs — external signals, the position
+ * fill that still runs inside a request — is an entry and a method rather than another
+ * limb on a procedure. What the list may not do is reorder itself past the last step:
+ * every stage before `persist` may take as long as a slow site takes, and none of them
+ * may do so holding a database connection. `assertRunPipeline` refuses a pipeline that
+ * breaks that, at construction, before a run exists.
  */
 @Injectable()
 export class CrawlRunExecutorService implements ICrawlRunExecutor {
+  private readonly pipeline: readonly IRunStep[] = assertRunPipeline([
+    { name: 'discovery', run: (context) => this.discover(context) },
+    { name: 'fetch', run: (context) => this.fetch(context) },
+    { name: 'analysis', run: (context) => this.analyse(context) },
+    {
+      name: 'persist',
+      opensTransaction: true,
+      run: (context) => this.persist(context),
+    },
+  ]);
+
   constructor(
     private readonly runs: ClientCrawlRunsService,
     private readonly discovery: SitemapDiscoveryService,
@@ -109,53 +135,75 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
   ) {}
 
   async execute(run: IClaimedRun, signal: AbortSignal): Promise<void> {
+    const stages = new RunStages();
+    const context = emptyRunContext(run, signal);
     try {
-      await this.executeOrThrow(run, signal);
+      await runCrawlPipeline(this.pipeline, context, stages);
     } catch (err: unknown) {
       // Lease lost or shutting down: the attempt that owns the run now finishes it.
       if (signal.aborted) {
         this.logger.warn(
-          { runId: run.id, attempt: run.attempts },
+          { runId: run.id, attempt: run.attempts, stage: stages.current },
           'Crawl run aborted',
         );
         return;
       }
       this.logger.error(
-        { err, runId: run.id },
+        { err, runId: run.id, stage: stages.current },
         'Crawl run failed unexpectedly',
       );
-      await this.finalize(run, failed('CRAWL_INTERNAL_ERROR'), null);
+      // Whatever the failed stage had gathered is not written; the verdict is.
+      context.selection = null;
+      context.pages = null;
+      context.outcome = failed('CRAWL_INTERNAL_ERROR');
+      await stages.run('persist', () => this.persist(context));
+    } finally {
+      // Where the run spent itself — what a slow client's log has to answer.
+      this.logger.info(
+        { runId: run.id, timings: stages.timings },
+        'Crawl run stages',
+      );
     }
   }
 
-  private async executeOrThrow(
-    run: IClaimedRun,
-    signal: AbortSignal,
-  ): Promise<void> {
-    const target = await this.runs.getRunTargetForWorker(run.id);
+  /** The run's client, then its blog. A run whose client is gone stops here. */
+  private async discover(context: IRunContext): Promise<void> {
+    const target = await this.runs.getRunTargetForWorker(context.run.id);
     if (!target) return;
+    context.target = target;
 
-    const discovery = await this.discovery.discover(target, signal);
+    const discovery = await this.discovery.discover(target, context.signal);
     if (!discovery.ok) {
       this.logger.info(
         {
-          runId: run.id,
+          runId: context.run.id,
           errorCode: discovery.errorCode,
           detail: discovery.detail,
         },
         'Crawl run found no blog',
       );
-      await this.finalize(run, failed(discovery.errorCode), null);
+      context.outcome = failed(discovery.errorCode);
       return;
     }
 
-    await this.runs.recordDiscoveryForWorker(run.id, run.attempts, {
-      sitemapUrl: discovery.sitemapUrls[0],
-      selectionReason: discovery.reason,
-      pagesFound: discovery.urls.length,
-    });
+    await this.runs.recordDiscoveryForWorker(
+      context.run.id,
+      context.run.attempts,
+      {
+        sitemapUrl: discovery.sitemapUrls[0],
+        selectionReason: discovery.reason,
+        pagesFound: discovery.urls.length,
+      },
+    );
+    context.discovery = discovery;
+  }
 
-    const selection = await this.selection.select({
+  /** The posts themselves, with progress recorded under the attempt fence. */
+  private async fetch(context: IRunContext): Promise<void> {
+    const { discovery, target, run, signal } = context;
+    if (!discovery || !target) return;
+
+    context.selection = await this.selection.select({
       urls: discovery.urls,
       siteKey: target.siteKey,
       robots: discovery.robots,
@@ -164,34 +212,36 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       onProgress: (crawled) =>
         this.runs.recordProgressForWorker(run.id, run.attempts, crawled),
     });
+  }
 
-    // Pure and outside any transaction: the whole run is judged at once (IDF).
+  /** Pure and outside any transaction: the whole run is judged at once (IDF). */
+  private analyse(context: IRunContext): Promise<void> {
+    const { selection, discovery, target } = context;
+    if (!selection || !discovery || !target) return Promise.resolve();
+
     const analysis = this.analysis.analyseRun(selection.pages, target.siteKey);
-    await this.finalize(
-      run,
-      outcomeOf(
-        selection.pages.length,
-        selection.items,
-        discovery.articlesOnly,
-      ),
-      {
-        clientId: target.clientId,
-        selection,
-        pages: selection.pages.map((page, i) => toRunPage(page, analysis[i])),
-      },
+    context.pages = selection.pages.map((page, index) =>
+      toRunPage(page, analysis[index]),
     );
+    context.outcome = outcomeOf(
+      selection.pages.length,
+      selection.items,
+      discovery.articlesOnly,
+    );
+    return Promise.resolve();
+  }
+
+  /** Nothing to write when no stage reached a verdict: the run has no client. */
+  private async persist(context: IRunContext): Promise<void> {
+    if (context.outcome) await this.finalize(context, context.outcome);
   }
 
   /** Writes everything or nothing; false when a newer attempt owns the run. */
   private finalize(
-    run: IClaimedRun,
+    context: IRunContext,
     outcome: IRunOutcome,
-    result: {
-      clientId: number;
-      selection: IPostSelection;
-      pages: IRunPage[];
-    } | null,
   ): Promise<boolean> {
+    const { run, target, selection, pages } = context;
     return this.transactions.run(async (tx) => {
       const owned = await this.runs.lockForFinalizeForWorker(
         tx,
@@ -205,15 +255,16 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
         );
         return false;
       }
-      const pageIds = result
-        ? await this.results.applyRunResultsForWorker(tx, {
-            clientId: result.clientId,
-            runId: run.id,
-            crawledAt: new Date(),
-            pages: result.pages,
-          })
-        : new Map<string, number>();
-      const items: ICrawlRunItemRecord[] = (result?.selection.items ?? []).map(
+      const pageIds =
+        pages && target
+          ? await this.results.applyRunResultsForWorker(tx, {
+              clientId: target.clientId,
+              runId: run.id,
+              crawledAt: new Date(),
+              pages,
+            })
+          : new Map<string, number>();
+      const items: ICrawlRunItemRecord[] = (selection?.items ?? []).map(
         (item) => ({
           sitemapPosition: item.sitemapPosition,
           url: item.url.slice(0, MAX_PAGE_URL_LENGTH),
@@ -225,7 +276,11 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       );
       await this.runs.finalizeForWorker(tx, run.id, outcome, items);
       this.logger.info(
-        { runId: run.id, status: outcome.status, pagesDone: outcome.pagesDone },
+        {
+          runId: run.id,
+          status: outcome.status,
+          pagesDone: outcome.pagesDone,
+        },
         'Crawl run finished',
       );
       return true;
