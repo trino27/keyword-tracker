@@ -61,9 +61,13 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
 - **External signals instead of the system's own guesses:** Search Console, and the volume and
   difficulty data Semrush or Ahrefs carry. Positions are simulated, and a keyword's worth is
   judged from the page's text alone.
+- **A language model in the keyword step.** Counting fields and surface forms cannot tell that
+  "rank tracking" and "position monitoring" are one subject, or whether a phrase is something a
+  person types into Google. Embeddings fold the paraphrases together; a model asked for the
+  queries a page targets reads it as a person does. It would re-rank what this extractor
+  generates, never replace it — a crawl must still answer when the model is away.
 - **Language as a configurable abstraction** — stop words, stemmer and weights per site rather
-  than compiled in; candidates also match surface forms, so an inflected language counts one word
-  as several.
+  than compiled in; today an inflected language counts one word as several.
 - **Tuning the hyperparameters**, set by hand against two sites, on a labelled corpus against a
   measurable outcome.
 - **Site-level checks** a page cannot see about itself — duplicate titles, cannibalisation,

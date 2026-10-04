@@ -136,6 +136,25 @@ time (no DNS-rebinding window), with size caps, timeouts and bounded retries.
   on provide — Semrush, Ahrefs, DataForSEO. Positions are simulated today, and a keyword's worth
   is judged from the page's text alone; those sources carry what no HTML contains — demand,
   competition, and the actual result page.
+- A language model in the keyword step. Everything here counts: which fields a phrase appears in,
+  how often, how many pages of the run repeat it. Counting cannot tell that "rank tracking" and
+  "position monitoring" are one subject, that "how do I speed up my site" is a query and "the
+  following section" is not, or that a page about migrations mentions redirects without being
+  about them. An embedding model answers the first two — paraphrases fold together, and a
+  candidate can be scored against the page's own topic rather than against its own frequency —
+  and a model asked outright for the queries a page targets reads it the way the person writing
+  the brief would.
+
+  It would re-rank and fold what this extractor generates rather than replace it, for three
+  reasons. A crawl must still answer when the model is unavailable or the key is unpaid, and a
+  deterministic generator is what makes that fallback honest rather than empty. The candidates
+  are already the page's own phrases, so the model is never free to invent a keyword the page
+  does not contain — the failure mode that matters most here. And the tests pin exact terms per
+  fixture; a step whose output moves between runs needs its own kind of assertion, which is work
+  in itself. The pipeline takes it without rewriting either neighbour: a keyword step is an
+  interface and the order of the steps is data, so a re-ranking one sits between `score` and
+  `select` the way the stemming step for inflected languages is meant to sit between `collect`
+  and `frequency` — one entry in an array, which is what makes the experiment revertible.
 - Language as a configurable abstraction: a language profile — stop words, stemmer, phrase length,
   thresholds and weights — attached per client site rather than compiled in. Today the language
   specifics are spread across constants and one stop-word list, and each new language means
