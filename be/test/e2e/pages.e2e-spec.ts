@@ -1,6 +1,6 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
-import { ACTIVE_ISSUE_CODES } from '@app/contracts';
+import { ACTIVE_ISSUE_CODES, CONDITIONAL_ISSUE_CODES } from '@app/contracts';
 import { MAX_KEYWORDS } from '../../src/modules/page-analysis/constants/keyword-scoring.constant';
 import { CrawlWorker } from '../../src/modules/crawl/workers/crawl-worker/crawl-worker';
 import { createTestApp } from '../support/create-test-app';
@@ -117,7 +117,9 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     for (const item of response.body.items as {
       score: { value: number; applicable: number; failed: number };
     }[]) {
-      expect(item.score.applicable).toBeGreaterThanOrEqual(13);
+      expect(item.score.applicable).toBeGreaterThanOrEqual(
+        ACTIVE_ISSUE_CODES.length - CONDITIONAL_ISSUE_CODES.length,
+      );
       expect(item.score.applicable).toBeLessThanOrEqual(
         ACTIVE_ISSUE_CODES.length,
       );
