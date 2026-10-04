@@ -1,4 +1,4 @@
-import { makeRuleInput } from '../../services/seo-rules/_testing/make-rule-input';
+import { makeCheckInput } from '../../services/checks/_testing/make-check-input';
 import { extractKeywords } from '../../services/keyword-extraction/extract-keywords/extract-keywords';
 import {
   COLLECT_STEP,
@@ -12,7 +12,7 @@ import { insertAfter, stepNames } from '../pipeline';
 import type { IKeywordSource, IKeywordStep } from './keyword-step.interface';
 
 function page(title: string, blocks: string[], url = 'https://a.example/p/') {
-  return { url, parsed: makeRuleInput({ parsed: { title, blocks } }).parsed };
+  return { url, parsed: makeCheckInput({ parsed: { title, blocks } }).parsed };
 }
 
 const RUN: IKeywordSource[] = [

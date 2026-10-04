@@ -1,11 +1,11 @@
-import { makeRuleInput } from '../seo-rules/_testing/make-rule-input';
+import { makeCheckInput } from '../checks/_testing/make-check-input';
 import type { IAnalysisInput } from './page-analysis.service';
 import { PageAnalysisService } from './page-analysis.service';
 
 /** The analysis carries one fact past the rules: the fetch's time to first byte. */
 const makeAnalysisInput = (
-  ...args: Parameters<typeof makeRuleInput>
-): IAnalysisInput => ({ ...makeRuleInput(...args), responseMs: 200 });
+  ...args: Parameters<typeof makeCheckInput>
+): IAnalysisInput => ({ ...makeCheckInput(...args), responseMs: 200 });
 
 describe('PageAnalysisService', () => {
   const service = new PageAnalysisService();

@@ -9,12 +9,12 @@ import type {
   IAnalysisStep,
 } from '../../pipelines/analysis-pipeline/analysis-step.interface';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
-import type { ISeoEvaluation } from '../seo-rules/seo-rules.registry';
+import type { ISeoEvaluation } from '../checks/checks.registry';
 
 export type { IAnalysisInput };
 
 /**
- * The whole verdict on one page: its keywords, and everything one pass over the rules
+ * The whole verdict on one page: its keywords, and everything one pass over the checks
  * concluded. Extends `ISeoEvaluation` rather than restating its fields, because
  * `analyseRun` spreads the evaluation whole and a restated copy is a copy to forget.
  */
