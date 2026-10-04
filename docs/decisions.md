@@ -48,6 +48,10 @@ vocabulary can only be told from a page's subject by comparing pages with each o
    the first), +15% for the page's own declared keyword, and a factor for phrase length: a bare
    word is damped (0.6), two and three words preferred (1.15), five damped again (0.85). A phrase
    no title, h1 or slug names, said once in the text, scores zero — it is prose, not a subject.
+   The converse too: a title is tokenized into every window it contains, and a window the prose
+   never repeats keeps half its score, or "Brewers stadium roof saves Milwaukee vs Padres in NLDS
+   thriller" scores seven fragments alike and subsumption files the game report under `padres in
+   nlds thriller`. The page's own named head clause is exempt — that one is the declaration.
 4. *The corpus penalty.* `ln(1 + N/df) / ln(1 + N)`: a term on all 15 pages keeps a quarter of
    its score, because it is the site's name or its product. A term the page names in its own
    title, h1 or slug pays half the penalty — but only while it belongs to one section rather than
@@ -57,9 +61,12 @@ vocabulary can only be told from a page's subject by comparing pages with each o
    half as well — but no more than two tokens longer, or a whole headline swallows the subject.
    Two selected keywords may not share more than half of the shorter one's content words, which
    catches the windows of one sentence that containment cannot see; and one sentence yields at
-   most two keywords. A page's budget is 2 slots plus one per 400 words, capped at 6: a short
-   post may not claim eight subjects. Nothing below 20% of the top score is added at all — one
-   honest keyword beats five invented ones.
+   most two keywords. A single word is selected only when the page's prose writes it as a name:
+   damping is enough while a bare word competes and not enough when it wins, because relevance is
+   a share of the top — "3 exercises to have more fun with Google Analytics" was filed under
+   `exercises`. A page's budget is 2 slots plus one per 400 words, capped at 6: a short post may
+   not claim eight subjects. Nothing below 20% of the top score is added at all — one honest
+   keyword beats five invented ones.
 
 **The checks.** The catalogue is not invented here. Titles, meta descriptions, headings, alt
 text, `lang` and thin content are what Google's own
@@ -174,10 +181,11 @@ time (no DNS-rebinding window), with size caps, timeouts and bounded retries.
   band of relevance — `schema markup` at 0.30 against `every dollar` at 0.26 — so a threshold
   that removes one removes the other, and the separation that worked was grammatical rather than
   numeric. A larger corpus would move this; real impressions per keyword would settle it.
-- Sites without a blog sitemap: an HTML/feed-only fallback.
-- More checks and metrics: network ones (Lighthouse, Core Web Vitals, broken links) and the
-  site-level ones a page cannot see about itself — duplicate titles and descriptions, keyword
-  cannibalisation, internal linking and orphan pages, content freshness.
+- More checks and metrics. Duplicate titles, duplicate descriptions and cannibalisation now ship
+  as the three run-scoped codes, and outgoing internal links as `NO_INTERNAL_LINKS`. What is left
+  is the network ones (Lighthouse, Core Web Vitals, broken links), content freshness, and orphan
+  pages — which need a crawler that follows links, where this one visits the URLs a sitemap
+  lists, so "nothing links here" is a conclusion from evidence it never gathered.
 - More parallelism in the crawl. Three fetches at a time in fixed windows, two runs per worker:
   a slow page holds its window, and a big client waits behind another. A per-host sliding window
   and more worker slots would cut a run to a fraction of its time, and the queue already
