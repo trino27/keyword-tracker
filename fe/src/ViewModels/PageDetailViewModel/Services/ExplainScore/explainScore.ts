@@ -23,7 +23,8 @@ function arithmetic({ value, applicable, failed }: IPageScore): string {
 	const rounding = shown.includes(".") ? `, rounded half-up to ${value}.` : ".";
 
 	return (
-		`${passed} of the ${applicable} checks that applied to this page passed. ` +
+		`${passed} of the ${applicable} checks that applied to this page when it was ` +
+		`crawled passed. ` +
 		`100 × ${passed} ÷ ${applicable} ${sign} ${shown}${rounding}`
 	);
 }
@@ -39,7 +40,9 @@ const EQUAL_WEIGHT =
 const DENOMINATOR =
 	"The denominator is the checks that could be judged on this page. A check that could " +
 	"not run — no images to look at, no title to measure — is left out rather than passed, " +
-	"so the page is neither rewarded nor punished for it.";
+	"so the page is neither rewarded nor punished for it. It is the crawl's own count: a " +
+	"check added or retired since then changes the list below, not this number, until the " +
+	"page is crawled again.";
 
 /** The band numbers come from SCORE_BANDS, so moving a band moves this sentence. */
 function bands(): string {
