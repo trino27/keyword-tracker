@@ -5,6 +5,7 @@ import type {
 } from '@modules/pages/services/snapshot-writer/snapshot-writer.service';
 import { generatePositions } from '@modules/pages/services/position-generator/generate-positions/generate-positions';
 import { PositionFillService } from '@modules/pages/services/position-fill/position-fill.service';
+import { SimulatedRankProvider } from '@modules/pages/services/rank-providers/simulated-rank-provider/simulated-rank-provider.service';
 import type { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
 import { PositionSeedService } from './position-seed.service';
 
@@ -40,9 +41,11 @@ const setup = (pairs: ICurrentPairRecord[]) => {
   const transactions = {
     run: <T>(work: (tx: never) => Promise<T>) => work(undefined as never),
   } as unknown as TransactionRunner;
+  const simulation = new SimulatedRankProvider();
   const service = new PositionSeedService(
     writer,
-    new PositionFillService(writer, transactions),
+    new PositionFillService(writer, transactions, simulation),
+    simulation,
   );
   return { service, inserted };
 };
