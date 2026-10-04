@@ -4,6 +4,9 @@ import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
 import styles from "./AppLayout.module.scss";
 
+/** How wide the content may run before the page keeps it off the window edge. */
+const CONTENT_WIDTH = 1600;
+
 /** The screens the navigation offers; a screen joins it when it is finished. */
 const NAVIGATION = [
 	{ to: "/pages", label: "Pages" },
@@ -24,7 +27,7 @@ export function AppLayout() {
 	return (
 		<AppShell header={{ height: 60 }} padding="md">
 			<AppShell.Header>
-				<Container size="xl" h="100%">
+				<Container size={CONTENT_WIDTH} h="100%">
 					<Group h="100%" justify="space-between" wrap="nowrap">
 						<Group gap="xl" wrap="nowrap">
 							<Link to="/pages" className={styles.brand}>
@@ -75,7 +78,7 @@ export function AppLayout() {
 				</Container>
 			</AppShell.Header>
 			<AppShell.Main>
-				<Container size="xl" py="md">
+				<Container size={CONTENT_WIDTH} py="md">
 					<Outlet />
 				</Container>
 			</AppShell.Main>
