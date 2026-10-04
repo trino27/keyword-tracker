@@ -68,6 +68,27 @@ function taxonomyKeywordsOf(pages: readonly IKeywordSource[]): Set<string> {
 }
 
 /**
+ * The normalized first clause of the page's own title — what it declares itself to be
+ * about, with the site's chrome stripped and the slug consulted over which clause the
+ * author meant. Read by scoring, which exempts it from the corroboration damping, and
+ * by selection, which exempts it from subsumption; both need the same string, so it
+ * is computed here once rather than derived twice from the same parts.
+ */
+function titleHeadOf(context: IKeywordContext, index: number): string {
+  const { parsed } = context.pages[index];
+  const { head } = namedClause(
+    stripTitleChrome(
+      parsed.title ?? '',
+      context.siteKey,
+      parsed.openGraph['og:site_name'],
+      context.titleChrome,
+    ),
+    slugOf(context.pages[index].url),
+  );
+  return head ? normalizeText(head) : '';
+}
+
+/**
  * What the pages share, read before anything is scored: a site's chrome cannot be told
  * from a page's subject by looking at the page.
  */
@@ -117,17 +138,21 @@ export const SCORE_STEP: IKeywordStep = {
       // Per PAGE, because a run may mix languages and the rules of one are not the
       // rules of another.
       const profile = profileFor(context.pages[index].parsed.lang);
-      return [...candidates].map(([term, stats]) => ({
-        term,
-        runs: stats.runs,
-        score:
-          pageScore(stats, term, profile) *
-          idfFactor(
-            pageCount,
-            context.documentFrequency.get(term) ?? 1,
-            isAnchored(stats),
-          ),
-      }));
+      const titleHead = titleHeadOf(context, index);
+      return [...candidates].map(([term, stats]) => {
+        return {
+          term,
+          runs: stats.runs,
+          properNoun: stats.properNoun,
+          score:
+            pageScore(stats, term, profile, titleHead) *
+            idfFactor(
+              pageCount,
+              context.documentFrequency.get(term) ?? 1,
+              isAnchored(stats),
+            ),
+        };
+      });
     });
   },
 };
@@ -137,19 +162,10 @@ export const SELECT_STEP: IKeywordStep = {
   name: 'select',
   run(context) {
     context.keywords = context.scored.map((scored, index) => {
-      const { parsed } = context.pages[index];
-      const { head } = namedClause(
-        stripTitleChrome(
-          parsed.title ?? '',
-          context.siteKey,
-          parsed.openGraph['og:site_name'],
-          context.titleChrome,
-        ),
-        slugOf(context.pages[index].url),
-      );
+      const head = titleHeadOf(context, index);
       return selectKeywords(
-        subsume(scored, head ? normalizeText(head) : undefined),
-        parsed.wordCount,
+        subsume(scored, head || undefined),
+        context.pages[index].parsed.wordCount,
       );
     });
   },

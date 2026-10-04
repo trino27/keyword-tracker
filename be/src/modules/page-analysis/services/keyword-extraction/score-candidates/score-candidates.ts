@@ -9,6 +9,7 @@ import {
   MULTI_FIELD_BONUS,
   NGRAM_FACTOR,
   STRONG_FIELDS,
+  UNCORROBORATED_TITLE_FACTOR,
 } from '../../../constants/keyword-scoring.constant';
 import type { ILanguageProfile } from '../../../languages/language-profile';
 import type { ICandidateStats } from '../collect-candidates/collect-candidates';
@@ -40,6 +41,7 @@ export function pageScore(
   stats: ICandidateStats,
   term = '',
   profile: ILanguageProfile | null = null,
+  titleHead = '',
 ): number {
   if (isPassingMention(stats)) return 0;
   let score = 0;
@@ -54,6 +56,10 @@ export function pageScore(
   if (stats.declared) score *= METADATA_BONUS;
   if (term && profile && isClauseShaped(term, profile.clauseVerbs))
     score *= CLAUSE_SHAPE_FACTOR;
+  // The body never says it, and it is not the clause the page declares itself by.
+  // See UNCORROBORATED_TITLE_FACTOR: this is the anchored half of MIN_UNANCHORED_TF.
+  if (stats.bodyTf === 0 && term !== titleHead)
+    score *= UNCORROBORATED_TITLE_FACTOR;
   return score * ngramFactor(stats);
 }
 

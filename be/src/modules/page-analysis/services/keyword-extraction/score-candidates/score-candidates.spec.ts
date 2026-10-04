@@ -92,6 +92,21 @@ describe('pageScore', () => {
       pageScore(stats(['body'], { bodyTf: 40 })),
     );
   });
+
+  it('damps a title phrase the prose never repeats, and spares the head clause', () => {
+    // Every window of "Brewers stadium roof saves Milwaukee vs Padres in NLDS
+    // thriller" is a title phrase; none of them is said in the story.
+    const window = stats(['title', 'h1'], { tokens: 2, bodyTf: 0 });
+    const said = stats(['title', 'h1'], { tokens: 2, bodyTf: 3 });
+
+    expect(pageScore(window, 'stadium roof')).toBeLessThan(
+      pageScore(said, 'stadium roof'),
+    );
+    // The clause the page declares itself by is the one window that IS the page.
+    expect(
+      pageScore(window, 'stadium roof', null, 'stadium roof'),
+    ).toBeGreaterThan(pageScore(window, 'stadium roof'));
+  });
 });
 
 describe('idfFactor', () => {
