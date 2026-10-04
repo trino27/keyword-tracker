@@ -40,19 +40,52 @@ export function isWeakToken(token: string): boolean {
 }
 
 /**
+ * A hyphen or slash INSIDE a written word — `HTTP/2`, `fan-out`, `data-driven`.
+ *
+ * Normalization turns it into a space, which is right for the words but loses that
+ * they were one: `out` is a stop word and `2` is digits, neither may end a phrase, so
+ * "What is HTTP/2?" was stored as `http` and the query fan-out section as `query
+ * fan`. Both are different subjects from the one the page writes. Recording the join
+ * lets a phrase end on the second half of a compound without letting it end on a
+ * loose stop word.
+ */
+const INNER_GLUE = /[\p{L}\p{N}][-/][\p{L}\p{N}]/u;
+
+/** One run of text, with the joins the normalization flattened. */
+export interface ITokenRun {
+  tokens: string[];
+  /** `glued[i]`: token i was written as one word with token i-1. */
+  glued: boolean[];
+}
+
+/**
  * Splits text into runs of tokens. A run ends only at a sentence break, so a phrase
  * never crosses one; which tokens may BOUND a phrase is decided per candidate by
- * `isWeakToken`, not by cutting the run here.
+ * `isWeakToken` and by `glued`, not by cutting the run here.
+ *
+ * Normalization runs per WRITTEN word rather than over the sentence, which is what
+ * makes the join observable. Its own rules are all within a word, so the tokens come
+ * out the same either way.
  */
-export function tokenize(text: string): string[][] {
-  const runs: string[][] = [];
+export function tokenize(text: string): ITokenRun[] {
+  const runs: ITokenRun[] = [];
   for (const sentence of text
     .replace(TRUNCATED_WORD, ' ')
     .replace(SPLIT_WORD, '$1 ')
     .split(SENTENCE_BREAK)) {
-    const run = normalizeText(sentence).split(' ').filter(Boolean);
+    const tokens: string[] = [];
+    const glued: boolean[] = [];
+    for (const word of (sentence ?? '').split(/\s+/).filter(Boolean)) {
+      const parts = normalizeText(word).split(' ').filter(Boolean);
+      const joined = INNER_GLUE.test(word);
+      parts.forEach((part, index) => {
+        tokens.push(part);
+        glued.push(joined && index > 0);
+      });
+    }
     // A run of nothing but weak tokens can yield no candidate at all.
-    if (run.some((token) => !isWeakToken(token))) runs.push(run);
+    if (tokens.some((token) => !isWeakToken(token)))
+      runs.push({ tokens, glued });
   }
   return runs;
 }

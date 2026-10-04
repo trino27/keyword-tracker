@@ -20,17 +20,17 @@ describe('keyword catalogue', () => {
     s = score(await runArm({}));
   });
 
-  it('names the right subject on all but one page', () => {
-    expect(s.primaryGood).toBeGreaterThanOrEqual(40);
+  it('names the right subject on every page', () => {
+    expect(s.primaryGood).toBeGreaterThanOrEqual(41);
     expect(s.pages).toBe(41);
   });
 
-  it('returns at least 52 labelled-good keywords', () => {
-    expect(s.good).toBeGreaterThanOrEqual(52);
+  it('returns at least 54 labelled-good keywords', () => {
+    expect(s.good).toBeGreaterThanOrEqual(54);
   });
 
-  it('returns no more than 37 labelled-junk keywords', () => {
-    expect(s.junk).toBeLessThanOrEqual(37);
+  it('returns no more than 35 labelled-junk keywords', () => {
+    expect(s.junk).toBeLessThanOrEqual(35);
   });
 
   it('leaves no page without a keyword', () => {

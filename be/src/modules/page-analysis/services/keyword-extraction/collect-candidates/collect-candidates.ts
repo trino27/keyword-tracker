@@ -12,7 +12,7 @@ import {
 } from '../../../languages/language-profile';
 import { normalizeText } from '../../text/normalize-text/normalize-text';
 import { properNounsOf } from '../proper-nouns/proper-nouns';
-import { isWeakToken, tokenize } from '../tokenize/tokenize';
+import { isWeakToken, tokenize, type ITokenRun } from '../tokenize/tokenize';
 
 export interface ICandidateStats {
   tokens: number;
@@ -210,17 +210,23 @@ export function slugOf(url: string): string {
  * better-scoring twin.
  */
 function* gramsOf(
-  run: string[],
+  run: ITokenRun,
   nonBounding: ReadonlySet<string>,
   maxNgram: number,
 ): Generator<{ term: string; tokens: number }> {
+  const { tokens, glued } = run;
   const bounds = (token: string) =>
     !isWeakToken(token) && !nonBounding.has(token);
-  for (let start = 0; start < run.length; start += 1) {
-    if (!bounds(run[start])) continue;
-    for (let n = 1; n <= maxNgram && start + n <= run.length; n += 1) {
-      if (!bounds(run[start + n - 1])) continue;
-      const term = run.slice(start, start + n).join(' ');
+  // A token that cannot bound a phrase on its own still may when it is half of a
+  // written word: `2` ends "http/2" and `out` ends "fan-out", and the phrase stops
+  // inside the compound rather than on a loose stop word.
+  const opens = (at: number) => bounds(tokens[at]) || glued[at + 1] === true;
+  const closes = (at: number) => bounds(tokens[at]) || glued[at] === true;
+  for (let start = 0; start < tokens.length; start += 1) {
+    if (!opens(start)) continue;
+    for (let n = 1; n <= maxNgram && start + n <= tokens.length; n += 1) {
+      if (!closes(start + n - 1)) continue;
+      const term = tokens.slice(start, start + n).join(' ');
       if (term.length <= MAX_TERM_LENGTH) yield { term, tokens: n };
     }
   }
@@ -234,9 +240,9 @@ function* gramsOf(
 export function repeatedBodyRuns(blocks: string[]): ReadonlySet<string> {
   const counts = new Map<string, number>();
   for (const block of blocks) {
-    for (const run of tokenize(block)) {
-      if (run.length > REPEATED_RUN_MAX_TOKENS) continue;
-      const key = run.join(' ');
+    for (const { tokens } of tokenize(block)) {
+      if (tokens.length > REPEATED_RUN_MAX_TOKENS) continue;
+      const key = tokens.join(' ');
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
   }
@@ -323,8 +329,8 @@ export function collectCandidates(
   for (const [field, texts] of fields) {
     for (const text of texts) {
       for (const run of tokenize(text)) {
-        if (field === 'body' && repeated.has(run.join(' '))) continue;
-        const runId = runIdOf(run);
+        if (field === 'body' && repeated.has(run.tokens.join(' '))) continue;
+        const runId = runIdOf(run.tokens);
         for (const { term, tokens } of gramsOf(run, nonBounding, maxNgram)) {
           let stats = candidates.get(term);
           if (!stats) {
