@@ -1,36 +1,8 @@
-import { Group, Paper, Table, Text } from "@mantine/core";
-import { IconArrowDownRight, IconArrowUpRight, IconMinus } from "@tabler/icons-react";
+import { Paper, Table, Text } from "@mantine/core";
 import type { TPositionHistory } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { PositionBadge } from "@Modules/_Shared/PositionBadge/PositionBadge";
 import { buildHistoryTable } from "@ViewModels/PageDetailViewModel/Services/BuildHistoryTable/buildHistoryTable";
-
-/** Gained places are good news: green and up, even though the number went down. */
-function Change({ value }: { value: number | null }) {
-	if (value === null) return <Text c="dimmed">—</Text>;
-	if (value === 0)
-		return (
-			<Group gap={2} c="dimmed" wrap="nowrap">
-				<IconMinus size={14} />
-				<Text span size="sm">
-					0
-				</Text>
-			</Group>
-		);
-	const better = value > 0;
-	return (
-		<Group
-			gap={2}
-			c={better ? "teal" : "red"}
-			wrap="nowrap"
-			aria-label={better ? `up ${value}` : `down ${-value}`}
-		>
-			{better ? <IconArrowUpRight size={14} /> : <IconArrowDownRight size={14} />}
-			<Text span size="sm" fw={600} className="tabular">
-				{Math.abs(value)}
-			</Text>
-		</Group>
-	);
-}
+import { PositionChange } from "./PositionChange/PositionChange";
 
 export function PositionTable({ history }: { history: TPositionHistory }) {
 	const rows = buildHistoryTable(history);
@@ -59,7 +31,7 @@ export function PositionTable({ history }: { history: TPositionHistory }) {
 									<PositionBadge position={row.latest} size="sm" />
 								</Table.Td>
 								<Table.Td>
-									<Change value={row.change} />
+									<PositionChange value={row.change} />
 								</Table.Td>
 								<Table.Td className="tabular">{row.best ?? "—"}</Table.Td>
 								<Table.Td className="tabular">{row.worst ?? "—"}</Table.Td>

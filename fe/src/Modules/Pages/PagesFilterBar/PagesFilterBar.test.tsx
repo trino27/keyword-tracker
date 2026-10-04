@@ -1,7 +1,8 @@
 import { MantineProvider } from "@mantine/core";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PagesFilterBar, SEARCH_DEBOUNCE_MS } from "./PagesFilterBar";
+import { PagesFilterBar } from "./PagesFilterBar";
+import { SEARCH_DEBOUNCE_MS } from "./SearchInput/SearchInput";
 
 const renderBar = (onChange = vi.fn()) => {
 	render(
