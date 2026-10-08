@@ -6,6 +6,7 @@ import type {
   IPageImage,
   IParsedPage,
 } from '../../interfaces/parsed-page.interface';
+import { parseJsonLd } from './parse-json-ld';
 
 /**
  * Removed from the main content before anything is read from it.
@@ -370,12 +371,10 @@ function jsonLdOf($: CheerioAPI): IParsedPage['jsonLd'] {
     for (const keyword of keywordsOf(record.keywords)) keywords.add(keyword);
     if (record['@graph'] !== undefined) visit(record['@graph']);
   };
+  // Broken JSON-LD is common and says nothing about the page itself: a block that is
+  // not JSON is `undefined`, which `visit` ignores.
   $('script[type="application/ld+json"]').each((_, element) => {
-    try {
-      visit(JSON.parse($(element).text()));
-    } catch {
-      // Broken JSON-LD is common and says nothing about the page itself.
-    }
+    visit(parseJsonLd($(element).text()));
   });
   return {
     types: [...types],
