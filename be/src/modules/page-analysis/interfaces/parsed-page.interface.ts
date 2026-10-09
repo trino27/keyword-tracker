@@ -97,4 +97,18 @@ export interface IParsedPage {
    */
   blocks: string[];
   wordCount: number;
+  /**
+   * Who the page says wrote it, each as the evidence it came from — `JSON-LD author:
+   * Jane Doe`, `<meta name="author" content="Jane Doe">`. Only what the markup
+   * identifies as the author: a class name like "author-box" is a theme's guess.
+   */
+  authors: string[];
+  /** The article's declared dates as written (JSON-LD first, then `article:*` meta). */
+  datePublished: string | null;
+  dateModified: string | null;
+  /**
+   * SHA-256 of the main content's text, so a later crawl can tell whether the words
+   * changed. Read from the same text the word count is, after furniture is removed.
+   */
+  contentHash: string;
 }

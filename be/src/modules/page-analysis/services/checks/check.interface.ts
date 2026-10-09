@@ -27,6 +27,20 @@ export interface ICheckInput {
   headers: Record<string, string>;
   htmlBytes: number;
   parsed: IParsedPage;
+  /**
+   * What the client's previous crawl recorded for this URL, or null when this is the
+   * first crawl to see it. Read before the run's transaction opens, so the analysis
+   * stays a function of its input.
+   */
+  previous: IPreviousCrawl | null;
+}
+
+/** The facts an earlier crawl kept about a page, for a check to compare against. */
+export interface IPreviousCrawl {
+  /** Null: that crawl predates the fingerprint. */
+  contentHash: string | null;
+  dateModified: string | null;
+  crawledAt: Date;
 }
 
 /**

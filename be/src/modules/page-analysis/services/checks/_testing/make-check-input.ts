@@ -24,6 +24,7 @@ export function makeCheckInput(
     robots: allowAllRobots(),
     headers: { 'content-type': 'text/html', 'content-encoding': 'br' },
     htmlBytes: 50_000,
+    previous: null,
     ...rest,
     parsed: {
       title: 'A complete guide to link building for small sites',
@@ -76,6 +77,10 @@ export function makeCheckInput(
       clientRendered: false,
       blocks: ['Links matter.'],
       wordCount: 800,
+      authors: ['JSON-LD author: Jane Doe'],
+      datePublished: '2026-01-10T09:00:00Z',
+      dateModified: '2026-02-01T09:00:00Z',
+      contentHash: 'a'.repeat(64),
       ...parsed,
     },
   };

@@ -441,6 +441,63 @@ describe('extractPage', () => {
     ).toBe(false);
   });
 
+  /**
+   * An author is often a reference into the graph — `{"@id": "#jane"}` — and only the
+   * node carrying that @id has the name. Each source is kept as the evidence it is.
+   */
+  it('names the author from the article graph and the markup alike', () => {
+    const parsed = page(
+      '<main><p>x</p><span itemprop="author"><span itemprop="name">Jane Doe</span></span>' +
+        '<a rel="author" href="/team/jane/">Jane</a></main>',
+      '<meta name="author" content="Jane Doe"><script type="application/ld+json">' +
+        JSON.stringify({
+          '@graph': [
+            {
+              '@type': 'BlogPosting',
+              author: { '@id': '#jane' },
+              datePublished: '2026-01-10',
+              dateModified: '2026-02-01',
+            },
+            { '@type': 'Person', '@id': '#jane', name: 'Jane Doe' },
+          ],
+        }) +
+        '</script>',
+    );
+
+    expect(parsed.authors).toEqual([
+      'JSON-LD author: Jane Doe',
+      '<meta name="author" content="Jane Doe">',
+      '<a rel="author" href="https://a.example/team/jane/">',
+      'itemprop="author": Jane Doe',
+    ]);
+    expect(parsed).toMatchObject({
+      datePublished: '2026-01-10',
+      dateModified: '2026-02-01',
+    });
+  });
+
+  it('falls back to the article:* dates when the markup has none', () => {
+    expect(
+      page(
+        '<p>x</p>',
+        '<meta property="article:modified_time" content="2026-03-03T10:00:00+00:00">',
+      ).dateModified,
+    ).toBe('2026-03-03T10:00:00+00:00');
+  });
+
+  // The fingerprint is of the words, so markup around them does not move it.
+  it('fingerprints the main text, not the markup around it', () => {
+    const a = page('<main><p>Same words here.</p></main><footer>One</footer>');
+    const b = page(
+      '<main><div><p>Same   words here.</p></div></main><footer>Two</footer>',
+    );
+    const c = page('<main><p>Other words here.</p></main>');
+
+    expect(a.contentHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(b.contentHash).toBe(a.contentHash);
+    expect(c.contentHash).not.toBe(a.contentHash);
+  });
+
   it('survives broken JSON-LD and missing everything', () => {
     const parsed = extractPage(
       '<script type="application/ld+json">{broken</script>',

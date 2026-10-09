@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { load, type CheerioAPI } from 'cheerio';
 import { ARTICLE_TYPES } from '../../constants/article-types.constant';
 import type {
@@ -213,6 +214,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   });
 
   const canonicals = canonicalsOf($, 'head', baseUrl);
+  const { jsonLd, authors, dates } = structuredDataOf($);
 
   return {
     title: orNull($('head > title').first().text()),
@@ -229,7 +231,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .map((_, element) => collapse($(element).attr('content') ?? ''))
       .get()
       .filter(Boolean),
-    jsonLd: jsonLdOf($),
+    jsonLd,
     lang: orNull($('html').attr('lang')),
     h1s: $('body h1')
       .map((_, element) => collapse($(element).text()))
@@ -251,6 +253,14 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     clientRendered,
     blocks,
     wordCount: mainText.split(' ').filter((token) => WORD.test(token)).length,
+    authors: [...authors, ...authorsInMarkup($, baseUrl)],
+    datePublished:
+      dates.published ??
+      orNull(metaContent($, 'property', 'article:published_time')),
+    dateModified:
+      dates.modified ??
+      orNull(metaContent($, 'property', 'article:modified_time')),
+    contentHash: createHash('sha256').update(mainText).digest('hex'),
   };
 }
 
@@ -459,10 +469,22 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
  * `"image": []` for fields nobody filled in, and treating a present-but-empty key as the
  * field being there would pass every page a CMS half-populated.
  */
-function jsonLdOf($: CheerioAPI): IParsedPage['jsonLd'] {
+function structuredDataOf($: CheerioAPI): {
+  jsonLd: IParsedPage['jsonLd'];
+  authors: string[];
+  dates: { published: string | null; modified: string | null };
+} {
   const types = new Set<string>();
   const keywords = new Set<string>();
   const articleFields = new Set<string>();
+  // Authors are often a reference into the graph — `"author": {"@id": "#person"}` — so
+  // names are resolved after every block is read, against the nodes that carry an @id.
+  const namesById = new Map<string, string>();
+  const authorRefs: unknown[] = [];
+  const dates = {
+    published: null as string | null,
+    modified: null as string | null,
+  };
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
       node.forEach(visit);
@@ -474,15 +496,21 @@ function jsonLdOf($: CheerioAPI): IParsedPage['jsonLd'] {
     for (const type of nodeTypes) {
       if (typeof type === 'string') types.add(type);
     }
+    if (typeof record['@id'] === 'string' && typeof record.name === 'string')
+      namesById.set(record['@id'], collapse(record.name));
     if (
       nodeTypes.some(
         (type) => typeof type === 'string' && ARTICLE_TYPES.has(type),
       )
-    )
+    ) {
       for (const [field, value] of Object.entries(record)) {
         if (!field.startsWith('@') && isPresent(value))
           articleFields.add(field);
       }
+      if (record.author !== undefined) authorRefs.push(record.author);
+      dates.published ??= dateOf(record.datePublished);
+      dates.modified ??= dateOf(record.dateModified);
+    }
     for (const keyword of keywordsOf(record.keywords)) keywords.add(keyword);
     if (record['@graph'] !== undefined) visit(record['@graph']);
   };
@@ -493,11 +521,60 @@ function jsonLdOf($: CheerioAPI): IParsedPage['jsonLd'] {
       // Broken JSON-LD is common and says nothing about the page itself.
     }
   });
-  return {
-    types: [...types],
-    keywords: [...keywords],
-    articleFields: [...articleFields],
+  const names = new Set<string>();
+  const resolve = (author: unknown): void => {
+    if (Array.isArray(author)) return author.forEach(resolve);
+    if (typeof author === 'string') {
+      if (collapse(author)) names.add(collapse(author));
+      return;
+    }
+    if (!author || typeof author !== 'object') return;
+    const record = author as Record<string, unknown>;
+    const name =
+      typeof record.name === 'string'
+        ? collapse(record.name)
+        : typeof record['@id'] === 'string'
+          ? namesById.get(record['@id'])
+          : undefined;
+    if (name) names.add(name);
   };
+  authorRefs.forEach(resolve);
+  return {
+    jsonLd: {
+      types: [...types],
+      keywords: [...keywords],
+      articleFields: [...articleFields],
+    },
+    authors: [...names].map((name) => `JSON-LD author: ${name}`),
+    dates,
+  };
+}
+
+function dateOf(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/**
+ * The author as the HTML itself names it: `<meta name="author">`, a `rel="author"` link,
+ * or an element marked `itemprop="author"`. Each quoted as written.
+ */
+function authorsInMarkup($: CheerioAPI, baseUrl: string): string[] {
+  const found: string[] = [];
+  const meta = orNull(metaContent($, 'name', 'author'));
+  if (meta) found.push(`<meta name="author" content="${meta}">`);
+  $('a[rel~="author" i][href], link[rel~="author" i][href]').each(
+    (_, element) => {
+      const href = absolute($(element).attr('href'), baseUrl);
+      if (href) found.push(`<${element.tagName} rel="author" href="${href}">`);
+    },
+  );
+  $('[itemprop~="author"]').each((_, element) => {
+    const name =
+      collapse($(element).find('[itemprop~="name"]').first().text()) ||
+      collapse($(element).text());
+    if (name && name.length <= 100) found.push(`itemprop="author": ${name}`);
+  });
+  return [...new Set(found)];
 }
 
 /** A JSON-LD value that actually says something: not null, not '', not []. */

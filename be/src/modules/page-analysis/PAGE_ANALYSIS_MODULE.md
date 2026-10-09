@@ -70,17 +70,18 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Eighteen of the thirty-four checks always apply; sixteen are conditional. Thirteen of those
+  Twenty of the thirty-nine checks always apply; nineteen are conditional. Fifteen of those
   are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
   CANONICAL_MISMATCH and CANONICAL_CONFLICT on there being a canonical to disagree with,
   IMAGES_MISSING_ALT on there being an image, HEADING_SKIP on there being two or more headings,
   HREFLANG_INVALID on the page declaring an alternate, MIXED_CONTENT on the page being served over
   HTTPS at all, STRUCTURED_DATA_INCOMPLETE on there being an article node to inspect,
   INTERNAL_LINKS_NOFOLLOW and INTERNAL_LINK_VARIANTS on there being a link to another page of the
-  site, ROBOTS_BLOCKS_GOOGLEBOT on the robots.txt governing the page's host and
-  ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a host — and three
-  are run-scoped, skipped when the run holds one page or the page has no value to compare. So
-  `18 <= checks_applicable <= 34`, which
+  site, ROBOTS_BLOCKS_GOOGLEBOT and ROBOTS_BLOCKS_AI_SEARCH on the robots.txt governing the
+  page's host, ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a
+  host, DATE_BUMPED_WITHOUT_CHANGES on an earlier crawl having recorded the page — and four are
+  run-scoped, skipped when the run holds one page or the page has no value to compare. So
+  `20 <= checks_applicable <= 39`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -150,6 +151,34 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   links back into the page lead nowhere new. `REDIRECTED` quotes every hop with its status, since
   a 302 tells Google to keep the URL the sitemap lists. And the extractor resolves every URL
   against `<base href>`, as a browser and Googlebot do.
+- **Five checks from Google's ranking guidance (2026-10-09).** `SNIPPET_RESTRICTED` reads the
+  same robots declarations as NOINDEX for `nosnippet` and `max-snippet:0`, which Google applies
+  to its AI features as well as to the snippet. `ROBOTS_BLOCKS_AI_SEARCH` asks robots.txt about
+  the SEARCH crawlers of AI assistants (OAI-SearchBot, PerplexityBot, bingbot) and never the
+  training ones, whose closing costs no visibility. `AUTHOR_MISSING` is the "who" of Google's
+  helpful-content questions, counted only where the markup identifies an author.
+  `DATE_BUMPED_WITHOUT_CHANGES` compares the page with the client's previous crawl — the main
+  text's SHA-256 and the declared modification date are stored on the page row — and fires on
+  a date that moved over identical words, which Google names as a sign of content written for
+  search engines. `NEAR_DUPLICATE_CONTENT` compares the crawl's pages by five-word shingles; a
+  page with its city swapped ten times in 300 words shares 0.73, and on the recorded corpus the
+  closest pair shares 0.19 (semrush) and 0.08 (yoast), against a line of 0.6. Measured on the
+  43 posts before being believed: AUTHOR_MISSING fires twice, on the two recorded pages that are
+  not posts (a listing and a JavaScript shell); SNIPPET_RESTRICTED, ROBOTS_BLOCKS_AI_SEARCH and
+  NEAR_DUPLICATE_CONTENT never fire. DATE_BUMPED_WITHOUT_CHANGES needs two crawls of a page, which
+  a recording does not hold, and is pinned by its own spec instead.
+- **Two severities moved to the line ranking-signals.md draws (2026-10-09).** H1_MISSING is a
+  warning, not an error: Google states heading structure does not matter to Search, so a page
+  without an h1 is not out of the running. THIN_CONTENT is a notice: Google has no preferred
+  word count. A finding stored before keeps the severity it was judged with until the next crawl.
+- **Keyword stuffing was built, measured and removed (2026-10-09).** Google's spam policies name
+  it and publish no density, so the check was comparative: a page whose top keyword is three
+  times denser than the site's median. On the recorded posts it fired on four ordinary articles —
+  "google analytics" at 3.5% in a post about Google Analytics, "http 2" at 2.9% in a post about
+  HTTP/2 — because a post about a thing names the thing, and a site's median is pulled down by
+  posts whose top keyword is rare. Per paragraph it is no better: a yoast paragraph names its
+  product five times in 131 words, denser than Google's own example of stuffing. No line
+  separates the two without inventing one, which is the mistake the catalogue refuses.
 - **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
   answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
   never fetches, and the extractor removes the nav and the related-posts rail that carry most
@@ -201,7 +230,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per catalogued code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The thirty-four checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+**The thirty-nine checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".

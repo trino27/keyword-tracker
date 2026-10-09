@@ -4,9 +4,11 @@ import {
   type TSeoIssue,
   type TSeoIssueCode,
 } from '@app/contracts';
+import { AUTHOR_MISSING_CHECK } from './author-missing/author-missing.check';
 import { CANONICAL_CONFLICT_CHECK } from './canonical-conflict/canonical-conflict.check';
 import { CANONICAL_MISMATCH_CHECK } from './canonical-mismatch/canonical-mismatch.check';
 import { CANONICAL_MISSING_CHECK } from './canonical-missing/canonical-missing.check';
+import { DATE_BUMPED_WITHOUT_CHANGES_CHECK } from './date-bumped-without-changes/date-bumped-without-changes.check';
 import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
@@ -23,13 +25,16 @@ import { META_DESCRIPTION_LENGTH_CHECK } from './meta-description-length/meta-de
 import { META_DESCRIPTION_MISSING_CHECK } from './meta-description-missing/meta-description-missing.check';
 import { META_REFRESH_CHECK } from './meta-refresh/meta-refresh.check';
 import { MIXED_CONTENT_CHECK } from './mixed-content/mixed-content.check';
+import { NEAR_DUPLICATE_CONTENT_CHECK } from './near-duplicate-content/near-duplicate-content.check';
 import { NO_INTERNAL_LINKS_CHECK } from './no-internal-links/no-internal-links.check';
 import { NOINDEX_CHECK } from './noindex/noindex.check';
 import { NOT_HTTPS_CHECK } from './not-https/not-https.check';
 import { OG_TAGS_MISSING_CHECK } from './og-tags-missing/og-tags-missing.check';
 import { REDIRECTED_CHECK } from './redirected/redirected.check';
+import { ROBOTS_BLOCKS_AI_SEARCH_CHECK } from './robots-blocks-ai-search/robots-blocks-ai-search.check';
 import { ROBOTS_BLOCKS_GOOGLEBOT_CHECK } from './robots-blocks-googlebot/robots-blocks-googlebot.check';
 import { ROBOTS_BLOCKS_RESOURCES_CHECK } from './robots-blocks-resources/robots-blocks-resources.check';
+import { SNIPPET_RESTRICTED_CHECK } from './snippet-restricted/snippet-restricted.check';
 import { STRUCTURED_DATA_MISSING_CHECK } from './structured-data-missing/structured-data-missing.check';
 import { STRUCTURED_DATA_INCOMPLETE_CHECK } from './structured-data-incomplete/structured-data-incomplete.check';
 import { THIN_CONTENT_CHECK } from './thin-content/thin-content.check';
@@ -66,10 +71,14 @@ export const CHECKS: TCheckRegistry = {
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
   CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
   NOINDEX: NOINDEX_CHECK,
+  SNIPPET_RESTRICTED: SNIPPET_RESTRICTED_CHECK,
   ROBOTS_BLOCKS_GOOGLEBOT: ROBOTS_BLOCKS_GOOGLEBOT_CHECK,
   ROBOTS_BLOCKS_RESOURCES: ROBOTS_BLOCKS_RESOURCES_CHECK,
+  ROBOTS_BLOCKS_AI_SEARCH: ROBOTS_BLOCKS_AI_SEARCH_CHECK,
   IMAGES_MISSING_ALT: IMAGES_MISSING_ALT_CHECK,
   THIN_CONTENT: THIN_CONTENT_CHECK,
+  AUTHOR_MISSING: AUTHOR_MISSING_CHECK,
+  DATE_BUMPED_WITHOUT_CHANGES: DATE_BUMPED_WITHOUT_CHANGES_CHECK,
   NO_INTERNAL_LINKS: NO_INTERNAL_LINKS_CHECK,
   INTERNAL_LINKS_NOFOLLOW: INTERNAL_LINKS_NOFOLLOW_CHECK,
   INTERNAL_LINK_VARIANTS: INTERNAL_LINK_VARIANTS_CHECK,
@@ -87,6 +96,7 @@ export const CHECKS: TCheckRegistry = {
   KEYWORD_CANNIBALISATION: KEYWORD_CANNIBALISATION_CHECK,
   TITLE_DUPLICATE: TITLE_DUPLICATE_CHECK,
   META_DESCRIPTION_DUPLICATE: META_DESCRIPTION_DUPLICATE_CHECK,
+  NEAR_DUPLICATE_CONTENT: NEAR_DUPLICATE_CONTENT_CHECK,
   STRUCTURED_DATA_MISSING: STRUCTURED_DATA_MISSING_CHECK,
   STRUCTURED_DATA_INCOMPLETE: STRUCTURED_DATA_INCOMPLETE_CHECK,
 };

@@ -233,8 +233,19 @@ describe('evaluateChecks', () => {
         new URL(url).hostname === 'a.example' ? false : null,
       matchingRule: () => 'line 2: Disallow: /',
     };
+    // Thirty different words, ten times over: enough text for two copies to be compared.
+    const sameText = Array.from(
+      { length: 10 },
+      (_, n) =>
+        Array.from({ length: 30 }, (_, k) => `word${n}x${k}`).join(' ') + '.',
+    );
     const broken = (path: string) =>
       runPage(path, {
+        previous: {
+          contentHash: 'f'.repeat(64),
+          dateModified: '2026-01-01',
+          crawledAt: new Date('2026-09-01T00:00:00Z'),
+        },
         redirected: true,
         redirects: [{ url: `https://a.example/${path}-old/`, status: 302 }],
         robots: blocked,
@@ -243,7 +254,11 @@ describe('evaluateChecks', () => {
         parsed: {
           title: 'Shared title',
           metaDescription: 'Too short',
-          metaRobots: 'noindex',
+          metaRobots: 'noindex, nosnippet',
+          authors: [],
+          contentHash: 'f'.repeat(64),
+          dateModified: '2026-10-01',
+          blocks: sameText,
           metaRefresh: '0; url=/elsewhere/',
           viewport: null,
           canonicals: ['https://a.example/x/', 'https://a.example/y/'],
