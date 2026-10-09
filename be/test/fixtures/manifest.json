@@ -1,5 +1,29 @@
 {
   "entries": {
+    "http://semrush.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://www.semrush.com:443/"
+      }
+    },
+    "http://www.semrush.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://www.semrush.com:443/"
+      }
+    },
+    "http://www.yoast.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://yoast.com/"
+      }
+    },
+    "http://yoast.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://yoast.com/"
+      }
+    },
     "https://blog.relative-sitemap.example/": {
       "status": 200,
       "headers": {
@@ -334,6 +358,12 @@
         "content-type": "application/xml; charset=utf-8"
       },
       "file": "synthetic/root-blog-no-feed.example/sitemap_index.xml"
+    },
+    "https://semrush.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://www.semrush.com/"
+      }
     },
     "https://sitemaps.crosshost.example/index.xml": {
       "status": 200,
@@ -1023,6 +1053,12 @@
         "content-type": "text/plain; charset=utf-8"
       },
       "ttfbMs": 147
+    },
+    "https://www.yoast.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://yoast.com/"
+      }
     },
     "https://yoast.com/": {
       "status": 200,

@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ACTIVE_ISSUE_CODES, CONDITIONAL_ISSUE_CODES } from '@app/contracts';
+import {
+  ACTIVE_ISSUE_CODES,
+  CONDITIONAL_ISSUE_CODES,
+  SITE_CHECK_CODES,
+} from '@app/contracts';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { count, eq } from 'drizzle-orm';
 import { MAX_KEYWORDS } from '../../src/modules/page-analysis/constants/keyword-scoring.constant';
@@ -74,6 +78,29 @@ describe('crawl (e2e, recorded sites)', () => {
       sitemapPosition: 0,
       url: 'https://yoast.com/seo-blog/',
       status: 'skipped_listing',
+    });
+    // Every site check, in catalogue order, judged against yoast's recorded answers:
+    // each host variant is one 301 to https://yoast.com/ and a made-up page is a 404.
+    expect(
+      (run.siteChecks as { code: string; status: string }[]).map(
+        ({ code, status }) => [code, status],
+      ),
+    ).toEqual(
+      SITE_CHECK_CODES.map((code) => [
+        code,
+        expect.stringMatching(/^(passed|failed|notApplicable)$/),
+      ]),
+    );
+    const siteStatus = Object.fromEntries(
+      (run.siteChecks as { code: string; status: string }[]).map(
+        ({ code, status }) => [code, status],
+      ),
+    );
+    expect(siteStatus).toMatchObject({
+      HOST_VARIANT_SERVES_CONTENT: 'passed',
+      HOST_REDIRECT_CHAIN: 'passed',
+      SOFT_404: 'passed',
+      SITEMAP_LISTS_OTHER_HOST_VARIANTS: 'passed',
     });
     const stored = await testDb.db
       .select()
