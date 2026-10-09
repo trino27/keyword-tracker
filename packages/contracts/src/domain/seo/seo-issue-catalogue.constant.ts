@@ -199,6 +199,30 @@ const SOURCE = {
     title: 'Google Search Central: Article structured data',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/article',
   },
+  aiFeatures: {
+    title: 'Google Search Central: AI features and your website',
+    url: 'https://developers.google.com/search/docs/appearance/ai-features',
+  },
+  openAiBots: {
+    title: 'OpenAI: Overview of OpenAI crawlers',
+    url: 'https://developers.openai.com/api/docs/bots',
+  },
+  perplexityBots: {
+    title: 'Perplexity: Perplexity crawlers',
+    url: 'https://docs.perplexity.ai/docs/resources/perplexity-crawlers',
+  },
+  bingCrawlers: {
+    title: 'Bing Webmaster Tools: Which crawlers does Bing use?',
+    url: 'https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0',
+  },
+  spamPolicies: {
+    title: 'Google Search Central: Spam policies for Google web search',
+    url: 'https://developers.google.com/search/docs/essentials/spam-policies',
+  },
+  bylineDates: {
+    title: 'Google Search Central: Influence your byline dates',
+    url: 'https://developers.google.com/search/docs/appearance/publication-dates',
+  },
   structuredDataIntro: {
     title: 'Google Search Central: Introduction to structured data markup',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data',
@@ -252,7 +276,10 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'No description to measure.',
   },
   H1_MISSING: {
-    severity: 'error',
+    // A warning, not an error, by the line ranking-signals.md draws: an error is for what
+    // keeps a page out of the running, and Google states heading structure does not
+    // matter to Search. A page without an h1 is indexed and ranked.
+    severity: 'warning',
     label: 'H1 is missing',
     hint: 'The main heading tells readers and crawlers what the page is about.',
     explanation:
@@ -312,6 +339,14 @@ export const SEO_ISSUE_CATALOGUE = {
       'A noindex rule — in a <meta name="robots"> or <meta name="googlebot"> tag, or in an X-Robots-Tag HTTP header — tells Google to drop the page from search results, and Google obeys it once it recrawls the page. On a post listed in the blog sitemap it is almost always unintended: a staging setting left on, or a plugin rule for a category applied too widely. A sitemap entry and a noindex on the same URL are also contradictory signals.',
     sources: [SOURCE.blockIndexing, SOURCE.robotsMeta],
   },
+  SNIPPET_RESTRICTED: {
+    severity: 'notice',
+    label: 'Search snippet is restricted',
+    hint: 'Remove nosnippet or max-snippet:0 unless hiding the text from results is the intent.',
+    explanation:
+      'A nosnippet or max-snippet:0 rule — in a robots or googlebot meta tag, or an X-Robots-Tag header — tells Google to show no text from the page under its result, and Google applies the same controls to its AI features: the page cannot be quoted in an AI Overview. Sometimes that is the point; on a blog post that wants readers it usually is not, and a result with no description draws fewer clicks.',
+    sources: [SOURCE.robotsMeta, SOURCE.aiFeatures],
+  },
   ROBOTS_BLOCKS_GOOGLEBOT: {
     // An error by the line ranking-signals.md draws: a page Googlebot may not fetch is out
     // of the running, exactly like a noindexed one.
@@ -333,6 +368,15 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason:
       "The page loads no scripts or stylesheets from a host the site's robots.txt governs.",
   },
+  ROBOTS_BLOCKS_AI_SEARCH: {
+    severity: 'notice',
+    label: 'robots.txt blocks AI search crawlers',
+    hint: 'Allow the search crawlers of the assistants you want to be cited by; their training crawlers are a separate choice.',
+    explanation:
+      'robots.txt keeps one or more search crawlers of AI assistants from this page — OAI-SearchBot (ChatGPT search), PerplexityBot, or Bingbot, whose index Copilot answers from. OpenAI documents that a site opted out of OAI-SearchBot is not shown in ChatGPT search answers, and Perplexity asks sites to allow PerplexityBot to appear in its results. This is not about training: GPTBot and Google-Extended govern training and are not judged here, because closing them is a legitimate choice that costs no visibility. It does not affect Google Search.',
+    sources: [SOURCE.openAiBots, SOURCE.perplexityBots, SOURCE.bingCrawlers],
+    skipReason: "The site's robots.txt does not govern this page's host.",
+  },
   IMAGES_MISSING_ALT: {
     severity: 'warning',
     label: 'Images without alt text',
@@ -343,13 +387,33 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The page has no images.',
   },
   THIN_CONTENT: {
-    severity: 'warning',
+    // A notice: Google says it has no preferred word count, so a short page is a prompt
+    // to reread it, not a defect on the page.
+    severity: 'notice',
     label: 'Thin content',
     hint: 'Posts under 300 words rarely answer a query well enough to rank.',
     explanation:
       "Google says plainly that it has no preferred word count, and a short page that fully answers its question is fine. The 300-word line is an audit heuristic, not a Google rule: below it a blog post is more often a stub, a teaser for another page or a placeholder than a complete answer, and Google's guidance asks whether a page provides substantial, complete value compared with others on the topic. Read the page and decide whether it says everything a searcher needs.",
     sources: [SOURCE.helpfulContent],
     min: 300,
+  },
+  AUTHOR_MISSING: {
+    severity: 'notice',
+    label: 'No author named',
+    hint: 'Name the author on the page and in the article markup, linked to a page about them.',
+    explanation:
+      'Nothing on the page says who wrote it: no author in the article markup, no <meta name="author">, no rel="author" link and no byline the markup identifies. Google\'s guidance on helpful content asks "who created the content" first and suggests a byline linking to more about the author — it helps readers judge the expertise behind a post. It is not a ranking switch: adding a name does not add expertise, but hiding who wrote a post takes away a reason to trust it.',
+    sources: [SOURCE.helpfulContent, SOURCE.articleMarkup],
+  },
+  DATE_BUMPED_WITHOUT_CHANGES: {
+    severity: 'warning',
+    label: 'Date changed, content did not',
+    hint: 'Change the modified date only when the content substantially changes.',
+    explanation:
+      'Since the previous crawl the page\'s declared modification date moved, while its main content stayed word-for-word the same. Google\'s guidance on helpful content names "changing the date of pages to make them seem fresh when the content has not substantially changed" as a mark of content written for search engines rather than people. Often it is not deliberate: a CMS that rewrites dateModified on every save or deploy does the same.',
+    sources: [SOURCE.helpfulContent, SOURCE.bylineDates],
+    skipReason:
+      'No earlier crawl of this page to compare with, or the page declares no modification date.',
   },
   NO_INTERNAL_LINKS: {
     // The content's own links, not the template's: the extractor has already removed the
@@ -433,7 +497,7 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Not served over HTTPS',
     hint: 'Browsers mark plain HTTP pages as not secure, and search engines prefer HTTPS.',
     explanation:
-      'The page was served over plain HTTP. Browsers label such pages "Not secure", traffic to them can be read and altered on the way, and Google has used HTTPS as a ranking signal since 2014. Serve every page over HTTPS and redirect HTTP to it permanently.',
+      'The page was served over plain HTTP. Browsers label such pages "Not secure" and traffic to them can be read and altered on the way — the reason this is an error is the reader\'s trust, not rankings: Google has counted HTTPS since 2014, but announced it as a very lightweight signal. Serve every page over HTTPS and redirect HTTP to it permanently.',
     sources: [SOURCE.httpsSignal, SOURCE.enableHttps],
   },
   MIXED_CONTENT: {
@@ -483,10 +547,10 @@ export const SEO_ISSUE_CATALOGUE = {
   KEYWORD_CANNIBALISATION: {
     scope: 'run',
     severity: 'warning',
-    label: 'Two pages target the same keyword',
-    hint: 'Pages competing for one query split its links and rankings; merge them or retarget one.',
+    label: 'Two pages lead with the same keyword',
+    hint: 'Check whether the pages answer the same question; if they do, merge them or retarget one.',
     explanation:
-      'Two or more posts lead with the same keyword. When several pages of one site answer the same query, a search engine has to choose between them, the choice can change from week to week, and the links each page earned are split instead of combined. Google has written no guidance under this name; the term and the remedy — merge the pages with a 301 to the stronger one, or retarget one of them — come from the SEO industry.',
+      "Two or more posts lead with the same keyword as this crawl extracts it from their text. That is a sign they may compete for one query, not proof: real cannibalisation is one query showing different URLs of the site in turn, which only search data can show, and this tracker's positions are simulated. When pages do compete, the choice between them can change from week to week and the links each earned are split instead of combined. Google has written no guidance under this name; the term and the remedy — merge with a 301 to the stronger page, or give each page its own intent — come from the SEO industry.",
     sources: [SOURCE.cannibalisation, SOURCE.canonical],
     skipReason:
       'Nothing to compare — the run holds one page, or this page has no keyword.',
@@ -512,6 +576,17 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.snippets],
     skipReason:
       'Nothing to compare — the run holds one page, or this page has no description.',
+  },
+  NEAR_DUPLICATE_CONTENT: {
+    scope: 'run',
+    severity: 'warning',
+    label: 'Nearly the same text as another page',
+    hint: 'Merge the pages, or make each one say something the other does not.',
+    explanation:
+      "Most of this page's main text also appears, nearly word for word, on another page of this crawl. Google groups near-duplicates and shows one of them, so the copies compete for one place; pages built from one template with a word swapped — a city, a product — are what Google's spam policies call doorway abuse. Quoting or syndication with a canonical is fine; two posts that say the same thing are not two answers.",
+    sources: [SOURCE.canonical, SOURCE.spamPolicies],
+    skipReason:
+      'Nothing to compare — the run holds one page, or this page has too little text to compare.',
   },
   STRUCTURED_DATA_MISSING: {
     // The hint speaks about eligibility, never about a violation: Google requires no

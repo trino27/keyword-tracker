@@ -35,6 +35,7 @@ describe('the catalogue split by scope', () => {
     expect([...RUN_ISSUE_CODES].sort()).toEqual([
       'KEYWORD_CANNIBALISATION',
       'META_DESCRIPTION_DUPLICATE',
+      'NEAR_DUPLICATE_CONTENT',
       'TITLE_DUPLICATE',
     ]);
   });
