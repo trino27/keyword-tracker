@@ -88,15 +88,17 @@ export class FixtureHttpTransport implements IHttpTransport {
     const body = entry.file
       ? readFileSync(join(this.root, 'sites', entry.file))
       : Buffer.from(entry.body ?? '');
-    if (body.length > request.maxBytes)
+    const tooLarge = body.length > request.maxBytes;
+    if (tooLarge && request.overflow !== 'truncate')
       return Promise.reject(
         new RemoteApiTooLargeError(request.url, request.maxBytes),
       );
     return Promise.resolve({
       status: entry.status,
       headers: lowerCaseKeys(entry.headers ?? {}),
-      body,
+      body: tooLarge ? body.subarray(0, request.maxBytes) : body,
       ttfbMs: entry.ttfbMs ?? 50,
+      ...(tooLarge ? { truncated: true } : {}),
     });
   }
 

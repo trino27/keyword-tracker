@@ -4,6 +4,12 @@ export interface IHttpRequest {
   signal: AbortSignal;
   /** Reading stops, with RemoteApiTooLargeError, once the body passes this size. */
   maxBytes: number;
+  /**
+   * `truncate` keeps the first `maxBytes` and stops reading instead of failing — for a
+   * file whose consumers read only its beginning anyway, as Google reads only the first
+   * 500 KiB of a robots.txt. Absent means the ordinary thing: too large is an error.
+   */
+  overflow?: 'truncate';
 }
 
 export interface IHttpResponse {
@@ -11,6 +17,8 @@ export interface IHttpResponse {
   /** Lower-cased header names. */
   headers: Record<string, string>;
   body: Buffer;
+  /** The body was cut at `maxBytes` (only with `overflow: 'truncate'`). */
+  truncated?: boolean;
   /** Time to the response head. A fact of this fetch, stored on the page. */
   ttfbMs: number;
 }

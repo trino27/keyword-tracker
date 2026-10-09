@@ -22,6 +22,8 @@ import {
 
 export interface IRemoteGetOptions {
   maxBytes: number;
+  /** See IHttpRequest.overflow. */
+  overflow?: 'truncate';
   accept?: string;
   /** The caller's own cancellation — a lost crawl lease aborts every request it owns. */
   signal?: AbortSignal;
@@ -109,6 +111,7 @@ export class RemoteApiCore {
           },
           signal: hopSignal(options.signal),
           maxBytes: options.maxBytes,
+          ...(options.overflow ? { overflow: options.overflow } : {}),
         });
         this.logger.debug(
           {
