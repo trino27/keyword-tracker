@@ -317,7 +317,7 @@ describe('host checks', () => {
     ]);
   });
 
-  it('reports a two-hop, temporary chain, quoting every hop', () => {
+  it('reports a temporary hop, quoting every hop', () => {
     expect(
       evidenceOf(
         'HOST_REDIRECT_CHAIN',
@@ -336,7 +336,91 @@ describe('host checks', () => {
         }),
       ),
     ).toEqual([
-      `302 http://a.example/ → https://a.example/, 301 https://a.example/ → ${SERVED}/ — 2 hops; temporary 302`,
+      `302 http://a.example/ → https://a.example/, 301 https://a.example/ → ${SERVED}/ — temporary 302`,
+    ]);
+  });
+
+  const variant = (
+    redirects: { url: string; status: number }[],
+    finalUrl: string,
+  ) => ({ url: redirects[0].url, status: 200, redirects, finalUrl });
+
+  // 29 of 46 live sites (2026-10), blog.google among them, take two permanent hops.
+  it('passes the common http → https → canonical host, in two permanent hops', () => {
+    expect(
+      verdictOf(
+        'HOST_REDIRECT_CHAIN',
+        healthySite({
+          hostVariants: [
+            variant(
+              [
+                { url: 'http://a.example/', status: 301 },
+                { url: 'https://a.example/', status: 301 },
+              ],
+              `${SERVED}/`,
+            ),
+          ],
+        }),
+      ),
+    ).toMatchObject({ status: 'passed' });
+  });
+
+  it('reports three host hops', () => {
+    expect(
+      evidenceOf(
+        'HOST_REDIRECT_CHAIN',
+        healthySite({
+          hostVariants: [
+            variant(
+              [
+                { url: 'http://a.example/', status: 301 },
+                { url: 'http://www.a.example/', status: 301 },
+                { url: 'https://a.example/', status: 301 },
+              ],
+              `${SERVED}/`,
+            ),
+          ],
+        }),
+      )[0],
+    ).toMatch(/— 3 hops$/);
+  });
+
+  // stripe.com and habr.com, 2026-10: the home page's own redirect to a language
+  // version, after the host was already right, was counted as a hop of the chain.
+  it("does not count the home page's own redirect after the host is right", () => {
+    expect(
+      verdictOf(
+        'HOST_REDIRECT_CHAIN',
+        healthySite({
+          hostVariants: [
+            variant(
+              [
+                { url: 'http://www.a.example/', status: 301 },
+                { url: `${SERVED}/`, status: 307 },
+              ],
+              `${SERVED}/en-bg`,
+            ),
+          ],
+        }),
+      ),
+    ).toMatchObject({ status: 'passed' });
+  });
+
+  it('reports a variant that never reaches the address the site serves', () => {
+    expect(
+      evidenceOf(
+        'HOST_REDIRECT_CHAIN',
+        healthySite({
+          hostVariants: [
+            variant(
+              [{ url: 'http://www.a.example/', status: 301 }],
+              'https://b.example/',
+            ),
+          ],
+        }),
+      ),
+    ).toEqual([
+      `301 http://www.a.example/ → https://b.example/ — ends at https://b.example, not ${SERVED}`,
     ]);
   });
 

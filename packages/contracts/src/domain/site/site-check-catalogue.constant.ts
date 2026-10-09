@@ -101,10 +101,10 @@ export const SITE_CHECK_CATALOGUE = {
   },
   HOST_REDIRECT_CHAIN: {
     severity: 'notice',
-    label: 'Host redirects take more than one hop, or are temporary',
+    label: 'Host redirects form a chain, or are temporary',
     hint: 'Redirect every variant straight to the final address in one permanent (301 or 308) hop.',
     explanation:
-      'The other addresses of the site redirect, but not in one permanent step: they pass through an intermediate address (http:// → https:// → www), use a temporary 302 or 307, or end somewhere other than the address the site serves. Each hop is another request for readers and crawlers, and a temporary redirect tells Google to keep the old address as the one to show. Check all conditions in one rule and send the reader straight to the final URL.',
+      'The other addresses of the site redirect, but badly: through three hops or more before they reach the address the site serves, with a temporary 302 or 307 on the way, or to somewhere else entirely. Each hop is another request for readers and crawlers, and a temporary redirect tells Google to keep the old address as the one to show. Two permanent hops (http:// → https:// → the canonical host) are not reported: more than half the sites measured do exactly that, and Google follows them without loss. What the home page does once the host is right — a redirect to a language version — is not counted. Check all conditions in one rule and send the reader straight to the final URL.',
     sources: [SOURCE.redirects],
     skipReason: 'No other variant redirected.',
   },

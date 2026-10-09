@@ -114,8 +114,6 @@ describe("RunLog", () => {
 			}),
 		).toBeInTheDocument();
 		expect(screen.getByText(/^Passed: robots.txt is past 500 KiB/)).toBeInTheDocument();
-		expect(
-			screen.getByText(/^Not judged: Host redirects take more than one hop/),
-		).toBeInTheDocument();
+		expect(screen.getByText(/^Not judged: Host redirects form a chain/)).toBeInTheDocument();
 	});
 });

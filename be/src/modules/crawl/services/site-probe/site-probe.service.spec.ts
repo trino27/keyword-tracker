@@ -2,7 +2,7 @@ import type { PinoLogger } from 'nestjs-pino';
 import { FixtureHttpTransport } from '@infrastructure/remote-api/_testing/fixture-http-transport';
 import { RobotsPolicy } from '../robots-policy/robots-policy';
 import { SiteHttpClient } from '../site-http-client/site-http-client';
-import { SiteProbeService } from './site-probe.service';
+import { hasWwwVariant, SiteProbeService } from './site-probe.service';
 
 const logger = {
   debug: jest.fn(),
@@ -77,5 +77,21 @@ describe('SiteProbeService (recorded answers)', () => {
     expect(transport.requests.some((url) => url.includes('missing-page'))).toBe(
       false,
     );
+  });
+});
+
+describe('hasWwwVariant', () => {
+  it.each([
+    ['yoast.com', true],
+    ['www.semrush.com', true],
+    ['blog.google', true],
+    ['bbc.co.uk', true],
+    ['www.example.com.au', true],
+    // A subdomain is not a site's own name: nobody types www.blog.cloudflare.com.
+    ['blog.cloudflare.com', false],
+    ['engineering.fb.com', false],
+    ['blog.example.co.uk', false],
+  ])('%s → %s', (host, expected) => {
+    expect(hasWwwVariant(host)).toBe(expected);
   });
 });
