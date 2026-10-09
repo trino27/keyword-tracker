@@ -56,10 +56,16 @@ export class UndiciHttpTransport implements IHttpTransport {
       const stream: Readable = decompress
         ? response.body.pipe(decompress())
         : response.body;
-      const body = await readCapped(stream, input.url, input.maxBytes, () =>
+      const { body, truncated } = await readCapped(stream, input, () =>
         response.body.destroy(),
       );
-      return { status: response.statusCode, headers, body, ttfbMs };
+      return {
+        status: response.statusCode,
+        headers,
+        body,
+        ttfbMs,
+        ...(truncated ? { truncated } : {}),
+      };
     } catch (error) {
       throw toRemoteApiError(error, input);
     }
@@ -85,23 +91,25 @@ function normalizeHeaders(
 
 async function readCapped(
   stream: Readable,
-  url: string,
-  maxBytes: number,
+  { url, maxBytes, overflow }: IHttpRequest,
   abort: () => void,
-): Promise<Buffer> {
+): Promise<{ body: Buffer; truncated: boolean }> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of stream) {
     const buffer = chunk as Buffer;
-    size += buffer.length;
-    if (size > maxBytes) {
+    if (size + buffer.length > maxBytes) {
       abort();
       stream.destroy();
-      throw new RemoteApiTooLargeError(url, maxBytes);
+      if (overflow !== 'truncate')
+        throw new RemoteApiTooLargeError(url, maxBytes);
+      chunks.push(buffer.subarray(0, maxBytes - size));
+      return { body: Buffer.concat(chunks), truncated: true };
     }
+    size += buffer.length;
     chunks.push(buffer);
   }
-  return Buffer.concat(chunks);
+  return { body: Buffer.concat(chunks), truncated: false };
 }
 
 function toRemoteApiError(error: unknown, input: IHttpRequest): RemoteApiError {

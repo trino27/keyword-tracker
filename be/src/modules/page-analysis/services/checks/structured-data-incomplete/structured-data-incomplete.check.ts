@@ -2,6 +2,7 @@ import {
   ARTICLE_TYPES,
   RECOMMENDED_ARTICLE_FIELDS,
 } from '../../../constants/article-types.constant';
+import { evidence } from '../_shared/evidence';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
@@ -24,6 +25,13 @@ export const STRUCTURED_DATA_INCOMPLETE_CHECK = defineCheck(
     const missing = RECOMMENDED_ARTICLE_FIELDS.filter(
       (field) => !present.has(field),
     );
-    return missing.length === 0 ? PASS : fails({ missing });
+    return missing.length === 0
+      ? PASS
+      : fails({
+          missing,
+          evidence: evidence([
+            `Article properties present: ${parsed.jsonLd.articleFields.join(', ') || 'none'}`,
+          ]),
+        });
   },
 );

@@ -1,3 +1,4 @@
+import { SEO_ISSUE_CATALOGUE } from "@app/contracts";
 import { MantineProvider } from "@mantine/core";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
@@ -32,6 +33,44 @@ describe("IssuesSection", () => {
 		expect(
 			screen.getByText("Posts under 300 words rarely answer a query well enough to rank."),
 		).toBeInTheDocument();
+	});
+
+	// A finding the reader cannot check is a finding they have to take on trust.
+	it("shows the evidence, the explanation and the source of a finding", () => {
+		renderSection([
+			{
+				code: "NOINDEX",
+				severity: "error",
+				details: {
+					source: "meta",
+					name: "robots",
+					value: "noindex",
+					evidence: ['<meta name="robots" content="noindex">'],
+				},
+				pagesAffected: 1,
+			},
+		]);
+
+		expect(screen.getByText('<meta name="robots" content="noindex">')).toBeInTheDocument();
+		expect(
+			screen.getByText(/tells Google to drop the page from search results/),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", {
+				name: "Google Search Central: Block Search indexing with noindex",
+			}),
+		).toHaveAttribute(
+			"href",
+			"https://developers.google.com/search/docs/crawling-indexing/block-indexing",
+		);
+	});
+
+	// Stored before findings carried evidence: the rest of the finding still renders.
+	it("renders a finding stored without evidence", () => {
+		renderSection([{ code: "H1_MISSING", severity: "error", details: {}, pagesAffected: 1 }]);
+
+		expect(screen.getByText("The page has no H1 heading.")).toBeInTheDocument();
+		expect(screen.queryByLabelText("Evidence")).not.toBeInTheDocument();
 	});
 
 	it("says so when there is nothing to fix", () => {
@@ -89,9 +128,13 @@ describe("IssuesSection", () => {
 		expect(screen.getByText('Another page leads with "ai marketing".')).toBeInTheDocument();
 	});
 
-	it("renders no link for a finding about the page alone", () => {
+	// The only links on a page's own finding are the documentation behind it.
+	it("renders no page link for a finding about the page alone", () => {
 		renderSection([{ code: "H1_MISSING", severity: "error", details: {}, pagesAffected: 1 }]);
 
-		expect(screen.queryByRole("link")).not.toBeInTheDocument();
+		const sources = SEO_ISSUE_CATALOGUE.H1_MISSING.sources.map(({ url }) => url);
+		expect(screen.getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual(
+			sources,
+		);
 	});
 });

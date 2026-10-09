@@ -4,32 +4,55 @@ import {
   type TSeoIssue,
   type TSeoIssueCode,
 } from '@app/contracts';
+import { AUTHOR_MISSING_CHECK } from './author-missing/author-missing.check';
+import { CANONICAL_CONFLICT_CHECK } from './canonical-conflict/canonical-conflict.check';
+import { CANONICAL_RELATIVE_CHECK } from './canonical-relative/canonical-relative.check';
+import { CHARSET_MISSING_OR_LATE_CHECK } from './charset-missing-or-late/charset-missing-or-late.check';
 import { CANONICAL_MISMATCH_CHECK } from './canonical-mismatch/canonical-mismatch.check';
 import { CANONICAL_MISSING_CHECK } from './canonical-missing/canonical-missing.check';
+import { DEVELOPMENT_HOST_REFERENCES_CHECK } from './development-host-references/development-host-references.check';
+import { DATES_INCONSISTENT_CHECK } from './dates-inconsistent/dates-inconsistent.check';
+import { DATE_BUMPED_WITHOUT_CHANGES_CHECK } from './date-bumped-without-changes/date-bumped-without-changes.check';
 import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
+import { LCP_IMAGE_LAZY_LOADED_CHECK } from './lcp-image-lazy-loaded/lcp-image-lazy-loaded.check';
+import { RENDER_BLOCKING_SCRIPTS_CHECK } from './render-blocking-scripts/render-blocking-scripts.check';
+import { FONT_PRELOAD_WITHOUT_CROSSORIGIN_CHECK } from './font-preload-without-crossorigin/font-preload-without-crossorigin.check';
+import { BFCACHE_BLOCKED_BY_NO_STORE_CHECK } from './bfcache-blocked-by-no-store/bfcache-blocked-by-no-store.check';
+import { DOM_SIZE_LARGE_CHECK } from './dom-size-large/dom-size-large.check';
+import { HTML_NOT_COMPRESSED_CHECK } from './html-not-compressed/html-not-compressed.check';
 import { IMAGES_MISSING_ALT_CHECK } from './images-missing-alt/images-missing-alt.check';
+import { INTERNAL_LINK_VARIANTS_CHECK } from './internal-link-variants/internal-link-variants.check';
+import { INTERNAL_LINKS_NOFOLLOW_CHECK } from './internal-links-nofollow/internal-links-nofollow.check';
 import { KEYWORD_CANNIBALISATION_CHECK } from './keyword-cannibalisation/keyword-cannibalisation.check';
 import { LANG_MISSING_CHECK } from './lang-missing/lang-missing.check';
 import { LARGE_PAGE_CHECK } from './large-page/large-page.check';
+import { LINKS_WITHOUT_TEXT_CHECK } from './links-without-text/links-without-text.check';
 import { META_DESCRIPTION_DUPLICATE_CHECK } from './meta-description-duplicate/meta-description-duplicate.check';
 import { META_DESCRIPTION_LENGTH_CHECK } from './meta-description-length/meta-description-length.check';
 import { META_DESCRIPTION_MISSING_CHECK } from './meta-description-missing/meta-description-missing.check';
 import { META_REFRESH_CHECK } from './meta-refresh/meta-refresh.check';
 import { MIXED_CONTENT_CHECK } from './mixed-content/mixed-content.check';
+import { NEAR_DUPLICATE_CONTENT_CHECK } from './near-duplicate-content/near-duplicate-content.check';
 import { NO_INTERNAL_LINKS_CHECK } from './no-internal-links/no-internal-links.check';
 import { NOINDEX_CHECK } from './noindex/noindex.check';
 import { NOT_HTTPS_CHECK } from './not-https/not-https.check';
 import { OG_TAGS_MISSING_CHECK } from './og-tags-missing/og-tags-missing.check';
 import { REDIRECTED_CHECK } from './redirected/redirected.check';
+import { ROBOTS_BLOCKS_AI_SEARCH_CHECK } from './robots-blocks-ai-search/robots-blocks-ai-search.check';
+import { ROBOTS_BLOCKS_GOOGLEBOT_CHECK } from './robots-blocks-googlebot/robots-blocks-googlebot.check';
+import { ROBOTS_BLOCKS_RESOURCES_CHECK } from './robots-blocks-resources/robots-blocks-resources.check';
+import { SNIPPET_RESTRICTED_CHECK } from './snippet-restricted/snippet-restricted.check';
+import { STRUCTURED_DATA_INVALID_CHECK } from './structured-data-invalid/structured-data-invalid.check';
 import { STRUCTURED_DATA_MISSING_CHECK } from './structured-data-missing/structured-data-missing.check';
 import { STRUCTURED_DATA_INCOMPLETE_CHECK } from './structured-data-incomplete/structured-data-incomplete.check';
 import { THIN_CONTENT_CHECK } from './thin-content/thin-content.check';
 import { TITLE_DUPLICATE_CHECK } from './title-duplicate/title-duplicate.check';
 import { TITLE_LENGTH_CHECK } from './title-length/title-length.check';
 import { TITLE_MISSING_CHECK } from './title-missing/title-missing.check';
+import { UNCRAWLABLE_LINKS_CHECK } from './uncrawlable-links/uncrawlable-links.check';
 import { VIEWPORT_MISSING_CHECK } from './viewport-missing/viewport-missing.check';
 import type { IRunInput, TCheck, TVerdict } from './check.interface';
 
@@ -57,22 +80,45 @@ export const CHECKS: TCheckRegistry = {
   HEADING_SKIP: HEADING_SKIP_CHECK,
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
+  CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
+  DEVELOPMENT_HOST_REFERENCES: DEVELOPMENT_HOST_REFERENCES_CHECK,
+  CANONICAL_RELATIVE: CANONICAL_RELATIVE_CHECK,
   NOINDEX: NOINDEX_CHECK,
+  SNIPPET_RESTRICTED: SNIPPET_RESTRICTED_CHECK,
+  ROBOTS_BLOCKS_GOOGLEBOT: ROBOTS_BLOCKS_GOOGLEBOT_CHECK,
+  ROBOTS_BLOCKS_RESOURCES: ROBOTS_BLOCKS_RESOURCES_CHECK,
+  ROBOTS_BLOCKS_AI_SEARCH: ROBOTS_BLOCKS_AI_SEARCH_CHECK,
   IMAGES_MISSING_ALT: IMAGES_MISSING_ALT_CHECK,
   THIN_CONTENT: THIN_CONTENT_CHECK,
+  AUTHOR_MISSING: AUTHOR_MISSING_CHECK,
+  DATE_BUMPED_WITHOUT_CHANGES: DATE_BUMPED_WITHOUT_CHANGES_CHECK,
   NO_INTERNAL_LINKS: NO_INTERNAL_LINKS_CHECK,
+  INTERNAL_LINKS_NOFOLLOW: INTERNAL_LINKS_NOFOLLOW_CHECK,
+  INTERNAL_LINK_VARIANTS: INTERNAL_LINK_VARIANTS_CHECK,
+  LINKS_WITHOUT_TEXT: LINKS_WITHOUT_TEXT_CHECK,
+  UNCRAWLABLE_LINKS: UNCRAWLABLE_LINKS_CHECK,
   LANG_MISSING: LANG_MISSING_CHECK,
   HREFLANG_INVALID: HREFLANG_INVALID_CHECK,
   VIEWPORT_MISSING: VIEWPORT_MISSING_CHECK,
   OG_TAGS_MISSING: OG_TAGS_MISSING_CHECK,
+  CHARSET_MISSING_OR_LATE: CHARSET_MISSING_OR_LATE_CHECK,
   NOT_HTTPS: NOT_HTTPS_CHECK,
   MIXED_CONTENT: MIXED_CONTENT_CHECK,
   REDIRECTED: REDIRECTED_CHECK,
   META_REFRESH: META_REFRESH_CHECK,
   LARGE_PAGE: LARGE_PAGE_CHECK,
+  LCP_IMAGE_LAZY_LOADED: LCP_IMAGE_LAZY_LOADED_CHECK,
+  RENDER_BLOCKING_SCRIPTS: RENDER_BLOCKING_SCRIPTS_CHECK,
+  FONT_PRELOAD_WITHOUT_CROSSORIGIN: FONT_PRELOAD_WITHOUT_CROSSORIGIN_CHECK,
+  BFCACHE_BLOCKED_BY_NO_STORE: BFCACHE_BLOCKED_BY_NO_STORE_CHECK,
+  DOM_SIZE_LARGE: DOM_SIZE_LARGE_CHECK,
+  HTML_NOT_COMPRESSED: HTML_NOT_COMPRESSED_CHECK,
   KEYWORD_CANNIBALISATION: KEYWORD_CANNIBALISATION_CHECK,
   TITLE_DUPLICATE: TITLE_DUPLICATE_CHECK,
   META_DESCRIPTION_DUPLICATE: META_DESCRIPTION_DUPLICATE_CHECK,
+  NEAR_DUPLICATE_CONTENT: NEAR_DUPLICATE_CONTENT_CHECK,
+  STRUCTURED_DATA_INVALID: STRUCTURED_DATA_INVALID_CHECK,
+  DATES_INCONSISTENT: DATES_INCONSISTENT_CHECK,
   STRUCTURED_DATA_MISSING: STRUCTURED_DATA_MISSING_CHECK,
   STRUCTURED_DATA_INCOMPLETE: STRUCTURED_DATA_INCOMPLETE_CHECK,
 };

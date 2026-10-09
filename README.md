@@ -55,9 +55,11 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   tokenized into every window it contains, so a phrase the prose never repeats is damped and a
   bare common word is not selected at all — otherwise a page is filed under `nlds thriller` or
   `exercises` while its subject sits one line below.
-- **The checks are not invented here:** 27 checks, one unit per catalogued code, from Google's
-  SEO Starter Guide, Search Central and the set Lighthouse audits. Twenty-four judge a page by
-  itself and three compare it with the rest of the crawl; which of the two a check is follows
+- **The checks are not invented here:** 50 page checks and 9 site checks, one unit per catalogued code, from Google's
+  SEO Starter Guide, Search Central's crawling and indexing guides and the set Lighthouse audits.
+  Every check explains itself at length and links the documentation behind it, and every finding
+  quotes the markup, header or robots.txt rule that proves it. Forty-six judge a page by
+  itself and four compare it with the rest of the crawl; which of the two a check is follows
   from its catalogue entry, so the wrong shape does not compile. Each answers pass, fail or *not
   applicable*; a page's score is the share of the checks that could apply to it, equally weighted
   — weighting by severity would invent a ranking model nobody can justify.
@@ -113,19 +115,18 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
   titles, duplicate descriptions and cannibalisation ship as the three run-scoped codes. Then
   the network ones (Lighthouse, Core Web Vitals), and more crawl parallelism, which
   `SKIP LOCKED` already leaves as only a second worker process away.
-- **Keyword stuffing, the one spam rule the catalogue is missing.** The 27 checks are what Google
-  and Lighthouse document, and Google's spam policies document this one too — a page repeating
-  its term past the point of being written for a person. It is absent because the trigger is not
-  published as a number, and inventing a density threshold is the same mistake as inventing the
-  severity weights below. The honest form is comparative: the extractor already knows how far a
-  term's body frequency carries it past everything else on its page, and a run of pages says
-  what that distance normally looks like on this site.
+- **Keyword stuffing, the one spam rule the catalogue is missing — measured, not guessed.**
+  Google's spam policies name it and publish no number. The comparative form was built (three
+  times the site's median density of its top keyword) and fired on four ordinary posts on the
+  recorded corpus, "google analytics" at 3.5% in a post about Google Analytics among them; per
+  paragraph, a yoast product paragraph is denser than Google's own example. No line separates
+  those without inventing one. `PAGE_ANALYSIS_MODULE.md` keeps the numbers.
 - **A ranked impact weight per check.** Today every check counts the same in the score, and
   deliberately so: weighting by severity would invent a ranking model nobody can justify. The
   honest version of that weight is measured, not asserted — the checks regressed against
   observed position movement, or impact data published by a source that has it. It costs more
-  than a constant: weights break the comparability the equal denominator gives (100 out of 16
-  applicable checks and 100 out of 27 are already different claims), the stored
+  than a constant: weights break the comparability the equal denominator gives (100 out of 27
+  applicable checks and 100 out of 50 are already different claims), the stored
   `checks_applicable = cardinality(checks_judged)` would have to become a weight sum, and a
   score whose weights moved is not the score crawled last month. Until the evidence exists,
   equal weight is the claim the data supports.

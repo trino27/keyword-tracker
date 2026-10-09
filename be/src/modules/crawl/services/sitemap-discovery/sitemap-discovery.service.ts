@@ -1,13 +1,21 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { isSameSite, siteKeyOf, type TCrawlRunErrorCode } from '@app/contracts';
-import { RemoteApiError } from '@infrastructure/remote-api/remote-api.errors';
+import {
+  RemoteApiError,
+  RemoteApiTimeoutError,
+  RemoteApiUnavailableError,
+} from '@infrastructure/remote-api/remote-api.errors';
 import type { ISiteResponse } from '../site-http-client/site-http-client';
 import {
   SITEMAP_MAX_DEPTH,
   SITEMAP_MAX_FETCHES,
   WELL_KNOWN_SITEMAP_PATHS,
 } from '../../constants/sitemap-scoring.constant';
+import {
+  isBotChallenge,
+  REFUSAL_STATUSES,
+} from '../../constants/site-fetch.constant';
 import {
   BLOG_SOURCE_ORDER,
   type IBlogSource,
@@ -49,6 +57,8 @@ export type TSitemapDiscovery =
        * says it is an article.
        */
       articlesOnly: boolean;
+      /** What the site checks need from this walk; nothing here steers the crawl. */
+      facts: IDiscoveryFacts;
     }
   | {
       ok: false;
@@ -64,6 +74,14 @@ export type TSitemapDiscovery =
       >;
       detail: string;
     };
+
+/** What discovery saw of the site, kept for the site checks. */
+export interface IDiscoveryFacts {
+  /** robots.txt as answered: null status when it was never answered. */
+  robotsTxt: { status: number | null; truncated: boolean; lines: string[] };
+  /** `<lastmod>` of the candidate URLs, by URL, where the sitemap gave one. */
+  lastmods: Record<string, string>;
+}
 
 interface IPending {
   url: string;
@@ -88,13 +106,15 @@ interface IWalkState {
   feeds: string[];
   /** Where the site's pages lead when they redirect off it: the site has moved. */
   redirectedTo: string | null;
+  /** `<lastmod>` of every same-site URL any sitemap listed. */
+  lastmods: Map<string, string>;
+  robotsTxt: IDiscoveryFacts['robotsTxt'];
 }
 
 type TDiscoveryFailure = Extract<TSitemapDiscovery, { ok: false }>;
 
 /** Below this, a sitemap on a sibling subdomain waits for the site's own. */
 const OTHER_HOST_PRIORITY = -10;
-const REFUSAL_STATUSES = new Set([401, 403, 429]);
 
 /**
  * Finds the blog without knowing the site (§10.1): reads robots.txt, walks the sitemaps
@@ -135,6 +155,8 @@ export class SitemapDiscoveryService {
       leaves: [],
       feeds: [],
       redirectedTo: null,
+      lastmods: new Map(),
+      robotsTxt: { status: null, truncated: false, lines: [] },
     };
 
     const read = await this.readRobots(origin, state, signal);
@@ -145,12 +167,15 @@ export class SitemapDiscoveryService {
       .map((raw) => resolve(raw, `${origin}/robots.txt`))
       .filter((url): url is string => url !== null && isSiteHost(url, siteKey));
 
-    if (declared.length > 0) {
-      declared.forEach((url) => this.enqueue(state, url, 0, siteKey));
-    } else {
-      await this.probeWellKnown(origin, siteKey, state, signal);
-    }
+    declared.forEach((url) => this.enqueue(state, url, 0, siteKey));
     await this.walk(siteKey, state, signal);
+    // Nothing declared, or nothing declared that is there: danluu.com's robots.txt names
+    // `{{ site.url }}/sitemap.xml`, a template never filled in, while /sitemap.xml
+    // serves the blog (2026-10).
+    if (state.leaves.length === 0) {
+      await this.probeWellKnown(origin, siteKey, state, signal);
+      await this.walk(siteKey, state, signal);
+    }
 
     const home = await this.readHome(origin, siteKey, state, signal);
     const feed = await this.feeds.discover(
@@ -176,7 +201,7 @@ export class SitemapDiscoveryService {
 
     for (const source of this.sources) {
       const found = await source.find(context);
-      if (found) return this.found(robots, siteKey, source.name, found);
+      if (found) return this.found(robots, siteKey, source.name, found, state);
     }
     return this.failure(robots, origin, state);
   }
@@ -186,6 +211,7 @@ export class SitemapDiscoveryService {
     siteKey: string,
     source: string,
     found: IBlogSourceFound,
+    state: IWalkState,
   ): TSitemapDiscovery {
     const urls = [
       ...new Set(found.candidates.filter((url) => isSameSite(url, siteKey))),
@@ -207,6 +233,15 @@ export class SitemapDiscoveryService {
       urls,
       reason: found.reason,
       articlesOnly: found.articlesOnly,
+      facts: {
+        robotsTxt: state.robotsTxt,
+        lastmods: Object.fromEntries(
+          urls.flatMap((url) => {
+            const lastmod = state.lastmods.get(url);
+            return lastmod ? [[url, lastmod]] : [];
+          }),
+        ),
+      },
     };
   }
 
@@ -256,8 +291,12 @@ export class SitemapDiscoveryService {
   }
 
   /**
-   * RFC 9309: a 4xx robots.txt allows everything, a 5xx one forbids everything until it
-   * answers. A bot challenge on robots.txt is a wall in front of the whole site.
+   * RFC 9309 and Google's reading of it: a 4xx robots.txt allows everything — except 429,
+   * which like a 5xx forbids everything until it answers — and so does a robots.txt that
+   * cannot be fetched at all: a timeout or a refused connection is a server error, not a
+   * missing file. Reading those as "no rules" crawled sites Google would have left alone.
+   * A bot challenge on robots.txt is a wall in front of the whole site. More than five
+   * redirects is Google's 404, and so no rules.
    */
   private async readRobots(
     origin: string,
@@ -267,15 +306,25 @@ export class SitemapDiscoveryService {
     try {
       const response = await this.http.getRobots(origin, signal);
       state.answered += 1;
+      state.robotsTxt = {
+        status: response.status,
+        truncated: response.truncated === true,
+        lines: response.status === 200 ? response.text.split(/\r\n|\r|\n/) : [],
+      };
       if (isChallenge(response))
         return this.refuse(
           'SITE_BLOCKED',
           `robots.txt answered a bot challenge (HTTP ${response.status}).`,
         );
-      if (response.status >= 500)
+      if (response.status >= 500 || response.status === 429)
         return this.refuse(
           'ROBOTS_UNAVAILABLE',
           `robots.txt answered HTTP ${response.status}.`,
+        );
+      if (response.truncated)
+        this.logger.warn(
+          { origin },
+          'robots.txt is past 500 KiB; read up to the limit, as Google does',
         );
       return {
         robots:
@@ -286,6 +335,14 @@ export class SitemapDiscoveryService {
     } catch (error) {
       if (!(error instanceof RemoteApiError)) throw error;
       this.logger.warn({ origin, error: error.name }, 'robots.txt unreachable');
+      if (
+        error instanceof RemoteApiTimeoutError ||
+        error instanceof RemoteApiUnavailableError
+      )
+        return this.refuse(
+          'SITE_UNREACHABLE',
+          `robots.txt could not be fetched (${error.message}); an unreachable robots.txt forbids everything (RFC 9309), so nothing else was requested.`,
+        );
       return { robots: RobotsPolicy.allowAll() };
     }
   }
@@ -339,6 +396,7 @@ export class SitemapDiscoveryService {
   ): Promise<void> {
     for (const path of WELL_KNOWN_SITEMAP_PATHS) {
       const url = `${origin}${path}`;
+      if (state.seen.has(url)) continue;
       state.seen.add(url);
       const parsed = await this.fetchSitemap(url, state, signal);
       if (parsed && parsed.kind !== 'invalid') {
@@ -375,6 +433,11 @@ export class SitemapDiscoveryService {
       // A sitemap may list other sites' pages (a sibling locale, a partner); only ours count.
       const urls = parsed.urls.filter((page) => isSameSite(page, siteKey));
       state.leaves.push({ url, urls, order, news: parsed.news });
+      for (const page of urls) {
+        const lastmod = parsed.lastmods?.[page];
+        if (lastmod && !state.lastmods.has(page))
+          state.lastmods.set(page, lastmod);
+      }
     } else if (parsed.kind === 'index' && depth + 1 < SITEMAP_MAX_DEPTH) {
       parsed.sitemaps
         .map((child) => resolve(child, url))
@@ -432,13 +495,13 @@ export class SitemapDiscoveryService {
   }
 }
 
-/** 401/403/429, or a Cloudflare challenge page (`cf-mitigated: challenge`, often a 503). */
+/** A refusing status, or a bot challenge page whatever its status. */
 function isRefusal(response: ISiteResponse): boolean {
   return REFUSAL_STATUSES.has(response.status) || isChallenge(response);
 }
 
 function isChallenge(response: ISiteResponse): boolean {
-  return response.headers['cf-mitigated']?.toLowerCase() === 'challenge';
+  return isBotChallenge(response.headers);
 }
 
 /** robots.txt may name a sitemap by a relative path (`Sitemap: /sitemap.xml`). */

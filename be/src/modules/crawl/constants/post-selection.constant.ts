@@ -45,6 +45,17 @@ export const NON_HTML_EXTENSIONS: ReadonlySet<string> = new Set([
  */
 export const MIN_POST_WORD_COUNT = 120;
 
+/**
+ * A title or main heading that announces a missing page — what a site answering 200
+ * for a page that does not exist puts on it. Anchored and short on purpose: a post
+ * titled "How to fix 404 errors" or "What 'page not found' means" is not one.
+ */
+export const NOT_FOUND_HEADLINE =
+  /^(?:error\s*)?404\b|^(?:oops[!.,]?\s*)?(?:the\s+)?page\s+(?:was\s+)?not\s+found|^nothing\s+(?:was\s+)?found|can[’']?t\s+be\s+found|cannot\s+be\s+found|^page\s+(?:does\s+not|doesn[’']?t)\s+exist|^not\s+found$/i;
+
+/** Longer than this, a headline is a post's, whatever it says. */
+export const NOT_FOUND_HEADLINE_MAX = 60;
+
 /** A page whose JSON-LD declares one of these is a listing, not a post. */
 export const LISTING_SCHEMA_TYPES: ReadonlySet<string> = new Set([
   'CollectionPage',
@@ -63,8 +74,8 @@ export const MAX_PAGE_URL_LENGTH = 2048;
 /** A same-site entry whose page now lives on another site — a moved post or blog. */
 export const REDIRECTED_OFF_SITE_REASON = 'Redirects to another site';
 
-/** A page answered with a Cloudflare challenge (`cf-mitigated: challenge`) — a bot wall. */
-export const BOT_CHALLENGE_REASON = 'Bot challenge (Cloudflare)';
+/** A page answered with a bot challenge (`isBotChallenge`) — a bot wall. */
+export const BOT_CHALLENGE_REASON = 'Bot challenge';
 
 export const ARTICLE_SCHEMA_TYPES: ReadonlySet<string> = new Set([
   'Article',

@@ -23,7 +23,10 @@ import {
   MAX_PAGE_URL_LENGTH,
   MIN_POST_WORD_COUNT,
   NON_HTML_EXTENSIONS,
+  NOT_FOUND_HEADLINE,
+  NOT_FOUND_HEADLINE_MAX,
 } from '../../constants/post-selection.constant';
+import { isBotChallenge } from '../../constants/site-fetch.constant';
 import type {
   IPostSelection,
   ISelectedItem,
@@ -124,7 +127,7 @@ export class PostSelectionService {
         REDIRECTED_OFF_SITE_REASON,
         response.status,
       );
-    if (response.headers['cf-mitigated']?.toLowerCase() === 'challenge')
+    if (isBotChallenge(response.headers))
       return skip('failed', BOT_CHALLENGE_REASON, response.status);
     if (response.status >= 300)
       return skip('failed', `HTTP ${response.status}`, response.status);
@@ -156,12 +159,33 @@ export class PostSelectionService {
         'Not marked as an article (no og:type=article, no JSON-LD Article)',
         response.status,
       );
+    // A page that says it is missing, answered with 200: Google calls it a soft 404 and
+    // drops it, and so does this crawl — under that name, because the status code is
+    // the site's defect, not the page's length.
+    const headline = [
+      parsed.h1s[0],
+      parsed.title?.split(/\s[|•·–—-]\s/)[0],
+    ].find(
+      (text) =>
+        text !== undefined &&
+        text.length <= NOT_FOUND_HEADLINE_MAX &&
+        NOT_FOUND_HEADLINE.test(text.trim()),
+    );
+    if (headline && parsed.wordCount < MIN_POST_WORD_COUNT * 3)
+      return skip(
+        'failed',
+        `Soft 404: answered HTTP ${response.status} with a page titled "${headline}"`,
+        response.status,
+      );
     // Last, because it needs the parse: a page with nothing to read is not a post,
     // whatever its markup claims about itself.
     if (parsed.wordCount < MIN_POST_WORD_COUNT)
       return skip(
         'skipped_listing',
-        `Too little content to analyse (${parsed.wordCount} words)`,
+        parsed.clientRendered
+          ? `Rendered by JavaScript: the HTML itself holds ${parsed.wordCount} words, ` +
+              'which is all a crawler that runs no scripts will ever read'
+          : `Too little content to analyse (${parsed.wordCount} words)`,
         response.status,
       );
 
@@ -174,8 +198,11 @@ export class PostSelectionService {
         url,
         finalUrl: response.finalUrl,
         redirected: response.redirected,
+        redirects: response.redirects,
+        robots: input.robots,
         httpStatus: response.status,
         headers: response.headers,
+        fetchedAt: new Date(),
         responseMs: response.ttfbMs,
         htmlBytes: response.bytes,
         parsed,

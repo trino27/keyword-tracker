@@ -3,7 +3,12 @@ import {
 	CRAWL_ITEM_STATUSES,
 	CRAWL_RUN_STATUSES,
 	CRAWL_TRIGGERS,
+	SEO_ISSUE_SEVERITIES,
+	SITE_CHECK_CODES,
+	SITE_CHECK_STATUSES,
 	type IClient,
+	type ISiteCheckResult,
+	type TSiteCheckCode,
 	type ICrawlRunDetail,
 	type ICrawlRunItem,
 	type ICrawlRunSummary,
@@ -41,11 +46,20 @@ export const crawlRunItemSchema = z.object({
 	pageId: z.number().int().nullable(),
 }) satisfies z.ZodType<ICrawlRunItem>;
 
+/** An unknown code or status is contract drift: a parse error, not a blank row. */
+export const siteCheckResultSchema = z.object({
+	code: z.enum([...SITE_CHECK_CODES] as [TSiteCheckCode, ...TSiteCheckCode[]]),
+	status: z.enum(SITE_CHECK_STATUSES),
+	severity: z.enum(SEO_ISSUE_SEVERITIES),
+	details: z.record(z.string(), z.unknown()),
+}) satisfies z.ZodType<ISiteCheckResult>;
+
 export const crawlRunDetailSchema = crawlRunSummarySchema.extend({
 	clientId: z.number().int(),
 	sitemapUrl: z.string().nullable(),
 	selectionReason: z.string().nullable(),
 	items: z.array(crawlRunItemSchema),
+	siteChecks: z.array(siteCheckResultSchema),
 }) satisfies z.ZodType<ICrawlRunDetail>;
 
 export const clientListResponseSchema = z.object({ items: z.array(clientSchema) });
@@ -57,6 +71,7 @@ export type TClient = z.infer<typeof clientSchema>;
 export type TCrawlRunSummary = z.infer<typeof crawlRunSummarySchema>;
 export type TCrawlRunDetail = z.infer<typeof crawlRunDetailSchema>;
 export type TCrawlRunItem = z.infer<typeof crawlRunItemSchema>;
+export type TSiteCheckResult = z.infer<typeof siteCheckResultSchema>;
 
 /** Adding a client: the two refusals are answers the form shows on its URL field. */
 export type TAddClientResult =

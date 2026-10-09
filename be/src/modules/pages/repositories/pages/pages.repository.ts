@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import type { TSeoIssueCode } from '@app/contracts';
 import {
   DATABASE_CONNECTION,
@@ -28,7 +28,18 @@ export interface IUpsertPage {
   /** And which checks those were — same pass, same statement. */
   checksJudged: TSeoIssueCode[];
   checksNotApplicable: TSeoIssueCode[];
+  /** The main content's fingerprint and declared modification date, for the next crawl. */
+  contentHash: string;
+  dateModified: string | null;
   lastSeenRunId: number;
+  crawledAt: Date;
+}
+
+/** What the last crawl kept about one of a client's pages. */
+export interface IPreviousCrawlRow {
+  url: string;
+  contentHash: string | null;
+  dateModified: string | null;
   crawledAt: Date;
 }
 
@@ -71,10 +82,32 @@ export class PagesRepository {
           // that this crawl judged.
           checksJudged: sql`excluded.checks_judged`,
           checksNotApplicable: sql`excluded.checks_not_applicable`,
+          contentHash: sql`excluded.content_hash`,
+          dateModified: sql`excluded.date_modified`,
           lastSeenRunId: sql`excluded.last_seen_run_id`,
           crawledAt: sql`excluded.crawled_at`,
         },
       })
       .returning({ id: pages.id, url: pages.url });
+  }
+
+  /**
+   * The previous crawl's record of these URLs, for this client only — the client id is
+   * in the query, so another client's page with the same URL can never answer.
+   */
+  async findPreviousCrawlsForWorker(
+    clientId: number,
+    urls: string[],
+  ): Promise<IPreviousCrawlRow[]> {
+    if (urls.length === 0) return [];
+    return this.db
+      .select({
+        url: pages.url,
+        contentHash: pages.contentHash,
+        dateModified: pages.dateModified,
+        crawledAt: pages.crawledAt,
+      })
+      .from(pages)
+      .where(and(eq(pages.clientId, clientId), inArray(pages.url, urls)));
   }
 }

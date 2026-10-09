@@ -70,13 +70,21 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Sixteen of the twenty-seven checks always apply; eleven are conditional. Eight of those are
-  page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing, CANONICAL_MISMATCH
-  on there being a canonical to disagree with, IMAGES_MISSING_ALT on there being an image,
-  HEADING_SKIP on there being two or more headings, HREFLANG_INVALID on the page declaring an
-  alternate, MIXED_CONTENT on the page being served over HTTPS at all, STRUCTURED_DATA_INCOMPLETE
-  on there being an article node to inspect — and three are run-scoped, skipped when the run
-  holds one page or the page has no value to compare. So `16 <= checks_applicable <= 27`, which
+  Twenty-seven of the fifty checks always apply; twenty-three are conditional. Nineteen of
+  those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
+  CANONICAL_MISMATCH, CANONICAL_CONFLICT and CANONICAL_RELATIVE on there being a canonical,
+  STRUCTURED_DATA_INVALID on there being any JSON-LD, DATES_INCONSISTENT on a publication
+  date,
+  IMAGES_MISSING_ALT on there being an image, HEADING_SKIP on there being two or more headings,
+  HREFLANG_INVALID on the page declaring an alternate, MIXED_CONTENT on the page being served over
+  HTTPS at all, STRUCTURED_DATA_INCOMPLETE on there being an article node to inspect,
+  INTERNAL_LINKS_NOFOLLOW and INTERNAL_LINK_VARIANTS on there being a link to another page of the
+  site, ROBOTS_BLOCKS_GOOGLEBOT and ROBOTS_BLOCKS_AI_SEARCH on the robots.txt governing the
+  page's host, ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a
+  host, DATE_BUMPED_WITHOUT_CHANGES on an earlier crawl having recorded the page,
+  LCP_IMAGE_LAZY_LOADED on the page showing a featured image — and four are
+  run-scoped, skipped when the run holds one page or the page has no value to compare. So
+  `27 <= checks_applicable <= 50`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -115,6 +123,170 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   0 times, and `HREFLANG_INVALID` is skipped on 39 of 43 — which is the shape wanted, since the
   corpus is two competent publishers and a check that fired across it would be reporting a house
   style. The one firing is a page with no server-rendered content at all.
+- **Every finding shows its proof, and every check says why at length (2026-10-09).** A finding
+  carries `evidence` — the markup, header or robots.txt rule it is about, as found on the page,
+  at most five quotes of at most 320 characters — because a claim the reader cannot check against
+  the page source is one they have to take on trust. The catalogue gives every code an
+  `explanation` (what the check reads, why it matters and to whom, and — where it is true — that
+  Google does NOT use the signal: heading order, `lang`, word count) and `sources`, first-party
+  documentation each opened and read against its claim on the day it was cited. The registry spec
+  builds a run in which every check fails and asserts each finding quotes something, so a check
+  that cannot fail, or fails without proof, does not get past CI. Findings stored before this
+  carry no evidence and render without it.
+- **Seven checks added from Google's crawling and indexing documentation (2026-10-09).**
+  `ROBOTS_BLOCKS_GOOGLEBOT` (error — a page Google may not fetch is out of the running) asks the
+  run's robots.txt about Googlebot, which the crawl never did: it obeyed the file under its own
+  name, so a group closing the site to Google alone was invisible. `ROBOTS_BLOCKS_RESOURCES` asks
+  the same of the page's scripts and stylesheets on that host — Google will not render with what
+  it may not fetch. `CANONICAL_CONFLICT` reports a page declaring two canonicals, in tags or in a
+  `Link` header. `UNCRAWLABLE_LINKS`, `INTERNAL_LINKS_NOFOLLOW` and `INTERNAL_LINK_VARIANTS` read
+  the content's links for what Google's link guidance names: no href or a `javascript:` one;
+  nofollow on the site's own pages; HTTP, the other www-variant or a tracking parameter where the
+  served URL belongs. `HTML_NOT_COMPRESSED` reads the `Content-Encoding` of an answer the crawl
+  requested with `gzip, deflate, br`. On the 43 recorded posts they fire 0, 0, 0, 0, 1, 3 and 0
+  times: yoast's `nofollow` on an add-to-cart link, and semrush linking to its bare host and with
+  `utm_` parameters from three posts — real, and not a house style.
+- **Four existing checks read more than they did (2026-10-09).** `NOINDEX` reads
+  `<meta name="googlebot">`, and an X-Robots-Tag scoped to another crawler (`bingbot: noindex`)
+  no longer counts as one for Google. `CANONICAL_MISSING` accepts a canonical in a `Link` header
+  and quotes one written in `<body>`, which Google ignores; the extractor reads canonicals from
+  `<head>` only, as Google does. `NO_INTERNAL_LINKS` no longer counts a table of contents —
+  links back into the page lead nowhere new. `REDIRECTED` quotes every hop with its status, since
+  a 302 tells Google to keep the URL the sitemap lists. And the extractor resolves every URL
+  against `<base href>`, as a browser and Googlebot do.
+- **Five checks from Google's ranking guidance (2026-10-09).** `SNIPPET_RESTRICTED` reads the
+  same robots declarations as NOINDEX for `nosnippet` and `max-snippet:0`, which Google applies
+  to its AI features as well as to the snippet. `ROBOTS_BLOCKS_AI_SEARCH` asks robots.txt about
+  the SEARCH crawlers of AI assistants (OAI-SearchBot, PerplexityBot, bingbot) and never the
+  training ones, whose closing costs no visibility. `AUTHOR_MISSING` is the "who" of Google's
+  helpful-content questions, counted only where the markup identifies an author.
+  `DATE_BUMPED_WITHOUT_CHANGES` compares the page with the client's previous crawl — the main
+  text's SHA-256 and the declared modification date are stored on the page row — and fires on
+  a date that moved over identical words, which Google names as a sign of content written for
+  search engines. `NEAR_DUPLICATE_CONTENT` compares the crawl's pages by five-word shingles; a
+  page with its city swapped ten times in 300 words shares 0.73, and on the recorded corpus the
+  closest pair shares 0.19 (semrush) and 0.08 (yoast), against a line of 0.6. Measured on the
+  43 posts before being believed: AUTHOR_MISSING fires twice, on the two recorded pages that are
+  not posts (a listing and a JavaScript shell); SNIPPET_RESTRICTED, ROBOTS_BLOCKS_AI_SEARCH and
+  NEAR_DUPLICATE_CONTENT never fire. DATE_BUMPED_WITHOUT_CHANGES needs two crawls of a page, which
+  a recording does not hold, and is pinned by its own spec instead.
+- **Two severities moved to the line ranking-signals.md draws (2026-10-09).** H1_MISSING is a
+  warning, not an error: Google states heading structure does not matter to Search, so a page
+  without an h1 is not out of the running. THIN_CONTENT is a notice: Google has no preferred
+  word count. A finding stored before keeps the severity it was judged with until the next crawl.
+- **Keyword stuffing was built, measured and removed (2026-10-09).** Google's spam policies name
+  it and publish no density, so the check was comparative: a page whose top keyword is three
+  times denser than the site's median. On the recorded posts it fired on four ordinary articles —
+  "google analytics" at 3.5% in a post about Google Analytics, "http 2" at 2.9% in a post about
+  HTTP/2 — because a post about a thing names the thing, and a site's median is pulled down by
+  posts whose top keyword is rare. Per paragraph it is no better: a yoast paragraph names its
+  product five times in 131 words, denser than Google's own example of stuffing. No line
+  separates the two without inventing one, which is the mistake the catalogue refuses.
+- **Five checks from the on-page guidance, and one that was broken (2026-10-09).**
+  `STRUCTURED_DATA_INVALID` reports a JSON-LD block that is not JSON — read the way Google reads
+  it, so a raw line break inside a string is forgiven (`parse-json-ld.ts`, merged from
+  `fix/json-ld-control-characters`; without it the one semrush post carrying such a break was
+  reported as unreadable). `CANONICAL_RELATIVE` is Google's own advice to use absolute URLs.
+  `LINKS_WITHOUT_TEXT` reports links to this site with no accessible name — read before hidden
+  text is removed, so a visually-hidden label counts — and leaves other sites' links out: on the
+  recorded corpus every nameless link was an icon-only share button to LinkedIn, X or Facebook,
+  sixty of them, one set per semrush post. `DATES_INCONSISTENT` is Google's "consistent, accurate
+  and not in the future": modified before published, published after the fetch, a URL year the
+  date does not share. `CHARSET_MISSING_OR_LATE` is the HTML standard's first 1024 bytes,
+  passed by a charset in the Content-Type header. NOINDEX also fails an `unavailable_after` date
+  that had passed when the page was fetched — judged against the fetch time the crawl now hands
+  in, so the analysis still reads no clock. All five fire 0 times on the 43 recorded posts.
+  HREFLANG_INVALID checked grammar, not existence, and passed `ua`, `kz`, `jp` and `en-UK`; it
+  now asks `Intl.DisplayNames` whether the language and region exist, rejects the reserved `UK`,
+  names the code that was meant, and fails a page whose canonical names another URL, which
+  takes it out of its own set. H1_MULTIPLE is a notice: Google has said several h1 elements
+  are no problem for Search.
+- **Staging leaks, client-side routes, and the site as a whole (2026-10-09).**
+  `DEVELOPMENT_HOST_REFERENCES` (warning) reports a canonical, og:url, hreflang, content link or
+  loaded resource naming localhost, an IP, a `staging.`/`dev.`/`preview.` host of three labels
+  or more (so `dev.to` is a site, not an environment) or a platform preview domain such as
+  `*.vercel.app` — unless the page itself is served from it. `UNCRAWLABLE_LINKS` now also
+  reports this site's own client-side routes in the fragment (`#/pricing`, `#!about`), the
+  example Google's JavaScript guide gives of links it cannot resolve; another site's hashbang
+  URL is its own routing and stays an ordinary link — the one recorded case, semrush linking to
+  the old Google product forums. Both fire 0 times on the recorded posts.
+  The SITE is judged too, by `services/site-checks/`: nine pure checks over what discovery read,
+  what selection fetched and four extra requests (`SiteProbeService`: the home page at the other
+  scheme and www-variants, and an address that cannot exist). Robots.txt past 500 KiB, rules
+  Google never supported (`noindex:`, `nofollow:`, `host:`), a Googlebot group that leaves the
+  general rules open; sitemap entries that redirect, error, are noindex, name another canonical
+  or are disallowed; sitemap URLs on another scheme or host variant; lastmod dates that are all
+  alike, stamped at build time, or older than the pages' own; a host variant that serves the
+  page itself or redirects in more than one permanent hop; a made-up address answered with 200.
+  Every verdict — passed and skipped included — is stored per run in `site_checks` and shown in
+  the run log; none counts in a page's score, which stays a page's. On the recorded yoast and
+  semrush crawls all nine pass or are not applicable. Not built, for want of a source that says
+  so: nested sitemap indexes, and Crawl-delay as a defect (Bing reads it).
+- **Core Web Vitals risks the HTML shows (2026-10-09).** Not Core Web Vitals themselves —
+  those are field data, which only the Chrome UX Report holds — but five causes the guides name
+  that are visible without a browser, each a notice, because Google calls page experience a
+  small signal and the larger cost is to readers. `LCP_IMAGE_LAZY_LOADED`: the featured image
+  (the <img> showing what og:image names, matched by file stem across a CMS's resized copies)
+  marked loading="lazy" — featured, not "first content image", because on the recorded semrush
+  posts the first content image is lazy on 18 of 21 and thousands of words down, while the
+  featured image is eager on all. `RENDER_BLOCKING_SCRIPTS`: classic external scripts in <head>
+  with neither async nor defer (1 of 43). `FONT_PRELOAD_WITHOUT_CROSSORIGIN` (0 of 43).
+  `BFCACHE_BLOCKED_BY_NO_STORE` (live: semrush sends no-cache, yoast public). `DOM_SIZE_LARGE`,
+  measured against Lighthouse's 1,400 elements (2 of 43, both yoast).
+  Rejected after measuring: images without width and height. Semrush's one unsized image per
+  post is a template badge sized, if at all, by a stylesheet the HTML does not carry — and a
+  check that cannot see the CSS that may size an image would be guessing on twenty pages of
+  twenty-one.
+- **Field audit on 60 live sites (2026-10-09).** Every check was run through the product on
+  60 sites (WordPress, Ghost, Next.js, Substack, Blogger, news and recipe sites, Russian and
+  Uzbek ones among them; 635 posts) and each firing read against the live page — the LCP
+  verdicts against Lighthouse run locally. What it found wrong, each now pinned by a test built
+  from the site's markup: `DEVELOPMENT_HOST_REFERENCES` read other people's live hosts as
+  leaks (habr linking `dev.vk.ru`, overreacted linking a `*.vercel.app` tool) — a link or a
+  resource now leaks only THIS site's environment, while what names the page itself keeps the
+  strict reading. `AUTHOR_MISSING` missed blog.cloudflare.com's byline, which is only links to
+  `/author/<slug>/`; such a link is now an author. `DATES_INCONSISTENT` called ghost.org's
+  one-second gap between two stamps of one save a contradiction; a minute is now allowed.
+  `INTERNAL_LINKS_NOFOLLOW` reported wpbeginner's `/refer/` affiliate redirects and a recipe's
+  print copy, both nofollow on purpose. `KEYWORD_CANNIBALISATION` (and the two other duplicate
+  checks) set cloudflare's zh-cn and zh-tw versions of one post against each other; language
+  versions are now no rivals. kottke.org has neither `<main>` nor `<article>`, its footer was
+  read as every post's text and made one-sentence posts 70% alike; the one container a theme
+  names (`.post`, `.entry-content`, `itemprop="articleBody"`) is now read first — on the saved
+  corpus that changed only kottke, gazeta.uz, neilpatel and seths.blog, removing their menus,
+  footers and author boxes and nothing else. `LCP_IMAGE_LAZY_LOADED` took og:image for the hero
+  wherever it sat (github.blog's DGit diagram, 2,000 words down) and took a 175-pixel thumbnail
+  of it for the hero (neilpatel); the image must now be the first non-thumbnail copy within 60
+  words of the headline, and Lighthouse agreed on all twelve posts it was run on. A "first wide
+  image" fallback was tried and dropped: Lighthouse found it right on two posts and wrong on four.
+  `UNCRAWLABLE_LINKS` reported Ghost's `#/portal/signup` and a `role="button"` menu toggle;
+  `ROBOTS_BLOCKS_RESOURCES` reported Cloudflare's `/cdn-cgi/` e-mail decoder. On the site side,
+  `HOST_REDIRECT_CHAIN` fired on 31 of 46 sites: it counted stripe's and habr's redirect of the
+  home page to a language version as hops, probed `www.blog.cloudflare.com`, and called the
+  common two permanent hops (http → https → canonical host, blog.google included) a chain. Only
+  host hops count now, from three, and a subdomain gets no www-variant. Words of Chinese and
+  Japanese are now split by `Intl.Segmenter`: cloudflare's Japanese post counted 176 words, one
+  per sentence, and was reported as thin (2,508 now, against 1,909 for the English original).
+  A recrawl on the fixed code found three more. cossa.ru writes articles as bare text in a
+  `<div>`, and only `<p>`s were blocks — so its posts' text was the footer, and every post
+  "matched" every other; loose text of eight words or more is a block now, and an inline
+  wrapper of blocks (hubspot's `<span>`) is read block by block. `UNCRAWLABLE_LINKS` reported
+  `javascript:void(0)` buttons and an `onclick` chat toggle; only a script that names an
+  address counts now — which leaves the check without a live positive among the 74 sites.
+  On the site side, a rate-limited (429) or refused (401/402/403, bot challenge) answer
+  is no longer read as a broken sitemap entry or as the end of a redirect chain:
+  allrecipes, netflixtechblog and css-tricks turned this crawler away, not Googlebot.
+  Live positives the audit read and agreed with, among others: backlinko's Googlebot group
+  holding one Allow and so opening `/wp-admin/` to Googlebot, gazeta.uz keeping its own CSS
+  from Googlebot with `Disallow: *?*`, cossa.ru's JSON-LD broken by a stray `;`, scripting.com
+  served over HTTP only and uncompressed, vercel.com answering a made-up address with its
+  login page. Found nowhere among the 74 sites and 150 more scanned, so proven by the specs
+  alone: `CANONICAL_CONFLICT`, `CANONICAL_RELATIVE`, `CHARSET_MISSING_OR_LATE`,
+  `DATE_BUMPED_WITHOUT_CHANGES` (581 comparisons over three crawls; 89 dates re-read by hand,
+  none had moved), `DEVELOPMENT_HOST_REFERENCES`, `FONT_PRELOAD_WITHOUT_CROSSORIGIN`,
+  `HREFLANG_INVALID`, `META_REFRESH` (lefigaro's and indianexpress's refreshes reload the
+  page and rightly pass), `NOINDEX`, `ROBOTS_BLOCKS_GOOGLEBOT`, `SNIPPET_RESTRICTED`,
+  `TITLE_MISSING`, `UNCRAWLABLE_LINKS`, `ROBOTS_TXT_TRUNCATED`, `SITEMAP_LISTS_OTHER_HOST_VARIANTS`.
 - **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
   answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
   never fetches, and the extractor removes the nav and the related-posts rail that carry most
@@ -122,9 +294,17 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   measured in `field-study-2026-10.md` and fires on effectively every page without `aria-label`
   and nested-alt handling. URL hygiene — underscores, length, parameter count — is finding 1
   again: a rule reporting a house style. Core Web Vitals and anything built on one server-side
-  timing stay out for the reason `SLOW_RESPONSE` was retired. `llms.txt` is not a ratified
+  timing stay out for the reason `SLOW_RESPONSE` was retired; the CWV risks above read markup,
+  never a timing. `llms.txt` is not a ratified
   standard and not a confirmed signal, and a check would manufacture the urgency the catalogue's
-  wording is careful to avoid.
+  wording is careful to avoid. HTTP cache validators (`ETag`, `Last-Modified`), which Google's
+  crawler documentation recommends: measured live on 2026-10-09, three of five well-run blogs
+  send neither and yoast's `Last-Modified` is the time of the request, so the check would report
+  a house style and pass a value that validates nothing. Scroll-triggered lazy loading cannot be
+  told from IntersectionObserver lazy loading in the HTML, and only the first is a problem.
+  Soft 404s, HTTP→HTTPS and www normalisation are properties of the SITE, not of a page: they
+  need a request of their own per crawl and a place to store a site-level finding, which the
+  catalogue — page and run scopes only — does not have yet.
 - **Two checks are deliberately absent.** `SLOW_RESPONSE` measured the crawler's network position
   rather than the page, and `KEYWORD_NOT_IN_TITLE` could not fail by construction. The
   measurements are in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and
@@ -159,7 +339,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per catalogued code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The twenty-seven checks, their thresholds and their severities, each finding saying exactly what is wrong.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code) and `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place".
+**The fifty checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".

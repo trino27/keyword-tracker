@@ -1,5 +1,29 @@
 {
   "entries": {
+    "http://semrush.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://www.semrush.com:443/"
+      }
+    },
+    "http://www.semrush.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://www.semrush.com:443/"
+      }
+    },
+    "http://www.yoast.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://yoast.com/"
+      }
+    },
+    "http://yoast.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://yoast.com/"
+      }
+    },
     "https://blog.relative-sitemap.example/": {
       "status": 200,
       "headers": {
@@ -335,6 +359,12 @@
       },
       "file": "synthetic/root-blog-no-feed.example/sitemap_index.xml"
     },
+    "https://semrush.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://www.semrush.com/"
+      }
+    },
     "https://sitemaps.crosshost.example/index.xml": {
       "status": 200,
       "headers": {
@@ -348,6 +378,13 @@
         "content-type": "application/xml; charset=utf-8"
       },
       "file": "synthetic/sitemaps.crosshost.example/post-sitemap.xml"
+    },
+    "https://status.search.google.com/incidents.json": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "file": "google-status/incidents.json"
     },
     "https://text-sitemap.example/": {
       "status": 200,
@@ -369,6 +406,27 @@
         "content-type": "text/plain; charset=utf-8"
       },
       "file": "synthetic/text-sitemap.example/sitemap.txt"
+    },
+    "https://unrendered-sitemap-line.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/unrendered-sitemap-line.example/index"
+    },
+    "https://unrendered-sitemap-line.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/unrendered-sitemap-line.example/robots.txt"
+    },
+    "https://unrendered-sitemap-line.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/unrendered-sitemap-line.example/sitemap.xml"
     },
     "https://unusual-name.example/": {
       "status": 200,
@@ -422,7 +480,8 @@
     "https://www.semrush.com/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 212,
       "file": "semrush/index.html"
@@ -438,7 +497,8 @@
     "https://www.semrush.com/analytics/traffic/competitor-monitoring": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 331,
       "file": "semrush/analytics/traffic/competitor-monitoring.html"
@@ -454,7 +514,8 @@
     "https://www.semrush.com/blog/ai-marketing/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 211,
       "file": "semrush/blog/ai-marketing/index.html"
@@ -462,7 +523,8 @@
     "https://www.semrush.com/blog/ai-search-optimization/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 189,
       "file": "semrush/blog/ai-search-optimization/index.html"
@@ -470,7 +532,8 @@
     "https://www.semrush.com/blog/artificial-intelligence-stats/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 236,
       "file": "semrush/blog/artificial-intelligence-stats/index.html"
@@ -478,7 +541,8 @@
     "https://www.semrush.com/blog/data-driven-marketing/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 219,
       "file": "semrush/blog/data-driven-marketing/index.html"
@@ -486,7 +550,8 @@
     "https://www.semrush.com/blog/digital-marketing-agency-pricing/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 208,
       "file": "semrush/blog/digital-marketing-agency-pricing/index.html"
@@ -494,7 +559,8 @@
     "https://www.semrush.com/blog/facebook-audience-overlap/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 177,
       "file": "semrush/blog/facebook-audience-overlap/index.html"
@@ -510,7 +576,8 @@
     "https://www.semrush.com/blog/how-to-find-youtube-influencers/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 196,
       "file": "semrush/blog/how-to-find-youtube-influencers/index.html"
@@ -518,7 +585,8 @@
     "https://www.semrush.com/blog/how-to-reply-to-google-reviews/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 281,
       "file": "semrush/blog/how-to-reply-to-google-reviews/index.html"
@@ -526,7 +594,8 @@
     "https://www.semrush.com/blog/keyword-bidding/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 250,
       "file": "semrush/blog/keyword-bidding/index.html"
@@ -534,7 +603,8 @@
     "https://www.semrush.com/blog/keyword-research-tools/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 200,
       "file": "semrush/blog/keyword-research-tools/index.html"
@@ -542,7 +612,8 @@
     "https://www.semrush.com/blog/local-seo-ranking-factors/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 210,
       "file": "semrush/blog/local-seo-ranking-factors/index.html"
@@ -550,7 +621,8 @@
     "https://www.semrush.com/blog/local-seo-statistics/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 248,
       "file": "semrush/blog/local-seo-statistics/index.html"
@@ -558,7 +630,8 @@
     "https://www.semrush.com/blog/martech-tools/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 209,
       "file": "semrush/blog/martech-tools/index.html"
@@ -566,7 +639,8 @@
     "https://www.semrush.com/blog/seo-data-science/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 254,
       "file": "semrush/blog/seo-data-science/index.html"
@@ -574,7 +648,8 @@
     "https://www.semrush.com/blog/seo-specialist/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 187,
       "file": "semrush/blog/seo-specialist/index.html"
@@ -582,7 +657,8 @@
     "https://www.semrush.com/blog/seo-split-test-result-does-bolded-text-help-your-seo/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 189,
       "file": "semrush/blog/seo-split-test-result-does-bolded-text-help-your-seo/index.html"
@@ -590,7 +666,8 @@
     "https://www.semrush.com/blog/seo-traffic-generation/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 209,
       "file": "semrush/blog/seo-traffic-generation/index.html"
@@ -606,7 +683,8 @@
     "https://www.semrush.com/blog/what-is-ai-marketing/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 195,
       "file": "semrush/blog/what-is-ai-marketing/index.html"
@@ -614,7 +692,8 @@
     "https://www.semrush.com/blog/what-is-keyword-analysis/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 203,
       "file": "semrush/blog/what-is-keyword-analysis/index.html"
@@ -622,7 +701,8 @@
     "https://www.semrush.com/blog/why-ai-search-is-the-new-reality-for-brands/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=utf-8"
+        "content-type": "text/html; charset=utf-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 187,
       "file": "semrush/blog/why-ai-search-is-the-new-reality-for-brands/index.html"
@@ -995,10 +1075,17 @@
       },
       "ttfbMs": 147
     },
+    "https://www.yoast.com/": {
+      "status": 301,
+      "headers": {
+        "location": "https://yoast.com/"
+      }
+    },
     "https://yoast.com/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 26,
       "file": "yoast/index.html"
@@ -1006,7 +1093,8 @@
     "https://yoast.com/3-exercises-google-analytics-fun/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 25,
       "file": "yoast/3-exercises-google-analytics-fun/index.html"
@@ -1014,7 +1102,8 @@
     "https://yoast.com/7-reasons-to-come-to-yoastcon/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 26,
       "file": "yoast/7-reasons-to-come-to-yoastcon/index.html"
@@ -1022,7 +1111,8 @@
     "https://yoast.com/assisted-conversions-google-analytics/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 26,
       "file": "yoast/assisted-conversions-google-analytics/index.html"
@@ -1030,7 +1120,8 @@
     "https://yoast.com/conversion-rate-optimization-hypothesise-test/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 24,
       "file": "yoast/conversion-rate-optimization-hypothesise-test/index.html"
@@ -1038,7 +1129,8 @@
     "https://yoast.com/email-performance-in-google-analytics/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 25,
       "file": "yoast/email-performance-in-google-analytics/index.html"
@@ -1046,7 +1138,8 @@
     "https://yoast.com/facebook-changes-make-seo-important/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 26,
       "file": "yoast/facebook-changes-make-seo-important/index.html"
@@ -1054,7 +1147,8 @@
     "https://yoast.com/facebook-traffic-decreasing-what-to-do/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 23,
       "file": "yoast/facebook-traffic-decreasing-what-to-do/index.html"
@@ -1062,7 +1156,8 @@
     "https://yoast.com/facebook-traffic-the-current-status/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 27,
       "file": "yoast/facebook-traffic-the-current-status/index.html"
@@ -1078,7 +1173,8 @@
     "https://yoast.com/google-analytics-dashboards/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 24,
       "file": "yoast/google-analytics-dashboards/index.html"
@@ -1086,7 +1182,8 @@
     "https://yoast.com/google-analytics-segments-blog/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 22,
       "file": "yoast/google-analytics-segments-blog/index.html"
@@ -1094,7 +1191,8 @@
     "https://yoast.com/how-to-remove-www-from-your-url/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 25,
       "file": "yoast/how-to-remove-www-from-your-url/index.html"
@@ -1102,7 +1200,8 @@
     "https://yoast.com/live-indexing-bing-google-yoast-seo/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 24,
       "file": "yoast/live-indexing-bing-google-yoast-seo/index.html"
@@ -1119,7 +1218,8 @@
     "https://yoast.com/on-gutenberg-and-wordpress-5-0/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 29,
       "file": "yoast/on-gutenberg-and-wordpress-5-0/index.html"
@@ -1127,7 +1227,8 @@
     "https://yoast.com/one-page-website-seo/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 25,
       "file": "yoast/one-page-website-seo/index.html"
@@ -1135,7 +1236,8 @@
     "https://yoast.com/online-marketing-tools/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 24,
       "file": "yoast/online-marketing-tools/index.html"
@@ -1179,7 +1281,8 @@
     "https://yoast.com/pressing-questions-about-gutenberg-the-new-editor-in-wordpress-5-0/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 28,
       "file": "yoast/pressing-questions-about-gutenberg-the-new-editor-in-wordpress-5-0/index.html"
@@ -1204,7 +1307,8 @@
     "https://yoast.com/secondary-dimensions-in-google-analytics/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 26,
       "file": "yoast/secondary-dimensions-in-google-analytics/index.html"
@@ -1212,7 +1316,8 @@
     "https://yoast.com/seo-blog/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 24,
       "file": "yoast/seo-blog/index.html"
@@ -1220,7 +1325,8 @@
     "https://yoast.com/sequence-segments-google-analytics/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 23,
       "file": "yoast/sequence-segments-google-analytics/index.html"
@@ -1228,7 +1334,8 @@
     "https://yoast.com/should-you-update-to-wordpress-5-0/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 28,
       "file": "yoast/should-you-update-to-wordpress-5-0/index.html"
@@ -1245,7 +1352,8 @@
     "https://yoast.com/technology-report-in-google-analytics/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 24,
       "file": "yoast/technology-report-in-google-analytics/index.html"
@@ -1262,7 +1370,8 @@
     "https://yoast.com/what-is-http2/": {
       "status": 200,
       "headers": {
-        "content-type": "text/html; charset=UTF-8"
+        "content-type": "text/html; charset=UTF-8",
+        "content-encoding": "br"
       },
       "ttfbMs": 26,
       "file": "yoast/what-is-http2/index.html"

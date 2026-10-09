@@ -18,6 +18,7 @@ import {
 } from '../../exceptions/clients.exceptions';
 import { toClient, toCrawlRunSummary } from '../../mappers/client.mapper';
 import { ClientsRepository } from '../../repositories/clients/clients.repository';
+import { SiteChecksRepository } from '../../repositories/site-checks/site-checks.repository';
 import { CrawlRunItemsRepository } from '../../repositories/crawl-run-items/crawl-run-items.repository';
 import { CrawlRunsRepository } from '../../repositories/crawl-runs/crawl-runs.repository';
 
@@ -30,6 +31,7 @@ export class ClientsService {
     private readonly clients: ClientsRepository,
     private readonly runs: CrawlRunsRepository,
     private readonly items: CrawlRunItemsRepository,
+    private readonly siteChecks: SiteChecksRepository,
     private readonly transactions: TransactionRunner,
   ) {}
 
@@ -127,13 +129,17 @@ export class ClientsService {
   ): Promise<ICrawlRunDetail> {
     const run = await this.runs.findOwned(scope, runId);
     if (!run) throw new CrawlRunNotFoundException({ runId });
-    const items = await this.items.listByRun(scope, run.id);
+    const [items, siteChecks] = await Promise.all([
+      this.items.listByRun(scope, run.id),
+      this.siteChecks.listByRun(scope, run.id),
+    ]);
     return {
       ...toCrawlRunSummary(run),
       clientId: run.clientId,
       sitemapUrl: run.sitemapUrl,
       selectionReason: run.selectionReason,
       items,
+      siteChecks,
     };
   }
 }

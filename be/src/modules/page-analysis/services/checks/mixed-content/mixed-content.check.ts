@@ -1,3 +1,4 @@
+import { evidence } from '../_shared/evidence';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 const EXAMPLES = 3;
@@ -24,6 +25,9 @@ export const MIXED_CONTENT_CHECK = defineCheck(
           count: insecure.length,
           total: parsed.resourceUrls.length,
           examples: insecure.slice(0, EXAMPLES),
+          evidence: evidence(
+            insecure.map((url) => `${url} — loaded over plain HTTP`),
+          ),
         });
   },
 );

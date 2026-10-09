@@ -177,9 +177,32 @@ describe('PostSelectionService', () => {
         httpStatus,
       ]),
     ).toEqual([
-      ['failed', 'Bot challenge (Cloudflare)', 503],
-      ['failed', 'Bot challenge (Cloudflare)', 403],
+      ['failed', 'Bot challenge', 503],
+      ['failed', 'Bot challenge', 403],
     ]);
+  });
+
+  // blog.jetbrains.com, 2026-10: CloudFront's WAF answered every post 202 with an
+  // empty body, and the posts were skipped as rendered by JavaScript.
+  it('an AWS WAF challenge is a refusal too', async () => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/a/`]: {
+        status: 202,
+        headers: {
+          'content-type': 'text/html',
+          'x-amzn-waf-action': 'challenge',
+        },
+        body: '',
+      },
+    });
+
+    const { items } = await select([`${ORIGIN}/posts/a/`]);
+
+    expect(items[0]).toMatchObject({
+      status: 'failed',
+      reason: 'Bot challenge',
+      httpStatus: 202,
+    });
   });
 
   it('considers at most 30 entries', async () => {
@@ -221,6 +244,7 @@ describe('PostSelectionService', () => {
       url: `${ORIGIN}/posts/old/`,
       finalUrl: `${ORIGIN}/posts/new/`,
       redirected: true,
+      redirects: [{ url: `${ORIGIN}/posts/old/`, status: 301 }],
       parsed: { title: 'New' },
     });
   });
@@ -241,6 +265,69 @@ describe('PostSelectionService', () => {
       status: 'skipped_listing',
       reason: 'Too little content to analyse (4 words)',
     });
+  });
+
+  /**
+   * The word count alone says "nothing to read"; the shell says why, and the why is the
+   * finding: every crawler that runs no scripts reads this page as empty.
+   */
+  it('names a client-rendered shell as the reason there is nothing to read', async () => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/spa/`]: {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+        body: '<html lang="en"><head><title>App</title><script src="/app.js"></script></head><body><div id="root"></div><noscript>You need to enable JavaScript to run this app.</noscript></body></html>',
+      },
+    });
+
+    const { items } = await select([`${ORIGIN}/posts/spa/`]);
+
+    expect(items[0]).toMatchObject({
+      status: 'skipped_listing',
+      reason: expect.stringMatching(
+        /^Rendered by JavaScript: the HTML itself holds \d+ words/,
+      ),
+    });
+  });
+
+  // A missing page answered with 200: Google calls it a soft 404, and the log should
+  // say so rather than call it short.
+  it.each([
+    [
+      'Page not found – Acme',
+      '<h1>Oops! That page can’t be found.</h1><p>Try searching.</p>',
+    ],
+    ['404', '<h1>404</h1>'],
+  ])('names a soft 404 titled %j', async (title, body) => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/gone/`]: {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+        body: `<html lang="en"><head><title>${title}</title></head><body><main>${body}</main></body></html>`,
+      },
+    });
+
+    const { items } = await select([`${ORIGIN}/posts/gone/`]);
+
+    expect(items[0]).toMatchObject({
+      status: 'failed',
+      reason: expect.stringMatching(
+        /^Soft 404: answered HTTP 200 with a page titled /,
+      ),
+      httpStatus: 200,
+    });
+  });
+
+  it('does not mistake a post about 404 errors for one', async () => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/fix-404/`]: article(
+        'How to fix 404 errors on your site',
+      ),
+    });
+
+    const { pages } = await select([`${ORIGIN}/posts/fix-404/`]);
+
+    expect(pages).toHaveLength(1);
   });
 
   it('yoast: /seo-blog/ at position 0 is skipped as a listing', async () => {

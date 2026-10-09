@@ -69,7 +69,25 @@ describe('RemoteApiCore', () => {
       url: 'https://example.com/a',
       finalUrl: 'https://example.com/b',
       redirected: true,
+      redirects: [{ url: 'https://example.com/a', status: 301 }],
     });
+  });
+
+  it('records every hop with the status it answered', async () => {
+    const { core } = makeCore((request) =>
+      request.url === 'https://example.com/a'
+        ? respond(302, { location: '/b' })
+        : request.url === 'https://example.com/b'
+          ? respond(301, { location: '/c' })
+          : respond(200, {}, 'done'),
+    );
+
+    const response = await get(core, 'https://example.com/a');
+
+    expect(response.redirects).toEqual([
+      { url: 'https://example.com/a', status: 302 },
+      { url: 'https://example.com/b', status: 301 },
+    ]);
   });
 
   it('refuses the 6th redirect', async () => {

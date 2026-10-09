@@ -74,6 +74,12 @@ export const pages = pgTable(
     checksNotApplicable: varchar('checks_not_applicable', {
       length: 64,
     }).array(),
+    // SHA-256 (hex) of the main content's text at the last fetch, and the modification
+    // date the page declared then, as written. The next crawl compares both: a date that
+    // moved over identical words is DATE_BUMPED_WITHOUT_CHANGES. Null on a row crawled
+    // before they were recorded, and dateModified on a page that declares none.
+    contentHash: varchar('content_hash', { length: 64 }),
+    dateModified: varchar('date_modified', { length: 64 }),
     // Last fetch; differs from created_at after a re-crawl.
     crawledAt: timestamp('crawled_at', { withTimezone: true }).notNull(),
     ...auditTimestampColumns(),

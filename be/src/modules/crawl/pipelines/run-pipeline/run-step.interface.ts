@@ -5,6 +5,8 @@ import type {
 } from '@modules/clients/interfaces/client-record.interface';
 import type { IRunPage } from '@modules/pages/services/crawl-results/crawl-results.service';
 import type { IPostSelection } from '../../interfaces/crawled-page.interface';
+import type { ISiteCheckResult } from '@app/contracts';
+import type { ISiteProbes } from '../../services/site-probe/site-probe.service';
 import type { TSitemapDiscovery } from '../../services/sitemap-discovery/sitemap-discovery.service';
 import type { TCrawlStage } from './run-stages';
 
@@ -26,6 +28,10 @@ export interface IRunContext {
   selection: IPostSelection | null;
   /** The crawled pages with their analysis, ready to be written. */
   pages: IRunPage[] | null;
+  /** The extra answers the site checks asked for; null when no page told the host. */
+  siteProbes: ISiteProbes | null;
+  /** Every site check's verdict, ready to be written with the run. */
+  siteChecks: ISiteCheckResult[] | null;
   /** Set as soon as the run's verdict is known; `persist` writes it, or nothing is. */
   outcome: IRunOutcome | null;
 }

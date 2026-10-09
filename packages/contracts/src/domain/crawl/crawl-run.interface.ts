@@ -1,3 +1,4 @@
+import type { ISiteCheckResult } from '../site/site-check-catalogue.constant.js';
 import type { TCrawlItemStatus } from './crawl-item-status.enum.js';
 import type { TCrawlRunStatus } from './crawl-run-status.enum.js';
 import type { TCrawlTrigger } from './crawl-trigger.enum.js';
@@ -34,4 +35,9 @@ export interface ICrawlRunDetail extends ICrawlRunSummary {
   sitemapUrl: string | null;
   selectionReason: string | null;
   items: ICrawlRunItem[];
+  /**
+   * The site checks this run judged, in catalogue order; empty for a run that read no
+   * site — failed before discovery finished, or crawled before site checks existed.
+   */
+  siteChecks: ISiteCheckResult[];
 }

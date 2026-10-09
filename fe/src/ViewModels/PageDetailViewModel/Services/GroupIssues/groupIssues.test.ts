@@ -114,4 +114,144 @@ describe("groupIssues", () => {
 
 		expect(group.issues[0].relatedUrls).toEqual([]);
 	});
+
+	it("names the meta tag a noindex came from", () => {
+		const [group] = groupIssues([
+			{
+				code: "NOINDEX",
+				severity: "error",
+				details: { source: "meta", name: "googlebot", value: "none" },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe('The googlebot meta tag says "none".');
+	});
+
+	it("says a redirect is temporary when one hop was", () => {
+		const [group] = groupIssues([
+			{
+				code: "REDIRECTED",
+				severity: "notice",
+				details: {
+					from: "https://a.example/a",
+					to: "https://a.example/b",
+					temporary: true,
+				},
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The sitemap lists https://a.example/a, which temporarily redirects to https://a.example/b.",
+		);
+	});
+
+	it("quotes the robots.txt rule that blocks Googlebot", () => {
+		const [group] = groupIssues([
+			{
+				code: "ROBOTS_BLOCKS_GOOGLEBOT",
+				severity: "error",
+				details: { url: "https://a.example/p/", rule: "line 5: Disallow: /p/" },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"Googlebot may not fetch this page: robots.txt line 5: Disallow: /p/.",
+		);
+	});
+
+	it("carries the evidence, the explanation and the sources to the view", () => {
+		const [group] = groupIssues([
+			{
+				code: "HTML_NOT_COMPRESSED",
+				severity: "notice",
+				details: { encoding: null, evidence: ["Response: no Content-Encoding header"] },
+			},
+		]);
+
+		expect(group.issues[0]).toMatchObject({
+			detail: "The server sent the HTML uncompressed.",
+			evidence: ["Response: no Content-Encoding header"],
+			explanation: expect.stringContaining("Accept-Encoding"),
+			sources: expect.arrayContaining([
+				expect.objectContaining({ url: expect.stringMatching(/^https:\/\//) }),
+			]),
+		});
+	});
+
+	it("links the pages a near-duplicate shares its text with", () => {
+		const [group] = groupIssues([
+			{
+				code: "NEAR_DUPLICATE_CONTENT",
+				severity: "warning",
+				details: { similarity: 0.73, otherUrls: ["https://a.example/ottawa/"] },
+			},
+		]);
+
+		expect(group.issues[0]).toMatchObject({
+			detail: "Another page shares most of this text (73% of its five-word sequences).",
+			relatedUrls: ["https://a.example/ottawa/"],
+		});
+	});
+
+	it("names both dates of a bumped date", () => {
+		const [group] = groupIssues([
+			{
+				code: "DATE_BUMPED_WITHOUT_CHANGES",
+				severity: "warning",
+				details: { before: "2026-08-01", after: "2026-10-01" },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The modified date moved from 2026-08-01 to 2026-10-01; the text did not change.",
+		);
+	});
+
+	it("agrees the verb with a count of one", () => {
+		const [group] = groupIssues([
+			{
+				code: "INTERNAL_LINKS_NOFOLLOW",
+				severity: "notice",
+				details: { count: 1, total: 4 },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe("1 of 4 links to this site is marked nofollow.");
+	});
+
+	it("says when an unavailable_after date has passed", () => {
+		const [group] = groupIssues([
+			{
+				code: "NOINDEX",
+				severity: "error",
+				details: {
+					source: "meta",
+					value: "unavailable_after: 2026-01-31",
+					unavailableAfter: "2026-01-31T00:00:00.000Z",
+				},
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The page asked to leave search results after 2026-01-31, which has passed.",
+		);
+	});
+
+	it("names a canonical that takes the page out of its hreflang set", () => {
+		const [group] = groupIssues([
+			{
+				code: "HREFLANG_INVALID",
+				severity: "notice",
+				details: {
+					invalid: [],
+					selfReferenced: true,
+					canonicalElsewhere: "https://a.example/en/",
+				},
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The hreflang set is ignored — the canonical names another page (https://a.example/en/).",
+		);
+	});
 });

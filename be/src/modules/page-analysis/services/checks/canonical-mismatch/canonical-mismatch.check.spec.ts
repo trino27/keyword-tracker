@@ -6,7 +6,7 @@ describe('CANONICAL_MISMATCH', () => {
   it('ignores a trailing slash', () => {
     expect(
       CANONICAL_MISMATCH_CHECK.evaluate(
-        makeCheckInput({ parsed: { canonical: 'https://a.example/post' } }),
+        makeCheckInput({ parsed: { canonicals: ['https://a.example/post'] } }),
       ),
     ).toEqual(PASSES);
   });
@@ -14,7 +14,9 @@ describe('CANONICAL_MISMATCH', () => {
   it('names both URLs when they disagree', () => {
     expect(
       CANONICAL_MISMATCH_CHECK.evaluate(
-        makeCheckInput({ parsed: { canonical: 'https://a.example/other/' } }),
+        makeCheckInput({
+          parsed: { canonicals: ['https://a.example/other/'] },
+        }),
       ),
     ).toEqual(
       failsWith({
@@ -27,7 +29,7 @@ describe('CANONICAL_MISMATCH', () => {
   it('cannot be judged without a canonical', () => {
     expect(
       CANONICAL_MISMATCH_CHECK.evaluate(
-        makeCheckInput({ parsed: { canonical: null } }),
+        makeCheckInput({ parsed: { canonicals: [] } }),
       ),
     ).toEqual(NOT_APPLICABLE);
   });

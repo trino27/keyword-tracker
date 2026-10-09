@@ -4,7 +4,7 @@
  * changes which sitemap a client's crawl reads, so the scoring spec pins them all.
  */
 
-/** Tried in order when robots.txt names no sitemap. */
+/** Tried in order when robots.txt names no sitemap, or none that is there. */
 export const WELL_KNOWN_SITEMAP_PATHS = [
   '/sitemap.xml',
   '/sitemap_index.xml',

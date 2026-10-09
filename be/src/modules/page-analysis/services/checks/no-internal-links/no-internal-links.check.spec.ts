@@ -1,4 +1,4 @@
-import { failsWith, PASSES } from '../_testing/expect-verdict';
+import { evidenceOf, failsWith, PASSES } from '../_testing/expect-verdict';
 import { makeCheckInput } from '../_testing/make-check-input';
 import { NO_INTERNAL_LINKS_CHECK } from './no-internal-links.check';
 
@@ -11,18 +11,39 @@ describe('NO_INTERNAL_LINKS', () => {
     ).toEqual(PASSES);
   });
 
-  it('counts the outbound links it found instead', () => {
-    expect(
-      NO_INTERNAL_LINKS_CHECK.evaluate(
-        withLinks('https://b.example/x', 'https://c.example/y'),
-      ),
-    ).toEqual(failsWith({ external: 2 }));
+  it('counts the outbound links it found instead, and quotes them', () => {
+    const verdict = NO_INTERNAL_LINKS_CHECK.evaluate(
+      withLinks('https://b.example/x', 'https://c.example/y'),
+    );
+
+    expect(verdict).toEqual(failsWith({ external: 2 }));
+    expect(evidenceOf(verdict)).toEqual([
+      '<a href="https://b.example/x"> — another site',
+      '<a href="https://c.example/y"> — another site',
+    ]);
   });
 
   it('fails a page whose content links nowhere at all', () => {
-    expect(NO_INTERNAL_LINKS_CHECK.evaluate(withLinks())).toEqual(
-      failsWith({ external: 0 }),
+    const verdict = NO_INTERNAL_LINKS_CHECK.evaluate(withLinks());
+
+    expect(verdict).toEqual(failsWith({ external: 0 }));
+    expect(evidenceOf(verdict)).toEqual(['No <a href> in the main content']);
+  });
+
+  // A table of contents is on the site and leads nowhere new. Counting it let a post
+  // whose only on-site links were its own headings pass as well linked.
+  it('does not count links back into this page', () => {
+    const verdict = NO_INTERNAL_LINKS_CHECK.evaluate(
+      withLinks(
+        'https://a.example/post/#why-links-matter',
+        'https://a.example/post/#faq',
+      ),
     );
+
+    expect(verdict).toEqual(failsWith({ external: 0, toThisPage: 2 }));
+    expect(evidenceOf(verdict)).toEqual([
+      '2 links back into this page, e.g. <a href="https://a.example/post/#why-links-matter">',
+    ]);
   });
 
   // The same site written both ways is one site. A theme that links its own pages with

@@ -1,3 +1,4 @@
+import { makeImage } from './_testing/make-image';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -113,12 +114,22 @@ describe('evaluateChecks', () => {
             parsed: {
               title: null,
               metaDescription: null,
-              canonical: null,
+              canonicals: [],
               images: [],
               headings: [{ level: 1, text: 'Only one heading' }],
               alternates: [],
               jsonLd: { types: [], keywords: [], articleFields: [] },
+              // No links to another page of the site, so neither link check that
+              // reads them has anything to judge.
+              links: [],
+              // And no date to contradict.
+              datePublished: null,
+              // And no featured image to be lazy.
+              featuredImage: null,
             },
+            // A robots.txt that governs no host this page touches: neither robots
+            // check has a rule to read.
+            robots: { allows: () => null, matchingRule: () => null },
             // http, so MIXED_CONTENT has nothing to mix. The page is bare in every
             // sense a check can be skipped for, which is what this case is for.
             url: 'http://a.example/post/',
@@ -128,7 +139,7 @@ describe('evaluateChecks', () => {
       )[0];
 
     // A run of one page cannot answer a run-scoped check either, so this is the whole
-    // conditional set at once — the eight a page can skip and the three a run can.
+    // conditional set at once — the thirteen a page can skip and the three a run can.
     expect(checksApplicable).toBe(
       ACTIVE_ISSUE_CODES.length - CONDITIONAL_ISSUE_CODES.length,
     );
@@ -212,6 +223,119 @@ describe('evaluateChecks', () => {
         },
       }),
     ).toThrow(/TITLE_DUPLICATE returned 1 verdicts for 2 pages/);
+  });
+
+  /**
+   * Every check can fail, and every failure shows its proof. Two copies of one broken
+   * page and one page broken the opposite way between them fail the whole catalogue —
+   * a check that could not fail here is a check that cannot fail — and each finding
+   * must quote what it found, because a claim the reader cannot check against the page
+   * source is one they have to take on trust.
+   */
+  it('lets every check fail, and every failure carry evidence', () => {
+    const blocked = {
+      allows: (url: string) =>
+        new URL(url).hostname === 'a.example' ? false : null,
+      matchingRule: () => 'line 2: Disallow: /',
+    };
+    // Thirty different words, ten times over: enough text for two copies to be compared.
+    const sameText = Array.from(
+      { length: 10 },
+      (_, n) =>
+        Array.from({ length: 30 }, (_, k) => `word${n}x${k}`).join(' ') + '.',
+    );
+    const broken = (path: string) =>
+      runPage(path, {
+        previous: {
+          contentHash: 'f'.repeat(64),
+          dateModified: '2026-01-01',
+          crawledAt: new Date('2026-09-01T00:00:00Z'),
+        },
+        redirected: true,
+        redirects: [{ url: `https://a.example/${path}-old/`, status: 302 }],
+        robots: blocked,
+        headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
+        htmlBytes: 2_000_000,
+        parsed: {
+          title: 'Shared title',
+          metaDescription: 'Too short',
+          metaRobots: 'noindex, nosnippet',
+          relativeCanonicals: ['/x/'],
+          featuredImage: {
+            loading: 'lazy',
+            markup: '<img src="/hero.jpg" loading="lazy">',
+          },
+          renderBlockingScripts: ['<script src="/jquery.js"></script>'],
+          fontPreloadsWithoutCrossorigin: [
+            '<link rel="preload" as="font" href="/f.woff2">',
+          ],
+          elementCount: 3_000,
+          unnamedLinks: [
+            {
+              href: 'https://a.example/other/',
+              markup: '<a href="/other/"><img src="i.png"></a>',
+            },
+          ],
+          jsonLdErrors: ['{"@type": "Article",} — Unexpected token'],
+          charsetDeclarationEnd: 2_000,
+          datePublished: '2026-11-30',
+          authors: [],
+          contentHash: 'f'.repeat(64),
+          dateModified: '2026-10-01',
+          blocks: sameText,
+          metaRefresh: '0; url=/elsewhere/',
+          viewport: null,
+          canonicals: ['https://a.example/x/', 'https://a.example/y/'],
+          alternates: [{ lang: 'english', href: 'https://a.example/en/' }],
+          openGraph: { 'og:url': 'https://staging.a.example/post/' },
+          jsonLd: { types: [], keywords: [], articleFields: [] },
+          lang: null,
+          h1s: ['One', 'Two'],
+          headings: [
+            { level: 1, text: 'One' },
+            { level: 3, text: 'Three' },
+          ],
+          images: [makeImage({ src: 'a.png', alt: null })],
+          resourceUrls: ['http://a.example/i.png'],
+          renderResources: ['https://a.example/app.js'],
+          links: ['http://a.example/other/?utm_source=x'],
+          nofollowLinks: ['http://a.example/other/?utm_source=x'],
+          uncrawlableLinks: ['<a onclick="go()">Go</a>'],
+          wordCount: 100,
+        },
+      });
+    const opposite = makeCheckInput({
+      url: 'http://a.example/plain/',
+      finalUrl: 'http://a.example/plain/',
+      robots: blocked,
+      parsed: {
+        title: null,
+        metaDescription: null,
+        canonicals: [],
+        h1s: [],
+        links: [],
+        jsonLd: { types: ['Article'], keywords: [], articleFields: [] },
+      },
+    });
+
+    const evaluations = evaluateChecks(
+      makeRunInput(
+        [broken('a'), broken('b'), opposite],
+        [keywordsOf('same'), keywordsOf('same'), keywordsOf('other')],
+      ),
+    );
+    const issues = evaluations.flatMap((evaluation) => evaluation.issues);
+
+    expect([...new Set(issues.map(({ code }) => code))].sort()).toEqual(
+      [...ACTIVE_ISSUE_CODES].sort(),
+    );
+    for (const issue of issues) {
+      const { evidence } = issue.details as { evidence?: unknown };
+      expect([issue.code, evidence]).toEqual([
+        issue.code,
+        expect.arrayContaining([expect.stringMatching(/\S/)]),
+      ]);
+    }
   });
 
   it('emits only catalogued codes over every recorded page', () => {

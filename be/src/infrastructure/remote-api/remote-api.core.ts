@@ -22,9 +22,17 @@ import {
 
 export interface IRemoteGetOptions {
   maxBytes: number;
+  /** See IHttpRequest.overflow. */
+  overflow?: 'truncate';
   accept?: string;
   /** The caller's own cancellation — a lost crawl lease aborts every request it owns. */
   signal?: AbortSignal;
+}
+
+/** One hop of a redirect chain: the URL that answered, and the 3xx it answered with. */
+export interface IRedirectHop {
+  url: string;
+  status: number;
 }
 
 export interface IRemoteResponse extends IHttpResponse {
@@ -33,6 +41,12 @@ export interface IRemoteResponse extends IHttpResponse {
   /** The URL that answered, after redirects. */
   finalUrl: string;
   redirected: boolean;
+  /**
+   * Every redirect followed on the way to `finalUrl`, in order; empty when the first
+   * answer was the answer. The statuses matter beyond the count: a 302 tells a search
+   * engine the move is temporary, and it may keep the old URL as the canonical.
+   */
+  redirects: IRedirectHop[];
 }
 
 export interface IRemoteApiTiming {
@@ -61,6 +75,7 @@ export class RemoteApiCore {
 
   async get(url: string, options: IRemoteGetOptions): Promise<IRemoteResponse> {
     let current = assertFetchable(url);
+    const redirects: IRedirectHop[] = [];
     for (let hop = 0; hop <= REMOTE_API_LIMITS.maxRedirects; hop += 1) {
       const response = await this.sendWithRetries(current, options);
       const location = response.headers.location;
@@ -70,8 +85,10 @@ export class RemoteApiCore {
           url,
           finalUrl: current.href,
           redirected: current.href !== new URL(url).href,
+          redirects,
         };
       }
+      redirects.push({ url: current.href, status: response.status });
       current = assertFetchable(new URL(location, current).href);
     }
     throw new RemoteApiTooManyRedirectsError(url);
@@ -94,6 +111,7 @@ export class RemoteApiCore {
           },
           signal: hopSignal(options.signal),
           maxBytes: options.maxBytes,
+          ...(options.overflow ? { overflow: options.overflow } : {}),
         });
         this.logger.debug(
           {

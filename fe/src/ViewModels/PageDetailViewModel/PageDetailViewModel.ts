@@ -3,6 +3,7 @@ import { describeError } from "@Core/Helpers/DescribeError/describeError";
 import { ApiError } from "@Gateways/_Shared/Errors/ApiError/ApiError";
 import { gateways } from "@Gateways/gateways";
 import type { TPageDetail, TPositionHistory } from "@Gateways/PageGateway/Validation/PageSchemas";
+import type { TSearchUpdate } from "@Gateways/SearchUpdateGateway/Validation/SearchUpdateSchemas";
 import type { TLoadStatus } from "../ClientsViewModel/ClientsViewModel";
 import { registerUserStoreReset } from "../SessionViewModel/SessionViewModel";
 import type { IDayRange } from "./Services/ResolveRange/resolveRange";
@@ -22,6 +23,13 @@ interface IPageDetailState {
 	fillError: string | null;
 	detailRequest: number;
 	historyRequest: number;
+	/**
+	 * Google's ranking updates, drawn on the chart so a drop can be held against them.
+	 * Empty until read and when they could not be — the chart is complete without them,
+	 * so a failure here is never an error on the screen.
+	 */
+	searchUpdates: TSearchUpdate[];
+	searchUpdatesStatus: TLoadStatus;
 }
 
 interface IPageDetailActions {
@@ -30,6 +38,8 @@ interface IPageDetailActions {
 	fetchHistory: (pageId: number, range: IDayRange) => Promise<void>;
 	/** Generates the user's missing daily positions, then re-reads what changed. */
 	fillPositions: (pageId: number, range: IDayRange) => Promise<void>;
+	/** Reads Google's updates once per session; later calls are no-ops. */
+	fetchSearchUpdates: () => Promise<void>;
 	reset: () => void;
 }
 
@@ -48,6 +58,8 @@ const initialState: IPageDetailState = {
 	fillError: null,
 	detailRequest: 0,
 	historyRequest: 0,
+	searchUpdates: [],
+	searchUpdatesStatus: "idle",
 };
 
 const isNotFound = (error: unknown) => error instanceof ApiError && error.status === 404;
@@ -122,6 +134,18 @@ export const usePageDetailViewModel = create<IPageDetailViewModel>()((set, get) 
 			set({ fillStatus: "ready" });
 		} catch (error: unknown) {
 			set({ fillStatus: "error", fillError: describeError(error) });
+		}
+	},
+
+	fetchSearchUpdates: async () => {
+		if (get().searchUpdatesStatus !== "idle") return;
+		set({ searchUpdatesStatus: "loading" });
+		try {
+			const { updates } = await gateways.searchUpdates.list();
+			set({ searchUpdates: updates, searchUpdatesStatus: "ready" });
+		} catch {
+			// The chart stands without them; not worth an error on the reader's screen.
+			set({ searchUpdates: [], searchUpdatesStatus: "error" });
 		}
 	},
 

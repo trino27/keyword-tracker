@@ -1,6 +1,7 @@
 import type { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { ClientsRepository } from '../../repositories/clients/clients.repository';
+import type { SiteChecksRepository } from '../../repositories/site-checks/site-checks.repository';
 import type { CrawlRunItemsRepository } from '../../repositories/crawl-run-items/crawl-run-items.repository';
 import type { CrawlRunsRepository } from '../../repositories/crawl-runs/crawl-runs.repository';
 import { ClientsService } from './clients.service';
@@ -51,6 +52,7 @@ const makeService = () => {
     clients as unknown as ClientsRepository,
     runs as unknown as CrawlRunsRepository,
     {} as CrawlRunItemsRepository,
+    {} as SiteChecksRepository,
     transactions as unknown as TransactionRunner,
   );
   return { service, clients, runs, transactions };

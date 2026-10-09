@@ -8,6 +8,7 @@ import {
 } from '../../repositories/page-keywords/page-keywords.repository';
 import {
   PagesRepository,
+  type IPreviousCrawlRow,
   type IUpsertPage,
 } from '../../repositories/pages/pages.repository';
 import {
@@ -37,6 +38,9 @@ export interface IRunPage {
   /** WHICH ones, disjoint — together the catalogue as of this crawl. */
   checksJudged: TSeoIssueCode[];
   checksNotApplicable: TSeoIssueCode[];
+  /** Kept for the next crawl to compare against. */
+  contentHash: string;
+  dateModified: string | null;
 }
 
 export interface IRunResults {
@@ -53,6 +57,7 @@ const WIDTHS = {
   metaDescription: 2000,
   h1: 1000,
   lang: 35,
+  dateModified: 64,
 } as const;
 
 const clip = (value: string | null, width: number) =>
@@ -72,6 +77,18 @@ export class CrawlResultsService {
     private readonly pageKeywords: PageKeywordsRepository,
     private readonly seoIssues: SeoIssuesRepository,
   ) {}
+
+  /**
+   * What the client's previous crawl recorded for these URLs, by URL. Read before the
+   * run's transaction opens, like everything else the analysis is handed.
+   */
+  async previousCrawlsForWorker(
+    clientId: number,
+    urls: string[],
+  ): Promise<Map<string, IPreviousCrawlRow>> {
+    const rows = await this.pages.findPreviousCrawlsForWorker(clientId, urls);
+    return new Map(rows.map((row) => [row.url, row]));
+  }
 
   /** Returns each stored page's id by its sitemap URL. */
   async applyRunResultsForWorker(
@@ -95,6 +112,8 @@ export class CrawlResultsService {
       checksFailed: page.checksFailed,
       checksJudged: page.checksJudged,
       checksNotApplicable: page.checksNotApplicable,
+      contentHash: page.contentHash,
+      dateModified: clip(page.dateModified, WIDTHS.dateModified),
       lastSeenRunId: results.runId,
       crawledAt: results.crawledAt,
     }));

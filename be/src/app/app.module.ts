@@ -12,6 +12,7 @@ import { CrawlModule } from '@modules/crawl/crawl.module';
 import { PagesModule } from '@modules/pages/pages.module';
 import { PER_MINUTE_THROTTLE } from '@core/constants/throttle.constant';
 import { HealthModule } from '@modules/health/health.module';
+import { SearchUpdatesModule } from '@modules/search-updates/search-updates.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { HealthModule } from '@modules/health/health.module';
     ClientsModule,
     PagesModule,
     CrawlModule,
+    SearchUpdatesModule,
   ],
   providers: [...APP_GLOBAL_PROVIDERS],
 })

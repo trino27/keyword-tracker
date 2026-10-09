@@ -60,6 +60,8 @@ const page = (
     metaDescription: null,
     h1: 'How to remove www',
     lang: 'en',
+    contentHash: 'a'.repeat(64),
+    dateModified: '2026-02-01T09:00:00Z',
     wordCount: 900,
     httpStatus: 200,
     responseMs: 120,
@@ -98,6 +100,60 @@ describe('PagesRepository (postgres)', () => {
       lastSeenRunId: secondRunId,
       title: 'Updated title',
     });
+  });
+
+  /**
+   * The next crawl compares against these, so they are written on every crawl — and
+   * read back for one client only: another user's client tracking the same URL has its
+   * own history, and must never answer for this one.
+   */
+  it('keeps the fingerprint and date for the next crawl, scoped to the client', async () => {
+    const own = await seedClientWithRuns();
+    const stranger = await seedTestUser(testDb, 'stranger@example.com');
+    const [otherClient] = await testDb.db
+      .insert(clients)
+      .values({
+        userId: stranger.id,
+        name: 'Same site, other agency',
+        websiteUrl: 'https://yoast.com',
+        siteKey: 'yoast.com',
+      })
+      .returning({ id: clients.id });
+    const [otherRun] = await testDb.db
+      .insert(crawlRuns)
+      .values({
+        clientId: otherClient.id,
+        trigger: 'user',
+        status: 'succeeded',
+        startedAt: new Date(),
+        finishedAt: new Date(),
+      })
+      .returning({ id: crawlRuns.id });
+    await testDb.db.transaction(async (tx) => {
+      await repository.upsertManyForWorker(tx, [
+        page(own.clientId, own.firstRunId, { dateModified: '2026-08-01' }),
+      ]);
+      await repository.upsertManyForWorker(tx, [
+        page(otherClient.id, otherRun.id, {
+          contentHash: 'b'.repeat(64),
+          dateModified: '2026-09-09',
+        }),
+      ]);
+    });
+
+    const previous = await repository.findPreviousCrawlsForWorker(
+      own.clientId,
+      ['https://yoast.com/how-to-remove-www-from-your-url/'],
+    );
+
+    expect(previous).toEqual([
+      {
+        url: 'https://yoast.com/how-to-remove-www-from-your-url/',
+        contentHash: 'a'.repeat(64),
+        dateModified: '2026-08-01',
+        crawledAt: expect.any(Date) as Date,
+      },
+    ]);
   });
 
   it('a re-crawl refreshes the check counters with the issues, not only the page', async () => {

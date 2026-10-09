@@ -92,6 +92,20 @@ describe('SitemapDiscoveryService (recorded and synthetic sites)', () => {
     );
   });
 
+  // danluu.com, 2026-10: robots.txt names `{{ site.url }}/sitemap.xml`, which is not
+  // there, and /sitemap.xml was never asked for.
+  it('falls back to the well-known paths when no declared sitemap is there', async () => {
+    const { discover } = setup();
+
+    const result = await discover('https://unrendered-sitemap-line.example');
+
+    expect(result).toMatchObject({
+      ok: true,
+      sitemapUrls: ['https://unrendered-sitemap-line.example/sitemap.xml'],
+    });
+    expect(result.ok && result.urls).toHaveLength(8);
+  });
+
   it('reads a gzipped sitemap', async () => {
     const { discover } = setup();
 
@@ -252,6 +266,60 @@ describe('SitemapDiscoveryService (recorded and synthetic sites)', () => {
     expect(
       transport.requests.filter((url) => !url.endsWith('/robots.txt')),
     ).toEqual([]);
+  });
+
+  // Google: "all 4xx errors, except 429" mean no rules. A 429 is a server asking for
+  // less, and like a 5xx it forbids everything until it answers.
+  it('robots.txt answering 429 forbids everything, like a 5xx', async () => {
+    const { transport, discover } = setup();
+    transport.override('https://yoast.com/robots.txt', { status: 429 });
+
+    await expect(discover('https://yoast.com')).resolves.toMatchObject({
+      ok: false,
+      errorCode: 'ROBOTS_UNAVAILABLE',
+    });
+    expect(
+      transport.requests.filter((url) => !url.endsWith('/robots.txt')),
+    ).toEqual([]);
+  });
+
+  // A timeout is a server error to Google, not a missing file. Read as "no rules", it
+  // crawled a site whose robots.txt Google could not read either.
+  it('a robots.txt that times out forbids everything, on a site that otherwise answers', async () => {
+    const { transport, discover } = setup();
+    transport.override('https://yoast.com/robots.txt', {
+      status: 0,
+      error: 'timeout',
+    });
+
+    await expect(discover('https://yoast.com')).resolves.toMatchObject({
+      ok: false,
+      errorCode: 'SITE_UNREACHABLE',
+      detail: expect.stringContaining('RFC 9309') as string,
+    });
+    expect(
+      transport.requests.filter((url) => !url.endsWith('/robots.txt')),
+    ).toEqual([]);
+  });
+
+  // Google reads the first 500 KiB and ignores the rest. Thrown away whole, the file's
+  // rules were all lost; cut mid-line, `Disallow: /admin/` would read as `/adm`.
+  it('reads a robots.txt past 500 KiB up to the limit, and not a cut line', async () => {
+    const { transport, discover } = setup();
+    const filler = '# padding\n'.repeat(51_195);
+    const body = `User-agent: *\nDisallow: /blocked/\n${filler}Disallow: /admin/\n`;
+    transport.override('https://yoast.com/robots.txt', {
+      status: 200,
+      headers: { 'content-type': 'text/plain' },
+      body,
+    });
+
+    const result = await discover('https://yoast.com');
+
+    expect(Buffer.byteLength(body)).toBeGreaterThan(500 * 1024);
+    expect(result.robots.isAllowed('https://yoast.com/blocked/x')).toBe(false);
+    expect(result.robots.isAllowed('https://yoast.com/adm')).toBe(true);
+    expect(result.robots.isAllowed('https://yoast.com/admin/x')).toBe(true);
   });
 
   it.each([

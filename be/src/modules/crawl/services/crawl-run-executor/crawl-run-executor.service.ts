@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { evaluateSite } from '@modules/page-analysis/services/site-checks/site-checks.registry';
+import { SiteProbeService } from '../site-probe/site-probe.service';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import {
   CRAWL_POST_LIMIT,
@@ -25,6 +27,7 @@ import {
   MAX_PAGE_URL_LENGTH,
   REDIRECTED_OFF_SITE_REASON,
 } from '../../constants/post-selection.constant';
+import { REFUSAL_STATUSES } from '../../constants/site-fetch.constant';
 import type {
   ICrawledPage,
   ISelectedItem,
@@ -50,7 +53,7 @@ const failed = (code: TCrawlRunErrorCode): IRunOutcome => ({
   errorMessage: CRAWL_RUN_ERRORS[code].message,
 });
 
-const REFUSED = new Set([401, 403, 429]);
+const REFUSED = REFUSAL_STATUSES;
 const UNANSWERED = new Set([
   'Timed out',
   'Could not connect',
@@ -127,6 +130,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
     private readonly runs: ClientCrawlRunsService,
     private readonly discovery: SitemapDiscoveryService,
     private readonly selection: PostSelectionService,
+    private readonly siteProbe: SiteProbeService,
     private readonly analysis: PageAnalysisService,
     private readonly results: CrawlResultsService,
     private readonly transactions: TransactionRunner,
@@ -212,20 +216,71 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       onProgress: (crawled) =>
         this.runs.recordProgressForWorker(run.id, run.attempts, crawled),
     });
+
+    // The site checks' own requests, still before the transaction. The host to compare
+    // against is the one the posts were actually served from, so a run that crawled
+    // nothing has nothing to compare with and asks nothing.
+    const servedOrigin = servedOriginOf(context.selection.pages);
+    if (servedOrigin)
+      context.siteProbes = await this.siteProbe.probe(
+        servedOrigin,
+        discovery.robots,
+        run.id,
+        signal,
+      );
   }
 
-  /** Pure and outside any transaction: the whole run is judged at once (IDF). */
+  /**
+   * Outside any transaction: the whole run is judged at once (IDF). The one read it makes
+   * is what the client's previous crawl kept about these URLs, so a check can compare —
+   * done here, before the transaction, like every other input the analysis is handed.
+   */
   private async analyse(context: IRunContext): Promise<void> {
     const { selection, discovery, target } = context;
     if (!selection || !discovery || !target) return;
 
+    const previous = await this.results.previousCrawlsForWorker(
+      target.clientId,
+      selection.pages.map(({ url }) => url),
+    );
     const analysis = await this.analysis.analyseRun(
-      selection.pages,
+      selection.pages.map((page) => ({
+        ...page,
+        previous: previous.get(page.url) ?? null,
+      })),
       target.siteKey,
     );
     context.pages = selection.pages.map((page, index) =>
       toRunPage(page, analysis[index]),
     );
+    context.siteChecks = evaluateSite({
+      servedOrigin: context.siteProbes?.servedOrigin ?? null,
+      crawledAt: new Date(),
+      robotsTxt: discovery.facts.robotsTxt,
+      sitemapUrls: discovery.urls,
+      lastmods: discovery.facts.lastmods,
+      fetched: selection.items.map((item) => ({
+        url: item.url,
+        status: item.status,
+        httpStatus: item.httpStatus,
+        reason: item.reason,
+        page: item.page
+          ? {
+              finalUrl: item.page.finalUrl,
+              dateModified: item.page.parsed.dateModified,
+              issues:
+                analysis[selection.pages.indexOf(item.page)]?.issues.map(
+                  ({ code, details }) => ({
+                    code,
+                    details: details as Record<string, unknown>,
+                  }),
+                ) ?? [],
+            }
+          : null,
+      })),
+      hostVariants: context.siteProbes?.hostVariants ?? null,
+      missingPage: context.siteProbes?.missingPage ?? null,
+    });
     context.outcome = outcomeOf(
       selection.pages.length,
       selection.items,
@@ -277,7 +332,13 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
           pageId: item.page ? (pageIds.get(item.url) ?? null) : null,
         }),
       );
-      await this.runs.finalizeForWorker(tx, run.id, outcome, items);
+      await this.runs.finalizeForWorker(
+        tx,
+        run.id,
+        outcome,
+        items,
+        context.siteChecks ?? [],
+      );
       this.logger.info(
         {
           runId: run.id,
@@ -289,6 +350,19 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       return true;
     });
   }
+}
+
+/**
+ * The scheme and host most crawled posts ended up at — what the site serves, as opposed
+ * to what the client typed or the sitemap says. Null when nothing was crawled.
+ */
+function servedOriginOf(pages: readonly { finalUrl: string }[]): string | null {
+  const counts = new Map<string, number>();
+  for (const { finalUrl } of pages) {
+    const origin = new URL(finalUrl).origin;
+    counts.set(origin, (counts.get(origin) ?? 0) + 1);
+  }
+  return [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
 function toRunPage(page: ICrawledPage, analysis: IPageAnalysis): IRunPage {
@@ -310,5 +384,7 @@ function toRunPage(page: ICrawledPage, analysis: IPageAnalysis): IRunPage {
     checksFailed: analysis.checksFailed,
     checksJudged: analysis.checksJudged,
     checksNotApplicable: analysis.checksNotApplicable,
+    contentHash: page.parsed.contentHash,
+    dateModified: page.parsed.dateModified,
   };
 }

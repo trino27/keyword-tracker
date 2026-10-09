@@ -2,7 +2,16 @@ import { XMLParser } from 'fast-xml-parser';
 
 export type TParsedSitemap =
   /** `news`: a Google News sitemap — its entries carry <news:news>. */
-  | { kind: 'urlset'; urls: string[]; news: boolean }
+  | {
+      kind: 'urlset';
+      urls: string[];
+      news: boolean;
+      /**
+       * `<lastmod>` by URL, for the entries that carry one; absent when none does. The
+       * site checks read it to judge whether the dates are real.
+       */
+      lastmods?: Record<string, string>;
+    }
   | { kind: 'index'; sitemaps: string[] }
   | { kind: 'invalid' };
 
@@ -38,6 +47,7 @@ export function decodeXmlText(text: string): string {
 
 interface ILocEntry {
   loc?: unknown;
+  lastmod?: unknown;
   news?: unknown;
 }
 
@@ -74,10 +84,12 @@ function parseXmlSitemap(xml: string): TParsedSitemap | null {
   }
   const urlset = document.urlset as { url?: ILocEntry[] } | undefined;
   if (urlset !== undefined) {
+    const lastmods = lastmodsOf(urlset?.url);
     return {
       kind: 'urlset',
       urls: locsOf(urlset?.url),
       news: (urlset?.url ?? []).some((entry) => entry.news !== undefined),
+      ...(Object.keys(lastmods).length > 0 ? { lastmods } : {}),
     };
   }
   const index = document.sitemapindex as { sitemap?: ILocEntry[] } | undefined;
@@ -85,6 +97,16 @@ function parseXmlSitemap(xml: string): TParsedSitemap | null {
     return { kind: 'index', sitemaps: locsOf(index?.sitemap) };
   }
   return null;
+}
+
+function lastmodsOf(entries: ILocEntry[] | undefined): Record<string, string> {
+  const lastmods: Record<string, string> = {};
+  for (const { loc, lastmod } of entries ?? []) {
+    if (typeof loc !== 'string' || typeof lastmod !== 'string') continue;
+    const value = lastmod.trim();
+    if (value) lastmods[decodeXmlText(loc)] = value;
+  }
+  return lastmods;
 }
 
 function locsOf(entries: ILocEntry[] | undefined): string[] {

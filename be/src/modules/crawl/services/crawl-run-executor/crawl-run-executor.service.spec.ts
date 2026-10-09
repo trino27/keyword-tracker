@@ -7,6 +7,7 @@ import type {
 } from '@modules/clients/interfaces/client-record.interface';
 import type { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import type { CrawlResultsService } from '@modules/pages/services/crawl-results/crawl-results.service';
+import type { SiteProbeService } from '../site-probe/site-probe.service';
 import { PageAnalysisService } from '@modules/page-analysis/services/page-analysis/page-analysis.service';
 import { makeCheckInput } from '@modules/page-analysis/services/checks/_testing/make-check-input';
 import type {
@@ -33,8 +34,11 @@ const crawledItem = (position: number): ISelectedItem => {
     url,
     finalUrl: url,
     redirected: false,
+    redirects: [],
+    robots: makeCheckInput().robots,
     httpStatus: 200,
     headers: {},
+    fetchedAt: new Date('2026-10-09T12:00:00Z'),
     responseMs: 100,
     htmlBytes: 1000,
     parsed: makeCheckInput().parsed,
@@ -87,6 +91,10 @@ const setup = (options: {
           sitemapUrls: ['https://a.example/post-sitemap.xml'],
           urls: ['https://a.example/p0/'],
           reason: 'Selected',
+          facts: {
+            robotsTxt: { status: 404, truncated: false, lines: [] },
+            lastmods: {},
+          },
         },
       ),
   } as unknown as SitemapDiscoveryService;
@@ -101,6 +109,7 @@ const setup = (options: {
           }),
   } as unknown as PostSelectionService;
   const results = {
+    previousCrawlsForWorker: () => Promise.resolve(new Map()),
     applyRunResultsForWorker: (
       _tx: Transaction,
       input: { pages: unknown[] },
@@ -120,6 +129,10 @@ const setup = (options: {
     runs,
     discovery,
     selection,
+    {
+      probe: (servedOrigin: string) =>
+        Promise.resolve({ servedOrigin, hostVariants: [], missingPage: null }),
+    } as unknown as SiteProbeService,
     new PageAnalysisService(),
     results,
     transactions,
@@ -160,8 +173,16 @@ describe('outcomeOf', () => {
   });
 
   it('a bot challenge on every post is SITE_BLOCKED too', () => {
+    expect(outcomeOf(0, [failedItem(503, 'Bot challenge')])).toMatchObject({
+      errorCode: 'SITE_BLOCKED',
+    });
+  });
+
+  // allrecipes.com, 2026-10: Cloudflare's pay-per-crawl answered every post 402, and
+  // the run failed as if no post had been found.
+  it('402 Payment Required on every post is SITE_BLOCKED', () => {
     expect(
-      outcomeOf(0, [failedItem(503, 'Bot challenge (Cloudflare)')]),
+      outcomeOf(0, [failedItem(402, 'HTTP 402'), failedItem(402, 'HTTP 402')]),
     ).toMatchObject({ errorCode: 'SITE_BLOCKED' });
   });
 

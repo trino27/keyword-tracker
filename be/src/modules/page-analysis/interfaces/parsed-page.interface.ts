@@ -15,6 +15,15 @@ export interface IPageImage {
   src: string | null;
   /** null: the attribute is absent. '' is a deliberate decorative image, not a miss. */
   alt: string | null;
+  /** The `loading` attribute as written, lower-cased; null when absent. */
+  loading: string | null;
+  /**
+   * Whether the markup reserves the image's box before it loads: both `width` and
+   * `height` attributes, or an inline style giving an aspect ratio or both sizes.
+   */
+  sized: boolean;
+  /** The element as written, cut to 200 characters, for a finding to quote. */
+  markup: string;
 }
 
 /** What the analysis reads from one page's HTML; every string is whitespace-collapsed. */
@@ -23,11 +32,24 @@ export interface IParsedPage {
   title: string | null;
   metaDescription: string | null;
   metaRobots: string | null;
+  /** `<meta name="googlebot">` content: Google obeys it exactly as it obeys `robots`. */
+  metaGooglebot: string | null;
   /** `<meta http-equiv="refresh">` content, as written; null when there is none. */
   metaRefresh: string | null;
   /** `<meta name="viewport">` content, as written; null when the tag is absent. */
   viewport: string | null;
-  canonical: string | null;
+  /**
+   * Every distinct canonical `<head>` declares, in order. Two different ones are a
+   * conflict, and Google answers a conflict by ignoring all of them.
+   */
+  canonicals: string[];
+  /**
+   * Canonicals written outside `<head>`. Google reads a canonical only in the head, so
+   * one of these is a canonical the author believes the page has and it does not.
+   */
+  canonicalsOutsideHead: string[];
+  /** Canonical hrefs in `<head>` written as a path rather than a full URL, as written. */
+  relativeCanonicals: string[];
   alternates: IAlternateLink[];
   /** `og:*` properties by name, e.g. `og:title`. */
   openGraph: Record<string, string>;
@@ -39,6 +61,8 @@ export interface IParsedPage {
    * article's.
    */
   jsonLd: { types: string[]; keywords: string[]; articleFields: string[] };
+  /** JSON-LD blocks that are not JSON, each as the start of its text and the error. */
+  jsonLdErrors: string[];
   /** `<html lang>`, as written. */
   lang: string | null;
   /** Every h1 of the document, in order. */
@@ -60,6 +84,32 @@ export interface IParsedPage {
    * would otherwise make "this page links somewhere" true of every page on the site.
    */
   links: string[];
+  /** The subset of `links` whose `rel` says `nofollow`. */
+  nofollowLinks: string[];
+  /**
+   * Links in the main content a crawler cannot follow — a `javascript:` href, a
+   * client-side route in the fragment (`#/pricing`, `#!pricing`), or an `<a>` with no
+   * href that navigates by `onclick` — each as its markup, cut to 200
+   * characters, so the reader can find it in the page source.
+   */
+  uncrawlableLinks: string[];
+  /**
+   * Followable content links with no accessible name — no text, no alt on a linked
+   * image, no aria-label, no title — each as its markup. Text hidden visually for screen
+   * readers counts as a name: it is read before that text is removed.
+   */
+  unnamedLinks: { href: string; markup: string }[];
+  /**
+   * Absolute URLs of the scripts and stylesheets the document loads: what a renderer
+   * needs to draw the page, and so what robots.txt must not keep from Googlebot.
+   */
+  renderResources: string[];
+  /**
+   * The document looks like a client-rendered shell: an empty mount point for a
+   * JavaScript framework, or a `<noscript>` asking for JavaScript. Read only beside a
+   * low word count, where it says WHY there was nothing to read.
+   */
+  clientRendered: boolean;
   /**
    * Prose blocks of the main content — paragraphs, list items, cells — so keyword
    * candidates never cross a block boundary. Headings are NOT here: they are read
@@ -67,4 +117,39 @@ export interface IParsedPage {
    */
   blocks: string[];
   wordCount: number;
+  /**
+   * Who the page says wrote it, each as the evidence it came from — `JSON-LD author:
+   * Jane Doe`, `<meta name="author" content="Jane Doe">`. Only what the markup
+   * identifies as the author: a class name like "author-box" is a theme's guess.
+   */
+  authors: string[];
+  /** The article's declared dates as written (JSON-LD first, then `article:*` meta). */
+  datePublished: string | null;
+  dateModified: string | null;
+  /**
+   * SHA-256 of the main content's text, so a later crawl can tell whether the words
+   * changed. Read from the same text the word count is, after furniture is removed.
+   */
+  contentHash: string;
+  /**
+   * Byte offset at which the document's `<meta charset>` (or its http-equiv form) ENDS,
+   * or null when the HTML declares no encoding. The HTML standard requires it within the
+   * first 1024 bytes.
+   */
+  charsetDeclarationEnd: number | null;
+  /**
+   * Scripts in `<head>` that stop the parser: an external classic script with neither
+   * `async` nor `defer`. Each as its markup.
+   */
+  renderBlockingScripts: string[];
+  /** `<link rel="preload" as="font">` without `crossorigin`, each as its markup. */
+  fontPreloadsWithoutCrossorigin: string[];
+  /** Elements in the document as served, before anything is removed. */
+  elementCount: number;
+  /**
+   * The `<img>` showing the page's featured image — the one `og:image` names — wherever
+   * it sits in the document, or null when the page shows none. The image a CMS puts at
+   * the top of a post, and so the likeliest Largest Contentful Paint.
+   */
+  featuredImage: { loading: string | null; markup: string } | null;
 }

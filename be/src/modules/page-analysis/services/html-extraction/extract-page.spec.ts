@@ -114,6 +114,31 @@ describe('extractPage', () => {
     expect(parsed.blocks).toEqual(['A card', 'And the rest']);
   });
 
+  // kottke.org, 2026-10: no <main>, no <article>; the whole <body> was read and the
+  // footer and membership notice made one-sentence posts 70% alike.
+  it('reads the one container the theme names as the post when nothing else says', () => {
+    const parsed = page(
+      '<div id="socials"><p>Newsletter</p></div>' +
+        '<div id="content-container"><div class="post">' +
+        '<p>Where in the world are typefaces being designed?</p></div>' +
+        '<div class="modal"><p>In order to comment, you need to be a member.</p></div>' +
+        '</div><div id="boring-container"><p>Home of fine hypertext products.</p></div>',
+    );
+
+    expect(parsed.blocks).toEqual([
+      'Where in the world are typefaces being designed?',
+    ]);
+  });
+
+  it('does not take one card of a listing for the post', () => {
+    const parsed = page(
+      '<div class="post"><p>First card</p></div>' +
+        '<div class="post"><p>Second card</p></div><p>Footer</p>',
+    );
+
+    expect(parsed.blocks).toEqual(['First card', 'Second card', 'Footer']);
+  });
+
   it('removes the furniture a theme builds out of plain divs', () => {
     const parsed = page(
       '<main><h1>Story</h1><p>The story itself.</p>' +
@@ -162,7 +187,7 @@ describe('extractPage', () => {
       title: 'A title',
       metaDescription: 'The description',
       metaRobots: 'noindex, follow',
-      canonical: 'https://a.example/canonical/',
+      canonicals: ['https://a.example/canonical/'],
       openGraph: { 'og:title': 'OG' },
       articleTags: ['SEO'],
       lang: 'en-GB',
@@ -220,8 +245,53 @@ describe('extractPage', () => {
     expect(
       page('<main><img src="a.png"><img src="b.png" alt=""></main>').images,
     ).toEqual([
-      { src: 'a.png', alt: null },
-      { src: 'b.png', alt: '' },
+      expect.objectContaining({ src: 'a.png', alt: null }),
+      expect.objectContaining({ src: 'b.png', alt: '' }),
+    ]);
+  });
+
+  // What the CLS and LCP checks read: whether the box is reserved, and how it loads.
+  it('reads how each content image loads and whether its box is reserved', () => {
+    expect(
+      page(
+        '<main><img src="a.png" width="800" height="450" loading="LAZY">' +
+          '<img src="b.png" style="aspect-ratio: 16/9; width: 100%">' +
+          '<img src="c.png" width="800"></main>',
+      ).images.map(({ loading, sized, markup }) => ({
+        loading,
+        sized,
+        markup,
+      })),
+    ).toEqual([
+      {
+        loading: 'lazy',
+        sized: true,
+        markup: '<img src="a.png" width="800" height="450" loading="LAZY">',
+      },
+      {
+        loading: null,
+        sized: true,
+        markup: '<img src="b.png" style="aspect-ratio: 16/9; width: 100%">',
+      },
+      { loading: null, sized: false, markup: '<img src="c.png" width="800">' },
+    ]);
+  });
+
+  it('finds the parser-blocking scripts in <head>, and the font preloads without crossorigin', () => {
+    const parsed = page(
+      '<p>x</p>',
+      '<script src="/jquery.js"></script><script src="/a.js" defer></script>' +
+        '<script src="/b.js" async></script><script type="module" src="/m.js"></script>' +
+        '<script type="application/ld+json">{}</script>' +
+        '<link rel="preload" as="font" href="/f.woff2" type="font/woff2">' +
+        '<link rel="preload" as="font" href="/g.woff2" crossorigin>',
+    );
+
+    expect(parsed.renderBlockingScripts).toEqual([
+      '<script src="/jquery.js"></script>',
+    ]);
+    expect(parsed.fontPreloadsWithoutCrossorigin).toEqual([
+      '<link rel="preload" as="font" href="/f.woff2" type="font/woff2">',
     ]);
   });
 
@@ -333,6 +403,408 @@ describe('extractPage', () => {
     expect(parsed.jsonLd.types).toContain('BreadcrumbList');
   });
 
+  /**
+   * A relative href means what it means against `<base>`, exactly as Googlebot reads
+   * it. Resolving against the page URL instead reported the links the author meant,
+   * not the ones the page has — and a wrong `<base>` is precisely the defect that sends
+   * a whole site's relative links somewhere else.
+   */
+  it('resolves every relative URL against <base href>', () => {
+    const parsed = page(
+      '<main><p><a href="other/">Other</a></p><img src="i.png"></main>',
+      '<base href="https://a.example/blog/"><link rel="canonical" href="post/">',
+    );
+
+    expect(parsed.links).toEqual(['https://a.example/blog/other/']);
+    expect(parsed.canonicals).toEqual(['https://a.example/blog/post/']);
+    expect(parsed.resourceUrls).toContain('https://a.example/blog/i.png');
+  });
+
+  // Google accepts the canonical only in <head>. The parser decides where the head
+  // ends, as a browser's does: an <img> in <head> closes it early.
+  it('reads canonicals in <head> only, and keeps the ones in <body> apart', () => {
+    const parsed = extractPage(
+      '<!doctype html><html><head><link rel="Canonical" href="/one/">' +
+        '<link rel="canonical" href="/two/"><link rel="canonical" href="/one/#x">' +
+        '</head><body><link rel="canonical" href="/body/"><p>x</p></body></html>',
+      'https://a.example/post/',
+    );
+
+    expect(parsed.canonicals).toEqual([
+      'https://a.example/one/',
+      'https://a.example/two/',
+    ]);
+    expect(parsed.canonicalsOutsideHead).toEqual(['https://a.example/body/']);
+  });
+
+  it('reads <meta name="googlebot"> beside <meta name="robots">', () => {
+    expect(
+      page('<p>x</p>', '<meta name="Googlebot" content="noindex">')
+        .metaGooglebot,
+    ).toBe('noindex');
+  });
+
+  /**
+   * What a crawler can follow, what it is asked not to, and what it cannot follow at
+   * all. `mailto:` names no page, `<a name>` is a target and `<a role="button">` is a
+   * control: none of them is a link to judge.
+   */
+  it('sorts the content links by what a crawler can do with them', () => {
+    const parsed = page(
+      '<main><p>' +
+        '<a href="/one/">One</a> <a href="/two/" rel="nofollow ugc">Two</a> ' +
+        '<a href="mailto:x@a.example">Mail</a> <a name="top"></a> ' +
+        `<a href="javascript:goTo('products')">Script</a> ` +
+        `<a onclick="go('/three/')">Three</a> ` +
+        '<a role="button" onclick="toggle()">Menu</a>' +
+        '<a href="#/pricing">Pricing</a> <a href="/#!about">About</a>' +
+        '<a href="https://forum.b.example/#!topic/1">Forum</a>' +
+        // lennysnewsletter.com and ghost.org, 2026-10: a menu toggle and the
+        // membership dialog were reported as links hiding pages.
+        '<a role="button" href="javascript:void(0)">Community</a>' +
+        // cossa.ru and scripting.com: controls whose script names no destination.
+        '<a href="javascript:void(0);">Login</a><a onclick="chatToggleConnect ();"></a>' +
+        '<a href="https://a.example/resources/#/portal/signup">Subscribe</a>' +
+        '</p></main>',
+    );
+
+    expect(parsed.links).toEqual([
+      'https://a.example/one/',
+      'https://a.example/two/',
+      // Another site's hashbang URL is its own routing: an ordinary outbound link.
+      'https://forum.b.example/#!topic/1',
+      // A widget's fragment: to Google, a link to the page before the #.
+      'https://a.example/resources/#/portal/signup',
+    ]);
+    expect(parsed.nofollowLinks).toEqual(['https://a.example/two/']);
+    expect(parsed.uncrawlableLinks).toEqual([
+      `<a href="javascript:goTo('products')">Script</a>`,
+      `<a onclick="go('/three/')">Three</a>`,
+      // Client-side routes in the fragment: Google drops everything after #.
+      '<a href="#/pricing">Pricing</a>',
+      '<a href="/#!about">About</a>',
+    ]);
+  });
+
+  it('collects the scripts and stylesheets a renderer needs, and nothing else', () => {
+    const parsed = page(
+      '<main><img src="/i.png"><script src="/late.js"></script></main>',
+      '<script src="/app.js"></script><link rel="stylesheet" href="/site.css">' +
+        '<link rel="preload" href="/font.woff2">',
+    );
+
+    expect(parsed.renderResources).toEqual([
+      'https://a.example/app.js',
+      'https://a.example/late.js',
+      'https://a.example/site.css',
+    ]);
+  });
+
+  // Recorded: semrush's /analytics/traffic/competitor-monitoring ships an empty mount
+  // point and nothing else — the one page of the corpus with no server-rendered text.
+  it('recognises a client-rendered shell, and no real post as one', () => {
+    expect(
+      page('<div id="root"></div><script src="/app.js"></script>')
+        .clientRendered,
+    ).toBe(true);
+    expect(
+      page(
+        '<div></div><noscript>You need to enable JavaScript to run this app.</noscript>',
+      ).clientRendered,
+    ).toBe(true);
+    expect(
+      recorded(
+        'semrush/analytics/traffic/competitor-monitoring.html',
+        'https://www.semrush.com/analytics/traffic/competitor-monitoring',
+      ).clientRendered,
+    ).toBe(true);
+    expect(
+      recorded(
+        'semrush/blog/seo-specialist/index.html',
+        'https://www.semrush.com/blog/seo-specialist/',
+      ).clientRendered,
+    ).toBe(false);
+  });
+
+  /**
+   * An author is often a reference into the graph — `{"@id": "#jane"}` — and only the
+   * node carrying that @id has the name. Each source is kept as the evidence it is.
+   */
+  it('names the author from the article graph and the markup alike', () => {
+    const parsed = page(
+      '<main><p>x</p><span itemprop="author"><span itemprop="name">Jane Doe</span></span>' +
+        '<a rel="author" href="/team/jane/">Jane</a></main>',
+      '<meta name="author" content="Jane Doe"><script type="application/ld+json">' +
+        JSON.stringify({
+          '@graph': [
+            {
+              '@type': 'BlogPosting',
+              author: { '@id': '#jane' },
+              datePublished: '2026-01-10',
+              dateModified: '2026-02-01',
+            },
+            { '@type': 'Person', '@id': '#jane', name: 'Jane Doe' },
+          ],
+        }) +
+        '</script>',
+    );
+
+    expect(parsed.authors).toEqual([
+      'JSON-LD author: Jane Doe',
+      '<meta name="author" content="Jane Doe">',
+      '<a rel="author" href="https://a.example/team/jane/">',
+      'itemprop="author": Jane Doe',
+    ]);
+    expect(parsed).toMatchObject({
+      datePublished: '2026-01-10',
+      dateModified: '2026-02-01',
+    });
+  });
+
+  // blog.cloudflare.com, 2026-10: the byline is the only author on the page — links to
+  // each author's archive — and the post was reported as having no author.
+  it('names the author from a byline that links to their archive', () => {
+    const parsed = page(
+      '<article><a href="/author/marc-selwan/">Marc Selwan</a>' +
+        '<a href="https://www.a.example/authors/micah-wylde/"> Micah  Wylde </a>' +
+        '<a href="/author/">All authors</a><a href="https://b.example/author/x/">X</a>' +
+        '<p>x</p></article>',
+    );
+
+    expect(parsed.authors).toEqual([
+      'byline: <a href="https://a.example/author/marc-selwan/">Marc Selwan</a>',
+      'byline: <a href="https://www.a.example/authors/micah-wylde/">Micah Wylde</a>',
+    ]);
+  });
+
+  it('falls back to the article:* dates when the markup has none', () => {
+    expect(
+      page(
+        '<p>x</p>',
+        '<meta property="article:modified_time" content="2026-03-03T10:00:00+00:00">',
+      ).dateModified,
+    ).toBe('2026-03-03T10:00:00+00:00');
+  });
+
+  // The fingerprint is of the words, so markup around them does not move it.
+  it('fingerprints the main text, not the markup around it', () => {
+    const a = page('<main><p>Same words here.</p></main><footer>One</footer>');
+    const b = page(
+      '<main><div><p>Same   words here.</p></div></main><footer>Two</footer>',
+    );
+    const c = page('<main><p>Other words here.</p></main>');
+
+    expect(a.contentHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(b.contentHash).toBe(a.contentHash);
+    expect(c.contentHash).not.toBe(a.contentHash);
+  });
+
+  /**
+   * Strict JSON forbids a raw line break inside a string; Google's parser and every
+   * structured-data validator accept one. CMSes paste a multi-line description into
+   * the markup as is, so a strict parse throws the whole article node away.
+   */
+  it('reads an article whose string values carry raw line breaks (semrush)', () => {
+    const parsed = recorded(
+      'semrush/blog/seo-split-test-result-does-bolded-text-help-your-seo/index.html',
+      'https://www.semrush.com/blog/seo-split-test-result-does-bolded-text-help-your-seo/',
+    );
+
+    expect(parsed.jsonLd.types).toEqual(
+      expect.arrayContaining(['BreadcrumbList', 'Article']),
+    );
+    expect([...parsed.jsonLd.articleFields].sort()).toEqual([
+      'author',
+      'dateModified',
+      'datePublished',
+      'description',
+      'genre',
+      'headline',
+      'identifier',
+      'image',
+      'mainEntityOfPage',
+      'publisher',
+      'url',
+    ]);
+  });
+
+  it.each([
+    ['a line feed', '\n'],
+    ['a carriage return and line feed', '\r\n'],
+    ['a tab', '\t'],
+  ])('reads JSON-LD with %s inside a string value', (_, character) => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">' +
+        `{"@type": "Article", "headline": "A post",` +
+        ` "description": "First line.${character}Second line."}` +
+        '</script>',
+    );
+
+    expect(parsed.jsonLd.types).toEqual(['Article']);
+    expect([...parsed.jsonLd.articleFields].sort()).toEqual([
+      'description',
+      'headline',
+    ]);
+  });
+
+  const ldJson = (text: string) =>
+    `<script type="application/ld+json">${text}</script>`;
+
+  it('reads an article inside a @graph whose strings carry raw line breaks', () => {
+    const parsed = page(
+      '',
+      ldJson(
+        '{"@context": "https://schema.org", "@graph": [' +
+          '{"@type": "WebPage", "name": "A\npage"},' +
+          '{"@type": ["BlogPosting", "Article"], "headline": "A\npost",' +
+          ' "author": {"@type": "Person", "name": "Ann\nLee"}}]}',
+      ),
+    );
+
+    expect([...parsed.jsonLd.types].sort()).toEqual([
+      'Article',
+      'BlogPosting',
+      'WebPage',
+    ]);
+    expect([...parsed.jsonLd.articleFields].sort()).toEqual([
+      'author',
+      'headline',
+    ]);
+  });
+
+  it('splits keywords that a raw line break separates', () => {
+    const parsed = page(
+      '',
+      ldJson(
+        '{"@type": "Article", "keywords": "SEO,\n bold text,\r\nsplit\ttest"}',
+      ),
+    );
+
+    expect(parsed.jsonLd.keywords).toEqual(['SEO', 'bold text', 'split test']);
+  });
+
+  // A repaired block gets the same scrutiny as any other: a field holding only the
+  // line break a CMS left behind carries nothing.
+  it('does not count a field holding only a raw line break', () => {
+    const parsed = page(
+      '',
+      ldJson(
+        '{"@type": "Article", "headline": "A post", "author": "\n", "image": ["\t"]}',
+      ),
+    );
+
+    expect(parsed.jsonLd.articleFields).toEqual(['headline']);
+  });
+
+  it('reads the blocks it can when one beside them is broken', () => {
+    const parsed = page(
+      '',
+      ldJson('{"@type": "BreadcrumbList"}') +
+        ldJson('{"@type": "Organization",}') +
+        ldJson('{"@type": "Article", "description": "a\nb"}'),
+    );
+
+    expect(parsed.jsonLd.types).toEqual(['BreadcrumbList', 'Article']);
+    expect(parsed.jsonLd.articleFields).toEqual(['description']);
+  });
+
+  // The og:image and the resized copy in the page meet by file stem: a CMS serves the
+  // featured image as hero-1200x630.jpg in og:image and hero-768x432.jpg in the post.
+  it('finds the featured image by the file og:image names', () => {
+    const parsed = page(
+      '<header><img src="/uploads/hero-768x432.jpg" loading="lazy" alt="Hero"></header>' +
+        '<main><p>x</p><img src="/other.png"></main>',
+      '<meta property="og:image" content="https://a.example/uploads/hero-1200x630.jpg">',
+    );
+
+    expect(parsed.featuredImage).toEqual({
+      loading: 'lazy',
+      markup: '<img src="/uploads/hero-768x432.jpg" loading="lazy" alt="Hero">',
+    });
+    expect(page('<main><img src="/x.png"></main>').featuredImage).toBeNull();
+  });
+
+  const og =
+    '<meta property="og:image" content="https://a.example/uploads/hero.jpg">';
+  const words = (n: number) => `<p>${'word '.repeat(n)}</p>`;
+
+  // github.blog's DGit post and backlinko.com's YouTube study, 2026-10: og:image named
+  // a diagram thousands of words down — lazy, rightly — and was reported as the LCP.
+  // Lighthouse: 22 words down it was the LCP (minimalistbaker.com), 102 down it was not.
+  it('takes og:image for the featured image only at the top of the post', () => {
+    const at = (before: number) =>
+      page(
+        `<main><h1>Title</h1>${words(before)}` +
+          '<img src="/uploads/hero.jpg" loading="lazy"></main>',
+        og,
+      ).featuredImage;
+
+    expect(at(22)).toMatchObject({ loading: 'lazy' });
+    expect(at(102)).toBeNull();
+  });
+
+  // hubspot.com: a mega-menu written in paragraphs sits above the headline.
+  it('counts the words from the headline, not from the site header', () => {
+    expect(
+      page(
+        `<header>${words(300)}</header><main><h1>Title</h1>` +
+          '<img src="/uploads/hero.jpg"></main>',
+        og,
+      ).featuredImage,
+    ).toMatchObject({ loading: null });
+  });
+
+  // neilpatel.com: a 175-pixel lazy thumbnail of the featured image, then the hero.
+  it('passes over a thumbnail of the featured image to the image itself', () => {
+    expect(
+      page(
+        '<main><h1>Title</h1>' +
+          '<img src="/uploads/hero-175x175.jpg" width="175" loading="lazy">' +
+          '<img src="/uploads/hero-760x456.jpg" width="700" fetchpriority="high"></main>',
+        og,
+      ).featuredImage,
+    ).toMatchObject({ loading: null });
+  });
+
+  // blog.cloudflare.com, 2026-10: a Japanese post counted one "word" per sentence.
+  it('counts the words of Chinese and Japanese, which have no spaces', () => {
+    expect(
+      page(
+        '<p>今日は、Cloudflare Monetization Gatewayをクローズドベータとして提供開始し</p>',
+      ).wordCount,
+    ).toBe(12);
+    expect(page('<p>Привет мир, hello world 2026</p>').wordCount).toBe(5);
+  });
+
+  // cossa.ru, 2026-10: the article is bare text in a <div>, between <h2>s, and only the
+  // footer's <p>s were read — so every post's text was the footer, and posts matched.
+  it('reads prose that sits in no block, and not a lone label', () => {
+    const parsed = page(
+      '<div class="main">Reach, engagement and efficiency are the swan, the crayfish' +
+        ' and the pike of digital advertising.<!--more--><h2>Reach</h2>' +
+        ' When big brands are involved, reach comes first, and everything else after.' +
+        '<div><a href="/start/">Get Started</a></div><span>October 8, 2026</span>' +
+        '</div><div><p>Footer</p></div>',
+    );
+
+    expect(parsed.blocks).toEqual([
+      'Reach, engagement and efficiency are the swan, the crayfish and the pike of digital advertising.',
+      'When big brands are involved, reach comes first, and everything else after.',
+      'Footer',
+    ]);
+  });
+
+  // hubspot.com wraps every paragraph of a post in one <span>; tables stay cell by cell.
+  it('reads an inline wrapper of blocks, and table cells, block by block', () => {
+    expect(
+      page(
+        '<span class="hs_cos_wrapper"><p>First paragraph.</p><p>Second one.</p></span>' +
+          '<table><tbody><tr><td>Cost</td><td>Type</td></tr></tbody></table>',
+      ).blocks,
+    ).toEqual(['First paragraph.', 'Second one.', 'Cost', 'Type']);
+  });
+
   it('survives broken JSON-LD and missing everything', () => {
     const parsed = extractPage(
       '<script type="application/ld+json">{broken</script>',
@@ -342,9 +814,66 @@ describe('extractPage', () => {
     expect(parsed).toMatchObject({
       title: null,
       lang: null,
-      canonical: null,
+      canonicals: [],
       jsonLd: { types: [], keywords: [], articleFields: [] },
       wordCount: 0,
     });
+  });
+
+  // Text only a screen reader sees is a name: it is read before hidden text goes.
+  it('finds links with no accessible name, and none where a name is hidden or alt', () => {
+    const parsed = page(
+      '<main><p>' +
+        '<a href="/icon/"><img src="i.svg"></a>' +
+        '<a href="/alt/"><img src="i.svg" alt="Pricing"></a>' +
+        '<a href="/more/">More<span class="visually-hidden"> about INP</span></a>' +
+        '<a href="/sr/"><span class="sr-only">Pricing</span><svg aria-hidden="true"></svg></a>' +
+        '<a href="/label/" aria-label="Close"></a>' +
+        '<a href="/titled/" title="Archive"></a>' +
+        '<a href="/hidden/"><span aria-hidden="true">→</span></a>' +
+        '</p></main>',
+    );
+
+    expect(parsed.unnamedLinks).toEqual([
+      {
+        href: 'https://a.example/icon/',
+        markup: '<a href="/icon/"><img src="i.svg"></a>',
+      },
+      {
+        href: 'https://a.example/hidden/',
+        markup: '<a href="/hidden/"><span aria-hidden="true">→</span></a>',
+      },
+    ]);
+  });
+
+  it('keeps a JSON-LD block that is not JSON, with the parser error', () => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">{"@type": "Article",}</script>',
+    );
+
+    expect(parsed.jsonLdErrors).toEqual([
+      expect.stringMatching(/^\{"@type": "Article",\}… — .+position/),
+    ]);
+  });
+
+  it('keeps canonical hrefs written as a path', () => {
+    expect(
+      page('<p>x</p>', '<link rel="canonical" href="/canonical/">')
+        .relativeCanonicals,
+    ).toEqual(['/canonical/']);
+  });
+
+  it('finds where the charset declaration ends, in bytes', () => {
+    const late = extractPage(
+      `<!doctype html><html><head><style>${'a{}'.repeat(400)}</style><meta charset="utf-8"></head><body></body></html>`,
+      'https://a.example/',
+    );
+
+    expect(
+      page('<p>x</p>', '<meta charset="utf-8">').charsetDeclarationEnd,
+    ).toBeLessThan(200);
+    expect(late.charsetDeclarationEnd).toBeGreaterThan(1024);
+    expect(page('<p>x</p>').charsetDeclarationEnd).toBeNull();
   });
 });

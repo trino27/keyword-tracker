@@ -64,8 +64,16 @@ const SITES: ISite[] = [
 const ROOT = dirname(resolve(process.argv[1]));
 const USER_AGENT =
   'SeoKeywordTrackerBot/1.0 (+https://github.com/trino27/keyword-tracker)';
+// `content-encoding` and `link` are check inputs: HTML_NOT_COMPRESSED reads the first,
+// the canonical checks read a `rel="canonical"` in the second. The body is stored
+// decoded either way — fetch() decompresses it — so the header records what the server
+// sent, not what the file holds.
 const KEPT_HEADERS = [
   'content-type',
+  'content-encoding',
+  // BFCACHE_BLOCKED_BY_NO_STORE reads it.
+  'cache-control',
+  'link',
   'location',
   'x-robots-tag',
   'retry-after',

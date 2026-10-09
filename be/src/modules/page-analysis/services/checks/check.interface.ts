@@ -4,6 +4,7 @@ import type {
   TSeoIssueCode,
 } from '@app/contracts';
 import type { IParsedPage } from '../../interfaces/parsed-page.interface';
+import type { IRobotsRules } from '../../interfaces/robots-rules.interface';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 
 /**
@@ -18,10 +19,30 @@ export interface ICheckInput {
   url: string;
   finalUrl: string;
   redirected: boolean;
+  /** Each redirect followed from `url` to `finalUrl`: the URL that answered, its 3xx. */
+  redirects: readonly { url: string; status: number }[];
+  /** The site's robots.txt, to be asked what it allows crawlers other than ours. */
+  robots: IRobotsRules;
   /** Lower-cased response headers. */
   headers: Record<string, string>;
+  /** When the response arrived: the "now" every date a check compares against. */
+  fetchedAt: Date;
   htmlBytes: number;
   parsed: IParsedPage;
+  /**
+   * What the client's previous crawl recorded for this URL, or null when this is the
+   * first crawl to see it. Read before the run's transaction opens, so the analysis
+   * stays a function of its input.
+   */
+  previous: IPreviousCrawl | null;
+}
+
+/** The facts an earlier crawl kept about a page, for a check to compare against. */
+export interface IPreviousCrawl {
+  /** Null: that crawl predates the fingerprint. */
+  contentHash: string | null;
+  dateModified: string | null;
+  crawledAt: Date;
 }
 
 /**

@@ -35,6 +35,7 @@ describe('the catalogue split by scope', () => {
     expect([...RUN_ISSUE_CODES].sort()).toEqual([
       'KEYWORD_CANNIBALISATION',
       'META_DESCRIPTION_DUPLICATE',
+      'NEAR_DUPLICATE_CONTENT',
       'TITLE_DUPLICATE',
     ]);
   });
@@ -42,6 +43,33 @@ describe('the catalogue split by scope', () => {
   it('gives every run check a skip reason, since a run of one cannot answer it', () => {
     for (const code of RUN_ISSUE_CODES) {
       expect(SEO_ISSUE_CATALOGUE[code].skipReason).toMatch(/\S/);
+    }
+  });
+});
+
+describe('what the catalogue tells a reader', () => {
+  /**
+   * A finding is only as useful as the reader's ability to weigh it, so every check says
+   * why it exists at length and names where that comes from. Pinned for every code, so a
+   * check cannot be added with a label and nothing behind it.
+   */
+  it('explains every check in more than one sentence', () => {
+    for (const code of SEO_ISSUE_CODES) {
+      const { explanation } = SEO_ISSUE_CATALOGUE[code];
+      expect(
+        explanation.split(/[.!?](\s|$)/).filter((s) => s.trim()).length,
+      ).toBeGreaterThan(1);
+    }
+  });
+
+  it('backs every check with at least one https source', () => {
+    for (const code of SEO_ISSUE_CODES) {
+      const { sources } = SEO_ISSUE_CATALOGUE[code];
+      expect(sources.length).toBeGreaterThan(0);
+      for (const source of sources) {
+        expect(source.title).toMatch(/\S/);
+        expect(new URL(source.url).protocol).toBe('https:');
+      }
     }
   });
 });

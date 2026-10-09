@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { FIXTURES_ROOT } from '@infrastructure/remote-api/_testing/fixture-http-transport';
+import { extractPage } from '../../html-extraction/extract-page';
 import { RECOMMENDED_ARTICLE_FIELDS } from '../../../constants/article-types.constant';
 import { failsWith, NOT_APPLICABLE, PASSES } from '../_testing/expect-verdict';
 import { makeCheckInput } from '../_testing/make-check-input';
@@ -41,5 +45,28 @@ describe('STRUCTURED_DATA_INCOMPLETE', () => {
         }),
       ),
     ).toEqual(NOT_APPLICABLE);
+  });
+
+  // From the recorded HTML to the verdict: the Article node is only readable once its
+  // two-line description is, and until then this check reported "not applicable".
+  it('passes the recorded semrush post whose Article description spans two lines', () => {
+    const url =
+      'https://www.semrush.com/blog/seo-split-test-result-does-bolded-text-help-your-seo/';
+    const parsed = extractPage(
+      readFileSync(
+        join(
+          FIXTURES_ROOT,
+          'sites/semrush/blog/seo-split-test-result-does-bolded-text-help-your-seo/index.html',
+        ),
+        'utf8',
+      ),
+      url,
+    );
+
+    expect(
+      STRUCTURED_DATA_INCOMPLETE_CHECK.evaluate(
+        makeCheckInput({ url, finalUrl: url, parsed }),
+      ),
+    ).toEqual(PASSES);
   });
 });

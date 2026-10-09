@@ -47,3 +47,5 @@ export * from './domain/pages/page-check.interface.js';
 export * from './domain/pages/page-detail.interface.js';
 export * from './domain/pages/position-history.interface.js';
 export * from './domain/pages/position-fill.interface.js';
+export * from './domain/search-updates/search-update.interface.js';
+export * from './domain/site/site-check-catalogue.constant.js';

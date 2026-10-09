@@ -15,6 +15,9 @@ Owns `clients`, `crawl_runs` (the crawl queue) and `crawl_run_items` (the run lo
   `FOR UPDATE SKIP LOCKED` and holds a lease renewed by a heartbeat. An expired lease makes the run
   claimable again with `attempts + 1`; after three, `failAbandonedForWorker` fails it
   `CRAWL_ABANDONED`.
+- **A run owns its site checks.** `site_checks` holds one row per site check per run — passed,
+  failed or not applicable, with the evidence — written by finalize beside the run log and read
+  with it, scoped to the run's owner in the query. A run that never reached the site has none.
 - **The fence:** every write of an execution carries `AND attempts = <its attempt>`; finalize
   locks the run on that condition first. A superseded executor (a zombie after a lease expiry)
   writes nothing.
