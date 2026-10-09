@@ -46,6 +46,33 @@ describe('the catalogue split by scope', () => {
   });
 });
 
+describe('what the catalogue tells a reader', () => {
+  /**
+   * A finding is only as useful as the reader's ability to weigh it, so every check says
+   * why it exists at length and names where that comes from. Pinned for every code, so a
+   * check cannot be added with a label and nothing behind it.
+   */
+  it('explains every check in more than one sentence', () => {
+    for (const code of SEO_ISSUE_CODES) {
+      const { explanation } = SEO_ISSUE_CATALOGUE[code];
+      expect(
+        explanation.split(/[.!?](\s|$)/).filter((s) => s.trim()).length,
+      ).toBeGreaterThan(1);
+    }
+  });
+
+  it('backs every check with at least one https source', () => {
+    for (const code of SEO_ISSUE_CODES) {
+      const { sources } = SEO_ISSUE_CATALOGUE[code];
+      expect(sources.length).toBeGreaterThan(0);
+      for (const source of sources) {
+        expect(source.title).toMatch(/\S/);
+        expect(new URL(source.url).protocol).toBe('https:');
+      }
+    }
+  });
+});
+
 describe('the catalogue split by whether the check still runs', () => {
   it('holds every code the catalogue has not retired', () => {
     const running = Object.entries(SEO_ISSUE_CATALOGUE)

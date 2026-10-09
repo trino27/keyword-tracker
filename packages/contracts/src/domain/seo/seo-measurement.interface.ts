@@ -9,4 +9,6 @@ export interface ISeoMeasurement {
   value: number;
   min?: number;
   max?: number;
+  /** What was measured, as found on the page — the title itself, not only its length. */
+  evidence?: string[];
 }
