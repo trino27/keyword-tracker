@@ -220,8 +220,53 @@ describe('extractPage', () => {
     expect(
       page('<main><img src="a.png"><img src="b.png" alt=""></main>').images,
     ).toEqual([
-      { src: 'a.png', alt: null },
-      { src: 'b.png', alt: '' },
+      expect.objectContaining({ src: 'a.png', alt: null }),
+      expect.objectContaining({ src: 'b.png', alt: '' }),
+    ]);
+  });
+
+  // What the CLS and LCP checks read: whether the box is reserved, and how it loads.
+  it('reads how each content image loads and whether its box is reserved', () => {
+    expect(
+      page(
+        '<main><img src="a.png" width="800" height="450" loading="LAZY">' +
+          '<img src="b.png" style="aspect-ratio: 16/9; width: 100%">' +
+          '<img src="c.png" width="800"></main>',
+      ).images.map(({ loading, sized, markup }) => ({
+        loading,
+        sized,
+        markup,
+      })),
+    ).toEqual([
+      {
+        loading: 'lazy',
+        sized: true,
+        markup: '<img src="a.png" width="800" height="450" loading="LAZY">',
+      },
+      {
+        loading: null,
+        sized: true,
+        markup: '<img src="b.png" style="aspect-ratio: 16/9; width: 100%">',
+      },
+      { loading: null, sized: false, markup: '<img src="c.png" width="800">' },
+    ]);
+  });
+
+  it('finds the parser-blocking scripts in <head>, and the font preloads without crossorigin', () => {
+    const parsed = page(
+      '<p>x</p>',
+      '<script src="/jquery.js"></script><script src="/a.js" defer></script>' +
+        '<script src="/b.js" async></script><script type="module" src="/m.js"></script>' +
+        '<script type="application/ld+json">{}</script>' +
+        '<link rel="preload" as="font" href="/f.woff2" type="font/woff2">' +
+        '<link rel="preload" as="font" href="/g.woff2" crossorigin>',
+    );
+
+    expect(parsed.renderBlockingScripts).toEqual([
+      '<script src="/jquery.js"></script>',
+    ]);
+    expect(parsed.fontPreloadsWithoutCrossorigin).toEqual([
+      '<link rel="preload" as="font" href="/f.woff2" type="font/woff2">',
     ]);
   });
 
@@ -613,6 +658,22 @@ describe('extractPage', () => {
 
     expect(parsed.jsonLd.types).toEqual(['BreadcrumbList', 'Article']);
     expect(parsed.jsonLd.articleFields).toEqual(['description']);
+  });
+
+  // The og:image and the resized copy in the page meet by file stem: a CMS serves the
+  // featured image as hero-1200x630.jpg in og:image and hero-768x432.jpg in the post.
+  it('finds the featured image by the file og:image names, wherever it sits', () => {
+    const parsed = page(
+      '<header><img src="/uploads/hero-768x432.jpg" loading="lazy" alt="Hero"></header>' +
+        '<main><p>x</p><img src="/other.png"></main>',
+      '<meta property="og:image" content="https://a.example/uploads/hero-1200x630.jpg">',
+    );
+
+    expect(parsed.featuredImage).toEqual({
+      loading: 'lazy',
+      markup: '<img src="/uploads/hero-768x432.jpg" loading="lazy" alt="Hero">',
+    });
+    expect(page('<main><img src="/x.png"></main>').featuredImage).toBeNull();
   });
 
   it('survives broken JSON-LD and missing everything', () => {

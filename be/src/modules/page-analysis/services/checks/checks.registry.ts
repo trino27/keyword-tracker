@@ -17,6 +17,11 @@ import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
+import { LCP_IMAGE_LAZY_LOADED_CHECK } from './lcp-image-lazy-loaded/lcp-image-lazy-loaded.check';
+import { RENDER_BLOCKING_SCRIPTS_CHECK } from './render-blocking-scripts/render-blocking-scripts.check';
+import { FONT_PRELOAD_WITHOUT_CROSSORIGIN_CHECK } from './font-preload-without-crossorigin/font-preload-without-crossorigin.check';
+import { BFCACHE_BLOCKED_BY_NO_STORE_CHECK } from './bfcache-blocked-by-no-store/bfcache-blocked-by-no-store.check';
+import { DOM_SIZE_LARGE_CHECK } from './dom-size-large/dom-size-large.check';
 import { HTML_NOT_COMPRESSED_CHECK } from './html-not-compressed/html-not-compressed.check';
 import { IMAGES_MISSING_ALT_CHECK } from './images-missing-alt/images-missing-alt.check';
 import { INTERNAL_LINK_VARIANTS_CHECK } from './internal-link-variants/internal-link-variants.check';
@@ -102,6 +107,11 @@ export const CHECKS: TCheckRegistry = {
   REDIRECTED: REDIRECTED_CHECK,
   META_REFRESH: META_REFRESH_CHECK,
   LARGE_PAGE: LARGE_PAGE_CHECK,
+  LCP_IMAGE_LAZY_LOADED: LCP_IMAGE_LAZY_LOADED_CHECK,
+  RENDER_BLOCKING_SCRIPTS: RENDER_BLOCKING_SCRIPTS_CHECK,
+  FONT_PRELOAD_WITHOUT_CROSSORIGIN: FONT_PRELOAD_WITHOUT_CROSSORIGIN_CHECK,
+  BFCACHE_BLOCKED_BY_NO_STORE: BFCACHE_BLOCKED_BY_NO_STORE_CHECK,
+  DOM_SIZE_LARGE: DOM_SIZE_LARGE_CHECK,
   HTML_NOT_COMPRESSED: HTML_NOT_COMPRESSED_CHECK,
   KEYWORD_CANNIBALISATION: KEYWORD_CANNIBALISATION_CHECK,
   TITLE_DUPLICATE: TITLE_DUPLICATE_CHECK,

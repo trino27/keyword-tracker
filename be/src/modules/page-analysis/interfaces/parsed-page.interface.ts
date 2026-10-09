@@ -15,6 +15,15 @@ export interface IPageImage {
   src: string | null;
   /** null: the attribute is absent. '' is a deliberate decorative image, not a miss. */
   alt: string | null;
+  /** The `loading` attribute as written, lower-cased; null when absent. */
+  loading: string | null;
+  /**
+   * Whether the markup reserves the image's box before it loads: both `width` and
+   * `height` attributes, or an inline style giving an aspect ratio or both sizes.
+   */
+  sized: boolean;
+  /** The element as written, cut to 200 characters, for a finding to quote. */
+  markup: string;
 }
 
 /** What the analysis reads from one page's HTML; every string is whitespace-collapsed. */
@@ -128,4 +137,19 @@ export interface IParsedPage {
    * first 1024 bytes.
    */
   charsetDeclarationEnd: number | null;
+  /**
+   * Scripts in `<head>` that stop the parser: an external classic script with neither
+   * `async` nor `defer`. Each as its markup.
+   */
+  renderBlockingScripts: string[];
+  /** `<link rel="preload" as="font">` without `crossorigin`, each as its markup. */
+  fontPreloadsWithoutCrossorigin: string[];
+  /** Elements in the document as served, before anything is removed. */
+  elementCount: number;
+  /**
+   * The `<img>` showing the page's featured image — the one `og:image` names — wherever
+   * it sits in the document, or null when the page shows none. The image a CMS puts at
+   * the top of a post, and so the likeliest Largest Contentful Paint.
+   */
+  featuredImage: { loading: string | null; markup: string } | null;
 }

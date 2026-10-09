@@ -71,6 +71,8 @@ const USER_AGENT =
 const KEPT_HEADERS = [
   'content-type',
   'content-encoding',
+  // BFCACHE_BLOCKED_BY_NO_STORE reads it.
+  'cache-control',
   'link',
   'location',
   'x-robots-tag',

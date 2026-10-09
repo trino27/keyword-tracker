@@ -70,7 +70,15 @@ export function makeCheckInput(
         { level: 2, text: 'Why links matter' },
       ],
       firstParagraph: 'Links matter.',
-      images: [{ src: 'a.png', alt: 'A chart' }],
+      images: [
+        {
+          src: 'a.png',
+          alt: 'A chart',
+          loading: null,
+          sized: true,
+          markup: '<img src="a.png" alt="A chart" width="800" height="450">',
+        },
+      ],
       resourceUrls: ['https://a.example/a.png'],
       links: ['https://a.example/another-post/'],
       nofollowLinks: [],
@@ -86,6 +94,13 @@ export function makeCheckInput(
       contentHash: 'a'.repeat(64),
       jsonLdErrors: [],
       charsetDeclarationEnd: 60,
+      renderBlockingScripts: [],
+      fontPreloadsWithoutCrossorigin: [],
+      elementCount: 600,
+      featuredImage: {
+        loading: null,
+        markup: '<img src="https://a.example/i.png" fetchpriority="high">',
+      },
       ...parsed,
     },
   };

@@ -154,6 +154,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   // links the author meant.
   const baseUrl = baseOf($, pageUrl);
   const clientRendered = looksClientRendered($);
+  const elementCount = $('*').length;
   // Before anything is read, and on the whole document, because h1s are read outside the
   // main content: strip what no reader sees, and the controls sitting inside headings.
   // A link's name may be text only a screen reader sees ("Read more<span
@@ -254,6 +255,9 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     images.push({
       src: image.attr('src') ?? null,
       alt: image.attr('alt') ?? null,
+      loading: image.attr('loading')?.trim().toLowerCase() || null,
+      sized: isSized(image),
+      markup: quoteMarkup($, image),
     });
   });
 
@@ -312,6 +316,16 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       orNull(metaContent($, 'property', 'article:modified_time')),
     contentHash: createHash('sha256').update(mainText).digest('hex'),
     charsetDeclarationEnd: charsetDeclarationEndOf(html),
+    renderBlockingScripts: $('head script[src]')
+      .filter((_, element) => isParserBlocking($(element)))
+      .map((_, element) => quoteMarkup($, $(element)))
+      .get(),
+    fontPreloadsWithoutCrossorigin: $('link[rel~="preload" i][as="font" i]')
+      .filter((_, element) => $(element).attr('crossorigin') === undefined)
+      .map((_, element) => quoteMarkup($, $(element)))
+      .get(),
+    elementCount,
+    featuredImage: featuredImageOf($, baseUrl),
   };
 }
 
@@ -442,6 +456,74 @@ function accessibleNameOf($: CheerioAPI, anchor: TSelection): string {
   const text = collapse(content.text());
   if (text) return text;
   return collapse(anchor.attr('title') ?? '');
+}
+
+/** Script types a browser runs as classic JavaScript; anything else is data or a module. */
+const CLASSIC_SCRIPT_TYPES = new Set([
+  '',
+  'text/javascript',
+  'application/javascript',
+  'text/ecmascript',
+  'application/ecmascript',
+]);
+
+/**
+ * An external script the parser must stop for: classic JavaScript with neither `async`
+ * nor `defer`. A module defers by default; JSON and templates never run.
+ */
+function isParserBlocking(script: TSelection): boolean {
+  const type = (script.attr('type') ?? '').trim().toLowerCase();
+  return (
+    CLASSIC_SCRIPT_TYPES.has(type) &&
+    script.attr('async') === undefined &&
+    script.attr('defer') === undefined
+  );
+}
+
+/**
+ * A file's name without its directory, query, extension or a CMS's size suffix
+ * (`hero-1200x630.jpg` → `hero`), so the og:image and the resized copy in the page meet.
+ */
+const imageStem = (url: string) =>
+  (url.split(/[?#]/)[0].split('/').pop() ?? '')
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/-\d+x\d+$/, '')
+    .toLowerCase();
+
+/** The `<img>` whose src or srcset shows the og:image, by file stem. */
+function featuredImageOf(
+  $: CheerioAPI,
+  baseUrl: string,
+): IParsedPage['featuredImage'] {
+  const og = absolute(metaContent($, 'property', 'og:image'), baseUrl);
+  const stem = og ? imageStem(og) : '';
+  if (stem.length < 3) return null;
+  const image = $('body img')
+    .toArray()
+    .map((element) => $(element))
+    .find((candidate) =>
+      [candidate.attr('src'), ...(candidate.attr('srcset') ?? '').split(',')]
+        .map((value) => (value ?? '').trim().split(/\s+/)[0])
+        .some((value) => value && imageStem(value) === stem),
+    );
+  return image
+    ? {
+        loading: image.attr('loading')?.trim().toLowerCase() || null,
+        markup: quoteMarkup($, image),
+      }
+    : null;
+}
+
+/** Both size attributes, or an inline style that fixes the box. */
+function isSized(image: TSelection): boolean {
+  const number = (value: string | undefined) =>
+    /^\s*\d+(\.\d+)?\s*$/.test(value ?? '');
+  if (number(image.attr('width')) && number(image.attr('height'))) return true;
+  const style = (image.attr('style') ?? '').toLowerCase();
+  return (
+    /aspect-ratio\s*:/.test(style) ||
+    (/(^|;)\s*width\s*:/.test(style) && /(^|;)\s*height\s*:/.test(style))
+  );
 }
 
 /** An element as written, without the attribute this extractor parks on links. */

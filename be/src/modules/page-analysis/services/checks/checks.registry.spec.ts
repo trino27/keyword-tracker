@@ -1,3 +1,4 @@
+import { makeImage } from './_testing/make-image';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -123,6 +124,8 @@ describe('evaluateChecks', () => {
               links: [],
               // And no date to contradict.
               datePublished: null,
+              // And no featured image to be lazy.
+              featuredImage: null,
             },
             // A robots.txt that governs no host this page touches: neither robots
             // check has a rule to read.
@@ -251,13 +254,22 @@ describe('evaluateChecks', () => {
         redirected: true,
         redirects: [{ url: `https://a.example/${path}-old/`, status: 302 }],
         robots: blocked,
-        headers: { 'content-type': 'text/html' },
+        headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
         htmlBytes: 2_000_000,
         parsed: {
           title: 'Shared title',
           metaDescription: 'Too short',
           metaRobots: 'noindex, nosnippet',
           relativeCanonicals: ['/x/'],
+          featuredImage: {
+            loading: 'lazy',
+            markup: '<img src="/hero.jpg" loading="lazy">',
+          },
+          renderBlockingScripts: ['<script src="/jquery.js"></script>'],
+          fontPreloadsWithoutCrossorigin: [
+            '<link rel="preload" as="font" href="/f.woff2">',
+          ],
+          elementCount: 3_000,
           unnamedLinks: [
             {
               href: 'https://a.example/other/',
@@ -283,7 +295,7 @@ describe('evaluateChecks', () => {
             { level: 1, text: 'One' },
             { level: 3, text: 'Three' },
           ],
-          images: [{ src: 'a.png', alt: null }],
+          images: [makeImage({ src: 'a.png', alt: null })],
           resourceUrls: ['http://a.example/i.png'],
           renderResources: ['https://a.example/app.js'],
           links: ['http://a.example/other/?utm_source=x'],
