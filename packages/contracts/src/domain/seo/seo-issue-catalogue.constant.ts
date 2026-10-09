@@ -54,7 +54,7 @@ export interface ISeoIssueDefinition {
  * the subject at all. Every URL was opened and its text read against the claim it backs
  * on 2026-10-09; a redirect was followed and the final address kept.
  */
-const SOURCE = {
+export const ISSUE_SOURCES = {
   titleLinks: {
     title: 'Google Search Central: Influencing your title links',
     url: 'https://developers.google.com/search/docs/appearance/title-link',
@@ -239,11 +239,17 @@ const SOURCE = {
     title: 'MDN: <meta>: the metadata element',
     url: 'https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta',
   },
+  controlSharing: {
+    title: 'Google Search Central: Control what you share with Google',
+    url: 'https://developers.google.com/search/docs/crawling-indexing/control-what-you-share',
+  },
   structuredDataIntro: {
     title: 'Google Search Central: Introduction to structured data markup',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data',
   },
 } as const satisfies Record<string, ISeoIssueSource>;
+
+const SOURCE = ISSUE_SOURCES;
 
 /**
  * Every SEO issue the analysis can report — the backend's checks are typed by these
@@ -348,6 +354,17 @@ export const SEO_ISSUE_CATALOGUE = {
       'The page names more than one canonical URL — two <link rel="canonical"> tags, or a tag and a Link header that disagree. Google asks you not to specify different canonical URLs for the same page, and a hint that contradicts itself cannot be followed: Google then chooses the canonical by its own signals. This usually comes from a theme and an SEO plugin each adding their own tag.',
     sources: [SOURCE.canonical],
     skipReason: 'No canonical to disagree with.',
+  },
+  DEVELOPMENT_HOST_REFERENCES: {
+    // A warning: a canonical or hreflang naming a staging host hands the page's signals to
+    // a copy nobody should find, and a resource loaded from localhost is missing for
+    // every reader.
+    severity: 'warning',
+    label: 'Points at a development or staging host',
+    hint: 'Replace development and staging addresses with production URLs; generate them from configuration, not from the host the build ran on.',
+    explanation:
+      "The page names a development or staging address — localhost, a private IP, a staging., dev. or preview host, or a hosting platform's preview domain such as *.vercel.app — in its canonical, its og:url, its hreflang, a content link or a loaded resource. The usual cause is a URL built from the host the site was built or tested on. A canonical or hreflang pointing there asks Google to consolidate the page into a copy that should not be indexed at all; a link sends readers to a server they cannot reach. Google's advice for keeping such environments out of Search is to password-protect them, which this reference undoes by advertising the address.",
+    sources: [SOURCE.canonical, SOURCE.controlSharing],
   },
   CANONICAL_RELATIVE: {
     severity: 'notice',
@@ -484,8 +501,8 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Links Google cannot follow',
     hint: 'Give every link a real URL in href; keep JavaScript for behaviour on top of it.',
     explanation:
-      'Google states that it can generally only crawl a link if it is an <a> element with an href attribute that resolves to a real web address. An <a> that navigates through onclick with no href, or whose href is a javascript: call, works for a reader with a mouse and is a dead end for a crawler: the page it leads to is not discovered through it and receives none of its anchor text.',
-    sources: [SOURCE.crawlableLinks],
+      'Google states that it can generally only crawl a link if it is an <a> element with an href attribute that resolves to a real web address. An <a> that navigates through onclick with no href, or whose href is a javascript: call, works for a reader with a mouse and is a dead end for a crawler: the page it leads to is not discovered through it and receives none of its anchor text. A client-side route in the fragment (href="#/pricing", "#!pricing") is the same dead end: Google drops everything after #, so the link leads to the page it sits on, and Google asks single-page apps to route with the History API instead.',
+    sources: [SOURCE.crawlableLinks, SOURCE.javascriptSeo],
   },
   LANG_MISSING: {
     severity: 'notice',
