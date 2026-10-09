@@ -27,6 +27,7 @@ import {
   MAX_PAGE_URL_LENGTH,
   REDIRECTED_OFF_SITE_REASON,
 } from '../../constants/post-selection.constant';
+import { REFUSAL_STATUSES } from '../../constants/site-fetch.constant';
 import type {
   ICrawledPage,
   ISelectedItem,
@@ -52,7 +53,7 @@ const failed = (code: TCrawlRunErrorCode): IRunOutcome => ({
   errorMessage: CRAWL_RUN_ERRORS[code].message,
 });
 
-const REFUSED = new Set([401, 403, 429]);
+const REFUSED = REFUSAL_STATUSES;
 const UNANSWERED = new Set([
   'Timed out',
   'Could not connect',

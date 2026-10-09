@@ -173,8 +173,16 @@ describe('outcomeOf', () => {
   });
 
   it('a bot challenge on every post is SITE_BLOCKED too', () => {
+    expect(outcomeOf(0, [failedItem(503, 'Bot challenge')])).toMatchObject({
+      errorCode: 'SITE_BLOCKED',
+    });
+  });
+
+  // allrecipes.com, 2026-10: Cloudflare's pay-per-crawl answered every post 402, and
+  // the run failed as if no post had been found.
+  it('402 Payment Required on every post is SITE_BLOCKED', () => {
     expect(
-      outcomeOf(0, [failedItem(503, 'Bot challenge (Cloudflare)')]),
+      outcomeOf(0, [failedItem(402, 'HTTP 402'), failedItem(402, 'HTTP 402')]),
     ).toMatchObject({ errorCode: 'SITE_BLOCKED' });
   });
 

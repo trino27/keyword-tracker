@@ -13,6 +13,10 @@ import {
   WELL_KNOWN_SITEMAP_PATHS,
 } from '../../constants/sitemap-scoring.constant';
 import {
+  isBotChallenge,
+  REFUSAL_STATUSES,
+} from '../../constants/site-fetch.constant';
+import {
   BLOG_SOURCE_ORDER,
   type IBlogSource,
   type IBlogSourceContext,
@@ -111,7 +115,6 @@ type TDiscoveryFailure = Extract<TSitemapDiscovery, { ok: false }>;
 
 /** Below this, a sitemap on a sibling subdomain waits for the site's own. */
 const OTHER_HOST_PRIORITY = -10;
-const REFUSAL_STATUSES = new Set([401, 403, 429]);
 
 /**
  * Finds the blog without knowing the site (§10.1): reads robots.txt, walks the sitemaps
@@ -488,13 +491,13 @@ export class SitemapDiscoveryService {
   }
 }
 
-/** 401/403/429, or a Cloudflare challenge page (`cf-mitigated: challenge`, often a 503). */
+/** A refusing status, or a bot challenge page whatever its status. */
 function isRefusal(response: ISiteResponse): boolean {
   return REFUSAL_STATUSES.has(response.status) || isChallenge(response);
 }
 
 function isChallenge(response: ISiteResponse): boolean {
-  return response.headers['cf-mitigated']?.toLowerCase() === 'challenge';
+  return isBotChallenge(response.headers);
 }
 
 /** robots.txt may name a sitemap by a relative path (`Sitemap: /sitemap.xml`). */

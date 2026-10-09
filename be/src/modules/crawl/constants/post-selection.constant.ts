@@ -74,8 +74,8 @@ export const MAX_PAGE_URL_LENGTH = 2048;
 /** A same-site entry whose page now lives on another site — a moved post or blog. */
 export const REDIRECTED_OFF_SITE_REASON = 'Redirects to another site';
 
-/** A page answered with a Cloudflare challenge (`cf-mitigated: challenge`) — a bot wall. */
-export const BOT_CHALLENGE_REASON = 'Bot challenge (Cloudflare)';
+/** A page answered with a bot challenge (`isBotChallenge`) — a bot wall. */
+export const BOT_CHALLENGE_REASON = 'Bot challenge';
 
 export const ARTICLE_SCHEMA_TYPES: ReadonlySet<string> = new Set([
   'Article',

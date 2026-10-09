@@ -177,9 +177,32 @@ describe('PostSelectionService', () => {
         httpStatus,
       ]),
     ).toEqual([
-      ['failed', 'Bot challenge (Cloudflare)', 503],
-      ['failed', 'Bot challenge (Cloudflare)', 403],
+      ['failed', 'Bot challenge', 503],
+      ['failed', 'Bot challenge', 403],
     ]);
+  });
+
+  // blog.jetbrains.com, 2026-10: CloudFront's WAF answered every post 202 with an
+  // empty body, and the posts were skipped as rendered by JavaScript.
+  it('an AWS WAF challenge is a refusal too', async () => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/a/`]: {
+        status: 202,
+        headers: {
+          'content-type': 'text/html',
+          'x-amzn-waf-action': 'challenge',
+        },
+        body: '',
+      },
+    });
+
+    const { items } = await select([`${ORIGIN}/posts/a/`]);
+
+    expect(items[0]).toMatchObject({
+      status: 'failed',
+      reason: 'Bot challenge',
+      httpStatus: 202,
+    });
   });
 
   it('considers at most 30 entries', async () => {

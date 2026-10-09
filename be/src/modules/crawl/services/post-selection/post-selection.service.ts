@@ -26,6 +26,7 @@ import {
   NOT_FOUND_HEADLINE,
   NOT_FOUND_HEADLINE_MAX,
 } from '../../constants/post-selection.constant';
+import { isBotChallenge } from '../../constants/site-fetch.constant';
 import type {
   IPostSelection,
   ISelectedItem,
@@ -126,7 +127,7 @@ export class PostSelectionService {
         REDIRECTED_OFF_SITE_REASON,
         response.status,
       );
-    if (response.headers['cf-mitigated']?.toLowerCase() === 'challenge')
+    if (isBotChallenge(response.headers))
       return skip('failed', BOT_CHALLENGE_REASON, response.status);
     if (response.status >= 300)
       return skip('failed', `HTTP ${response.status}`, response.status);
