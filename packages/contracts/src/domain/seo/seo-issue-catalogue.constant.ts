@@ -243,6 +243,35 @@ export const ISSUE_SOURCES = {
     title: 'Google Search Central: Control what you share with Google',
     url: 'https://developers.google.com/search/docs/crawling-indexing/control-what-you-share',
   },
+  coreWebVitals: {
+    title:
+      'Google Search Central: Understanding Core Web Vitals and Google search results',
+    url: 'https://developers.google.com/search/docs/appearance/core-web-vitals',
+  },
+  optimizeLcp: {
+    title: 'web.dev: Optimize Largest Contentful Paint',
+    url: 'https://web.dev/articles/optimize-lcp',
+  },
+  lcpLazyLoading: {
+    title: 'web.dev: The performance effects of too much lazy loading',
+    url: 'https://web.dev/articles/lcp-lazy-loading',
+  },
+  mdnScript: {
+    title: 'MDN: <script>: the Script element',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script',
+  },
+  mdnPreload: {
+    title: 'MDN: rel=preload',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/preload',
+  },
+  bfcache: {
+    title: 'web.dev: Back/forward cache',
+    url: 'https://web.dev/articles/bfcache',
+  },
+  domSize: {
+    title: 'web.dev: How large DOM sizes affect interactivity',
+    url: 'https://web.dev/articles/dom-size-and-interactivity',
+  },
   structuredDataIntro: {
     title: 'Google Search Central: Introduction to structured data markup',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data',
@@ -597,6 +626,49 @@ export const SEO_ISSUE_CATALOGUE = {
       'When crawling for Google Search, Googlebot reads only the first 2 MB of an HTML file; anything past that is never indexed. This check fires at half that, while there is still room to act. Most pages this large carry a big inline data blob — framework hydration state, embedded SVGs, base64 images — ahead of the text, and the same weight slows every reader on a mobile connection.',
     sources: [SOURCE.googlebot],
     max: 1_048_576,
+  },
+  LCP_IMAGE_LAZY_LOADED: {
+    severity: 'notice',
+    label: 'Featured image is lazy-loaded',
+    hint: 'Load the featured image eagerly — drop loading="lazy" and add fetchpriority="high".',
+    explanation:
+      'The image the page names as its featured image (og:image) is marked loading="lazy". A featured image at the top of a post is usually the page\'s Largest Contentful Paint, and a lazy image is only requested once layout has shown it to be on screen — hundreds of milliseconds after the browser could have started. web.dev measured that lazy-loading above-the-fold images makes LCP worse, which is why WordPress stopped lazy-loading the first featured image. Core Web Vitals are a page-experience signal Google\'s ranking systems reward, but a small one; the bigger cost is to readers. This is read from the HTML, not measured in a browser: only field data (Chrome UX Report) says what LCP readers actually get.',
+    sources: [SOURCE.lcpLazyLoading, SOURCE.optimizeLcp, SOURCE.coreWebVitals],
+    skipReason: 'The page shows no featured image to judge.',
+  },
+  RENDER_BLOCKING_SCRIPTS: {
+    severity: 'notice',
+    label: 'Scripts in <head> block rendering',
+    hint: 'Add defer (or async, for scripts nothing depends on) to external scripts in <head>.',
+    explanation:
+      "External scripts in <head> without async or defer stop the HTML parser: nothing below them is parsed, and nothing is painted, until each is downloaded and run. Every one of them delays the first paint and the Largest Contentful Paint. defer keeps their order and runs them after parsing; async runs them as soon as they arrive; a module defers by itself. This is read from the HTML — whether the delay is large depends on the scripts' size and the reader's network, which only field data measures.",
+    sources: [SOURCE.mdnScript, SOURCE.optimizeLcp],
+  },
+  FONT_PRELOAD_WITHOUT_CROSSORIGIN: {
+    severity: 'notice',
+    label: 'Font preload without crossorigin',
+    hint: 'Add crossorigin to <link rel="preload" as="font">, even for a font on the same host.',
+    explanation:
+      'Fonts are always fetched in CORS mode, and MDN notes that preloading a font requires the crossorigin attribute. Without it the preloaded copy does not match the request the stylesheet later makes, so the browser downloads the font twice — the preload is wasted bandwidth at the moment the page is loading, and the text still waits for the second download.',
+    sources: [SOURCE.mdnPreload],
+  },
+  BFCACHE_BLOCKED_BY_NO_STORE: {
+    severity: 'notice',
+    label:
+      'Cache-Control: no-store keeps the page out of the back/forward cache',
+    hint: 'Serve public pages without no-store; keep it for responses that carry personal data.',
+    explanation:
+      'The page is served with Cache-Control: no-store. Browsers have historically refused to keep such pages in the back/forward cache, so pressing Back reloads the page from the network instead of restoring it instantly — and on mobile, Back is one of the most common navigations. no-store is meant for responses with sensitive data; a public blog post has none.',
+    sources: [SOURCE.bfcache],
+  },
+  DOM_SIZE_LARGE: {
+    severity: 'notice',
+    label: 'Large DOM',
+    hint: 'Trim wrappers, render long lists and below-the-fold sections lazily, or split the page.',
+    explanation:
+      'The HTML holds more elements than Lighthouse considers excessive (1,400). Every style recalculation and layout has to walk them, so a large DOM makes each interaction slower to paint — the delay Interaction to Next Paint measures — and costs memory on every phone that opens it. The count is of the HTML as served; scripts may add more.',
+    sources: [SOURCE.domSize],
+    max: 1_400,
   },
   HTML_NOT_COMPRESSED: {
     severity: 'notice',
