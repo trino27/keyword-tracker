@@ -1,4 +1,5 @@
 import { duplicatesOf, type TValueOf } from '../_shared/duplicates-of';
+import { evidence } from '../_shared/evidence';
 import { defineRunCheck } from '../check.interface';
 
 /** A page's top keyword - the one subject it is shown as being about. */
@@ -16,5 +17,8 @@ export const KEYWORD_CANNIBALISATION_CHECK = defineRunCheck(
     duplicatesOf(input, topKeyword, (term, others) => ({
       term,
       otherUrls: others,
+      evidence: evidence([
+        `"${term}" is the top keyword here and on ${others.length} other page${others.length === 1 ? '' : 's'} of this crawl`,
+      ]),
     })),
 );

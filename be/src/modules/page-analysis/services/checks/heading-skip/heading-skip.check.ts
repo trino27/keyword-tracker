@@ -1,3 +1,4 @@
+import { evidence } from '../_shared/evidence';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
@@ -14,6 +15,10 @@ export const HEADING_SKIP_CHECK = defineCheck('HEADING_SKIP', ({ parsed }) => {
         from: `h${previous.level}`,
         to: `h${current.level}`,
         heading: current.text,
+        evidence: evidence([
+          `<h${previous.level}>${previous.text}</h${previous.level}>`,
+          `<h${current.level}>${current.text}</h${current.level}> — follows it directly`,
+        ]),
       });
   }
   return PASS;

@@ -1,3 +1,4 @@
+import { attribute, evidence } from '../_shared/evidence';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 const EXAMPLES = 3;
@@ -19,6 +20,13 @@ export const IMAGES_MISSING_ALT_CHECK = defineCheck(
             .slice(0, EXAMPLES)
             .map((image) => image.src)
             .filter(Boolean),
+          evidence: evidence(
+            missing.map((image) =>
+              image.src === null
+                ? '<img> with neither src nor alt'
+                : `<img src="${attribute(image.src)}"> — no alt attribute`,
+            ),
+          ),
         })
       : PASS;
   },

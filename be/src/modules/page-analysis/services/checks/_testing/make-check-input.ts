@@ -1,5 +1,12 @@
 import type { IParsedPage } from '../../../interfaces/parsed-page.interface';
+import type { IRobotsRules } from '../../../interfaces/robots-rules.interface';
 import type { ICheckInput } from '../check.interface';
+
+/** A robots.txt that allows everything on the test site and governs no other host. */
+export const allowAllRobots = (host = 'a.example'): IRobotsRules => ({
+  allows: (url) => (new URL(url).hostname === host ? true : null),
+  matchingRule: () => null,
+});
 
 /** A page that passes every check; a test overrides only what its check reads. */
 export function makeCheckInput(
@@ -13,7 +20,9 @@ export function makeCheckInput(
     url: 'https://a.example/post/',
     finalUrl,
     redirected: false,
-    headers: { 'content-type': 'text/html' },
+    redirects: [],
+    robots: allowAllRobots(),
+    headers: { 'content-type': 'text/html', 'content-encoding': 'br' },
     htmlBytes: 50_000,
     ...rest,
     parsed: {
@@ -21,9 +30,11 @@ export function makeCheckInput(
       metaDescription:
         'Learn link building step by step: what works, what to avoid, and how to measure the links you earn.',
       metaRobots: null,
+      metaGooglebot: null,
       metaRefresh: null,
       viewport: 'width=device-width, initial-scale=1',
-      canonical: 'https://a.example/post/',
+      canonicals: ['https://a.example/post/'],
+      canonicalsOutsideHead: [],
       // Self-referencing, and derived from the URL for the same reason `runPage` derives
       // the canonical: a fixed href would fail HREFLANG_INVALID on every page of a run
       // but the first, and the failure would be about the fixture, not about a check.
@@ -59,6 +70,10 @@ export function makeCheckInput(
       images: [{ src: 'a.png', alt: 'A chart' }],
       resourceUrls: ['https://a.example/a.png'],
       links: ['https://a.example/another-post/'],
+      nofollowLinks: [],
+      uncrawlableLinks: [],
+      renderResources: ['https://a.example/app.js'],
+      clientRendered: false,
       blocks: ['Links matter.'],
       wordCount: 800,
       ...parsed,

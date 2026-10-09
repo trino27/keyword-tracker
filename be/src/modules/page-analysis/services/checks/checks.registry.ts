@@ -4,13 +4,17 @@ import {
   type TSeoIssue,
   type TSeoIssueCode,
 } from '@app/contracts';
+import { CANONICAL_CONFLICT_CHECK } from './canonical-conflict/canonical-conflict.check';
 import { CANONICAL_MISMATCH_CHECK } from './canonical-mismatch/canonical-mismatch.check';
 import { CANONICAL_MISSING_CHECK } from './canonical-missing/canonical-missing.check';
 import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
+import { HTML_NOT_COMPRESSED_CHECK } from './html-not-compressed/html-not-compressed.check';
 import { IMAGES_MISSING_ALT_CHECK } from './images-missing-alt/images-missing-alt.check';
+import { INTERNAL_LINK_VARIANTS_CHECK } from './internal-link-variants/internal-link-variants.check';
+import { INTERNAL_LINKS_NOFOLLOW_CHECK } from './internal-links-nofollow/internal-links-nofollow.check';
 import { KEYWORD_CANNIBALISATION_CHECK } from './keyword-cannibalisation/keyword-cannibalisation.check';
 import { LANG_MISSING_CHECK } from './lang-missing/lang-missing.check';
 import { LARGE_PAGE_CHECK } from './large-page/large-page.check';
@@ -24,12 +28,15 @@ import { NOINDEX_CHECK } from './noindex/noindex.check';
 import { NOT_HTTPS_CHECK } from './not-https/not-https.check';
 import { OG_TAGS_MISSING_CHECK } from './og-tags-missing/og-tags-missing.check';
 import { REDIRECTED_CHECK } from './redirected/redirected.check';
+import { ROBOTS_BLOCKS_GOOGLEBOT_CHECK } from './robots-blocks-googlebot/robots-blocks-googlebot.check';
+import { ROBOTS_BLOCKS_RESOURCES_CHECK } from './robots-blocks-resources/robots-blocks-resources.check';
 import { STRUCTURED_DATA_MISSING_CHECK } from './structured-data-missing/structured-data-missing.check';
 import { STRUCTURED_DATA_INCOMPLETE_CHECK } from './structured-data-incomplete/structured-data-incomplete.check';
 import { THIN_CONTENT_CHECK } from './thin-content/thin-content.check';
 import { TITLE_DUPLICATE_CHECK } from './title-duplicate/title-duplicate.check';
 import { TITLE_LENGTH_CHECK } from './title-length/title-length.check';
 import { TITLE_MISSING_CHECK } from './title-missing/title-missing.check';
+import { UNCRAWLABLE_LINKS_CHECK } from './uncrawlable-links/uncrawlable-links.check';
 import { VIEWPORT_MISSING_CHECK } from './viewport-missing/viewport-missing.check';
 import type { IRunInput, TCheck, TVerdict } from './check.interface';
 
@@ -57,10 +64,16 @@ export const CHECKS: TCheckRegistry = {
   HEADING_SKIP: HEADING_SKIP_CHECK,
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
+  CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
   NOINDEX: NOINDEX_CHECK,
+  ROBOTS_BLOCKS_GOOGLEBOT: ROBOTS_BLOCKS_GOOGLEBOT_CHECK,
+  ROBOTS_BLOCKS_RESOURCES: ROBOTS_BLOCKS_RESOURCES_CHECK,
   IMAGES_MISSING_ALT: IMAGES_MISSING_ALT_CHECK,
   THIN_CONTENT: THIN_CONTENT_CHECK,
   NO_INTERNAL_LINKS: NO_INTERNAL_LINKS_CHECK,
+  INTERNAL_LINKS_NOFOLLOW: INTERNAL_LINKS_NOFOLLOW_CHECK,
+  INTERNAL_LINK_VARIANTS: INTERNAL_LINK_VARIANTS_CHECK,
+  UNCRAWLABLE_LINKS: UNCRAWLABLE_LINKS_CHECK,
   LANG_MISSING: LANG_MISSING_CHECK,
   HREFLANG_INVALID: HREFLANG_INVALID_CHECK,
   VIEWPORT_MISSING: VIEWPORT_MISSING_CHECK,
@@ -70,6 +83,7 @@ export const CHECKS: TCheckRegistry = {
   REDIRECTED: REDIRECTED_CHECK,
   META_REFRESH: META_REFRESH_CHECK,
   LARGE_PAGE: LARGE_PAGE_CHECK,
+  HTML_NOT_COMPRESSED: HTML_NOT_COMPRESSED_CHECK,
   KEYWORD_CANNIBALISATION: KEYWORD_CANNIBALISATION_CHECK,
   TITLE_DUPLICATE: TITLE_DUPLICATE_CHECK,
   META_DESCRIPTION_DUPLICATE: META_DESCRIPTION_DUPLICATE_CHECK,

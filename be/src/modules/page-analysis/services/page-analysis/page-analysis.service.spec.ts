@@ -15,13 +15,13 @@ describe('PageAnalysisService', () => {
       makeAnalysisInput({
         url: 'https://a.example/link-building/',
         finalUrl: 'https://a.example/link-building/',
-        parsed: { canonical: 'https://a.example/link-building/' },
+        parsed: { canonicals: ['https://a.example/link-building/'] },
       }),
       makeAnalysisInput({
         url: 'https://a.example/widget-pricing/',
         finalUrl: 'https://a.example/widget-pricing/',
         parsed: {
-          canonical: 'https://a.example/widget-pricing/',
+          canonicals: ['https://a.example/widget-pricing/'],
           title: 'Our company news for this month, in brief',
           h1s: ['Widget pricing'],
           headings: [{ level: 1, text: 'Widget pricing' }],

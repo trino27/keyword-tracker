@@ -1,5 +1,6 @@
 import { normalizeText } from '../../text/normalize-text/normalize-text';
 import { duplicatesOf, type TValueOf } from '../_shared/duplicates-of';
+import { evidence } from '../_shared/evidence';
 import { defineRunCheck } from '../check.interface';
 
 const titleOf: TValueOf = (input, index) => {
@@ -11,5 +12,10 @@ const titleOf: TValueOf = (input, index) => {
 export const TITLE_DUPLICATE_CHECK = defineRunCheck(
   'TITLE_DUPLICATE',
   (input) =>
-    duplicatesOf(input, titleOf, (_, others) => ({ otherUrls: others })),
+    duplicatesOf(input, titleOf, (_, others, index) => ({
+      otherUrls: others,
+      evidence: evidence([
+        `<title>${input.pages[index].parsed.title ?? ''}</title> — the same on ${others.length} other page${others.length === 1 ? '' : 's'}`,
+      ]),
+    })),
 );

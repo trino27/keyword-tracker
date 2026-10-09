@@ -4,6 +4,7 @@ import type {
   TSeoIssueCode,
 } from '@app/contracts';
 import type { IParsedPage } from '../../interfaces/parsed-page.interface';
+import type { IRobotsRules } from '../../interfaces/robots-rules.interface';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 
 /**
@@ -18,6 +19,10 @@ export interface ICheckInput {
   url: string;
   finalUrl: string;
   redirected: boolean;
+  /** Each redirect followed from `url` to `finalUrl`: the URL that answered, its 3xx. */
+  redirects: readonly { url: string; status: number }[];
+  /** The site's robots.txt, to be asked what it allows crawlers other than ours. */
+  robots: IRobotsRules;
   /** Lower-cased response headers. */
   headers: Record<string, string>;
   htmlBytes: number;

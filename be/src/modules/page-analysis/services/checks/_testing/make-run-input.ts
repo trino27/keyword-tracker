@@ -20,7 +20,7 @@ export const runPage = (
     finalUrl: url,
     ...rest,
     parsed: {
-      canonical: url,
+      canonicals: [url],
       alternates: [{ lang: 'en', href: url }],
       ...parsed,
     },

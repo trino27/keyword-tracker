@@ -1,4 +1,5 @@
 import { sameDocument } from '../_shared/same-document';
+import { attribute, evidence } from '../_shared/evidence';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
@@ -59,6 +60,22 @@ export const HREFLANG_INVALID_CHECK = defineCheck(
 
     return invalid.length === 0 && selfReferenced
       ? PASS
-      : fails({ invalid, selfReferenced });
+      : fails({
+          invalid,
+          selfReferenced,
+          evidence: evidence([
+            ...parsed.alternates
+              .filter(({ lang }) => invalid.includes(lang))
+              .map(
+                ({ lang, href }) =>
+                  `<link rel="alternate" hreflang="${attribute(lang)}" href="${attribute(href)}"> — not a language code`,
+              ),
+            ...(selfReferenced
+              ? []
+              : [
+                  `None of the ${parsed.alternates.length} alternates names this page (${finalUrl})`,
+                ]),
+          ]),
+        });
   },
 );

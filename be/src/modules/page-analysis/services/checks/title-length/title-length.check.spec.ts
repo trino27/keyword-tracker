@@ -1,4 +1,9 @@
-import { failsWith, NOT_APPLICABLE, PASSES } from '../_testing/expect-verdict';
+import {
+  evidenceOf,
+  failsWith,
+  NOT_APPLICABLE,
+  PASSES,
+} from '../_testing/expect-verdict';
 import { makeCheckInput } from '../_testing/make-check-input';
 import { TITLE_LENGTH_CHECK } from './title-length.check';
 
@@ -29,5 +34,13 @@ describe('TITLE_LENGTH', () => {
     expect(TITLE_LENGTH_CHECK.evaluate(withTitle(null))).toEqual(
       NOT_APPLICABLE,
     );
+  });
+
+  it('quotes the title it measured', () => {
+    const verdict = TITLE_LENGTH_CHECK.evaluate(
+      makeCheckInput({ parsed: { title: 'Short' } }),
+    );
+
+    expect(evidenceOf(verdict)).toEqual(['<title>Short</title>']);
   });
 });

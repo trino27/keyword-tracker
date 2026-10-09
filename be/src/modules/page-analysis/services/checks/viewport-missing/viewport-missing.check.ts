@@ -1,3 +1,4 @@
+import { evidence } from '../_shared/evidence';
 import { defineCheck, fails, PASS } from '../check.interface';
 
 /**
@@ -7,5 +8,10 @@ import { defineCheck, fails, PASS } from '../check.interface';
  */
 export const VIEWPORT_MISSING_CHECK = defineCheck(
   'VIEWPORT_MISSING',
-  ({ parsed }) => (parsed.viewport === null ? fails({}) : PASS),
+  ({ parsed }) =>
+    parsed.viewport === null
+      ? fails({
+          evidence: evidence(['No <meta name="viewport"> in the document']),
+        })
+      : PASS,
 );

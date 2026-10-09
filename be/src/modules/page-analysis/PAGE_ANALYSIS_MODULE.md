@@ -70,13 +70,17 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Sixteen of the twenty-seven checks always apply; eleven are conditional. Eight of those are
-  page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing, CANONICAL_MISMATCH
-  on there being a canonical to disagree with, IMAGES_MISSING_ALT on there being an image,
-  HEADING_SKIP on there being two or more headings, HREFLANG_INVALID on the page declaring an
-  alternate, MIXED_CONTENT on the page being served over HTTPS at all, STRUCTURED_DATA_INCOMPLETE
-  on there being an article node to inspect — and three are run-scoped, skipped when the run
-  holds one page or the page has no value to compare. So `16 <= checks_applicable <= 27`, which
+  Eighteen of the thirty-four checks always apply; sixteen are conditional. Thirteen of those
+  are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
+  CANONICAL_MISMATCH and CANONICAL_CONFLICT on there being a canonical to disagree with,
+  IMAGES_MISSING_ALT on there being an image, HEADING_SKIP on there being two or more headings,
+  HREFLANG_INVALID on the page declaring an alternate, MIXED_CONTENT on the page being served over
+  HTTPS at all, STRUCTURED_DATA_INCOMPLETE on there being an article node to inspect,
+  INTERNAL_LINKS_NOFOLLOW and INTERNAL_LINK_VARIANTS on there being a link to another page of the
+  site, ROBOTS_BLOCKS_GOOGLEBOT on the robots.txt governing the page's host and
+  ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a host — and three
+  are run-scoped, skipped when the run holds one page or the page has no value to compare. So
+  `18 <= checks_applicable <= 34`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -115,6 +119,37 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   0 times, and `HREFLANG_INVALID` is skipped on 39 of 43 — which is the shape wanted, since the
   corpus is two competent publishers and a check that fired across it would be reporting a house
   style. The one firing is a page with no server-rendered content at all.
+- **Every finding shows its proof, and every check says why at length (2026-10-09).** A finding
+  carries `evidence` — the markup, header or robots.txt rule it is about, as found on the page,
+  at most five quotes of at most 320 characters — because a claim the reader cannot check against
+  the page source is one they have to take on trust. The catalogue gives every code an
+  `explanation` (what the check reads, why it matters and to whom, and — where it is true — that
+  Google does NOT use the signal: heading order, `lang`, word count) and `sources`, first-party
+  documentation each opened and read against its claim on the day it was cited. The registry spec
+  builds a run in which every check fails and asserts each finding quotes something, so a check
+  that cannot fail, or fails without proof, does not get past CI. Findings stored before this
+  carry no evidence and render without it.
+- **Seven checks added from Google's crawling and indexing documentation (2026-10-09).**
+  `ROBOTS_BLOCKS_GOOGLEBOT` (error — a page Google may not fetch is out of the running) asks the
+  run's robots.txt about Googlebot, which the crawl never did: it obeyed the file under its own
+  name, so a group closing the site to Google alone was invisible. `ROBOTS_BLOCKS_RESOURCES` asks
+  the same of the page's scripts and stylesheets on that host — Google will not render with what
+  it may not fetch. `CANONICAL_CONFLICT` reports a page declaring two canonicals, in tags or in a
+  `Link` header. `UNCRAWLABLE_LINKS`, `INTERNAL_LINKS_NOFOLLOW` and `INTERNAL_LINK_VARIANTS` read
+  the content's links for what Google's link guidance names: no href or a `javascript:` one;
+  nofollow on the site's own pages; HTTP, the other www-variant or a tracking parameter where the
+  served URL belongs. `HTML_NOT_COMPRESSED` reads the `Content-Encoding` of an answer the crawl
+  requested with `gzip, deflate, br`. On the 43 recorded posts they fire 0, 0, 0, 0, 1, 3 and 0
+  times: yoast's `nofollow` on an add-to-cart link, and semrush linking to its bare host and with
+  `utm_` parameters from three posts — real, and not a house style.
+- **Four existing checks read more than they did (2026-10-09).** `NOINDEX` reads
+  `<meta name="googlebot">`, and an X-Robots-Tag scoped to another crawler (`bingbot: noindex`)
+  no longer counts as one for Google. `CANONICAL_MISSING` accepts a canonical in a `Link` header
+  and quotes one written in `<body>`, which Google ignores; the extractor reads canonicals from
+  `<head>` only, as Google does. `NO_INTERNAL_LINKS` no longer counts a table of contents —
+  links back into the page lead nowhere new. `REDIRECTED` quotes every hop with its status, since
+  a 302 tells Google to keep the URL the sitemap lists. And the extractor resolves every URL
+  against `<base href>`, as a browser and Googlebot do.
 - **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
   answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
   never fetches, and the extractor removes the nav and the related-posts rail that carry most
@@ -124,7 +159,14 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   again: a rule reporting a house style. Core Web Vitals and anything built on one server-side
   timing stay out for the reason `SLOW_RESPONSE` was retired. `llms.txt` is not a ratified
   standard and not a confirmed signal, and a check would manufacture the urgency the catalogue's
-  wording is careful to avoid.
+  wording is careful to avoid. HTTP cache validators (`ETag`, `Last-Modified`), which Google's
+  crawler documentation recommends: measured live on 2026-10-09, three of five well-run blogs
+  send neither and yoast's `Last-Modified` is the time of the request, so the check would report
+  a house style and pass a value that validates nothing. Scroll-triggered lazy loading cannot be
+  told from IntersectionObserver lazy loading in the HTML, and only the first is a problem.
+  Soft 404s, HTTP→HTTPS and www normalisation are properties of the SITE, not of a page: they
+  need a request of their own per crawl and a place to store a site-level finding, which the
+  catalogue — page and run scopes only — does not have yet.
 - **Two checks are deliberately absent.** `SLOW_RESPONSE` measured the crawler's network position
   rather than the page, and `KEYWORD_NOT_IN_TITLE` could not fail by construction. The
   measurements are in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and
@@ -159,7 +201,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per catalogued code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The twenty-seven checks, their thresholds and their severities, each finding saying exactly what is wrong.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code) and `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place".
+**The thirty-four checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".

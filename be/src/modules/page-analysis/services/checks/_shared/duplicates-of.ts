@@ -26,7 +26,11 @@ export type TValueOf = (input: IRunInput, index: number) => string | null;
 export function duplicatesOf<TCode extends TRunIssueCode>(
   input: IRunInput,
   valueOf: TValueOf,
-  detailsOf: (value: string, others: string[]) => TIssueDetails<TCode>,
+  detailsOf: (
+    value: string,
+    others: string[],
+    index: number,
+  ) => TIssueDetails<TCode>,
 ): TVerdict<TCode>[] {
   const values = input.pages.map((_, index) => valueOf(input, index));
   const owners = new Map<string, string[]>();
@@ -42,6 +46,6 @@ export function duplicatesOf<TCode extends TRunIssueCode>(
     const others = (owners.get(value) ?? []).filter(
       (url) => url !== input.pages[index].url,
     );
-    return others.length === 0 ? PASS : fails(detailsOf(value, others));
+    return others.length === 0 ? PASS : fails(detailsOf(value, others, index));
   });
 }

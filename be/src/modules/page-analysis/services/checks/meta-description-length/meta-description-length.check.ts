@@ -1,5 +1,6 @@
 import { SEO_ISSUE_CATALOGUE } from '@app/contracts';
 import { characterLength } from '../_shared/character-length';
+import { attribute, evidence } from '../_shared/evidence';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 const { min, max } = SEO_ISSUE_CATALOGUE.META_DESCRIPTION_LENGTH;
@@ -11,7 +12,14 @@ export const META_DESCRIPTION_LENGTH_CHECK = defineCheck(
     if (parsed.metaDescription === null) return NOT_APPLICABLE;
     const length = characterLength(parsed.metaDescription);
     return length < min || length > max
-      ? fails({ value: length, min, max })
+      ? fails({
+          value: length,
+          min,
+          max,
+          evidence: evidence([
+            `<meta name="description" content="${attribute(parsed.metaDescription)}">`,
+          ]),
+        })
       : PASS;
   },
 );

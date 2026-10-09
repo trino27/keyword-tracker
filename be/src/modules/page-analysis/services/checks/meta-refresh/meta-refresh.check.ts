@@ -1,3 +1,4 @@
+import { attribute, evidence } from '../_shared/evidence';
 import { defineCheck, fails, PASS } from '../check.interface';
 
 /**
@@ -24,6 +25,9 @@ export const META_REFRESH_CHECK = defineCheck('META_REFRESH', ({ parsed }) => {
     ? fails({
         content: parsed.metaRefresh,
         to: target.replace(/^['"]|['"]$/g, ''),
+        evidence: evidence([
+          `<meta http-equiv="refresh" content="${attribute(parsed.metaRefresh)}">`,
+        ]),
       })
     : PASS;
 });
