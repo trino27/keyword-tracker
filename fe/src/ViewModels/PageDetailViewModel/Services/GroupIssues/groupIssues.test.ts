@@ -177,4 +177,45 @@ describe("groupIssues", () => {
 			]),
 		});
 	});
+
+	it("links the pages a near-duplicate shares its text with", () => {
+		const [group] = groupIssues([
+			{
+				code: "NEAR_DUPLICATE_CONTENT",
+				severity: "warning",
+				details: { similarity: 0.73, otherUrls: ["https://a.example/ottawa/"] },
+			},
+		]);
+
+		expect(group.issues[0]).toMatchObject({
+			detail: "Another page shares most of this text (73% of its five-word sequences).",
+			relatedUrls: ["https://a.example/ottawa/"],
+		});
+	});
+
+	it("names both dates of a bumped date", () => {
+		const [group] = groupIssues([
+			{
+				code: "DATE_BUMPED_WITHOUT_CHANGES",
+				severity: "warning",
+				details: { before: "2026-08-01", after: "2026-10-01" },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The modified date moved from 2026-08-01 to 2026-10-01; the text did not change.",
+		);
+	});
+
+	it("agrees the verb with a count of one", () => {
+		const [group] = groupIssues([
+			{
+				code: "INTERNAL_LINKS_NOFOLLOW",
+				severity: "notice",
+				details: { count: 1, total: 4 },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe("1 of 4 links to this site is marked nofollow.");
+	});
 });

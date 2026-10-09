@@ -33,7 +33,10 @@ export function PageDetailScreen() {
 		[search.range, search.from, search.to, timeZone],
 	);
 
-	const { fetchDetail, fetchHistory, fillPositions } = vm;
+	const { fetchDetail, fetchHistory, fillPositions, fetchSearchUpdates } = vm;
+	useEffect(() => {
+		void fetchSearchUpdates();
+	}, [fetchSearchUpdates]);
 	useEffect(() => {
 		if (validId) void fetchDetail(pageId);
 	}, [validId, pageId, fetchDetail]);
@@ -81,6 +84,7 @@ export function PageDetailScreen() {
 				today={todayInZone(new Date(), timeZone)}
 				view={search.view}
 				hidden={hidden}
+				searchUpdates={vm.searchUpdates}
 				filling={vm.fillStatus === "loading"}
 				fillError={vm.fillError}
 				onPreset={(preset) =>

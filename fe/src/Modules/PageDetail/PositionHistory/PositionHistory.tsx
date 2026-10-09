@@ -1,6 +1,7 @@
 import { Alert, Button, Paper, Skeleton, Stack, Text, Title } from "@mantine/core";
 import type { TIsoDay } from "@app/contracts";
 import type { TPositionHistory } from "@Gateways/PageGateway/Validation/PageSchemas";
+import type { TSearchUpdate } from "@Gateways/SearchUpdateGateway/Validation/SearchUpdateSchemas";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import type { TLoadStatus } from "@ViewModels/ClientsViewModel/ClientsViewModel";
 import type {
@@ -22,6 +23,8 @@ interface IPositionHistoryProps {
 	today: TIsoDay;
 	view: "chart" | "table";
 	hidden: number[];
+	/** Google's ranking updates, drawn as bands on the chart where they overlap it. */
+	searchUpdates?: TSearchUpdate[];
 	filling: boolean;
 	fillError: string | null;
 	onPreset: (preset: TRangePreset) => void;
@@ -62,7 +65,12 @@ export function PositionHistory(props: IPositionHistoryProps) {
 	} else {
 		body =
 			view === "chart" ? (
-				<PositionChart history={history} hidden={hidden} />
+				<PositionChart
+					history={history}
+					hidden={hidden}
+					searchUpdates={props.searchUpdates ?? []}
+					today={props.today}
+				/>
 			) : (
 				<PositionTable history={history} />
 			);

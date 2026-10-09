@@ -76,6 +76,10 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	KEYWORD_CANNIBALISATION: (d) => `${others(d, "lead")} with "${text(d, "term")}".`,
 	TITLE_DUPLICATE: (d) => `${others(d, "use")} the same title.`,
 	META_DESCRIPTION_DUPLICATE: (d) => `${others(d, "use")} the same description.`,
+	NEAR_DUPLICATE_CONTENT: (d) => {
+		const share = typeof d.similarity === "number" ? Math.round(d.similarity * 100) : "?";
+		return `${others(d, "share")} most of this text (${share}% of its five-word sequences).`;
+	},
 	TITLE_MISSING: () => "The page has no <title> in its <head>.",
 	TITLE_LENGTH: (d) =>
 		`The title is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
@@ -96,6 +100,9 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`The page declares ${urls(d, "canonicals").length} different canonical URLs.`,
 	NOINDEX: (d) =>
 		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "value")}".`,
+	SNIPPET_RESTRICTED: (d) =>
+		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "rule")}".`,
+	ROBOTS_BLOCKS_AI_SEARCH: (d) => `robots.txt keeps ${list(d, "crawlers")} from this page.`,
 	ROBOTS_BLOCKS_GOOGLEBOT: (d) =>
 		`Googlebot may not fetch this page: ${text(d, "rule") ? `robots.txt ${text(d, "rule")}` : "robots.txt disallows it"}.`,
 	ROBOTS_BLOCKS_RESOURCES: (d) =>
@@ -104,6 +111,9 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${num(d, "count")} of ${num(d, "total")} images in the content have no alt text.`,
 	THIN_CONTENT: (d) =>
 		`The content has ${num(d, "value")} words; aim for at least ${num(d, "min")}.`,
+	AUTHOR_MISSING: () => "Nothing on the page names who wrote it.",
+	DATE_BUMPED_WITHOUT_CHANGES: (d) =>
+		`The modified date moved from ${text(d, "before")} to ${text(d, "after")}; the text did not change.`,
 	NO_INTERNAL_LINKS: (d) => {
 		const external = num(d, "external");
 		return external === 0
@@ -111,9 +121,9 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 			: `The content links out ${external} time${external === 1 ? "" : "s"}, never to this site.`;
 	},
 	INTERNAL_LINKS_NOFOLLOW: (d) =>
-		`${num(d, "count")} of ${num(d, "total")} links to this site are marked nofollow.`,
+		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "is" : "are"} marked nofollow.`,
 	INTERNAL_LINK_VARIANTS: (d) =>
-		`${num(d, "count")} of ${num(d, "total")} links to this site use a URL the site does not serve.`,
+		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "uses" : "use"} a URL the site does not serve.`,
 	UNCRAWLABLE_LINKS: (d) => {
 		const count = num(d, "count");
 		return `${count} link${count === 1 ? "" : "s"} in the content ${count === 1 ? "has" : "have"} no URL a crawler can follow.`;

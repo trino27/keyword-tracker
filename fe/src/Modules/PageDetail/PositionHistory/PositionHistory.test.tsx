@@ -51,6 +51,50 @@ describe("PositionHistory", () => {
 		expect(screen.getByLabelText("Loading keywords")).toBeInTheDocument();
 	});
 
+	// The first question of a drop: did Google move? The band is drawn on the chart and
+	// named, with a link to Google's own announcement, beneath it.
+	it("names the Google updates the chart's days overlap, linked to the dashboard", () => {
+		show({
+			history: {
+				...HISTORY,
+				series: [
+					{
+						...HISTORY.series[0],
+						points: [
+							{ capturedAt: "2026-09-25T12:00:00.000Z", position: 4 },
+							{ capturedAt: "2026-10-01T12:00:00.000Z", position: 9 },
+						],
+					},
+				],
+			},
+			status: "ready",
+			searchUpdates: [
+				{
+					id: "spam-sep",
+					title: "September 2026 spam update",
+					kind: "spam",
+					begin: "2026-09-24T16:15:00.000Z",
+					end: "2026-10-08T08:00:00.000Z",
+					url: "https://status.search.google.com/incidents/spam-sep",
+				},
+				{
+					id: "core-may",
+					title: "May 2026 core update",
+					kind: "core",
+					begin: "2026-05-21T15:40:00.000Z",
+					end: "2026-06-02T08:00:00.000Z",
+					url: "https://status.search.google.com/incidents/core-may",
+				},
+			],
+		});
+
+		const link = screen.getByRole("link", { name: /September 2026 spam update/ });
+		expect(link).toHaveAttribute("href", "https://status.search.google.com/incidents/spam-sep");
+		// The rollout's own dates, not the two days of data the band is clipped to.
+		expect(link).toHaveTextContent("September 2026 spam update (Sep 24–Oct 8)");
+		expect(screen.queryByText(/May 2026 core update/)).not.toBeInTheDocument();
+	});
+
 	it("replaces the stand-in with the chips once the history is there", () => {
 		show({ history: HISTORY, status: "ready" });
 
