@@ -49,4 +49,20 @@ describe('ROBOTS_BLOCKS_RESOURCES', () => {
       ),
     ).toEqual(NOT_APPLICABLE);
   });
+
+  // ahrefs.com, 2026-10: `Disallow: /cdn-cgi/` keeps Cloudflare's e-mail decoder from
+  // Googlebot, and the page renders the same without it.
+  it("does not judge Cloudflare's own endpoints", () => {
+    const rules = 'User-agent: *\nDisallow: /cdn-cgi/\n';
+    const decoder =
+      'https://a.example/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js';
+    expect(
+      ROBOTS_BLOCKS_RESOURCES_CHECK.evaluate(
+        loading([decoder, 'https://a.example/app.js'], rules),
+      ),
+    ).toEqual(PASSES);
+    expect(
+      ROBOTS_BLOCKS_RESOURCES_CHECK.evaluate(loading([decoder], rules)),
+    ).toEqual(NOT_APPLICABLE);
+  });
 });

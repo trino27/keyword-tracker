@@ -7,6 +7,14 @@ import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
  */
 const FUTURE_SLACK_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * A minute of slack on "modified before published": a CMS that stamps the two from
+ * separate clock reads writes them a second apart — ghost.org, 2026-10: modified
+ * 10:00:41, published 10:00:42 — which no reader or search engine would call a
+ * contradiction. A scheduled post re-dated days later still is one.
+ */
+const MODIFIED_SLACK_MS = 60 * 1000;
+
 /** A path segment that is a plausible year, as blogs put it: /2023/10/slug/. */
 const YEAR_SEGMENT = /\/((?:19|20)\d{2})\//;
 
@@ -36,7 +44,7 @@ export const DATES_INCONSISTENT_CHECK = defineCheck(
       contradictions.push(`datePublished "${datePublished}" is not a date`);
     } else {
       const modified = dateModified ? Date.parse(dateModified) : NaN;
-      if (!Number.isNaN(modified) && modified < published)
+      if (!Number.isNaN(modified) && modified < published - MODIFIED_SLACK_MS)
         contradictions.push(
           `dateModified ${dateModified} is earlier than datePublished ${datePublished}`,
         );

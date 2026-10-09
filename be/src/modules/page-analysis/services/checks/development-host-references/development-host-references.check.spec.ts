@@ -1,6 +1,9 @@
 import { evidenceOf, failsWith, PASSES } from '../_testing/expect-verdict';
 import { makeCheckInput } from '../_testing/make-check-input';
-import { isDevelopmentHost } from '../_shared/development-host';
+import {
+  isDevelopmentHost,
+  isOwnDevelopmentHost,
+} from '../_shared/development-host';
 import { DEVELOPMENT_HOST_REFERENCES_CHECK } from './development-host-references.check';
 
 describe('isDevelopmentHost', () => {
@@ -26,6 +29,24 @@ describe('isDevelopmentHost', () => {
   });
 });
 
+describe('isOwnDevelopmentHost', () => {
+  it.each([
+    ['localhost', 'a.example', true],
+    ['10.0.0.5', 'a.example', true],
+    ['staging.a.example', 'www.a.example', true],
+    ['dev.example.com', 'blog.example.com', true],
+    ['overreacted-git-main.vercel.app', 'overreacted.io', true],
+    // Another site's live addresses, seen on habr.com and overreacted.io (2026-10).
+    ['dev.vk.ru', 'habr.com', false],
+    ['atproto-browser.vercel.app', 'overreacted.io', false],
+    ['8.8.8.8', 'a.example', false],
+    // `co` is a suffix label, not the site: bbc.co.uk owns nothing under it.
+    ['staging.co.uk', 'bbc.co.uk', false],
+  ])('%s from %s → %s', (host, pageHost, expected) => {
+    expect(isOwnDevelopmentHost(host, pageHost)).toBe(expected);
+  });
+});
+
 describe('DEVELOPMENT_HOST_REFERENCES', () => {
   it('passes a page that names production URLs only', () => {
     expect(
@@ -40,7 +61,7 @@ describe('DEVELOPMENT_HOST_REFERENCES', () => {
           canonicals: ['https://staging.a.example/post/'],
           openGraph: { 'og:url': 'http://localhost:3000/post/' },
           alternates: [{ lang: 'fr', href: 'https://dev.a.example/fr/post/' }],
-          links: ['https://preview-42.vercel.app/other/'],
+          links: ['https://staging.a.example/other/'],
           resourceUrls: ['http://127.0.0.1:8080/hero.png'],
         },
       }),
@@ -51,8 +72,37 @@ describe('DEVELOPMENT_HOST_REFERENCES', () => {
       '<link rel="canonical" href="https://staging.a.example/post/">',
       '<meta property="og:url" content="http://localhost:3000/post/">',
       '<link rel="alternate" hreflang="fr" href="https://dev.a.example/fr/post/">',
-      '<a href="https://preview-42.vercel.app/other/"> in the content',
+      '<a href="https://staging.a.example/other/"> in the content',
       'loads http://127.0.0.1:8080/hero.png',
     ]);
+  });
+
+  // habr.com, 2026-10: a post linked VK's developer docs and was reported as leaking
+  // a staging host. A link to someone else's site is not this site's environment.
+  it("passes links and resources on other sites' dev-looking hosts", () => {
+    expect(
+      DEVELOPMENT_HOST_REFERENCES_CHECK.evaluate(
+        makeCheckInput({
+          finalUrl: 'https://habr.com/ru/articles/1/',
+          parsed: {
+            links: [
+              'https://dev.vk.ru/en/api/community-messages/getting-started',
+              'https://atproto-browser.vercel.app/at/x',
+            ],
+            resourceUrls: ['https://widget.netlify.app/embed.js'],
+          },
+        }),
+      ),
+    ).toEqual(PASSES);
+  });
+
+  it('still flags a self-reference to any preview host', () => {
+    expect(
+      DEVELOPMENT_HOST_REFERENCES_CHECK.evaluate(
+        makeCheckInput({
+          parsed: { openGraph: { 'og:url': 'https://other.vercel.app/post/' } },
+        }),
+      ),
+    ).toEqual(failsWith({ count: 1 }));
   });
 });

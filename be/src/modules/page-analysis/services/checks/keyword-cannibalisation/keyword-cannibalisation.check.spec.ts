@@ -35,6 +35,44 @@ describe('KEYWORD_CANNIBALISATION', () => {
     ]);
   });
 
+  // blog.cloudflare.com, 2026-10: the zh-cn and zh-tw versions of one post both lead
+  // with the product's English name, and were reported as competing.
+  it('does not set two language versions of one post against each other', () => {
+    const tw = 'https://a.example/zh-tw/gateway';
+    const run = makeRunInput(
+      [
+        runPage('zh-cn/gateway', {
+          parsed: { lang: 'zh-cn', alternates: [{ lang: 'zh-tw', href: tw }] },
+        }),
+        runPage('zh-tw/gateway', { parsed: { lang: 'zh-cn' } }),
+        runPage('ja-jp/gateway', { parsed: { lang: 'ja-jp' } }),
+        runPage('gateway-pricing', { parsed: { lang: 'zh-cn' } }),
+      ],
+      [
+        keywordsOf('monetization gateway'),
+        keywordsOf('monetization gateway'),
+        keywordsOf('monetization gateway'),
+        keywordsOf('monetization gateway'),
+      ],
+    );
+
+    const [cn, , ja, pricing] = KEYWORD_CANNIBALISATION_CHECK.evaluate(run);
+    // Named in hreflang from one side only, and still a version: either side says so.
+    expect(cn).toEqual(
+      failsWith({ otherUrls: ['https://a.example/gateway-pricing/'] }),
+    );
+    expect(ja).toEqual(PASSES);
+    // A page in the same language on the same keyword is still a rival.
+    expect(pricing).toEqual(
+      failsWith({
+        otherUrls: [
+          'https://a.example/zh-cn/gateway/',
+          'https://a.example/zh-tw/gateway/',
+        ],
+      }),
+    );
+  });
+
   it('cannot be judged on a page with no keyword', () => {
     const run = makeRunInput(
       [runPage('a'), runPage('b')],

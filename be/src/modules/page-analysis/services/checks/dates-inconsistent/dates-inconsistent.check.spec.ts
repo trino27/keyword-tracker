@@ -54,6 +54,21 @@ describe('DATES_INCONSISTENT', () => {
     expect(evidenceOf(verdict)).toEqual([quote]);
   });
 
+  // ghost.org, 2026-10: two clock reads a second apart are not a contradiction; the
+  // scheduled moz.com post modified five days before it was published still is one.
+  it('allows a minute between the two stamps of one save', () => {
+    expect(
+      DATES_INCONSISTENT_CHECK.evaluate(
+        dated('2025-10-26T10:00:42.000Z', '2025-10-26T10:00:41.000Z'),
+      ),
+    ).toEqual(PASSES);
+    expect(
+      DATES_INCONSISTENT_CHECK.evaluate(
+        dated('2026-08-18T00:00:00-07:00', '2026-08-13T02:05:18-07:00'),
+      ),
+    ).toEqual(failsWith({}));
+  });
+
   // East of UTC a date can be tomorrow in UTC and today where it was written.
   it('allows a day for a date written ahead of UTC', () => {
     expect(
