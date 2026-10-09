@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { siteKeyOf } from '@app/contracts';
 import { load, type CheerioAPI } from 'cheerio';
 import { ARTICLE_TYPES } from '../../constants/article-types.constant';
 import type {
@@ -111,6 +112,9 @@ const APP_MOUNT_POINTS =
   '#root, #app, #__next, #__nuxt, #___gatsby, app-root, [data-reactroot]';
 
 const LINK_SCHEMES = new Set(['http:', 'https:']);
+
+/** Fragment routes that open a widget, not a page: Ghost's membership portal. */
+const WIDGET_FRAGMENT = /#\/portal(?:\/|$)/;
 
 /** How much of an uncrawlable link's markup is kept to quote it. */
 const MARKUP_QUOTE_MAX = 200;
@@ -226,11 +230,16 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     // "#!pricing"): Google drops everything after #, so the latter leads back to the
     // page it sits on. Another site's hashbang URL is that site's routing, not a link
     // this page failed to write, and is read as an ordinary link.
+    // A control marked as one (`role="button"`) or a fragment that opens a widget
+    // (`#/portal/signup`, Ghost's membership dialog, on ghost.org) leads to no page,
+    // and nothing is hidden behind it.
     if (
       /^\s*javascript:/i.test(raw) ||
-      (/#[!/]/.test(raw) && sameHostAs(absolute(raw, baseUrl), pageUrl))
+      (/#[!/]/.test(raw) &&
+        !WIDGET_FRAGMENT.test(raw) &&
+        sameHostAs(absolute(raw, baseUrl), pageUrl))
     ) {
-      uncrawlableLinks.push(label());
+      if (anchor.attr('role') !== 'button') uncrawlableLinks.push(label());
       return;
     }
     const href = absolute(raw, baseUrl);
@@ -342,6 +351,35 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
 const wordsIn = ($: CheerioAPI, node: ReturnType<CheerioAPI>) =>
   $(node).text().split(/\s+/).filter(Boolean).length;
 
+/**
+ * What themes call the container of the post's text, most specific first. Read only
+ * when the page has neither `<main>` nor an `<article>` to say so: kottke.org has
+ * neither, the whole `<body>` was read, and its footer, social links and membership
+ * notice — the same on every post — made one-sentence posts 70% alike.
+ */
+const CONTENT_CONTAINERS = [
+  '[itemprop~="articleBody" i]',
+  '.entry-content',
+  '.post-content',
+  '.post-body',
+  '.article-body',
+  '.article-content',
+  '.post',
+];
+
+/**
+ * The first named container the page has exactly one of. Two of a kind is a listing —
+ * every card is a `.post` — and none of them is the page's text.
+ */
+function namedContainer($: CheerioAPI): ReturnType<CheerioAPI> | null {
+  for (const selector of CONTENT_CONTAINERS) {
+    const found = $(selector);
+    if (found.length === 1 && wordsIn($, found) > 0) return found;
+    if (found.length > 1) return null;
+  }
+  return null;
+}
+
 function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
   const mainEl = $('main').first();
   const whole = mainEl.length ? mainEl : $('body').first();
@@ -363,9 +401,10 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
     withHeading ??
     (mainEl.length
       ? mainEl
-      : $('article').first().length
-        ? $('article').first()
-        : $('body').first());
+      : (namedContainer($) ??
+        ($('article').first().length
+          ? $('article').first()
+          : $('body').first())));
   const main = candidate.clone();
   main.find(NEVER_CONTENT).remove();
   const total = wordsIn($, main);
@@ -491,21 +530,83 @@ const imageStem = (url: string) =>
     .toLowerCase();
 
 /** The `<img>` whose src or srcset shows the og:image, by file stem. */
+/**
+ * Words of paragraph text between the headline and a featured image at the top of the
+ * post. og:image is often no hero at all, only the post's best picture: on github.blog's
+ * DGit post it is a diagram 2,000 words down, on backlinko.com's YouTube study a chart
+ * after 1,700 — both lazy, both rightly so. Measured against Lighthouse on live posts
+ * (2026-10): minimalistbaker.com's photos, 22 words down, were the LCP and lazy; a
+ * github.blog screenshot 102 words down was lazy and not the LCP — a paragraph was.
+ */
+const FEATURED_IMAGE_MAX_PROSE_BEFORE = 60;
+
+/** Declared narrower than this, an image is a thumbnail of the featured one. */
+const THUMBNAIL_MAX_WIDTH = 200;
+
+const isThumbnail = (image: TSelection) => {
+  const width = Number.parseInt(image.attr('width') ?? '', 10);
+  return Number.isFinite(width) && width < THUMBNAIL_MAX_WIDTH;
+};
+
+/**
+ * Words in the `<p>`s between the headline and `target`, in document order — from the
+ * top of the body on a page without an `<h1>`. From the headline, because what comes
+ * before it is the site's own header, and a mega-menu written in paragraphs put
+ * hubspot.com's hero, fetchpriority="high", 150 words "down" the page.
+ */
+function proseBefore($: CheerioAPI, target: TSelection): number {
+  const node = target.get(0);
+  const headline = $('body h1').get(0);
+  let counting = headline === undefined;
+  let words = 0;
+  for (const element of $('body h1, body p, body img').toArray()) {
+    if (element === node) break;
+    if (element === headline) counting = true;
+    else if (counting && element.tagName === 'p')
+      words += $(element).text().split(/\s+/).filter(Boolean).length;
+  }
+  return words;
+}
+
+/**
+ * The image og:image names, when it sits at the top of the post — the likeliest Largest
+ * Contentful Paint. Only there: og:image is often the post's best picture, not its
+ * hero, and an image 2,000 words down is rightly lazy.
+ *
+ * Nothing stands in for it when og:image names an image further down. "The first wide
+ * image under the headline" was tried against Lighthouse on live posts (2026-10): it
+ * found the real LCP on dev.to and minimalistbaker.com, and on habr.com, moz.com,
+ * ahrefs.com and ghost.org picked an image while the LCP was the headline or another
+ * picture — and 19 words of text before the image separated neither group.
+ */
 function featuredImageOf(
   $: CheerioAPI,
   baseUrl: string,
 ): IParsedPage['featuredImage'] {
   const og = absolute(metaContent($, 'property', 'og:image'), baseUrl);
   const stem = og ? imageStem(og) : '';
-  if (stem.length < 3) return null;
-  const image = $('body img')
-    .toArray()
-    .map((element) => $(element))
-    .find((candidate) =>
-      [candidate.attr('src'), ...(candidate.attr('srcset') ?? '').split(',')]
-        .map((value) => (value ?? '').trim().split(/\s+/)[0])
-        .some((value) => value && imageStem(value) === stem),
-    );
+  // The first of the images showing it that is not a thumbnail: neilpatel.com prints
+  // the featured image twice, a 175-pixel lazy thumbnail first and the 700-pixel hero
+  // — the LCP — after it.
+  const named =
+    stem.length < 3
+      ? undefined
+      : $('body img')
+          .toArray()
+          .map((element) => $(element))
+          .find(
+            (candidate) =>
+              !isThumbnail(candidate) &&
+              [
+                candidate.attr('src'),
+                ...(candidate.attr('srcset') ?? '').split(','),
+              ]
+                .map((value) => (value ?? '').trim().split(/\s+/)[0])
+                .some((value) => value && imageStem(value) === stem),
+          );
+  const atTop = (image: TSelection) =>
+    proseBefore($, image) <= FEATURED_IMAGE_MAX_PROSE_BEFORE;
+  const image = named && atTop(named) ? named : undefined;
   return image
     ? {
         loading: image.attr('loading')?.trim().toLowerCase() || null,
@@ -754,9 +855,31 @@ function dateOf(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+/** Path segments of an author's archive page: `/author/<slug>/`. */
+const AUTHOR_ARCHIVE_SEGMENTS = new Set([
+  'author',
+  'authors',
+  'contributor',
+  'contributors',
+]);
+
+/** Whether `href` is this site's archive page of one author. */
+function isAuthorArchive(href: string, baseUrl: string): boolean {
+  const url = new URL(href);
+  if (siteKeyOf(url.hostname) !== siteKeyOf(new URL(baseUrl).hostname))
+    return false;
+  const segments = url.pathname.split('/').filter(Boolean);
+  return (
+    segments.length >= 2 &&
+    AUTHOR_ARCHIVE_SEGMENTS.has(segments[segments.length - 2].toLowerCase())
+  );
+}
+
 /**
  * The author as the HTML itself names it: `<meta name="author">`, a `rel="author"` link,
- * or an element marked `itemprop="author"`. Each quoted as written.
+ * an element marked `itemprop="author"`, or a byline that links to the author's archive
+ * on this site — `<a href="/author/jane-doe/">Jane Doe</a>`, the way blog.cloudflare.com
+ * names its authors with nothing else. Each quoted as written.
  */
 function authorsInMarkup($: CheerioAPI, baseUrl: string): string[] {
   const found: string[] = [];
@@ -773,6 +896,12 @@ function authorsInMarkup($: CheerioAPI, baseUrl: string): string[] {
       collapse($(element).find('[itemprop~="name"]').first().text()) ||
       collapse($(element).text());
     if (name && name.length <= 100) found.push(`itemprop="author": ${name}`);
+  });
+  $('a[href]').each((_, element) => {
+    const href = absolute($(element).attr('href'), baseUrl);
+    const name = collapse($(element).text());
+    if (href && name && name.length <= 100 && isAuthorArchive(href, baseUrl))
+      found.push(`byline: <a href="${href}">${name}</a>`);
   });
   return [...new Set(found)];
 }

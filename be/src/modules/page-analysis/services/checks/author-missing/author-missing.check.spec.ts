@@ -21,7 +21,7 @@ describe('AUTHOR_MISSING', () => {
 
     expect(verdict).toEqual(failsWith({}));
     expect(evidenceOf(verdict)).toEqual([
-      'No author in the article markup, no <meta name="author">, no rel="author" link, no itemprop="author"',
+      'No author in the article markup, no <meta name="author">, no rel="author" link, no itemprop="author", no byline linking to an author page',
     ]);
   });
 });

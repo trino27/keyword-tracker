@@ -632,9 +632,10 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Featured image is lazy-loaded',
     hint: 'Load the featured image eagerly — drop loading="lazy" and add fetchpriority="high".',
     explanation:
-      'The image the page names as its featured image (og:image) is marked loading="lazy". A featured image at the top of a post is usually the page\'s Largest Contentful Paint, and a lazy image is only requested once layout has shown it to be on screen — hundreds of milliseconds after the browser could have started. web.dev measured that lazy-loading above-the-fold images makes LCP worse, which is why WordPress stopped lazy-loading the first featured image. Core Web Vitals are a page-experience signal Google\'s ranking systems reward, but a small one; the bigger cost is to readers. This is read from the HTML, not measured in a browser: only field data (Chrome UX Report) says what LCP readers actually get.',
+      'The image the page names as its featured image (og:image) sits at the top of the post, under the headline, and is marked loading="lazy". A featured image there is usually the page\'s Largest Contentful Paint, and a lazy image is only requested once layout has shown it to be on screen — hundreds of milliseconds after the browser could have started. web.dev measured that lazy-loading above-the-fold images makes LCP worse, which is why WordPress stopped lazy-loading the first featured image. Core Web Vitals are a page-experience signal Google\'s ranking systems reward, but a small one; the bigger cost is to readers. This is read from the HTML, not measured in a browser: only field data (Chrome UX Report) says what LCP readers actually get.',
     sources: [SOURCE.lcpLazyLoading, SOURCE.optimizeLcp, SOURCE.coreWebVitals],
-    skipReason: 'The page shows no featured image to judge.',
+    skipReason:
+      'The page shows no featured image at the top of the post to judge.',
   },
   RENDER_BLOCKING_SCRIPTS: {
     severity: 'notice',

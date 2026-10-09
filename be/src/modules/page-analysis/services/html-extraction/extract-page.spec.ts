@@ -114,6 +114,31 @@ describe('extractPage', () => {
     expect(parsed.blocks).toEqual(['A card', 'And the rest']);
   });
 
+  // kottke.org, 2026-10: no <main>, no <article>; the whole <body> was read and the
+  // footer and membership notice made one-sentence posts 70% alike.
+  it('reads the one container the theme names as the post when nothing else says', () => {
+    const parsed = page(
+      '<div id="socials"><p>Newsletter</p></div>' +
+        '<div id="content-container"><div class="post">' +
+        '<p>Where in the world are typefaces being designed?</p></div>' +
+        '<div class="modal"><p>In order to comment, you need to be a member.</p></div>' +
+        '</div><div id="boring-container"><p>Home of fine hypertext products.</p></div>',
+    );
+
+    expect(parsed.blocks).toEqual([
+      'Where in the world are typefaces being designed?',
+    ]);
+  });
+
+  it('does not take one card of a listing for the post', () => {
+    const parsed = page(
+      '<div class="post"><p>First card</p></div>' +
+        '<div class="post"><p>Second card</p></div><p>Footer</p>',
+    );
+
+    expect(parsed.blocks).toEqual(['First card', 'Second card', 'Footer']);
+  });
+
   it('removes the furniture a theme builds out of plain divs', () => {
     const parsed = page(
       '<main><h1>Story</h1><p>The story itself.</p>' +
@@ -434,6 +459,10 @@ describe('extractPage', () => {
         '<a role="button" onclick="toggle()">Menu</a>' +
         '<a href="#/pricing">Pricing</a> <a href="/#!about">About</a>' +
         '<a href="https://forum.b.example/#!topic/1">Forum</a>' +
+        // lennysnewsletter.com and ghost.org, 2026-10: a menu toggle and the
+        // membership dialog were reported as links hiding pages.
+        '<a role="button" href="javascript:void(0)">Community</a>' +
+        '<a href="https://a.example/resources/#/portal/signup">Subscribe</a>' +
         '</p></main>',
     );
 
@@ -442,6 +471,8 @@ describe('extractPage', () => {
       'https://a.example/two/',
       // Another site's hashbang URL is its own routing: an ordinary outbound link.
       'https://forum.b.example/#!topic/1',
+      // A widget's fragment: to Google, a link to the page before the #.
+      'https://a.example/resources/#/portal/signup',
     ]);
     expect(parsed.nofollowLinks).toEqual(['https://a.example/two/']);
     expect(parsed.uncrawlableLinks).toEqual([
@@ -526,6 +557,22 @@ describe('extractPage', () => {
       datePublished: '2026-01-10',
       dateModified: '2026-02-01',
     });
+  });
+
+  // blog.cloudflare.com, 2026-10: the byline is the only author on the page — links to
+  // each author's archive — and the post was reported as having no author.
+  it('names the author from a byline that links to their archive', () => {
+    const parsed = page(
+      '<article><a href="/author/marc-selwan/">Marc Selwan</a>' +
+        '<a href="https://www.a.example/authors/micah-wylde/"> Micah  Wylde </a>' +
+        '<a href="/author/">All authors</a><a href="https://b.example/author/x/">X</a>' +
+        '<p>x</p></article>',
+    );
+
+    expect(parsed.authors).toEqual([
+      'byline: <a href="https://a.example/author/marc-selwan/">Marc Selwan</a>',
+      'byline: <a href="https://www.a.example/authors/micah-wylde/">Micah Wylde</a>',
+    ]);
   });
 
   it('falls back to the article:* dates when the markup has none', () => {
@@ -662,7 +709,7 @@ describe('extractPage', () => {
 
   // The og:image and the resized copy in the page meet by file stem: a CMS serves the
   // featured image as hero-1200x630.jpg in og:image and hero-768x432.jpg in the post.
-  it('finds the featured image by the file og:image names, wherever it sits', () => {
+  it('finds the featured image by the file og:image names', () => {
     const parsed = page(
       '<header><img src="/uploads/hero-768x432.jpg" loading="lazy" alt="Hero"></header>' +
         '<main><p>x</p><img src="/other.png"></main>',
@@ -674,6 +721,48 @@ describe('extractPage', () => {
       markup: '<img src="/uploads/hero-768x432.jpg" loading="lazy" alt="Hero">',
     });
     expect(page('<main><img src="/x.png"></main>').featuredImage).toBeNull();
+  });
+
+  const og =
+    '<meta property="og:image" content="https://a.example/uploads/hero.jpg">';
+  const words = (n: number) => `<p>${'word '.repeat(n)}</p>`;
+
+  // github.blog's DGit post and backlinko.com's YouTube study, 2026-10: og:image named
+  // a diagram thousands of words down — lazy, rightly — and was reported as the LCP.
+  // Lighthouse: 22 words down it was the LCP (minimalistbaker.com), 102 down it was not.
+  it('takes og:image for the featured image only at the top of the post', () => {
+    const at = (before: number) =>
+      page(
+        `<main><h1>Title</h1>${words(before)}` +
+          '<img src="/uploads/hero.jpg" loading="lazy"></main>',
+        og,
+      ).featuredImage;
+
+    expect(at(22)).toMatchObject({ loading: 'lazy' });
+    expect(at(102)).toBeNull();
+  });
+
+  // hubspot.com: a mega-menu written in paragraphs sits above the headline.
+  it('counts the words from the headline, not from the site header', () => {
+    expect(
+      page(
+        `<header>${words(300)}</header><main><h1>Title</h1>` +
+          '<img src="/uploads/hero.jpg"></main>',
+        og,
+      ).featuredImage,
+    ).toMatchObject({ loading: null });
+  });
+
+  // neilpatel.com: a 175-pixel lazy thumbnail of the featured image, then the hero.
+  it('passes over a thumbnail of the featured image to the image itself', () => {
+    expect(
+      page(
+        '<main><h1>Title</h1>' +
+          '<img src="/uploads/hero-175x175.jpg" width="175" loading="lazy">' +
+          '<img src="/uploads/hero-760x456.jpg" width="700" fetchpriority="high"></main>',
+        og,
+      ).featuredImage,
+    ).toMatchObject({ loading: null });
   });
 
   it('survives broken JSON-LD and missing everything', () => {
