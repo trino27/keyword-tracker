@@ -407,6 +407,27 @@
       },
       "file": "synthetic/text-sitemap.example/sitemap.txt"
     },
+    "https://unrendered-sitemap-line.example/": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8"
+      },
+      "file": "synthetic/unrendered-sitemap-line.example/index"
+    },
+    "https://unrendered-sitemap-line.example/robots.txt": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8"
+      },
+      "file": "synthetic/unrendered-sitemap-line.example/robots.txt"
+    },
+    "https://unrendered-sitemap-line.example/sitemap.xml": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/xml; charset=utf-8"
+      },
+      "file": "synthetic/unrendered-sitemap-line.example/sitemap.xml"
+    },
     "https://unusual-name.example/": {
       "status": 200,
       "headers": {

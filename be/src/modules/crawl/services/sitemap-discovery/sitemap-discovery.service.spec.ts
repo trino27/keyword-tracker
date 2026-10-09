@@ -92,6 +92,20 @@ describe('SitemapDiscoveryService (recorded and synthetic sites)', () => {
     );
   });
 
+  // danluu.com, 2026-10: robots.txt names `{{ site.url }}/sitemap.xml`, which is not
+  // there, and /sitemap.xml was never asked for.
+  it('falls back to the well-known paths when no declared sitemap is there', async () => {
+    const { discover } = setup();
+
+    const result = await discover('https://unrendered-sitemap-line.example');
+
+    expect(result).toMatchObject({
+      ok: true,
+      sitemapUrls: ['https://unrendered-sitemap-line.example/sitemap.xml'],
+    });
+    expect(result.ok && result.urls).toHaveLength(8);
+  });
+
   it('reads a gzipped sitemap', async () => {
     const { discover } = setup();
 

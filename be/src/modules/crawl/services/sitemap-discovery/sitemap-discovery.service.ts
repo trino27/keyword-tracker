@@ -167,12 +167,15 @@ export class SitemapDiscoveryService {
       .map((raw) => resolve(raw, `${origin}/robots.txt`))
       .filter((url): url is string => url !== null && isSiteHost(url, siteKey));
 
-    if (declared.length > 0) {
-      declared.forEach((url) => this.enqueue(state, url, 0, siteKey));
-    } else {
-      await this.probeWellKnown(origin, siteKey, state, signal);
-    }
+    declared.forEach((url) => this.enqueue(state, url, 0, siteKey));
     await this.walk(siteKey, state, signal);
+    // Nothing declared, or nothing declared that is there: danluu.com's robots.txt names
+    // `{{ site.url }}/sitemap.xml`, a template never filled in, while /sitemap.xml
+    // serves the blog (2026-10).
+    if (state.leaves.length === 0) {
+      await this.probeWellKnown(origin, siteKey, state, signal);
+      await this.walk(siteKey, state, signal);
+    }
 
     const home = await this.readHome(origin, siteKey, state, signal);
     const feed = await this.feeds.discover(
@@ -393,6 +396,7 @@ export class SitemapDiscoveryService {
   ): Promise<void> {
     for (const path of WELL_KNOWN_SITEMAP_PATHS) {
       const url = `${origin}${path}`;
+      if (state.seen.has(url)) continue;
       state.seen.add(url);
       const parsed = await this.fetchSitemap(url, state, signal);
       if (parsed && parsed.kind !== 'invalid') {
