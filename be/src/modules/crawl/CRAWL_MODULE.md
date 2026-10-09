@@ -6,7 +6,8 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   any blog is, and recorded fixtures of both (`be/test/fixtures/`) pin it. Guard:
   `git grep -n -i -E "semrush|yoast" -- be/src/modules be/src/infrastructure ':!*spec.ts' ':!*/_testing/*'`.
 - **Finding the blog sitemap.** Sitemaps come from robots.txt (relative lines resolved; the site
-  or its subdomains — `sitemap.canva.com` serves canva's), else the usual addresses; indexes are
+  or its subdomains — `sitemap.canva.com` serves canva's), else — or when none of those is
+  there, as danluu.com's unfilled `{{ site.url }}/sitemap.xml` is not — the usual addresses; indexes are
   expanded best-name-first under a budget (depth 3, 50 fetches). Only same-site URLs are kept.
   Numbered siblings (`post-sitemap.xml`, `post-sitemap2.xml`) form one group. A group scores
   name (best of blog +3 / post, article +2 / news +1, minus 3 for page, product, tag…; +3 when
@@ -20,10 +21,12 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   two are guesses, so the run is `articlesOnly`: a page counts only when it says `og:type=article`
   or a JSON-LD Article type, and nothing crawled ends `BLOG_SITEMAP_NOT_FOUND`, not
   `NO_POSTS_CRAWLED`.
-- **A site that refuses robots** (every answer 401/403/429 or none) fails `SITE_BLOCKED`. The
+- **A site that refuses robots** (every answer 401/402/403/429 or none) fails `SITE_BLOCKED`. The
   crawler never disguises its User-Agent (D36 Q9), so washingtonpost.com and canva.com stay
-  uncrawlable by design. A Cloudflare challenge (`cf-mitigated: challenge`, often a 503) counts
-  as a refusal, on robots.txt, sitemaps and posts alike.
+  uncrawlable by design. 402 is Cloudflare's pay-per-crawl (allrecipes.com). A bot challenge
+  counts as a refusal, on robots.txt, sitemaps and posts alike: Cloudflare's
+  (`cf-mitigated: challenge`, often a 503) and AWS WAF's (`x-amzn-waf-action: challenge`, a 202
+  with an empty body — blog.jetbrains.com, read until then as a page rendered by JavaScript).
 - **robots.txt per RFC 9309 and Google:** 4xx allows everything — except 429, which like a 5xx
   forbids everything and fails the run `ROBOTS_UNAVAILABLE` without reading anything else. A
   robots.txt that cannot be fetched at all (timeout, refused connection) is a server error too,
@@ -58,7 +61,8 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   scripts reads it as empty.
   Every considered entry is logged; the log ends at the 15th post.
 - **The site checks' own requests** (`SiteProbeService`): after the posts, the home page at the
-  site's other scheme and www-variants and one made-up address, at most four requests, never a
+  site's other scheme and www-variants (none for a subdomain: nobody types
+  `www.blog.cloudflare.com`) and one made-up address, at most four requests, never a
   failure of the run. Discovery keeps what the site checks read — robots.txt as answered, the
   candidates' `<lastmod>` — and the verdicts are written with the run, in its transaction.
 - **What the analysis is handed beyond the page:** every redirect hop with its status, the

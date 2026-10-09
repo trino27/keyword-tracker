@@ -237,6 +237,56 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   post is a template badge sized, if at all, by a stylesheet the HTML does not carry — and a
   check that cannot see the CSS that may size an image would be guessing on twenty pages of
   twenty-one.
+- **Field audit on 60 live sites (2026-10-09).** Every check was run through the product on
+  60 sites (WordPress, Ghost, Next.js, Substack, Blogger, news and recipe sites, Russian and
+  Uzbek ones among them; 635 posts) and each firing read against the live page — the LCP
+  verdicts against Lighthouse run locally. What it found wrong, each now pinned by a test built
+  from the site's markup: `DEVELOPMENT_HOST_REFERENCES` read other people's live hosts as
+  leaks (habr linking `dev.vk.ru`, overreacted linking a `*.vercel.app` tool) — a link or a
+  resource now leaks only THIS site's environment, while what names the page itself keeps the
+  strict reading. `AUTHOR_MISSING` missed blog.cloudflare.com's byline, which is only links to
+  `/author/<slug>/`; such a link is now an author. `DATES_INCONSISTENT` called ghost.org's
+  one-second gap between two stamps of one save a contradiction; a minute is now allowed.
+  `INTERNAL_LINKS_NOFOLLOW` reported wpbeginner's `/refer/` affiliate redirects and a recipe's
+  print copy, both nofollow on purpose. `KEYWORD_CANNIBALISATION` (and the two other duplicate
+  checks) set cloudflare's zh-cn and zh-tw versions of one post against each other; language
+  versions are now no rivals. kottke.org has neither `<main>` nor `<article>`, its footer was
+  read as every post's text and made one-sentence posts 70% alike; the one container a theme
+  names (`.post`, `.entry-content`, `itemprop="articleBody"`) is now read first — on the saved
+  corpus that changed only kottke, gazeta.uz, neilpatel and seths.blog, removing their menus,
+  footers and author boxes and nothing else. `LCP_IMAGE_LAZY_LOADED` took og:image for the hero
+  wherever it sat (github.blog's DGit diagram, 2,000 words down) and took a 175-pixel thumbnail
+  of it for the hero (neilpatel); the image must now be the first non-thumbnail copy within 60
+  words of the headline, and Lighthouse agreed on all twelve posts it was run on. A "first wide
+  image" fallback was tried and dropped: Lighthouse found it right on two posts and wrong on four.
+  `UNCRAWLABLE_LINKS` reported Ghost's `#/portal/signup` and a `role="button"` menu toggle;
+  `ROBOTS_BLOCKS_RESOURCES` reported Cloudflare's `/cdn-cgi/` e-mail decoder. On the site side,
+  `HOST_REDIRECT_CHAIN` fired on 31 of 46 sites: it counted stripe's and habr's redirect of the
+  home page to a language version as hops, probed `www.blog.cloudflare.com`, and called the
+  common two permanent hops (http → https → canonical host, blog.google included) a chain. Only
+  host hops count now, from three, and a subdomain gets no www-variant. Words of Chinese and
+  Japanese are now split by `Intl.Segmenter`: cloudflare's Japanese post counted 176 words, one
+  per sentence, and was reported as thin (2,508 now, against 1,909 for the English original).
+  A recrawl on the fixed code found three more. cossa.ru writes articles as bare text in a
+  `<div>`, and only `<p>`s were blocks — so its posts' text was the footer, and every post
+  "matched" every other; loose text of eight words or more is a block now, and an inline
+  wrapper of blocks (hubspot's `<span>`) is read block by block. `UNCRAWLABLE_LINKS` reported
+  `javascript:void(0)` buttons and an `onclick` chat toggle; only a script that names an
+  address counts now — which leaves the check without a live positive among the 74 sites.
+  On the site side, a rate-limited (429) or refused (401/402/403, bot challenge) answer
+  is no longer read as a broken sitemap entry or as the end of a redirect chain:
+  allrecipes, netflixtechblog and css-tricks turned this crawler away, not Googlebot.
+  Live positives the audit read and agreed with, among others: backlinko's Googlebot group
+  holding one Allow and so opening `/wp-admin/` to Googlebot, gazeta.uz keeping its own CSS
+  from Googlebot with `Disallow: *?*`, cossa.ru's JSON-LD broken by a stray `;`, scripting.com
+  served over HTTP only and uncompressed, vercel.com answering a made-up address with its
+  login page. Found nowhere among the 74 sites and 150 more scanned, so proven by the specs
+  alone: `CANONICAL_CONFLICT`, `CANONICAL_RELATIVE`, `CHARSET_MISSING_OR_LATE`,
+  `DATE_BUMPED_WITHOUT_CHANGES` (581 comparisons over three crawls; 89 dates re-read by hand,
+  none had moved), `DEVELOPMENT_HOST_REFERENCES`, `FONT_PRELOAD_WITHOUT_CROSSORIGIN`,
+  `HREFLANG_INVALID`, `META_REFRESH` (lefigaro's and indianexpress's refreshes reload the
+  page and rightly pass), `NOINDEX`, `ROBOTS_BLOCKS_GOOGLEBOT`, `SNIPPET_RESTRICTED`,
+  `TITLE_MISSING`, `UNCRAWLABLE_LINKS`, `ROBOTS_TXT_TRUNCATED`, `SITEMAP_LISTS_OTHER_HOST_VARIANTS`.
 - **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
   answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
   never fetches, and the extractor removes the nav and the related-posts rail that carry most
