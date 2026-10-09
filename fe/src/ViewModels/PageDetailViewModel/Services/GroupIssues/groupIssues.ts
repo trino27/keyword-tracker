@@ -167,6 +167,18 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		const kb = (value: unknown) => (typeof value === "number" ? Math.round(value / 1024) : "?");
 		return `The HTML is ${kb(d.value)} KB; aim for under ${kb(d.max)} KB.`;
 	},
+	LCP_IMAGE_LAZY_LOADED: () =>
+		"The featured image — likely the largest thing on screen — waits to be lazy-loaded.",
+	RENDER_BLOCKING_SCRIPTS: (d) => {
+		const count = num(d, "count");
+		return `${count} script${count === 1 ? "" : "s"} in <head> stop${count === 1 ? "s" : ""} the page from rendering until loaded.`;
+	},
+	FONT_PRELOAD_WITHOUT_CROSSORIGIN: () =>
+		"A font preload lacks crossorigin, so the font downloads twice.",
+	BFCACHE_BLOCKED_BY_NO_STORE: () =>
+		"Cache-Control: no-store keeps the page out of the back/forward cache.",
+	DOM_SIZE_LARGE: (d) =>
+		`The HTML has ${num(d, "value")} elements; Lighthouse calls more than ${num(d, "max")} excessive.`,
 	HTML_NOT_COMPRESSED: (d) =>
 		text(d, "encoding")
 			? `The server answered with Content-Encoding: ${text(d, "encoding")}.`
