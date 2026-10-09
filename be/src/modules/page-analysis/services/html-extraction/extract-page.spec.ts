@@ -498,6 +498,116 @@ describe('extractPage', () => {
     expect(c.contentHash).not.toBe(a.contentHash);
   });
 
+  /**
+   * Strict JSON forbids a raw line break inside a string; Google's parser and every
+   * structured-data validator accept one. CMSes paste a multi-line description into
+   * the markup as is, so a strict parse throws the whole article node away.
+   */
+  it('reads an article whose string values carry raw line breaks (semrush)', () => {
+    const parsed = recorded(
+      'semrush/blog/seo-split-test-result-does-bolded-text-help-your-seo/index.html',
+      'https://www.semrush.com/blog/seo-split-test-result-does-bolded-text-help-your-seo/',
+    );
+
+    expect(parsed.jsonLd.types).toEqual(
+      expect.arrayContaining(['BreadcrumbList', 'Article']),
+    );
+    expect([...parsed.jsonLd.articleFields].sort()).toEqual([
+      'author',
+      'dateModified',
+      'datePublished',
+      'description',
+      'genre',
+      'headline',
+      'identifier',
+      'image',
+      'mainEntityOfPage',
+      'publisher',
+      'url',
+    ]);
+  });
+
+  it.each([
+    ['a line feed', '\n'],
+    ['a carriage return and line feed', '\r\n'],
+    ['a tab', '\t'],
+  ])('reads JSON-LD with %s inside a string value', (_, character) => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">' +
+        `{"@type": "Article", "headline": "A post",` +
+        ` "description": "First line.${character}Second line."}` +
+        '</script>',
+    );
+
+    expect(parsed.jsonLd.types).toEqual(['Article']);
+    expect([...parsed.jsonLd.articleFields].sort()).toEqual([
+      'description',
+      'headline',
+    ]);
+  });
+
+  const ldJson = (text: string) =>
+    `<script type="application/ld+json">${text}</script>`;
+
+  it('reads an article inside a @graph whose strings carry raw line breaks', () => {
+    const parsed = page(
+      '',
+      ldJson(
+        '{"@context": "https://schema.org", "@graph": [' +
+          '{"@type": "WebPage", "name": "A\npage"},' +
+          '{"@type": ["BlogPosting", "Article"], "headline": "A\npost",' +
+          ' "author": {"@type": "Person", "name": "Ann\nLee"}}]}',
+      ),
+    );
+
+    expect([...parsed.jsonLd.types].sort()).toEqual([
+      'Article',
+      'BlogPosting',
+      'WebPage',
+    ]);
+    expect([...parsed.jsonLd.articleFields].sort()).toEqual([
+      'author',
+      'headline',
+    ]);
+  });
+
+  it('splits keywords that a raw line break separates', () => {
+    const parsed = page(
+      '',
+      ldJson(
+        '{"@type": "Article", "keywords": "SEO,\n bold text,\r\nsplit\ttest"}',
+      ),
+    );
+
+    expect(parsed.jsonLd.keywords).toEqual(['SEO', 'bold text', 'split test']);
+  });
+
+  // A repaired block gets the same scrutiny as any other: a field holding only the
+  // line break a CMS left behind carries nothing.
+  it('does not count a field holding only a raw line break', () => {
+    const parsed = page(
+      '',
+      ldJson(
+        '{"@type": "Article", "headline": "A post", "author": "\n", "image": ["\t"]}',
+      ),
+    );
+
+    expect(parsed.jsonLd.articleFields).toEqual(['headline']);
+  });
+
+  it('reads the blocks it can when one beside them is broken', () => {
+    const parsed = page(
+      '',
+      ldJson('{"@type": "BreadcrumbList"}') +
+        ldJson('{"@type": "Organization",}') +
+        ldJson('{"@type": "Article", "description": "a\nb"}'),
+    );
+
+    expect(parsed.jsonLd.types).toEqual(['BreadcrumbList', 'Article']);
+    expect(parsed.jsonLd.articleFields).toEqual(['description']);
+  });
+
   it('survives broken JSON-LD and missing everything', () => {
     const parsed = extractPage(
       '<script type="application/ld+json">{broken</script>',
