@@ -23,6 +23,8 @@ import {
   MAX_PAGE_URL_LENGTH,
   MIN_POST_WORD_COUNT,
   NON_HTML_EXTENSIONS,
+  NOT_FOUND_HEADLINE,
+  NOT_FOUND_HEADLINE_MAX,
 } from '../../constants/post-selection.constant';
 import type {
   IPostSelection,
@@ -154,6 +156,24 @@ export class PostSelectionService {
       return skip(
         'skipped_listing',
         'Not marked as an article (no og:type=article, no JSON-LD Article)',
+        response.status,
+      );
+    // A page that says it is missing, answered with 200: Google calls it a soft 404 and
+    // drops it, and so does this crawl — under that name, because the status code is
+    // the site's defect, not the page's length.
+    const headline = [
+      parsed.h1s[0],
+      parsed.title?.split(/\s[|•·–—-]\s/)[0],
+    ].find(
+      (text) =>
+        text !== undefined &&
+        text.length <= NOT_FOUND_HEADLINE_MAX &&
+        NOT_FOUND_HEADLINE.test(text.trim()),
+    );
+    if (headline && parsed.wordCount < MIN_POST_WORD_COUNT * 3)
+      return skip(
+        'failed',
+        `Soft 404: answered HTTP ${response.status} with a page titled "${headline}"`,
         response.status,
       );
     // Last, because it needs the parse: a page with nothing to read is not a post,

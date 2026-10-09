@@ -7,6 +7,7 @@ import type {
 } from '@modules/clients/interfaces/client-record.interface';
 import type { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import type { CrawlResultsService } from '@modules/pages/services/crawl-results/crawl-results.service';
+import type { SiteProbeService } from '../site-probe/site-probe.service';
 import { PageAnalysisService } from '@modules/page-analysis/services/page-analysis/page-analysis.service';
 import { makeCheckInput } from '@modules/page-analysis/services/checks/_testing/make-check-input';
 import type {
@@ -90,6 +91,10 @@ const setup = (options: {
           sitemapUrls: ['https://a.example/post-sitemap.xml'],
           urls: ['https://a.example/p0/'],
           reason: 'Selected',
+          facts: {
+            robotsTxt: { status: 404, truncated: false, lines: [] },
+            lastmods: {},
+          },
         },
       ),
   } as unknown as SitemapDiscoveryService;
@@ -124,6 +129,10 @@ const setup = (options: {
     runs,
     discovery,
     selection,
+    {
+      probe: (servedOrigin: string) =>
+        Promise.resolve({ servedOrigin, hostVariants: [], missingPage: null }),
+    } as unknown as SiteProbeService,
     new PageAnalysisService(),
     results,
     transactions,

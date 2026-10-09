@@ -45,6 +45,17 @@ export const NON_HTML_EXTENSIONS: ReadonlySet<string> = new Set([
  */
 export const MIN_POST_WORD_COUNT = 120;
 
+/**
+ * A title or main heading that announces a missing page — what a site answering 200
+ * for a page that does not exist puts on it. Anchored and short on purpose: a post
+ * titled "How to fix 404 errors" or "What 'page not found' means" is not one.
+ */
+export const NOT_FOUND_HEADLINE =
+  /^(?:error\s*)?404\b|^(?:oops[!.,]?\s*)?(?:the\s+)?page\s+(?:was\s+)?not\s+found|^nothing\s+(?:was\s+)?found|can[’']?t\s+be\s+found|cannot\s+be\s+found|^page\s+(?:does\s+not|doesn[’']?t)\s+exist|^not\s+found$/i;
+
+/** Longer than this, a headline is a post's, whatever it says. */
+export const NOT_FOUND_HEADLINE_MAX = 60;
+
 /** A page whose JSON-LD declares one of these is a listing, not a post. */
 export const LISTING_SCHEMA_TYPES: ReadonlySet<string> = new Set([
   'CollectionPage',

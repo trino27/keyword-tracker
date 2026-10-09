@@ -24,8 +24,14 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   crawler never disguises its User-Agent (D36 Q9), so washingtonpost.com and canva.com stay
   uncrawlable by design. A Cloudflare challenge (`cf-mitigated: challenge`, often a 503) counts
   as a refusal, on robots.txt, sitemaps and posts alike.
-- **robots.txt per RFC 9309:** 4xx allows everything, 5xx forbids everything and the run fails
-  `ROBOTS_UNAVAILABLE` without reading anything else; every candidate disallowed fails
+- **robots.txt per RFC 9309 and Google:** 4xx allows everything — except 429, which like a 5xx
+  forbids everything and fails the run `ROBOTS_UNAVAILABLE` without reading anything else. A
+  robots.txt that cannot be fetched at all (timeout, refused connection) is a server error too,
+  and fails `SITE_UNREACHABLE` before anything else is asked; reading it as "no rules" crawled
+  sites Google would have left alone. A file past 500 KiB is read up to the limit, as Google
+  reads it, minus the line the limit cut; more than five redirects is Google's 404, no rules.
+  A post answered 200 whose title or h1 announces a missing page ("Page not found", "404") is
+  logged as a soft 404; every candidate disallowed fails
   `ROBOTS_DISALLOWED`. A home page redirecting to another site fails `SITE_REDIRECTS_ELSEWHERE`
   when nothing else was found, and so does a run whose every candidate redirects off the site
   (a Blogger blog moved to its own domain keeps a sitemap of blogspot URLs).
@@ -51,6 +57,10 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   "Rendered by JavaScript" instead, because that is the finding: every crawler that runs no
   scripts reads it as empty.
   Every considered entry is logged; the log ends at the 15th post.
+- **The site checks' own requests** (`SiteProbeService`): after the posts, the home page at the
+  site's other scheme and www-variants and one made-up address, at most four requests, never a
+  failure of the run. Discovery keeps what the site checks read — robots.txt as answered, the
+  candidates' `<lastmod>` — and the verdicts are written with the run, in its transaction.
 - **What the analysis is handed beyond the page:** every redirect hop with its status, the
   run's robots.txt as `IRobotsRules`, so the checks can ask it about Googlebot and the AI search
   crawlers — the crawl itself only ever asks about its own name — and what the client's previous

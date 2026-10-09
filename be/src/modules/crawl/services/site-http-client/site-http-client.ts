@@ -37,14 +37,41 @@ export class SiteHttpClient extends RemoteApiCore {
     super(transport, logger, timing);
   }
 
+  /**
+   * The first 500 KiB of robots.txt, never an error for being longer: Google ignores what
+   * follows the limit, so a file past it still governs the crawl by its beginning. A
+   * truncated body ends at its last complete line — a rule cut mid-path would be broader
+   * than the one written (`Disallow: /admin/` read as `Disallow: /adm`).
+   */
   async getRobots(origin: string, signal: AbortSignal): Promise<ISiteResponse> {
-    return toText(
+    const response = toText(
       await this.get(`${origin}/robots.txt`, {
         maxBytes: SITE_FETCH_LIMITS.robotsBytes,
+        overflow: 'truncate',
         accept: 'text/plain',
         signal,
       }),
     );
+    if (!response.truncated) return response;
+    const lastLine = response.text.lastIndexOf('\n');
+    return {
+      ...response,
+      text: lastLine === -1 ? '' : response.text.slice(0, lastLine + 1),
+    };
+  }
+
+  /**
+   * A request made only to see how the server answers — a host variant, a missing
+   * page. The status and the redirects are the answer; the body is read only as far as
+   * a small cap and never decoded.
+   */
+  async probe(url: string, signal: AbortSignal) {
+    return this.get(url, {
+      maxBytes: SITE_FETCH_LIMITS.probeBytes,
+      overflow: 'truncate',
+      accept: 'text/html',
+      signal,
+    });
   }
 
   async getSitemap(url: string, signal: AbortSignal): Promise<ISiteResponse> {

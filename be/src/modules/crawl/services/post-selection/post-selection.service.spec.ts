@@ -267,6 +267,46 @@ describe('PostSelectionService', () => {
     });
   });
 
+  // A missing page answered with 200: Google calls it a soft 404, and the log should
+  // say so rather than call it short.
+  it.each([
+    [
+      'Page not found – Acme',
+      '<h1>Oops! That page can’t be found.</h1><p>Try searching.</p>',
+    ],
+    ['404', '<h1>404</h1>'],
+  ])('names a soft 404 titled %j', async (title, body) => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/gone/`]: {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+        body: `<html lang="en"><head><title>${title}</title></head><body><main>${body}</main></body></html>`,
+      },
+    });
+
+    const { items } = await select([`${ORIGIN}/posts/gone/`]);
+
+    expect(items[0]).toMatchObject({
+      status: 'failed',
+      reason: expect.stringMatching(
+        /^Soft 404: answered HTTP 200 with a page titled /,
+      ),
+      httpStatus: 200,
+    });
+  });
+
+  it('does not mistake a post about 404 errors for one', async () => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/fix-404/`]: article(
+        'How to fix 404 errors on your site',
+      ),
+    });
+
+    const { pages } = await select([`${ORIGIN}/posts/fix-404/`]);
+
+    expect(pages).toHaveLength(1);
+  });
+
   it('yoast: /seo-blog/ at position 0 is skipped as a listing', async () => {
     const transport = new FixtureHttpTransport();
     const service = new PostSelectionService(
