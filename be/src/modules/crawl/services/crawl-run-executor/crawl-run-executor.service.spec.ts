@@ -103,6 +103,7 @@ const setup = (options: {
           }),
   } as unknown as PostSelectionService;
   const results = {
+    previousCrawlsForWorker: () => Promise.resolve(new Map()),
     applyRunResultsForWorker: (
       _tx: Transaction,
       input: { pages: unknown[] },

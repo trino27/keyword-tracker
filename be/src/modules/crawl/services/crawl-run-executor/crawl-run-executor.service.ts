@@ -214,13 +214,24 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
     });
   }
 
-  /** Pure and outside any transaction: the whole run is judged at once (IDF). */
+  /**
+   * Outside any transaction: the whole run is judged at once (IDF). The one read it makes
+   * is what the client's previous crawl kept about these URLs, so a check can compare —
+   * done here, before the transaction, like every other input the analysis is handed.
+   */
   private async analyse(context: IRunContext): Promise<void> {
     const { selection, discovery, target } = context;
     if (!selection || !discovery || !target) return;
 
+    const previous = await this.results.previousCrawlsForWorker(
+      target.clientId,
+      selection.pages.map(({ url }) => url),
+    );
     const analysis = await this.analysis.analyseRun(
-      selection.pages,
+      selection.pages.map((page) => ({
+        ...page,
+        previous: previous.get(page.url) ?? null,
+      })),
       target.siteKey,
     );
     context.pages = selection.pages.map((page, index) =>
@@ -310,5 +321,7 @@ function toRunPage(page: ICrawledPage, analysis: IPageAnalysis): IRunPage {
     checksFailed: analysis.checksFailed,
     checksJudged: analysis.checksJudged,
     checksNotApplicable: analysis.checksNotApplicable,
+    contentHash: page.parsed.contentHash,
+    dateModified: page.parsed.dateModified,
   };
 }

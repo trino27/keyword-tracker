@@ -51,9 +51,10 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   "Rendered by JavaScript" instead, because that is the finding: every crawler that runs no
   scripts reads it as empty.
   Every considered entry is logged; the log ends at the 15th post.
-- **What the analysis is handed beyond the page:** every redirect hop with its status, and the
-  run's robots.txt as `IRobotsRules`, so the checks can ask it about Googlebot — the crawl itself
-  only ever asks about its own name.
+- **What the analysis is handed beyond the page:** every redirect hop with its status, the
+  run's robots.txt as `IRobotsRules`, so the checks can ask it about Googlebot and the AI search
+  crawlers — the crawl itself only ever asks about its own name — and what the client's previous
+  crawl recorded for each URL, read before the transaction opens.
 - **Outbound HTTP** goes through `SiteHttpClient` (extends `RemoteApiCore`): per-kind size caps,
   `.gz` sitemaps inflated under a second cap, retries for 429/5xx/network only, private and
   metadata addresses refused at connect time.
