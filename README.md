@@ -55,10 +55,10 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   tokenized into every window it contains, so a phrase the prose never repeats is damped and a
   bare common word is not selected at all — otherwise a page is filed under `nlds thriller` or
   `exercises` while its subject sits one line below.
-- **The checks are not invented here:** 44 checks, one unit per catalogued code, from Google's
+- **The checks are not invented here:** 45 page checks and 9 site checks, one unit per catalogued code, from Google's
   SEO Starter Guide, Search Central's crawling and indexing guides and the set Lighthouse audits.
   Every check explains itself at length and links the documentation behind it, and every finding
-  quotes the markup, header or robots.txt rule that proves it. Forty judge a page by
+  quotes the markup, header or robots.txt rule that proves it. Forty-one judge a page by
   itself and four compare it with the rest of the crawl; which of the two a check is follows
   from its catalogue entry, so the wrong shape does not compile. Each answers pass, fail or *not
   applicable*; a page's score is the share of the checks that could apply to it, equally weighted
@@ -125,8 +125,8 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
   deliberately so: weighting by severity would invent a ranking model nobody can justify. The
   honest version of that weight is measured, not asserted — the checks regressed against
   observed position movement, or impact data published by a source that has it. It costs more
-  than a constant: weights break the comparability the equal denominator gives (100 out of 22
-  applicable checks and 100 out of 44 are already different claims), the stored
+  than a constant: weights break the comparability the equal denominator gives (100 out of 23
+  applicable checks and 100 out of 45 are already different claims), the stored
   `checks_applicable = cardinality(checks_judged)` would have to become a weight sum, and a
   score whose weights moved is not the score crawled last month. Until the evidence exists,
   equal weight is the claim the data supports.

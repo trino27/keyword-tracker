@@ -81,7 +81,9 @@ and the set as a whole is the one
 [crawlable links](https://developers.google.com/search/docs/crawling-indexing/links-crawlable)
 and [redirects](https://developers.google.com/search/docs/crawling-indexing/301-redirects) from
 Google's crawling guides. Each check explains itself and cites its source in the catalogue, and
-each finding quotes the evidence it found. 44 checks,
+each finding quotes the evidence it found. Nine more checks judge the site — robots.txt,
+the sitemap, the host, how a missing page answers — once per crawl, outside every page's score.
+45 page checks,
 exactly one unit per catalogued code: a code without a check does not compile, and neither does a
 check registered under another code or given a shape its catalogue scope does not call for. A check
 answers `pass`, `fails` or `notApplicable`; the third outcome exists because without it "the title
@@ -92,10 +94,10 @@ catalogue by type rather than kept beside it. One pass produces the issues, both
 the score, and the record of which codes were judged and which were not — the only account there
 will ever be of how the catalogue looked at that crawl.
 
-**A page's score is the share of the checks that could apply to it.** Twenty-two of the forty-four
+**A page's score is the share of the checks that could apply to it.** Twenty-two of the forty-five
 are conditional — a page with no images is not judged on alt text, a page with no description is
 not judged on its length — so the denominator is counted at crawl time, while the parsed page is
-still in hand, and shown beside the number: 100 out of 22 and 100 out of 44 are not the same
+still in hand, and shown beside the number: 100 out of 23 and 100 out of 45 are not the same
 claim. Every check weighs the same; weighting by severity would invent a model of ranking nobody
 can justify, and Lighthouse does the same and says so — "each SEO audit is weighted equally in
 the Lighthouse SEO Score"
