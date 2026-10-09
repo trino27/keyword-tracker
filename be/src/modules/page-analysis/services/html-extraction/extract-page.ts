@@ -113,6 +113,21 @@ const APP_MOUNT_POINTS =
 
 const LINK_SCHEMES = new Set(['http:', 'https:']);
 
+/**
+ * A `javascript:` URL that does nothing — the link is a control whose click a script
+ * handles elsewhere, the "Войти" and "Добавить" buttons of cossa.ru. Leads to no page.
+ */
+const DO_NOTHING_SCRIPT =
+  /^\s*javascript:\s*(void\s*\(?\s*0\s*\)?|return\s+false|undefined)?\s*;?\s*$/i;
+
+/**
+ * An `onclick` that goes somewhere: it names a location, an address or a path —
+ * `go('/three/')`, `location.href = …`. `chatToggleConnect()` on scripting.com names
+ * none, and opens a chat, not a page.
+ */
+const NAVIGATING_SCRIPT =
+  /location|href|window\.open|navigate|['"`](\/|https?:)/i;
+
 /** Fragment routes that open a widget, not a page: Ghost's membership portal. */
 const WIDGET_FRAGMENT = /#\/portal(?:\/|$)/;
 
@@ -216,19 +231,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       });
   });
 
-  const blocks: string[] = [];
-  main.find(BLOCK_ELEMENTS).each((_, element) => {
-    // A block that contains blocks is read through its children instead.
-    if ($(element).find(BLOCK_ELEMENTS).length > 0) return;
-    // A heading is already a field of its own, and counting it here as well paid it
-    // twice: a listicle's h2 scored its subheading weight AND a body frequency it
-    // never earned in prose, which is how "start this week" and "add specific
-    // statistics" became keywords. With a table of contents repeating every heading
-    // as an `li`, the same phrase was paid three times.
-    if (HEADING_TAGS.has(element.tagName)) return;
-    const text = collapse($(element).text());
-    if (text) blocks.push(text);
-  });
+  const blocks = blocksOf($, main);
   const links: string[] = [];
   const nofollowLinks: string[] = [];
   const uncrawlableLinks: string[] = [];
@@ -242,7 +245,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       // `<a name>` is a target, not a link; an `<a>` that navigates by script is a link
       // nobody but a clicking reader can follow. A role of button says it is a control.
       if (
-        anchor.attr('onclick') !== undefined &&
+        NAVIGATING_SCRIPT.test(anchor.attr('onclick') ?? '') &&
         anchor.attr('role') !== 'button'
       )
         uncrawlableLinks.push(label());
@@ -256,7 +259,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     // (`#/portal/signup`, Ghost's membership dialog, on ghost.org) leads to no page,
     // and nothing is hidden behind it.
     if (
-      /^\s*javascript:/i.test(raw) ||
+      (/^\s*javascript:/i.test(raw) && !DO_NOTHING_SCRIPT.test(raw)) ||
       (/#[!/]/.test(raw) &&
         !WIDGET_FRAGMENT.test(raw) &&
         sameHostAs(absolute(raw, baseUrl), pageUrl))
@@ -358,6 +361,110 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     elementCount,
     featuredImage: featuredImageOf($, baseUrl),
   };
+}
+
+/** Phrasing elements: they continue a run of text rather than end it. */
+const INLINE = new Set([
+  'a',
+  'abbr',
+  'b',
+  'bdi',
+  'bdo',
+  'cite',
+  'code',
+  'data',
+  'del',
+  'dfn',
+  'em',
+  'font',
+  'i',
+  'ins',
+  'kbd',
+  'mark',
+  'q',
+  's',
+  'samp',
+  'small',
+  'span',
+  'strong',
+  'sub',
+  'sup',
+  'time',
+  'u',
+  'var',
+  'wbr',
+  'nobr',
+]);
+
+/**
+ * Words a run of loose text needs to be prose. Below it, what sits outside any block is
+ * a theme's label — "Get Started", a date, "TAGS" — not the post.
+ */
+const LOOSE_RUN_MIN_WORDS = 8;
+
+/** The DOM's node type of text (comments are 8). */
+const TEXT_NODE = 3;
+
+/**
+ * The prose of the main content, one entry per block, in document order.
+ *
+ * A block that contains blocks is read through its children. A heading is already a
+ * field of its own, and counting it here as well paid it twice: a listicle's h2 scored
+ * its subheading weight AND a body frequency it never earned in prose, which is how
+ * "start this week" and "add specific statistics" became keywords.
+ *
+ * Text that sits in no block at all — straight inside a `<div>`, between `<br>`s and
+ * `<h2>`s — is a block of its own up to the next break, when it reads as prose. cossa.ru
+ * writes whole articles that way, and reading only the `<p>`s left a post's text to be
+ * its footer's. An inline element holding blocks is no inline element: hubspot.com wraps
+ * every paragraph of a post in one `<span>`.
+ */
+function blocksOf($: CheerioAPI, main: TSelection): string[] {
+  const blocks: string[] = [];
+  let run = '';
+  let ownText = false;
+  const flush = () => {
+    const text = collapse(run);
+    if (ownText && countWords(text) >= LOOSE_RUN_MIN_WORDS) blocks.push(text);
+    run = '';
+    ownText = false;
+  };
+  const walk = (nodes: ReturnType<TSelection['contents']>) => {
+    nodes.each((_, node) => {
+      if (!('tagName' in node)) {
+        // Text, and comments — whose `data` is no text of the page.
+        if (node.nodeType === TEXT_NODE && 'data' in node) {
+          run += ` ${node.data}`;
+          if (WORD.test(node.data)) ownText = true;
+        }
+        return;
+      }
+      const element = $(node);
+      const tag = node.tagName.toLowerCase();
+      if (
+        INLINE.has(tag) &&
+        element.find(`${BLOCK_ELEMENTS}, ${LAYOUT_ELEMENTS}`).length === 0
+      ) {
+        run += ` ${element.text()}`;
+        return;
+      }
+      flush();
+      if (HEADING_TAGS.has(tag)) return;
+      if (
+        element.is(BLOCK_ELEMENTS) &&
+        element.find(BLOCK_ELEMENTS).length === 0
+      ) {
+        const text = collapse(element.text());
+        if (text) blocks.push(text);
+        return;
+      }
+      walk(element.contents());
+      flush();
+    });
+  };
+  walk(main.contents());
+  flush();
+  return blocks;
 }
 
 /**

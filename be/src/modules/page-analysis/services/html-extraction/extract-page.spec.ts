@@ -454,7 +454,7 @@ describe('extractPage', () => {
       '<main><p>' +
         '<a href="/one/">One</a> <a href="/two/" rel="nofollow ugc">Two</a> ' +
         '<a href="mailto:x@a.example">Mail</a> <a name="top"></a> ' +
-        '<a href="javascript:void(0)">Script</a> ' +
+        `<a href="javascript:goTo('products')">Script</a> ` +
         `<a onclick="go('/three/')">Three</a> ` +
         '<a role="button" onclick="toggle()">Menu</a>' +
         '<a href="#/pricing">Pricing</a> <a href="/#!about">About</a>' +
@@ -462,6 +462,8 @@ describe('extractPage', () => {
         // lennysnewsletter.com and ghost.org, 2026-10: a menu toggle and the
         // membership dialog were reported as links hiding pages.
         '<a role="button" href="javascript:void(0)">Community</a>' +
+        // cossa.ru and scripting.com: controls whose script names no destination.
+        '<a href="javascript:void(0);">Login</a><a onclick="chatToggleConnect ();"></a>' +
         '<a href="https://a.example/resources/#/portal/signup">Subscribe</a>' +
         '</p></main>',
     );
@@ -476,7 +478,7 @@ describe('extractPage', () => {
     ]);
     expect(parsed.nofollowLinks).toEqual(['https://a.example/two/']);
     expect(parsed.uncrawlableLinks).toEqual([
-      '<a href="javascript:void(0)">Script</a>',
+      `<a href="javascript:goTo('products')">Script</a>`,
       `<a onclick="go('/three/')">Three</a>`,
       // Client-side routes in the fragment: Google drops everything after #.
       '<a href="#/pricing">Pricing</a>',
@@ -773,6 +775,34 @@ describe('extractPage', () => {
       ).wordCount,
     ).toBe(12);
     expect(page('<p>Привет мир, hello world 2026</p>').wordCount).toBe(5);
+  });
+
+  // cossa.ru, 2026-10: the article is bare text in a <div>, between <h2>s, and only the
+  // footer's <p>s were read — so every post's text was the footer, and posts matched.
+  it('reads prose that sits in no block, and not a lone label', () => {
+    const parsed = page(
+      '<div class="main">Reach, engagement and efficiency are the swan, the crayfish' +
+        ' and the pike of digital advertising.<!--more--><h2>Reach</h2>' +
+        ' When big brands are involved, reach comes first, and everything else after.' +
+        '<div><a href="/start/">Get Started</a></div><span>October 8, 2026</span>' +
+        '</div><div><p>Footer</p></div>',
+    );
+
+    expect(parsed.blocks).toEqual([
+      'Reach, engagement and efficiency are the swan, the crayfish and the pike of digital advertising.',
+      'When big brands are involved, reach comes first, and everything else after.',
+      'Footer',
+    ]);
+  });
+
+  // hubspot.com wraps every paragraph of a post in one <span>; tables stay cell by cell.
+  it('reads an inline wrapper of blocks, and table cells, block by block', () => {
+    expect(
+      page(
+        '<span class="hs_cos_wrapper"><p>First paragraph.</p><p>Second one.</p></span>' +
+          '<table><tbody><tr><td>Cost</td><td>Type</td></tr></tbody></table>',
+      ).blocks,
+    ).toEqual(['First paragraph.', 'Second one.', 'Cost', 'Type']);
   });
 
   it('survives broken JSON-LD and missing everything', () => {

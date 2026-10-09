@@ -530,7 +530,7 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Links Google cannot follow',
     hint: 'Give every link a real URL in href; keep JavaScript for behaviour on top of it.',
     explanation:
-      'Google states that it can generally only crawl a link if it is an <a> element with an href attribute that resolves to a real web address. An <a> that navigates through onclick with no href, or whose href is a javascript: call, works for a reader with a mouse and is a dead end for a crawler: the page it leads to is not discovered through it and receives none of its anchor text. A client-side route in the fragment (href="#/pricing", "#!pricing") is the same dead end: Google drops everything after #, so the link leads to the page it sits on, and Google asks single-page apps to route with the History API instead.',
+      'Google states that it can generally only crawl a link if it is an <a> element with an href attribute that resolves to a real web address. An <a> that navigates through onclick with no href, or whose href is a javascript: call, works for a reader with a mouse and is a dead end for a crawler: the page it leads to is not discovered through it and receives none of its anchor text. A control that leads nowhere — javascript:void(0), a toggle whose script names no address — is not reported: there is no page behind it to miss. A client-side route in the fragment (href="#/pricing", "#!pricing") is the same dead end: Google drops everything after #, so the link leads to the page it sits on, and Google asks single-page apps to route with the History API instead.',
     sources: [SOURCE.crawlableLinks, SOURCE.javascriptSeo],
   },
   LANG_MISSING: {
