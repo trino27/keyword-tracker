@@ -7,6 +7,7 @@ import { pages } from '../tables/pages/pages.schema';
 import { rankSnapshots } from '../tables/rank-snapshots/rank-snapshots.schema';
 import { seoIssues } from '../tables/seo-issues/seo-issues.schema';
 import { sessions } from '../tables/sessions/sessions.schema';
+import { siteChecks } from '../tables/site-checks/site-checks.schema';
 import { users } from '../tables/users/users.schema';
 
 /**
@@ -26,6 +27,7 @@ export const databaseSchema = {
   pageKeywords,
   seoIssues,
   rankSnapshots,
+  siteChecks,
 };
 
 export type DatabaseSchema = typeof databaseSchema;

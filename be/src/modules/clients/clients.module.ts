@@ -3,6 +3,7 @@ import { ClientsController } from './controllers/clients/clients.controller';
 import { CrawlRunsController } from './controllers/crawl-runs/crawl-runs.controller';
 import { ClientsRepository } from './repositories/clients/clients.repository';
 import { CrawlRunItemsRepository } from './repositories/crawl-run-items/crawl-run-items.repository';
+import { SiteChecksRepository } from './repositories/site-checks/site-checks.repository';
 import { CrawlRunsRepository } from './repositories/crawl-runs/crawl-runs.repository';
 import { ClientCrawlRunsService } from './services/client-crawl-runs/client-crawl-runs.service';
 import { ClientsService } from './services/clients/clients.service';
@@ -33,6 +34,7 @@ import { ClientsService } from './services/clients/clients.service';
     ClientsRepository,
     CrawlRunsRepository,
     CrawlRunItemsRepository,
+    SiteChecksRepository,
   ],
   exports: [ClientsService, ClientCrawlRunsService],
 })

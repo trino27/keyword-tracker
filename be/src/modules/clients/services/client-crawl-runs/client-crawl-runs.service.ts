@@ -15,6 +15,8 @@ import type {
   IRunTarget,
 } from '../../interfaces/client-record.interface';
 import { ClientsRepository } from '../../repositories/clients/clients.repository';
+import type { ISiteCheckResult } from '@app/contracts';
+import { SiteChecksRepository } from '../../repositories/site-checks/site-checks.repository';
 import { CrawlRunItemsRepository } from '../../repositories/crawl-run-items/crawl-run-items.repository';
 import { CrawlRunsRepository } from '../../repositories/crawl-runs/crawl-runs.repository';
 
@@ -37,6 +39,7 @@ export class ClientCrawlRunsService {
     private readonly clients: ClientsRepository,
     private readonly runs: CrawlRunsRepository,
     private readonly items: CrawlRunItemsRepository,
+    private readonly siteChecks: SiteChecksRepository,
     private readonly transactions: TransactionRunner,
   ) {}
 
@@ -85,14 +88,19 @@ export class ClientCrawlRunsService {
     return this.runs.lockForFinalizeForWorker(tx, runId, attempt);
   }
 
-  /** Writes the run's log and outcome; call only after lockForFinalizeForWorker held. */
+  /**
+   * Writes the run's log, its site checks and its outcome; call only after
+   * lockForFinalizeForWorker held.
+   */
   async finalizeForWorker(
     tx: Transaction,
     runId: number,
     outcome: IRunOutcome,
     items: ICrawlRunItemRecord[],
+    siteChecks: readonly ISiteCheckResult[] = [],
   ): Promise<void> {
     await this.items.replaceForWorker(tx, runId, items);
+    await this.siteChecks.replaceForWorker(tx, runId, siteChecks);
     await this.runs.finalizeForWorker(tx, runId, outcome);
   }
 
