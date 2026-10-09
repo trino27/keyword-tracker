@@ -223,6 +223,22 @@ const SOURCE = {
     title: 'Google Search Central: Influence your byline dates',
     url: 'https://developers.google.com/search/docs/appearance/publication-dates',
   },
+  structuredDataPolicies: {
+    title: 'Google Search Central: General structured data guidelines',
+    url: 'https://developers.google.com/search/docs/appearance/structured-data/sd-policies',
+  },
+  wcagLinkPurpose: {
+    title: 'W3C WCAG 2.2: Understanding Link Purpose (In Context)',
+    url: 'https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html',
+  },
+  htmlCharset: {
+    title: "WHATWG HTML Standard: Specifying the document's character encoding",
+    url: 'https://html.spec.whatwg.org/multipage/semantics.html',
+  },
+  mdnMeta: {
+    title: 'MDN: <meta>: the metadata element',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta',
+  },
   structuredDataIntro: {
     title: 'Google Search Central: Introduction to structured data markup',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data',
@@ -287,7 +303,9 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.starterGuide, SOURCE.mdnHeadings],
   },
   H1_MULTIPLE: {
-    severity: 'warning',
+    // A notice: Google has said repeatedly that several h1 elements are no problem for
+    // Search, so the cost is to readers and assistive technology alone.
+    severity: 'notice',
     label: 'More than one H1',
     hint: 'Several main headings blur what the page is about; keep one.',
     explanation:
@@ -331,12 +349,21 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.canonical],
     skipReason: 'No canonical to disagree with.',
   },
+  CANONICAL_RELATIVE: {
+    severity: 'notice',
+    label: 'Canonical URL is relative',
+    hint: 'Write the canonical as a full URL, with scheme and host.',
+    explanation:
+      'The canonical is written as a path (href="/post/") rather than a full URL. Google supports relative canonicals, but asks for absolute ones, because a relative path silently follows whatever host serves the page: a staging copy, an http:// mirror or a www variant each declares itself canonical instead of the real page.',
+    sources: [SOURCE.canonical],
+    skipReason: 'No canonical to judge.',
+  },
   NOINDEX: {
     severity: 'error',
     label: 'Page is set to noindex',
-    hint: 'A robots meta tag or X-Robots-Tag header keeps the page out of search results.',
+    hint: 'A robots meta tag or X-Robots-Tag header — noindex, or an unavailable_after date that has passed — keeps the page out of search results.',
     explanation:
-      'A noindex rule — in a <meta name="robots"> or <meta name="googlebot"> tag, or in an X-Robots-Tag HTTP header — tells Google to drop the page from search results, and Google obeys it once it recrawls the page. On a post listed in the blog sitemap it is almost always unintended: a staging setting left on, or a plugin rule for a category applied too widely. A sitemap entry and a noindex on the same URL are also contradictory signals.',
+      'A noindex rule — in a <meta name="robots"> or <meta name="googlebot"> tag, or in an X-Robots-Tag HTTP header — tells Google to drop the page from search results, and Google obeys it once it recrawls the page. An unavailable_after date that has passed does the same. On a post listed in the blog sitemap it is almost always unintended: a staging setting left on, or a plugin rule for a category applied too widely. A sitemap entry and a noindex on the same URL are also contradictory signals.',
     sources: [SOURCE.blockIndexing, SOURCE.robotsMeta],
   },
   SNIPPET_RESTRICTED: {
@@ -444,6 +471,14 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.canonical, SOURCE.urlStructure],
     skipReason: 'The content links nowhere on the site.',
   },
+  LINKS_WITHOUT_TEXT: {
+    severity: 'notice',
+    label: 'Links with no text',
+    hint: 'Give every link words: text, alt on a linked image, or an aria-label.',
+    explanation:
+      'Some links in the content have no text at all — an icon or an image without alt inside an <a>. Google reads a link\'s text as a description of the page it points to, falls back to the title attribute and, for a linked image, to its alt text; a link with none of these tells it nothing. A screen reader announces such a link by its URL, or as just "link", which WCAG 2.2 counts as a failure of link purpose. Text hidden visually for screen readers counts and passes.',
+    sources: [SOURCE.crawlableLinks, SOURCE.wcagLinkPurpose],
+  },
   UNCRAWLABLE_LINKS: {
     severity: 'notice',
     label: 'Links Google cannot follow',
@@ -461,6 +496,8 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.wcagLanguage, SOURCE.multiRegional],
   },
   HREFLANG_INVALID: {
+    // Also fails a page that declares hreflang while its canonical names another URL: the
+    // page then calls itself a duplicate and drops out of its own set.
     // Reciprocity — does the page named back link here — is the other half of Google's
     // requirement and is deliberately not checked: it needs the other document, which
     // is usually on another site and never in this crawl. What is checked is what one
@@ -469,7 +506,7 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Hreflang is malformed',
     hint: 'A hreflang with an invalid language code, or that never names this page, is ignored.',
     explanation:
-      'hreflang links tell Google which URL to show readers of each language or region. Google requires each value to be a valid ISO 639-1 language code, optionally followed by an ISO 3166-1 region, and requires each page of the set to list itself as well as the others; annotations that break these rules may be ignored, and readers shown the wrong language version.',
+      'hreflang links tell Google which URL to show readers of each language or region. Google requires each value to be a valid ISO 639-1 language code, optionally followed by an ISO 3166-1 region, and requires each page of the set to list itself as well as the others; annotations that break these rules may be ignored, and readers shown the wrong language version. The usual slips are country codes written for languages — ua for Ukrainian (uk), kz for Kazakh (kk), jp for Japanese (ja) — and UK for the United Kingdom (GB). A page whose canonical names another URL declares itself a duplicate, which takes it out of its own hreflang set.',
     sources: [SOURCE.hreflang],
     skipReason: 'The page declares no hreflang.',
   },
@@ -491,6 +528,14 @@ export const SEO_ISSUE_CATALOGUE = {
     explanation:
       'Open Graph tags decide the title, description and image shown when the post is shared on social networks and in messengers. They do not affect Google rankings. Without them each platform guesses, and a shared link often shows the site logo or no image at all.',
     sources: [SOURCE.openGraph],
+  },
+  CHARSET_MISSING_OR_LATE: {
+    severity: 'warning',
+    label: 'Character encoding declared late or not at all',
+    hint: 'Send charset=utf-8 in the Content-Type header, or put <meta charset="utf-8"> first in <head>.',
+    explanation:
+      'Neither the Content-Type header nor the first 1024 bytes of the HTML say how the text is encoded. The HTML standard requires a <meta charset> to sit entirely within those first 1024 bytes; a browser that has to guess may decode the page in a legacy encoding and show every non-ASCII character as garbage — accented letters, Cyrillic, curly quotes. A late declaration usually follows a large inline script or style placed before it.',
+    sources: [SOURCE.htmlCharset, SOURCE.mdnMeta],
   },
   NOT_HTTPS: {
     severity: 'error',
@@ -587,6 +632,24 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.canonical, SOURCE.spamPolicies],
     skipReason:
       'Nothing to compare — the run holds one page, or this page has too little text to compare.',
+  },
+  STRUCTURED_DATA_INVALID: {
+    severity: 'warning',
+    label: 'Structured data that cannot be read',
+    hint: 'Fix the JSON in the quoted block; Rich Results Test points at the exact character.',
+    explanation:
+      'A <script type="application/ld+json"> block on the page is not valid JSON, so nothing in it reaches Google: whatever article, breadcrumb or organization markup it holds counts as absent. Google asks for markup that passes its Rich Results Test. The usual causes are a trailing comma, an unescaped quote inside a value, or a template that printed an empty variable.',
+    sources: [SOURCE.structuredDataPolicies, SOURCE.structuredDataIntro],
+    skipReason: 'The page has no JSON-LD block.',
+  },
+  DATES_INCONSISTENT: {
+    severity: 'notice',
+    label: 'Dates contradict each other',
+    hint: 'Make the published date, the modified date and any year in the URL agree.',
+    explanation:
+      "The page's dates cannot all be true: the article was modified before it was published, it was published after the day it was crawled, or its URL carries a year the markup does not. Google asks for dates that are consistent, accurate and not in the future, and uses them for the date it shows beside the result — given a contradiction, it has to pick one, and may pick the wrong one.",
+    sources: [SOURCE.bylineDates, SOURCE.articleMarkup],
+    skipReason: 'The page declares no publication date.',
   },
   STRUCTURED_DATA_MISSING: {
     // The hint speaks about eligibility, never about a violation: Google requires no
