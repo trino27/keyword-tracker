@@ -23,11 +23,22 @@ export interface IParsedPage {
   title: string | null;
   metaDescription: string | null;
   metaRobots: string | null;
+  /** `<meta name="googlebot">` content: Google obeys it exactly as it obeys `robots`. */
+  metaGooglebot: string | null;
   /** `<meta http-equiv="refresh">` content, as written; null when there is none. */
   metaRefresh: string | null;
   /** `<meta name="viewport">` content, as written; null when the tag is absent. */
   viewport: string | null;
-  canonical: string | null;
+  /**
+   * Every distinct canonical `<head>` declares, in order. Two different ones are a
+   * conflict, and Google answers a conflict by ignoring all of them.
+   */
+  canonicals: string[];
+  /**
+   * Canonicals written outside `<head>`. Google reads a canonical only in the head, so
+   * one of these is a canonical the author believes the page has and it does not.
+   */
+  canonicalsOutsideHead: string[];
   alternates: IAlternateLink[];
   /** `og:*` properties by name, e.g. `og:title`. */
   openGraph: Record<string, string>;
@@ -60,6 +71,25 @@ export interface IParsedPage {
    * would otherwise make "this page links somewhere" true of every page on the site.
    */
   links: string[];
+  /** The subset of `links` whose `rel` says `nofollow`. */
+  nofollowLinks: string[];
+  /**
+   * Links in the main content a crawler cannot follow — a `javascript:` href, or an
+   * `<a>` with no href that navigates by `onclick` — each as its markup, cut to 200
+   * characters, so the reader can find it in the page source.
+   */
+  uncrawlableLinks: string[];
+  /**
+   * Absolute URLs of the scripts and stylesheets the document loads: what a renderer
+   * needs to draw the page, and so what robots.txt must not keep from Googlebot.
+   */
+  renderResources: string[];
+  /**
+   * The document looks like a client-rendered shell: an empty mount point for a
+   * JavaScript framework, or a `<noscript>` asking for JavaScript. Read only beside a
+   * low word count, where it says WHY there was nothing to read.
+   */
+  clientRendered: boolean;
   /**
    * Prose blocks of the main content — paragraphs, list items, cells — so keyword
    * candidates never cross a block boundary. Headings are NOT here: they are read

@@ -162,7 +162,7 @@ describe('extractPage', () => {
       title: 'A title',
       metaDescription: 'The description',
       metaRobots: 'noindex, follow',
-      canonical: 'https://a.example/canonical/',
+      canonicals: ['https://a.example/canonical/'],
       openGraph: { 'og:title': 'OG' },
       articleTags: ['SEO'],
       lang: 'en-GB',
@@ -333,6 +333,114 @@ describe('extractPage', () => {
     expect(parsed.jsonLd.types).toContain('BreadcrumbList');
   });
 
+  /**
+   * A relative href means what it means against `<base>`, exactly as Googlebot reads
+   * it. Resolving against the page URL instead reported the links the author meant,
+   * not the ones the page has — and a wrong `<base>` is precisely the defect that sends
+   * a whole site's relative links somewhere else.
+   */
+  it('resolves every relative URL against <base href>', () => {
+    const parsed = page(
+      '<main><p><a href="other/">Other</a></p><img src="i.png"></main>',
+      '<base href="https://a.example/blog/"><link rel="canonical" href="post/">',
+    );
+
+    expect(parsed.links).toEqual(['https://a.example/blog/other/']);
+    expect(parsed.canonicals).toEqual(['https://a.example/blog/post/']);
+    expect(parsed.resourceUrls).toContain('https://a.example/blog/i.png');
+  });
+
+  // Google accepts the canonical only in <head>. The parser decides where the head
+  // ends, as a browser's does: an <img> in <head> closes it early.
+  it('reads canonicals in <head> only, and keeps the ones in <body> apart', () => {
+    const parsed = extractPage(
+      '<!doctype html><html><head><link rel="Canonical" href="/one/">' +
+        '<link rel="canonical" href="/two/"><link rel="canonical" href="/one/#x">' +
+        '</head><body><link rel="canonical" href="/body/"><p>x</p></body></html>',
+      'https://a.example/post/',
+    );
+
+    expect(parsed.canonicals).toEqual([
+      'https://a.example/one/',
+      'https://a.example/two/',
+    ]);
+    expect(parsed.canonicalsOutsideHead).toEqual(['https://a.example/body/']);
+  });
+
+  it('reads <meta name="googlebot"> beside <meta name="robots">', () => {
+    expect(
+      page('<p>x</p>', '<meta name="Googlebot" content="noindex">')
+        .metaGooglebot,
+    ).toBe('noindex');
+  });
+
+  /**
+   * What a crawler can follow, what it is asked not to, and what it cannot follow at
+   * all. `mailto:` names no page, `<a name>` is a target and `<a role="button">` is a
+   * control: none of them is a link to judge.
+   */
+  it('sorts the content links by what a crawler can do with them', () => {
+    const parsed = page(
+      '<main><p>' +
+        '<a href="/one/">One</a> <a href="/two/" rel="nofollow ugc">Two</a> ' +
+        '<a href="mailto:x@a.example">Mail</a> <a name="top"></a> ' +
+        '<a href="javascript:void(0)">Script</a> ' +
+        `<a onclick="go('/three/')">Three</a> ` +
+        '<a role="button" onclick="toggle()">Menu</a>' +
+        '</p></main>',
+    );
+
+    expect(parsed.links).toEqual([
+      'https://a.example/one/',
+      'https://a.example/two/',
+    ]);
+    expect(parsed.nofollowLinks).toEqual(['https://a.example/two/']);
+    expect(parsed.uncrawlableLinks).toEqual([
+      '<a href="javascript:void(0)">Script</a>',
+      `<a onclick="go('/three/')">Three</a>`,
+    ]);
+  });
+
+  it('collects the scripts and stylesheets a renderer needs, and nothing else', () => {
+    const parsed = page(
+      '<main><img src="/i.png"><script src="/late.js"></script></main>',
+      '<script src="/app.js"></script><link rel="stylesheet" href="/site.css">' +
+        '<link rel="preload" href="/font.woff2">',
+    );
+
+    expect(parsed.renderResources).toEqual([
+      'https://a.example/app.js',
+      'https://a.example/late.js',
+      'https://a.example/site.css',
+    ]);
+  });
+
+  // Recorded: semrush's /analytics/traffic/competitor-monitoring ships an empty mount
+  // point and nothing else — the one page of the corpus with no server-rendered text.
+  it('recognises a client-rendered shell, and no real post as one', () => {
+    expect(
+      page('<div id="root"></div><script src="/app.js"></script>')
+        .clientRendered,
+    ).toBe(true);
+    expect(
+      page(
+        '<div></div><noscript>You need to enable JavaScript to run this app.</noscript>',
+      ).clientRendered,
+    ).toBe(true);
+    expect(
+      recorded(
+        'semrush/analytics/traffic/competitor-monitoring.html',
+        'https://www.semrush.com/analytics/traffic/competitor-monitoring',
+      ).clientRendered,
+    ).toBe(true);
+    expect(
+      recorded(
+        'semrush/blog/seo-specialist/index.html',
+        'https://www.semrush.com/blog/seo-specialist/',
+      ).clientRendered,
+    ).toBe(false);
+  });
+
   it('survives broken JSON-LD and missing everything', () => {
     const parsed = extractPage(
       '<script type="application/ld+json">{broken</script>',
@@ -342,7 +450,7 @@ describe('extractPage', () => {
     expect(parsed).toMatchObject({
       title: null,
       lang: null,
-      canonical: null,
+      canonicals: [],
       jsonLd: { types: [], keywords: [], articleFields: [] },
       wordCount: 0,
     });

@@ -92,6 +92,27 @@ const RESOURCE_ATTRIBUTES: readonly [string, string][] = [
   ['object[data]', 'data'],
 ];
 
+/**
+ * The scripts and stylesheets a renderer needs. Images are not here: a page without its
+ * images still renders, and robots.txt rules over an image folder are a site's own call.
+ */
+const RENDER_RESOURCE_ATTRIBUTES: readonly [string, string][] = [
+  ['script[src]', 'src'],
+  ['link[rel~="stylesheet" i][href]', 'href'],
+];
+
+/**
+ * The mount points the common JavaScript frameworks render into. Found EMPTY, they say
+ * the HTML is a shell the browser fills in — React, Vue, Next, Nuxt, Gatsby, Angular.
+ */
+const APP_MOUNT_POINTS =
+  '#root, #app, #__next, #__nuxt, #___gatsby, app-root, [data-reactroot]';
+
+const LINK_SCHEMES = new Set(['http:', 'https:']);
+
+/** How much of an uncrawlable link's markup is kept to quote it. */
+const MARKUP_QUOTE_MAX = 200;
+
 const WORD = /[\p{L}\p{N}]/u;
 
 const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
@@ -104,8 +125,14 @@ const orNull = (text: string | undefined) => {
  * Reads the fields a page is judged by. A crawled page is the most untrusted input the
  * system has: everything here tolerates missing or malformed markup and never throws.
  */
-export function extractPage(html: string, baseUrl: string): IParsedPage {
+export function extractPage(html: string, pageUrl: string): IParsedPage {
   const $ = load(html);
+  // Before anything is resolved: a relative href means what it means against `<base>`,
+  // exactly as a browser and Googlebot read it, and a page whose `<base>` is wrong has
+  // every relative link pointing somewhere else — the reader must see THAT, not the
+  // links the author meant.
+  const baseUrl = baseOf($, pageUrl);
+  const clientRendered = looksClientRendered($);
   // Before anything is read, and on the whole document, because h1s are read outside the
   // main content: strip what no reader sees, and the controls sitting inside headings.
   $(HIDDEN_TEXT).remove();
@@ -144,9 +171,33 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
     if (text) blocks.push(text);
   });
   const links: string[] = [];
-  main.find('a[href]').each((_, element) => {
-    const href = absolute($(element).attr('href'), baseUrl);
-    if (href) links.push(href);
+  const nofollowLinks: string[] = [];
+  const uncrawlableLinks: string[] = [];
+  main.find('a').each((_, element) => {
+    const anchor = $(element);
+    const raw = anchor.attr('href');
+    // The markup as written is the evidence: the reader searches the page source for it.
+    const label = () => collapse($.html(element)).slice(0, MARKUP_QUOTE_MAX);
+    if (raw === undefined) {
+      // `<a name>` is a target, not a link; an `<a>` that navigates by script is a link
+      // nobody but a clicking reader can follow. A role of button says it is a control.
+      if (
+        anchor.attr('onclick') !== undefined &&
+        anchor.attr('role') !== 'button'
+      )
+        uncrawlableLinks.push(label());
+      return;
+    }
+    if (/^\s*javascript:/i.test(raw)) {
+      uncrawlableLinks.push(label());
+      return;
+    }
+    const href = absolute(raw, baseUrl);
+    // mailto:, tel: and the like name no page; they are neither internal nor outbound.
+    if (!href || !LINK_SCHEMES.has(new URL(href).protocol)) return;
+    links.push(href);
+    if (relTokens(anchor.attr('rel')).includes('nofollow'))
+      nofollowLinks.push(href);
   });
 
   const mainText = collapse(main.text());
@@ -161,13 +212,17 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
     });
   });
 
+  const canonicals = canonicalsOf($, 'head', baseUrl);
+
   return {
     title: orNull($('head > title').first().text()),
     metaDescription: orNull(metaContent($, 'name', 'description')),
     metaRobots: orNull(metaContent($, 'name', 'robots')),
+    metaGooglebot: orNull(metaContent($, 'name', 'googlebot')),
     metaRefresh: orNull(httpEquivContent($, 'refresh')),
     viewport: orNull(metaContent($, 'name', 'viewport')),
-    canonical: canonicalOf($, baseUrl),
+    canonicals,
+    canonicalsOutsideHead: canonicalsOf($, 'body', baseUrl),
     alternates: alternatesOf($, baseUrl),
     openGraph: openGraphOf($),
     articleTags: $('meta[property="article:tag"]')
@@ -188,8 +243,12 @@ export function extractPage(html: string, baseUrl: string): IParsedPage {
         .get()
         .find((text) => text.length > 0) ?? null,
     images,
-    resourceUrls: resourceUrlsOf($, baseUrl),
+    resourceUrls: urlsOf($, RESOURCE_ATTRIBUTES, baseUrl),
     links,
+    nofollowLinks,
+    uncrawlableLinks,
+    renderResources: urlsOf($, RENDER_RESOURCE_ATTRIBUTES, baseUrl),
+    clientRendered,
     blocks,
     wordCount: mainText.split(' ').filter((token) => WORD.test(token)).length,
   };
@@ -270,8 +329,61 @@ function absolute(value: string | undefined, baseUrl: string): string | null {
   }
 }
 
-function canonicalOf($: CheerioAPI, baseUrl: string): string | null {
-  return absolute($('link[rel~="canonical"]').first().attr('href'), baseUrl);
+/**
+ * The document's base URL: the first `<base href>`, resolved against the page, when it
+ * names a web address; the page itself otherwise.
+ */
+function baseOf($: CheerioAPI, pageUrl: string): string {
+  const base = absolute($('base[href]').first().attr('href'), pageUrl);
+  return base && LINK_SCHEMES.has(new URL(base).protocol) ? base : pageUrl;
+}
+
+/**
+ * Distinct canonicals in one part of the document, in order. Google reads a canonical
+ * only in `<head>`, so the two parts are read separately: the head's are the page's
+ * canonical, the body's are a mistake to report. The parser decides where the head ends,
+ * as Google's does — an `<img>` written in `<head>` closes it, and every link after it
+ * lands in the body.
+ */
+function canonicalsOf(
+  $: CheerioAPI,
+  part: 'head' | 'body',
+  baseUrl: string,
+): string[] {
+  const found = new Set<string>();
+  $(`${part} link[rel~="canonical" i]`).each((_, element) => {
+    const href = absolute($(element).attr('href'), baseUrl);
+    if (href) found.add(withoutFragment(href));
+  });
+  return [...found];
+}
+
+function withoutFragment(url: string): string {
+  const parsed = new URL(url);
+  parsed.hash = '';
+  return parsed.href;
+}
+
+function relTokens(rel: string | undefined): string[] {
+  return (rel ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+/**
+ * An empty framework mount point, or a `<noscript>` asking for JavaScript. Read on the
+ * whole document before anything is removed, because the `<noscript>` is the evidence.
+ */
+function looksClientRendered($: CheerioAPI): boolean {
+  const emptyMount = $(APP_MOUNT_POINTS)
+    .toArray()
+    .some((element) => {
+      const node = $(element).clone();
+      node.find(NEVER_CONTENT).remove();
+      return collapse(node.text()) === '';
+    });
+  if (emptyMount) return true;
+  return $('body noscript')
+    .toArray()
+    .some((element) => /javascript/i.test($(element).text()));
 }
 
 /** `http-equiv` is matched case-insensitively: `HTTP-EQUIV="Refresh"` is the same tag. */
@@ -301,17 +413,21 @@ function alternatesOf($: CheerioAPI, baseUrl: string): IAlternateLink[] {
 }
 
 /**
- * Every subresource URL the document names, de-duplicated. A `srcset` is a comma-separated
- * list of candidates with descriptors ("a.png 1x, b.png 2x"), so each candidate's first
- * token is the URL.
+ * Every subresource URL the given selectors name, de-duplicated. A `srcset` is a
+ * comma-separated list of candidates with descriptors ("a.png 1x, b.png 2x"), so each
+ * candidate's first token is the URL.
  */
-function resourceUrlsOf($: CheerioAPI, baseUrl: string): string[] {
+function urlsOf(
+  $: CheerioAPI,
+  attributes: readonly [string, string][],
+  baseUrl: string,
+): string[] {
   const urls = new Set<string>();
   const add = (value: string | undefined) => {
     const url = absolute(value, baseUrl);
     if (url) urls.add(url);
   };
-  for (const [selector, attribute] of RESOURCE_ATTRIBUTES) {
+  for (const [selector, attribute] of attributes) {
     $(selector).each((_, element) => {
       const value = $(element).attr(attribute);
       if (attribute !== 'srcset') {
