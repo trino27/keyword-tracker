@@ -25,6 +25,8 @@ export interface ICheckInput {
   robots: IRobotsRules;
   /** Lower-cased response headers. */
   headers: Record<string, string>;
+  /** When the response arrived: the "now" every date a check compares against. */
+  fetchedAt: Date;
   htmlBytes: number;
   parsed: IParsedPage;
   /**

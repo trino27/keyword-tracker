@@ -121,6 +121,8 @@ describe('evaluateChecks', () => {
               // No links to another page of the site, so neither link check that
               // reads them has anything to judge.
               links: [],
+              // And no date to contradict.
+              datePublished: null,
             },
             // A robots.txt that governs no host this page touches: neither robots
             // check has a rule to read.
@@ -255,6 +257,16 @@ describe('evaluateChecks', () => {
           title: 'Shared title',
           metaDescription: 'Too short',
           metaRobots: 'noindex, nosnippet',
+          relativeCanonicals: ['/x/'],
+          unnamedLinks: [
+            {
+              href: 'https://a.example/other/',
+              markup: '<a href="/other/"><img src="i.png"></a>',
+            },
+          ],
+          jsonLdErrors: ['{"@type": "Article",} — Unexpected token'],
+          charsetDeclarationEnd: 2_000,
+          datePublished: '2026-11-30',
           authors: [],
           contentHash: 'f'.repeat(64),
           dateModified: '2026-10-01',

@@ -12,6 +12,12 @@ export interface IRobotsDirectives {
   quote: string;
   /** Lower case, spaces removed: `noindex`, `max-snippet:0`. */
   rules: string[];
+  /**
+   * The `unavailable_after` instant, when one applies to Google and reads as a date.
+   * Kept apart from `rules` because a date's own commas and spaces ("Fri, 25 Jun 2027
+   * 15:00:00 PST") are exactly what the rule splitting removes.
+   */
+  unavailableAfter: Date | null;
 }
 
 /**
@@ -47,9 +53,27 @@ function headerRulesForGoogle(value: string): string[] {
       agent = scoped[1].toLowerCase();
       rule = scoped[2];
     }
-    if (agent === null || agent === 'googlebot') rules.push(normalize(rule));
+    if (agent === null || agent === 'googlebot') rules.push(rule.trim());
   }
   return rules.filter(Boolean);
+}
+
+/**
+ * The date after `unavailable_after:`, read from the raw rules. The date may itself hold
+ * commas, so the longest run of following pieces that still parses as a date wins.
+ */
+function unavailableAfterOf(rawRules: string[]): Date | null {
+  const at = rawRules.findIndex((rule) => /^unavailable_after\s*:/i.test(rule));
+  if (at === -1) return null;
+  const pieces = [
+    rawRules[at].replace(/^unavailable_after\s*:\s*/i, ''),
+    ...rawRules.slice(at + 1),
+  ];
+  for (let take = pieces.length; take > 0; take -= 1) {
+    const parsed = Date.parse(pieces.slice(0, take).join(','));
+    if (!Number.isNaN(parsed)) return new Date(parsed);
+  }
+  return null;
 }
 
 /**
@@ -66,22 +90,28 @@ export function robotsDirectivesForGoogle({
     ['robots', parsed.metaRobots],
     ['googlebot', parsed.metaGooglebot],
   ] as const) {
-    if (content)
+    if (content) {
+      const raw = content.split(',').map((rule) => rule.trim());
       found.push({
         source: 'meta',
         name,
         value: content,
         quote: `<meta name="${name}" content="${attribute(content)}">`,
-        rules: content.split(',').map(normalize).filter(Boolean),
+        rules: raw.map(normalize).filter(Boolean),
+        unavailableAfter: unavailableAfterOf(raw),
       });
+    }
   }
   const header = headers['x-robots-tag'];
-  if (header)
+  if (header) {
+    const raw = headerRulesForGoogle(header);
     found.push({
       source: 'header',
       value: header,
       quote: `X-Robots-Tag: ${header}`,
-      rules: headerRulesForGoogle(header),
+      rules: raw.map(normalize),
+      unavailableAfter: unavailableAfterOf(raw),
     });
+  }
   return found;
 }

@@ -115,6 +115,25 @@ const LINK_SCHEMES = new Set(['http:', 'https:']);
 /** How much of an uncrawlable link's markup is kept to quote it. */
 const MARKUP_QUOTE_MAX = 200;
 
+/**
+ * Where a link's accessible name is parked while the hidden text that may be part of it
+ * is still in the document. Stripped again before any markup is quoted.
+ */
+const NAME_ATTRIBUTE = 'data-seo-accessible-name';
+
+/** Which entry of the links' markup-as-written a link is, for the same reason. */
+const INDEX_ATTRIBUTE = 'data-seo-link-index';
+
+/** A meta element that declares the encoding, in either of its two forms. */
+const CHARSET_DECLARATION =
+  /<meta\b[^>]*?(?:\bcharset\s*=|http-equiv\s*=\s*["']?content-type)[^>]*>/i;
+
+/** A selection, as cheerio returns one. */
+type TSelection = ReturnType<CheerioAPI>;
+
+/** A URL that names its scheme; anything else is resolved against the page. */
+const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
+
 const WORD = /[\p{L}\p{N}]/u;
 
 const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
@@ -137,6 +156,17 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   const clientRendered = looksClientRendered($);
   // Before anything is read, and on the whole document, because h1s are read outside the
   // main content: strip what no reader sees, and the controls sitting inside headings.
+  // A link's name may be text only a screen reader sees ("Read more<span
+  // class="visually-hidden"> about INP</span>"), so it is read before that text goes.
+  // Its markup is kept as written too, because a finding quotes what the author can find
+  // in the source — not what is left once aria-hidden elements are removed.
+  const linkMarkup: string[] = [];
+  $('a[href]').each((index, element) => {
+    linkMarkup.push(quoteMarkup($, $(element)));
+    $(element)
+      .attr(NAME_ATTRIBUTE, accessibleNameOf($, $(element)))
+      .attr(INDEX_ATTRIBUTE, String(index));
+  });
   $(HIDDEN_TEXT).remove();
   $(HEADINGS).find(HEADING_CONTROLS).remove();
 
@@ -175,11 +205,12 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   const links: string[] = [];
   const nofollowLinks: string[] = [];
   const uncrawlableLinks: string[] = [];
+  const unnamedLinks: IParsedPage['unnamedLinks'] = [];
   main.find('a').each((_, element) => {
     const anchor = $(element);
     const raw = anchor.attr('href');
     // The markup as written is the evidence: the reader searches the page source for it.
-    const label = () => collapse($.html(element)).slice(0, MARKUP_QUOTE_MAX);
+    const label = () => quoteMarkup($, anchor);
     if (raw === undefined) {
       // `<a name>` is a target, not a link; an `<a>` that navigates by script is a link
       // nobody but a clicking reader can follow. A role of button says it is a control.
@@ -200,6 +231,11 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     links.push(href);
     if (relTokens(anchor.attr('rel')).includes('nofollow'))
       nofollowLinks.push(href);
+    if (anchor.attr(NAME_ATTRIBUTE) === '')
+      unnamedLinks.push({
+        href,
+        markup: linkMarkup[Number(anchor.attr(INDEX_ATTRIBUTE))] ?? label(),
+      });
   });
 
   const mainText = collapse(main.text());
@@ -215,7 +251,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   });
 
   const canonicals = canonicalsOf($, 'head', baseUrl);
-  const { jsonLd, authors, dates } = structuredDataOf($);
+  const { jsonLd, jsonLdErrors, authors, dates } = structuredDataOf($);
 
   return {
     title: orNull($('head > title').first().text()),
@@ -226,6 +262,10 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     viewport: orNull(metaContent($, 'name', 'viewport')),
     canonicals,
     canonicalsOutsideHead: canonicalsOf($, 'body', baseUrl),
+    relativeCanonicals: $('head link[rel~="canonical" i][href]')
+      .map((_, element) => collapse($(element).attr('href') ?? ''))
+      .get()
+      .filter((href) => href && !HAS_SCHEME.test(href)),
     alternates: alternatesOf($, baseUrl),
     openGraph: openGraphOf($),
     articleTags: $('meta[property="article:tag"]')
@@ -233,6 +273,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .get()
       .filter(Boolean),
     jsonLd,
+    jsonLdErrors,
     lang: orNull($('html').attr('lang')),
     h1s: $('body h1')
       .map((_, element) => collapse($(element).text()))
@@ -250,6 +291,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     links,
     nofollowLinks,
     uncrawlableLinks,
+    unnamedLinks,
     renderResources: urlsOf($, RENDER_RESOURCE_ATTRIBUTES, baseUrl),
     clientRendered,
     blocks,
@@ -262,6 +304,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       dates.modified ??
       orNull(metaContent($, 'property', 'article:modified_time')),
     contentHash: createHash('sha256').update(mainText).digest('hex'),
+    charsetDeclarationEnd: charsetDeclarationEndOf(html),
   };
 }
 
@@ -369,6 +412,45 @@ function canonicalsOf(
   return [...found];
 }
 
+/**
+ * What a screen reader would announce for a link, in the order the accessible-name rules
+ * take: aria-labelledby, aria-label, the content (with each image's alt in place, and
+ * nothing marked aria-hidden), then the title attribute — which Google, too, falls back
+ * to for an empty link.
+ */
+function accessibleNameOf($: CheerioAPI, anchor: TSelection): string {
+  const labelledBy = (anchor.attr('aria-labelledby') ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((id) => collapse($(`[id="${id.replace(/"/g, '')}"]`).text()))
+    .join(' ');
+  if (collapse(labelledBy)) return collapse(labelledBy);
+  const label = collapse(anchor.attr('aria-label') ?? '');
+  if (label) return label;
+  const content = anchor.clone();
+  content.find('[aria-hidden="true"]').remove();
+  content.find('img').each((_, image) => {
+    $(image).replaceWith(` ${$(image).attr('alt') ?? ''} `);
+  });
+  const text = collapse(content.text());
+  if (text) return text;
+  return collapse(anchor.attr('title') ?? '');
+}
+
+/** An element as written, without the attribute this extractor parks on links. */
+function quoteMarkup($: CheerioAPI, element: TSelection): string {
+  const clone = element.clone();
+  clone.removeAttr(NAME_ATTRIBUTE).removeAttr(INDEX_ATTRIBUTE);
+  return collapse($.html(clone)).slice(0, MARKUP_QUOTE_MAX);
+}
+
+function charsetDeclarationEndOf(html: string): number | null {
+  const match = CHARSET_DECLARATION.exec(html);
+  return match
+    ? Buffer.byteLength(html.slice(0, match.index + match[0].length))
+    : null;
+}
+
 function withoutFragment(url: string): string {
   const parsed = new URL(url);
   parsed.hash = '';
@@ -472,6 +554,7 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
  */
 function structuredDataOf($: CheerioAPI): {
   jsonLd: IParsedPage['jsonLd'];
+  jsonLdErrors: string[];
   authors: string[];
   dates: { published: string | null; modified: string | null };
 } {
@@ -482,6 +565,7 @@ function structuredDataOf($: CheerioAPI): {
   // names are resolved after every block is read, against the nodes that carry an @id.
   const namesById = new Map<string, string>();
   const authorRefs: unknown[] = [];
+  const jsonLdErrors: string[] = [];
   const dates = {
     published: null as string | null,
     modified: null as string | null,
@@ -515,10 +599,20 @@ function structuredDataOf($: CheerioAPI): {
     for (const keyword of keywordsOf(record.keywords)) keywords.add(keyword);
     if (record['@graph'] !== undefined) visit(record['@graph']);
   };
-  // Broken JSON-LD is common and says nothing about the page itself: a block that is
-  // not JSON is `undefined`, which `visit` ignores.
+  // A block is read as Google reads it — a raw line break inside a string is forgiven
+  // (`parseJsonLd`). What is still not JSON reaches Google as nothing, which is a finding,
+  // quoted with the strict parser's own words so the author can find the character.
   $('script[type="application/ld+json"]').each((_, element) => {
-    visit(parseJsonLd($(element).text()));
+    const text = $(element).text().trim();
+    if (!text) return;
+    const value = parseJsonLd(text);
+    if (value !== undefined) {
+      visit(value);
+      return;
+    }
+    jsonLdErrors.push(
+      `${collapse(text).slice(0, 120)}… — ${strictParseError(text)}`,
+    );
   });
   const names = new Set<string>();
   const resolve = (author: unknown): void => {
@@ -544,9 +638,20 @@ function structuredDataOf($: CheerioAPI): {
       keywords: [...keywords],
       articleFields: [...articleFields],
     },
+    jsonLdErrors,
     authors: [...names].map((name) => `JSON-LD author: ${name}`),
     dates,
   };
+}
+
+/** Why strict JSON refuses the text, in the parser's words: they name the position. */
+function strictParseError(text: string): string {
+  try {
+    JSON.parse(text);
+    return 'not JSON';
+  } catch (error) {
+    return error instanceof Error ? error.message : 'not JSON';
+  }
 }
 
 function dateOf(value: unknown): string | null {

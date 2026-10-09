@@ -24,6 +24,7 @@ export function makeCheckInput(
     robots: allowAllRobots(),
     headers: { 'content-type': 'text/html', 'content-encoding': 'br' },
     htmlBytes: 50_000,
+    fetchedAt: new Date('2026-10-09T12:00:00Z'),
     previous: null,
     ...rest,
     parsed: {
@@ -36,6 +37,7 @@ export function makeCheckInput(
       viewport: 'width=device-width, initial-scale=1',
       canonicals: ['https://a.example/post/'],
       canonicalsOutsideHead: [],
+      relativeCanonicals: [],
       // Self-referencing, and derived from the URL for the same reason `runPage` derives
       // the canonical: a fixed href would fail HREFLANG_INVALID on every page of a run
       // but the first, and the failure would be about the fixture, not about a check.
@@ -73,6 +75,7 @@ export function makeCheckInput(
       links: ['https://a.example/another-post/'],
       nofollowLinks: [],
       uncrawlableLinks: [],
+      unnamedLinks: [],
       renderResources: ['https://a.example/app.js'],
       clientRendered: false,
       blocks: ['Links matter.'],
@@ -81,6 +84,8 @@ export function makeCheckInput(
       datePublished: '2026-01-10T09:00:00Z',
       dateModified: '2026-02-01T09:00:00Z',
       contentHash: 'a'.repeat(64),
+      jsonLdErrors: [],
+      charsetDeclarationEnd: 60,
       ...parsed,
     },
   };

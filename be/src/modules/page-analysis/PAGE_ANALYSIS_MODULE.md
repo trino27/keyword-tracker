@@ -70,9 +70,11 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Twenty of the thirty-nine checks always apply; nineteen are conditional. Fifteen of those
-  are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
-  CANONICAL_MISMATCH and CANONICAL_CONFLICT on there being a canonical to disagree with,
+  Twenty-two of the forty-four checks always apply; twenty-two are conditional. Eighteen of
+  those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
+  CANONICAL_MISMATCH, CANONICAL_CONFLICT and CANONICAL_RELATIVE on there being a canonical,
+  STRUCTURED_DATA_INVALID on there being any JSON-LD, DATES_INCONSISTENT on a publication
+  date,
   IMAGES_MISSING_ALT on there being an image, HEADING_SKIP on there being two or more headings,
   HREFLANG_INVALID on the page declaring an alternate, MIXED_CONTENT on the page being served over
   HTTPS at all, STRUCTURED_DATA_INCOMPLETE on there being an article node to inspect,
@@ -81,7 +83,7 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   page's host, ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a
   host, DATE_BUMPED_WITHOUT_CHANGES on an earlier crawl having recorded the page — and four are
   run-scoped, skipped when the run holds one page or the page has no value to compare. So
-  `20 <= checks_applicable <= 39`, which
+  `22 <= checks_applicable <= 44`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -179,6 +181,25 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   posts whose top keyword is rare. Per paragraph it is no better: a yoast paragraph names its
   product five times in 131 words, denser than Google's own example of stuffing. No line
   separates the two without inventing one, which is the mistake the catalogue refuses.
+- **Five checks from the on-page guidance, and one that was broken (2026-10-09).**
+  `STRUCTURED_DATA_INVALID` reports a JSON-LD block that is not JSON — read the way Google reads
+  it, so a raw line break inside a string is forgiven (`parse-json-ld.ts`, merged from
+  `fix/json-ld-control-characters`; without it the one semrush post carrying such a break was
+  reported as unreadable). `CANONICAL_RELATIVE` is Google's own advice to use absolute URLs.
+  `LINKS_WITHOUT_TEXT` reports links to this site with no accessible name — read before hidden
+  text is removed, so a visually-hidden label counts — and leaves other sites' links out: on the
+  recorded corpus every nameless link was an icon-only share button to LinkedIn, X or Facebook,
+  sixty of them, one set per semrush post. `DATES_INCONSISTENT` is Google's "consistent, accurate
+  and not in the future": modified before published, published after the fetch, a URL year the
+  date does not share. `CHARSET_MISSING_OR_LATE` is the HTML standard's first 1024 bytes,
+  passed by a charset in the Content-Type header. NOINDEX also fails an `unavailable_after` date
+  that had passed when the page was fetched — judged against the fetch time the crawl now hands
+  in, so the analysis still reads no clock. All five fire 0 times on the 43 recorded posts.
+  HREFLANG_INVALID checked grammar, not existence, and passed `ua`, `kz`, `jp` and `en-UK`; it
+  now asks `Intl.DisplayNames` whether the language and region exist, rejects the reserved `UK`,
+  names the code that was meant, and fails a page whose canonical names another URL, which
+  takes it out of its own set. H1_MULTIPLE is a notice: Google has said several h1 elements
+  are no problem for Search.
 - **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
   answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
   never fetches, and the extractor removes the nav and the related-posts rail that carry most
@@ -230,7 +251,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per catalogued code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The thirty-nine checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+**The forty-four checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".

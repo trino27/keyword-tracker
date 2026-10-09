@@ -622,4 +622,61 @@ describe('extractPage', () => {
       wordCount: 0,
     });
   });
+
+  // Text only a screen reader sees is a name: it is read before hidden text goes.
+  it('finds links with no accessible name, and none where a name is hidden or alt', () => {
+    const parsed = page(
+      '<main><p>' +
+        '<a href="/icon/"><img src="i.svg"></a>' +
+        '<a href="/alt/"><img src="i.svg" alt="Pricing"></a>' +
+        '<a href="/more/">More<span class="visually-hidden"> about INP</span></a>' +
+        '<a href="/sr/"><span class="sr-only">Pricing</span><svg aria-hidden="true"></svg></a>' +
+        '<a href="/label/" aria-label="Close"></a>' +
+        '<a href="/titled/" title="Archive"></a>' +
+        '<a href="/hidden/"><span aria-hidden="true">→</span></a>' +
+        '</p></main>',
+    );
+
+    expect(parsed.unnamedLinks).toEqual([
+      {
+        href: 'https://a.example/icon/',
+        markup: '<a href="/icon/"><img src="i.svg"></a>',
+      },
+      {
+        href: 'https://a.example/hidden/',
+        markup: '<a href="/hidden/"><span aria-hidden="true">→</span></a>',
+      },
+    ]);
+  });
+
+  it('keeps a JSON-LD block that is not JSON, with the parser error', () => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">{"@type": "Article",}</script>',
+    );
+
+    expect(parsed.jsonLdErrors).toEqual([
+      expect.stringMatching(/^\{"@type": "Article",\}… — .+position/),
+    ]);
+  });
+
+  it('keeps canonical hrefs written as a path', () => {
+    expect(
+      page('<p>x</p>', '<link rel="canonical" href="/canonical/">')
+        .relativeCanonicals,
+    ).toEqual(['/canonical/']);
+  });
+
+  it('finds where the charset declaration ends, in bytes', () => {
+    const late = extractPage(
+      `<!doctype html><html><head><style>${'a{}'.repeat(400)}</style><meta charset="utf-8"></head><body></body></html>`,
+      'https://a.example/',
+    );
+
+    expect(
+      page('<p>x</p>', '<meta charset="utf-8">').charsetDeclarationEnd,
+    ).toBeLessThan(200);
+    expect(late.charsetDeclarationEnd).toBeGreaterThan(1024);
+    expect(page('<p>x</p>').charsetDeclarationEnd).toBeNull();
+  });
 });

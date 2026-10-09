@@ -61,4 +61,37 @@ describe('NOINDEX', () => {
       ),
     ).toEqual(['X-Robots-Tag: noindex']);
   });
+
+  // A date that has passed drops the page the same way, and the date may hold commas.
+  it.each([
+    'unavailable_after: 2026-01-31',
+    'unavailable_after: Fri, 25 Sep 2026 15:00:00 GMT, noarchive',
+  ])('fails %j once the date has passed', (metaRobots) => {
+    const verdict = NOINDEX_CHECK.evaluate(
+      makeCheckInput({ parsed: { metaRobots } }),
+    );
+
+    expect(verdict).toEqual(failsWith({ source: 'meta', value: metaRobots }));
+    expect(evidenceOf(verdict)).toEqual([
+      `<meta name="robots" content="${metaRobots}">`,
+      'The page was fetched on 2026-10-09, after that date',
+    ]);
+  });
+
+  it('passes an unavailable_after date still ahead, or one scoped to another crawler', () => {
+    expect(
+      NOINDEX_CHECK.evaluate(
+        makeCheckInput({
+          parsed: { metaRobots: 'unavailable_after: 2027-06-01' },
+        }),
+      ),
+    ).toEqual(PASSES);
+    expect(
+      NOINDEX_CHECK.evaluate(
+        makeCheckInput({
+          headers: { 'x-robots-tag': 'bingbot: unavailable_after: 2020-01-01' },
+        }),
+      ),
+    ).toEqual(PASSES);
+  });
 });
