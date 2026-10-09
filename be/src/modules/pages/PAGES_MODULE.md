@@ -45,6 +45,11 @@ Specified in `openspec/specs/be/src/modules/pages/spec.md`.
   refuses an invented `'{}'` on a row claiming eighteen applicable checks. NOT NULL would
   therefore need those pages deleted, which the first bullet forbids — so the wire keeps its null
   and the screen says "re-crawl this page to see each check" rather than inventing verdicts.
+- **A page row remembers what the next crawl compares against.** `content_hash` (SHA-256 of the
+  main text) and `date_modified` (as the page declared it) are written by every crawl and read
+  back, for the same client only, before the next one judges the page — the input of
+  DATE_BUMPED_WITHOUT_CHANGES. Null on rows crawled before they were recorded, which the check
+  reads as "nothing to compare", never as a change.
 - **Every read is scoped**; a foreign or non-current id is the same 404 as a missing one.
 
 

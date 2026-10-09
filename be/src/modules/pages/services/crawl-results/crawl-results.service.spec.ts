@@ -36,6 +36,8 @@ const page = (overrides: Partial<IRunPage> = {}): IRunPage => ({
   checksFailed: 1,
   checksJudged: [...SEO_ISSUE_CODES],
   checksNotApplicable: [],
+  contentHash: 'a'.repeat(64),
+  dateModified: '2026-02-01T09:00:00Z',
   ...overrides,
 });
 
