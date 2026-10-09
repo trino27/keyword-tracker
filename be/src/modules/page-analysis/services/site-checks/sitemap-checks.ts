@@ -14,6 +14,17 @@ const originOf = (url: string) => {
   }
 };
 
+/**
+ * Answers that refuse this crawler rather than describe the page: authentication, a
+ * ban, pay-per-crawl, a rate limit, a bot challenge. allrecipes.com (402),
+ * netflixtechblog.com (403) and css-tricks.com (429) were reported for listing pages
+ * that do not answer — they answer Googlebot; they turned this crawler away (2026-10).
+ */
+const REFUSALS = new Set([401, 402, 403, 429]);
+const isRefusal = (entry: IFetchedEntry) =>
+  (entry.httpStatus !== null && REFUSALS.has(entry.httpStatus)) ||
+  entry.reason === 'Bot challenge';
+
 /** Why one fetched sitemap entry is not a URL to index, or null when it is. */
 function contradictionOf(entry: IFetchedEntry): string | null {
   if (entry.status === 'skipped_robots') return 'disallowed by robots.txt';
@@ -44,8 +55,9 @@ function contradictionOf(entry: IFetchedEntry): string | null {
  */
 export const sitemapListsNonIndexable: TSiteCheck = (input) => {
   const fetched = input.fetched.filter(
-    ({ status, httpStatus }) =>
-      status === 'skipped_robots' || httpStatus !== null,
+    (entry) =>
+      (entry.status === 'skipped_robots' || entry.httpStatus !== null) &&
+      !isRefusal(entry),
   );
   if (fetched.length === 0) return SITE_NOT_APPLICABLE;
   const found = fetched

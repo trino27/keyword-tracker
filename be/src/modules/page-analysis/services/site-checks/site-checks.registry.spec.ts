@@ -406,6 +406,26 @@ describe('host checks', () => {
     ).toMatchObject({ status: 'passed' });
   });
 
+  // css-tricks.com, 2026-10: rate-limited at the second hop, it "ended" on www.
+  it('does not judge a chain cut short by a rate limit or a server error', () => {
+    expect(
+      verdictOf(
+        'HOST_REDIRECT_CHAIN',
+        healthySite({
+          hostVariants: [
+            {
+              ...variant(
+                [{ url: 'http://www.a.example/', status: 301 }],
+                'https://b.example/',
+              ),
+              status: 429,
+            },
+          ],
+        }),
+      ),
+    ).toMatchObject({ status: 'notApplicable' });
+  });
+
   it('reports a variant that never reaches the address the site serves', () => {
     expect(
       evidenceOf(
@@ -422,6 +442,31 @@ describe('host checks', () => {
     ).toEqual([
       `301 http://www.a.example/ → https://b.example/ — ends at https://b.example, not ${SERVED}`,
     ]);
+  });
+
+  // allrecipes.com (402), netflixtechblog.com (403), css-tricks.com (429), 2026-10:
+  // the site turned this crawler away; that says nothing of what Googlebot gets.
+  it('does not read a refusal of this crawler as a page that does not answer', () => {
+    const refused = (httpStatus: number, reason: string) => ({
+      url: `${SERVED}/post-${httpStatus}/`,
+      status: 'failed' as const,
+      httpStatus,
+      reason,
+      page: null,
+    });
+    expect(
+      verdictOf(
+        'SITEMAP_LISTS_NON_INDEXABLE',
+        healthySite({
+          fetched: [
+            refused(402, 'HTTP 402'),
+            refused(403, 'HTTP 403'),
+            refused(429, 'HTTP 429'),
+            refused(503, 'Bot challenge'),
+          ],
+        }),
+      ),
+    ).toMatchObject({ status: 'notApplicable' });
   });
 
   it('reports a missing page answered with 200', () => {

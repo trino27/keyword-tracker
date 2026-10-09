@@ -85,8 +85,11 @@ function hostHops(
  * three host hops or more, by a temporary status, or to somewhere else.
  */
 export const hostRedirectChain: TSiteCheck = (input) => {
+  // An answer cut short by a rate limit or a server error says nothing of where the
+  // chain would have ended: css-tricks.com answered 429 at its second hop (2026-10).
   const redirected = (input.hostVariants ?? []).filter(
-    ({ redirects }) => redirects.length > 0,
+    ({ redirects, status }) =>
+      redirects.length > 0 && status !== null && status !== 429 && status < 500,
   );
   if (redirected.length === 0 || !input.servedOrigin)
     return SITE_NOT_APPLICABLE;
