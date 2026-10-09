@@ -99,7 +99,10 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	CANONICAL_CONFLICT: (d) =>
 		`The page declares ${urls(d, "canonicals").length} different canonical URLs.`,
 	NOINDEX: (d) =>
-		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "value")}".`,
+		text(d, "unavailableAfter")
+			? `The page asked to leave search results after ${text(d, "unavailableAfter").slice(0, 10)}, which has passed.`
+			: `${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "value")}".`,
+	CANONICAL_RELATIVE: (d) => `The canonical is written as a path: ${list(d, "hrefs")}.`,
 	SNIPPET_RESTRICTED: (d) =>
 		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "rule")}".`,
 	ROBOTS_BLOCKS_AI_SEARCH: (d) => `robots.txt keeps ${list(d, "crawlers")} from this page.`,
@@ -124,6 +127,10 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "is" : "are"} marked nofollow.`,
 	INTERNAL_LINK_VARIANTS: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "uses" : "use"} a URL the site does not serve.`,
+	LINKS_WITHOUT_TEXT: (d) => {
+		const count = num(d, "count");
+		return `${count} link${count === 1 ? "" : "s"} to this site ${count === 1 ? "has" : "have"} no text, alt or label.`;
+	},
 	UNCRAWLABLE_LINKS: (d) => {
 		const count = num(d, "count");
 		return `${count} link${count === 1 ? "" : "s"} in the content ${count === 1 ? "has" : "have"} no URL a crawler can follow.`;
@@ -134,12 +141,18 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		const parts = [
 			invalid && `not a language code: ${invalid}`,
 			d.selfReferenced === false && "the alternates never name this page",
-		].filter((part): part is string => typeof part === "string");
+			text(d, "canonicalElsewhere") &&
+				`the canonical names another page (${text(d, "canonicalElsewhere")})`,
+		].filter((part): part is string => typeof part === "string" && part !== "");
 		return `The hreflang set is ignored — ${parts.join("; ")}.`;
 	},
 	VIEWPORT_MISSING: () => "The page has no viewport meta tag.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
 	NOT_HTTPS: (d) => `The page is served from ${text(d, "url")}.`,
+	CHARSET_MISSING_OR_LATE: (d) =>
+		typeof d.declarationEnd === "number"
+			? `The encoding is declared at byte ${d.declarationEnd}, past the first 1024.`
+			: "Neither the header nor the HTML declares the encoding.",
 	MIXED_CONTENT: (d) =>
 		`${num(d, "count")} resources load over plain HTTP, including ${list(d, "examples")}.`,
 	META_REFRESH: (d) =>
@@ -160,6 +173,11 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 			? `The page declares ${types}, but no Article or BlogPosting.`
 			: "The page declares no structured data.";
 	},
+	STRUCTURED_DATA_INVALID: (d) => {
+		const count = num(d, "count");
+		return `${count} JSON-LD block${count === 1 ? " is" : "s are"} not valid JSON.`;
+	},
+	DATES_INCONSISTENT: () => "The page's dates contradict each other.",
 	STRUCTURED_DATA_INCOMPLETE: (d) => `The article markup omits ${list(d, "missing")}.`,
 };
 

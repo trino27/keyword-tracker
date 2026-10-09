@@ -218,4 +218,40 @@ describe("groupIssues", () => {
 
 		expect(group.issues[0].detail).toBe("1 of 4 links to this site is marked nofollow.");
 	});
+
+	it("says when an unavailable_after date has passed", () => {
+		const [group] = groupIssues([
+			{
+				code: "NOINDEX",
+				severity: "error",
+				details: {
+					source: "meta",
+					value: "unavailable_after: 2026-01-31",
+					unavailableAfter: "2026-01-31T00:00:00.000Z",
+				},
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The page asked to leave search results after 2026-01-31, which has passed.",
+		);
+	});
+
+	it("names a canonical that takes the page out of its hreflang set", () => {
+		const [group] = groupIssues([
+			{
+				code: "HREFLANG_INVALID",
+				severity: "notice",
+				details: {
+					invalid: [],
+					selfReferenced: true,
+					canonicalElsewhere: "https://a.example/en/",
+				},
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The hreflang set is ignored — the canonical names another page (https://a.example/en/).",
+		);
+	});
 });
