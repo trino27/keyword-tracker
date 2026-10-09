@@ -70,7 +70,7 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Twenty-two of the forty-four checks always apply; twenty-two are conditional. Eighteen of
+  Twenty-three of the forty-five checks always apply; twenty-two are conditional. Eighteen of
   those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
   CANONICAL_MISMATCH, CANONICAL_CONFLICT and CANONICAL_RELATIVE on there being a canonical,
   STRUCTURED_DATA_INVALID on there being any JSON-LD, DATES_INCONSISTENT on a publication
@@ -83,7 +83,7 @@ Pure business opinions about a run's pages — no I/O, no clock — behind `Page
   page's host, ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a
   host, DATE_BUMPED_WITHOUT_CHANGES on an earlier crawl having recorded the page — and four are
   run-scoped, skipped when the run holds one page or the page has no value to compare. So
-  `22 <= checks_applicable <= 44`, which
+  `23 <= checks_applicable <= 45`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -200,6 +200,27 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   names the code that was meant, and fails a page whose canonical names another URL, which
   takes it out of its own set. H1_MULTIPLE is a notice: Google has said several h1 elements
   are no problem for Search.
+- **Staging leaks, client-side routes, and the site as a whole (2026-10-09).**
+  `DEVELOPMENT_HOST_REFERENCES` (warning) reports a canonical, og:url, hreflang, content link or
+  loaded resource naming localhost, an IP, a `staging.`/`dev.`/`preview.` host of three labels
+  or more (so `dev.to` is a site, not an environment) or a platform preview domain such as
+  `*.vercel.app` — unless the page itself is served from it. `UNCRAWLABLE_LINKS` now also
+  reports this site's own client-side routes in the fragment (`#/pricing`, `#!about`), the
+  example Google's JavaScript guide gives of links it cannot resolve; another site's hashbang
+  URL is its own routing and stays an ordinary link — the one recorded case, semrush linking to
+  the old Google product forums. Both fire 0 times on the recorded posts.
+  The SITE is judged too, by `services/site-checks/`: nine pure checks over what discovery read,
+  what selection fetched and four extra requests (`SiteProbeService`: the home page at the other
+  scheme and www-variants, and an address that cannot exist). Robots.txt past 500 KiB, rules
+  Google never supported (`noindex:`, `nofollow:`, `host:`), a Googlebot group that leaves the
+  general rules open; sitemap entries that redirect, error, are noindex, name another canonical
+  or are disallowed; sitemap URLs on another scheme or host variant; lastmod dates that are all
+  alike, stamped at build time, or older than the pages' own; a host variant that serves the
+  page itself or redirects in more than one permanent hop; a made-up address answered with 200.
+  Every verdict — passed and skipped included — is stored per run in `site_checks` and shown in
+  the run log; none counts in a page's score, which stays a page's. On the recorded yoast and
+  semrush crawls all nine pass or are not applicable. Not built, for want of a source that says
+  so: nested sitemap indexes, and Crawl-delay as a defect (Bing reads it).
 - **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
   answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
   never fetches, and the extractor removes the nav and the related-posts rail that carry most
@@ -251,7 +272,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per catalogued code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The forty-four checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+**The forty-five checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".

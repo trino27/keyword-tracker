@@ -275,7 +275,7 @@ describe('evaluateChecks', () => {
           viewport: null,
           canonicals: ['https://a.example/x/', 'https://a.example/y/'],
           alternates: [{ lang: 'english', href: 'https://a.example/en/' }],
-          openGraph: {},
+          openGraph: { 'og:url': 'https://staging.a.example/post/' },
           jsonLd: { types: [], keywords: [], articleFields: [] },
           lang: null,
           h1s: ['One', 'Two'],

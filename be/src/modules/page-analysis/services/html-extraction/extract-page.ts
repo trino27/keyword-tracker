@@ -221,7 +221,14 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
         uncrawlableLinks.push(label());
       return;
     }
-    if (/^\s*javascript:/i.test(raw)) {
+    // A script call, or a client-side route in this site's fragment ("#/pricing",
+    // "#!pricing"): Google drops everything after #, so the latter leads back to the
+    // page it sits on. Another site's hashbang URL is that site's routing, not a link
+    // this page failed to write, and is read as an ordinary link.
+    if (
+      /^\s*javascript:/i.test(raw) ||
+      (/#[!/]/.test(raw) && sameHostAs(absolute(raw, baseUrl), pageUrl))
+    ) {
       uncrawlableLinks.push(label());
       return;
     }
@@ -449,6 +456,13 @@ function charsetDeclarationEndOf(html: string): number | null {
   return match
     ? Buffer.byteLength(html.slice(0, match.index + match[0].length))
     : null;
+}
+
+/** Same host, the www prefix aside — the product's notion of one site. */
+function sameHostAs(url: string | null, pageUrl: string): boolean {
+  if (!url) return true;
+  const host = (value: string) => new URL(value).hostname.replace(/^www\./, '');
+  return host(url) === host(pageUrl);
 }
 
 function withoutFragment(url: string): string {

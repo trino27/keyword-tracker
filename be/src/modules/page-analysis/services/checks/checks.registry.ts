@@ -10,6 +10,7 @@ import { CANONICAL_RELATIVE_CHECK } from './canonical-relative/canonical-relativ
 import { CHARSET_MISSING_OR_LATE_CHECK } from './charset-missing-or-late/charset-missing-or-late.check';
 import { CANONICAL_MISMATCH_CHECK } from './canonical-mismatch/canonical-mismatch.check';
 import { CANONICAL_MISSING_CHECK } from './canonical-missing/canonical-missing.check';
+import { DEVELOPMENT_HOST_REFERENCES_CHECK } from './development-host-references/development-host-references.check';
 import { DATES_INCONSISTENT_CHECK } from './dates-inconsistent/dates-inconsistent.check';
 import { DATE_BUMPED_WITHOUT_CHANGES_CHECK } from './date-bumped-without-changes/date-bumped-without-changes.check';
 import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
@@ -75,6 +76,7 @@ export const CHECKS: TCheckRegistry = {
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
   CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
+  DEVELOPMENT_HOST_REFERENCES: DEVELOPMENT_HOST_REFERENCES_CHECK,
   CANONICAL_RELATIVE: CANONICAL_RELATIVE_CHECK,
   NOINDEX: NOINDEX_CHECK,
   SNIPPET_RESTRICTED: SNIPPET_RESTRICTED_CHECK,

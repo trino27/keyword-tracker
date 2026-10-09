@@ -78,8 +78,9 @@ export interface IParsedPage {
   /** The subset of `links` whose `rel` says `nofollow`. */
   nofollowLinks: string[];
   /**
-   * Links in the main content a crawler cannot follow — a `javascript:` href, or an
-   * `<a>` with no href that navigates by `onclick` — each as its markup, cut to 200
+   * Links in the main content a crawler cannot follow — a `javascript:` href, a
+   * client-side route in the fragment (`#/pricing`, `#!pricing`), or an `<a>` with no
+   * href that navigates by `onclick` — each as its markup, cut to 200
    * characters, so the reader can find it in the page source.
    */
   uncrawlableLinks: string[];

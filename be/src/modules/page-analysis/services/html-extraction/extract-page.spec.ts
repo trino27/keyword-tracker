@@ -387,17 +387,24 @@ describe('extractPage', () => {
         '<a href="javascript:void(0)">Script</a> ' +
         `<a onclick="go('/three/')">Three</a> ` +
         '<a role="button" onclick="toggle()">Menu</a>' +
+        '<a href="#/pricing">Pricing</a> <a href="/#!about">About</a>' +
+        '<a href="https://forum.b.example/#!topic/1">Forum</a>' +
         '</p></main>',
     );
 
     expect(parsed.links).toEqual([
       'https://a.example/one/',
       'https://a.example/two/',
+      // Another site's hashbang URL is its own routing: an ordinary outbound link.
+      'https://forum.b.example/#!topic/1',
     ]);
     expect(parsed.nofollowLinks).toEqual(['https://a.example/two/']);
     expect(parsed.uncrawlableLinks).toEqual([
       '<a href="javascript:void(0)">Script</a>',
       `<a onclick="go('/three/')">Three</a>`,
+      // Client-side routes in the fragment: Google drops everything after #.
+      '<a href="#/pricing">Pricing</a>',
+      '<a href="/#!about">About</a>',
     ]);
   });
 
