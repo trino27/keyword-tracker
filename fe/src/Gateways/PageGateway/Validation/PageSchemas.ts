@@ -82,6 +82,7 @@ const measurementSchema = z.object({
 	value: z.number(),
 	min: z.number().optional(),
 	max: z.number().optional(),
+	evidence: z.array(z.string()).optional(),
 });
 
 const plainDetailsSchema = z.record(z.string(), z.unknown());
@@ -97,13 +98,28 @@ const measuredVariants = MEASURED_ISSUE_CODES.map((code) =>
 	}),
 );
 
-const plainVariants = SEO_ISSUE_CODES.filter((code) => !isMeasured(code)).map((code) =>
+type TPlainIssueCode = Exclude<TSeoIssueCode, TMeasuredIssueCode>;
+
+const plainVariantOf = <K extends TPlainIssueCode>(code: K) =>
 	z.object({
 		code: z.literal(code),
 		severity: z.enum(SEO_ISSUE_SEVERITIES),
 		details: plainDetailsSchema,
-	}),
-);
+	});
+
+/**
+ * One schema TYPE per code, not one schema typed by the union of codes. The difference
+ * is invisible until the catalogue passes 25 plain codes: TypeScript compares an object
+ * whose `code` is a union against a union of objects by expanding it, and gives up at 25
+ * — so `satisfies` below stopped compiling the day the 26th check was added.
+ */
+type TPlainVariant = {
+	[K in TPlainIssueCode]: ReturnType<typeof plainVariantOf<K>>;
+}[TPlainIssueCode];
+
+const plainVariants = SEO_ISSUE_CODES.filter(
+	(code): code is TPlainIssueCode => !isMeasured(code),
+).map((code) => plainVariantOf(code)) as TPlainVariant[];
 
 /**
  * One variant per catalogued code, the measured ones parsed as a measurement. Built by

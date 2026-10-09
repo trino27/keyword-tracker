@@ -114,4 +114,67 @@ describe("groupIssues", () => {
 
 		expect(group.issues[0].relatedUrls).toEqual([]);
 	});
+
+	it("names the meta tag a noindex came from", () => {
+		const [group] = groupIssues([
+			{
+				code: "NOINDEX",
+				severity: "error",
+				details: { source: "meta", name: "googlebot", value: "none" },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe('The googlebot meta tag says "none".');
+	});
+
+	it("says a redirect is temporary when one hop was", () => {
+		const [group] = groupIssues([
+			{
+				code: "REDIRECTED",
+				severity: "notice",
+				details: {
+					from: "https://a.example/a",
+					to: "https://a.example/b",
+					temporary: true,
+				},
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"The sitemap lists https://a.example/a, which temporarily redirects to https://a.example/b.",
+		);
+	});
+
+	it("quotes the robots.txt rule that blocks Googlebot", () => {
+		const [group] = groupIssues([
+			{
+				code: "ROBOTS_BLOCKS_GOOGLEBOT",
+				severity: "error",
+				details: { url: "https://a.example/p/", rule: "line 5: Disallow: /p/" },
+			},
+		]);
+
+		expect(group.issues[0].detail).toBe(
+			"Googlebot may not fetch this page: robots.txt line 5: Disallow: /p/.",
+		);
+	});
+
+	it("carries the evidence, the explanation and the sources to the view", () => {
+		const [group] = groupIssues([
+			{
+				code: "HTML_NOT_COMPRESSED",
+				severity: "notice",
+				details: { encoding: null, evidence: ["Response: no Content-Encoding header"] },
+			},
+		]);
+
+		expect(group.issues[0]).toMatchObject({
+			detail: "The server sent the HTML uncompressed.",
+			evidence: ["Response: no Content-Encoding header"],
+			explanation: expect.stringContaining("Accept-Encoding"),
+			sources: expect.arrayContaining([
+				expect.objectContaining({ url: expect.stringMatching(/^https:\/\//) }),
+			]),
+		});
+	});
 });

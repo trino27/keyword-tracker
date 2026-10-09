@@ -1,4 +1,4 @@
-import { Anchor, Badge, Group, Paper, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { Anchor, Badge, Code, Group, Paper, Stack, Text, ThemeIcon, Title } from "@mantine/core";
 import {
 	IconAlertOctagon,
 	IconAlertTriangle,
@@ -22,7 +22,12 @@ interface IIssuesSectionProps {
 	currentPages: number;
 }
 
-/** What the last fetch found wrong, worst first, each with what to do about it. */
+/**
+ * What the last fetch found wrong, worst first. Each finding says what is wrong on this
+ * page, shows the markup or header that proves it, says what to do, and then why — at
+ * length, with the documentation the claim comes from — so a reader can weigh it rather
+ * than take it on trust.
+ */
 export function IssuesSection({ issues, currentPages }: IIssuesSectionProps) {
 	const groups = groupIssues(issues);
 	return (
@@ -94,9 +99,43 @@ export function IssuesSection({ issues, currentPages }: IIssuesSectionProps) {
 											))}
 										</Group>
 									)}
+									{/* The proof, as found on the page: searchable in its source. */}
+									{issue.evidence.length > 0 && (
+										<Stack gap={2} aria-label="Evidence">
+											{issue.evidence.map((quote) => (
+												<Code
+													key={quote}
+													block
+													style={{
+														whiteSpace: "pre-wrap",
+														wordBreak: "break-word",
+													}}
+												>
+													{quote}
+												</Code>
+											))}
+										</Stack>
+									)}
+									<Text size="sm">{issue.hint}</Text>
 									<Text size="xs" c="dimmed">
-										{issue.hint}
+										{issue.explanation}
 									</Text>
+									<Group gap={6} wrap="wrap">
+										<Text size="xs" c="dimmed">
+											Source:
+										</Text>
+										{issue.sources.map((source) => (
+											<Anchor
+												key={source.url}
+												href={source.url}
+												target="_blank"
+												rel="noreferrer"
+												size="xs"
+											>
+												{source.title}
+											</Anchor>
+										))}
+									</Group>
 								</Stack>
 							))}
 						</Stack>

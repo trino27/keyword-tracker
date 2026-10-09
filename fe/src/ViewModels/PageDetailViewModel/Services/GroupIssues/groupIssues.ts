@@ -1,6 +1,7 @@
 import {
 	SEO_ISSUE_CATALOGUE,
 	SEO_ISSUE_SEVERITIES,
+	type ISeoIssueSource,
 	type TSeoIssueCode,
 	type TSeoIssueSeverity,
 } from "@app/contracts";
@@ -12,6 +13,15 @@ export interface IIssueView {
 	/** What exactly is wrong on this page, from the issue's details. */
 	detail: string;
 	hint: string;
+	/** Why the check exists, at length, and what Google does and does not do with it. */
+	explanation: string;
+	/** Where the explanation comes from, to open beside the finding. */
+	sources: readonly ISeoIssueSource[];
+	/**
+	 * What the crawl found on this page that proves the finding — the markup, header or
+	 * robots.txt rule as written. Empty for a finding stored before findings carried it.
+	 */
+	evidence: string[];
 	/**
 	 * How many of the client's current pages carry this code, this one included. 1 means
 	 * it is this page's problem; more means the fix probably belongs in a template.
@@ -41,6 +51,7 @@ const text = (details: TDetails, key: string) =>
 	typeof details[key] === "string" ? details[key] : "";
 const list = (details: TDetails, key: string) =>
 	Array.isArray(details[key]) ? (details[key] as unknown[]).map(String).join(", ") : "";
+/** A list of strings from the details; named for its first use, now read for any list. */
 const urls = (details: TDetails, key: string): string[] =>
 	Array.isArray(details[key])
 		? (details[key] as unknown[]).filter((url): url is string => typeof url === "string")
@@ -75,10 +86,20 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	H1_MULTIPLE: (d) => `The page has ${num(d, "count")} H1 headings.`,
 	HEADING_SKIP: (d) =>
 		`"${text(d, "heading")}" jumps from ${text(d, "from").toUpperCase()} to ${text(d, "to").toUpperCase()}.`,
-	CANONICAL_MISSING: () => "The page names no canonical URL.",
-	CANONICAL_MISMATCH: (d) => `The canonical URL is ${text(d, "canonical")}.`,
+	CANONICAL_MISSING: (d) =>
+		urls(d, "outsideHead").length > 0
+			? "The canonical link is written in <body>, where Google ignores it."
+			: "The page names no canonical URL.",
+	CANONICAL_MISMATCH: (d) =>
+		`The ${text(d, "source") === "header" ? "Link header" : "canonical link"} names ${text(d, "canonical")}, not this page.`,
+	CANONICAL_CONFLICT: (d) =>
+		`The page declares ${urls(d, "canonicals").length} different canonical URLs.`,
 	NOINDEX: (d) =>
-		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : "The robots meta tag"} says "${text(d, "value")}".`,
+		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "value")}".`,
+	ROBOTS_BLOCKS_GOOGLEBOT: (d) =>
+		`Googlebot may not fetch this page: ${text(d, "rule") ? `robots.txt ${text(d, "rule")}` : "robots.txt disallows it"}.`,
+	ROBOTS_BLOCKS_RESOURCES: (d) =>
+		`${num(d, "count")} of ${num(d, "total")} scripts and stylesheets on this site's host are closed to Googlebot.`,
 	IMAGES_MISSING_ALT: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} images in the content have no alt text.`,
 	THIN_CONTENT: (d) =>
@@ -88,6 +109,14 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		return external === 0
 			? "The content contains no links at all."
 			: `The content links out ${external} time${external === 1 ? "" : "s"}, never to this site.`;
+	},
+	INTERNAL_LINKS_NOFOLLOW: (d) =>
+		`${num(d, "count")} of ${num(d, "total")} links to this site are marked nofollow.`,
+	INTERNAL_LINK_VARIANTS: (d) =>
+		`${num(d, "count")} of ${num(d, "total")} links to this site use a URL the site does not serve.`,
+	UNCRAWLABLE_LINKS: (d) => {
+		const count = num(d, "count");
+		return `${count} link${count === 1 ? "" : "s"} in the content ${count === 1 ? "has" : "have"} no URL a crawler can follow.`;
 	},
 	LANG_MISSING: () => "The <html> element declares no language.",
 	HREFLANG_INVALID: (d) => {
@@ -105,11 +134,16 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${num(d, "count")} resources load over plain HTTP, including ${list(d, "examples")}.`,
 	META_REFRESH: (d) =>
 		`The page carries <meta http-equiv="refresh" content="${text(d, "content")}">.`,
-	REDIRECTED: (d) => `The sitemap lists ${text(d, "from")}, which redirects to ${text(d, "to")}.`,
+	REDIRECTED: (d) =>
+		`The sitemap lists ${text(d, "from")}, which ${d.temporary === true ? "temporarily " : ""}redirects to ${text(d, "to")}.`,
 	LARGE_PAGE: (d) => {
 		const kb = (value: unknown) => (typeof value === "number" ? Math.round(value / 1024) : "?");
 		return `The HTML is ${kb(d.value)} KB; aim for under ${kb(d.max)} KB.`;
 	},
+	HTML_NOT_COMPRESSED: (d) =>
+		text(d, "encoding")
+			? `The server answered with Content-Encoding: ${text(d, "encoding")}.`
+			: "The server sent the HTML uncompressed.",
 	STRUCTURED_DATA_MISSING: (d) => {
 		const types = list(d, "types");
 		return types
@@ -130,6 +164,9 @@ export function groupIssues(issues: (TSeoIssue & { pagesAffected?: number })[]):
 				label: SEO_ISSUE_CATALOGUE[issue.code].label,
 				detail: DESCRIBE[issue.code](issue.details),
 				hint: SEO_ISSUE_CATALOGUE[issue.code].hint,
+				explanation: SEO_ISSUE_CATALOGUE[issue.code].explanation,
+				sources: SEO_ISSUE_CATALOGUE[issue.code].sources,
+				evidence: urls(issue.details, "evidence"),
 				pagesAffected: issue.pagesAffected ?? 1,
 				relatedUrls: urls(issue.details, "otherUrls"),
 			})),
