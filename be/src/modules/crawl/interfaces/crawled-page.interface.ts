@@ -15,6 +15,8 @@ export interface ICrawledPage {
   httpStatus: number;
   /** Lower-cased response headers (X-Robots-Tag is a rule input). */
   headers: Record<string, string>;
+  /** When the response arrived. */
+  fetchedAt: Date;
   /** Time to first byte. */
   responseMs: number;
   htmlBytes: number;

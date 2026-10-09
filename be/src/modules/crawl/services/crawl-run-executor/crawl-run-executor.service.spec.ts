@@ -37,6 +37,7 @@ const crawledItem = (position: number): ISelectedItem => {
     robots: makeCheckInput().robots,
     httpStatus: 200,
     headers: {},
+    fetchedAt: new Date('2026-10-09T12:00:00Z'),
     responseMs: 100,
     htmlBytes: 1000,
     parsed: makeCheckInput().parsed,

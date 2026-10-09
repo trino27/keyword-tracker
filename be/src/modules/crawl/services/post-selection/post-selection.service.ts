@@ -181,6 +181,7 @@ export class PostSelectionService {
         robots: input.robots,
         httpStatus: response.status,
         headers: response.headers,
+        fetchedAt: new Date(),
         responseMs: response.ttfbMs,
         htmlBytes: response.bytes,
         parsed,
