@@ -765,6 +765,16 @@ describe('extractPage', () => {
     ).toMatchObject({ loading: null });
   });
 
+  // blog.cloudflare.com, 2026-10: a Japanese post counted one "word" per sentence.
+  it('counts the words of Chinese and Japanese, which have no spaces', () => {
+    expect(
+      page(
+        '<p>今日は、Cloudflare Monetization Gatewayをクローズドベータとして提供開始し</p>',
+      ).wordCount,
+    ).toBe(12);
+    expect(page('<p>Привет мир, hello world 2026</p>').wordCount).toBe(5);
+  });
+
   it('survives broken JSON-LD and missing everything', () => {
     const parsed = extractPage(
       '<script type="application/ld+json">{broken</script>',

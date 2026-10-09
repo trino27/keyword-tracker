@@ -140,6 +140,28 @@ const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
 
 const WORD = /[\p{L}\p{N}]/u;
 
+/** Scripts written without spaces between words: Chinese and Japanese. */
+const UNSPACED_SCRIPT =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
+const WORD_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'word' });
+
+/**
+ * Words in the text. A space separates them in most scripts; Chinese and Japanese put
+ * none, so a run of them is split as ICU's dictionaries split it — blog.cloudflare.com's
+ * Japanese post was 176 "words", every sentence one, and reported as thin.
+ */
+function countWords(text: string): number {
+  let count = 0;
+  for (const token of text.split(' ')) {
+    if (!WORD.test(token)) continue;
+    if (!UNSPACED_SCRIPT.test(token)) count += 1;
+    else
+      for (const segment of WORD_SEGMENTER.segment(token))
+        if (segment.isWordLike) count += 1;
+  }
+  return count;
+}
+
 const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
 const orNull = (text: string | undefined) => {
   const collapsed = collapse(text ?? '');
@@ -315,7 +337,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     renderResources: urlsOf($, RENDER_RESOURCE_ATTRIBUTES, baseUrl),
     clientRendered,
     blocks,
-    wordCount: mainText.split(' ').filter((token) => WORD.test(token)).length,
+    wordCount: countWords(mainText),
     authors: [...authors, ...authorsInMarkup($, baseUrl)],
     datePublished:
       dates.published ??
