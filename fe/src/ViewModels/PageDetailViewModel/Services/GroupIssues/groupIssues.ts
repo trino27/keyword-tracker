@@ -103,6 +103,10 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 			? `The page asked to leave search results after ${text(d, "unavailableAfter").slice(0, 10)}, which has passed.`
 			: `${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "value")}".`,
 	CANONICAL_RELATIVE: (d) => `The canonical is written as a path: ${list(d, "hrefs")}.`,
+	DEVELOPMENT_HOST_REFERENCES: (d) => {
+		const count = num(d, "count");
+		return `${count} reference${count === 1 ? "" : "s"} on the page point${count === 1 ? "s" : ""} at a development or staging host.`;
+	},
 	SNIPPET_RESTRICTED: (d) =>
 		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "rule")}".`,
 	ROBOTS_BLOCKS_AI_SEARCH: (d) => `robots.txt keeps ${list(d, "crawlers")} from this page.`,

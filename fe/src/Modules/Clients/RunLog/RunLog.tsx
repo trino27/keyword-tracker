@@ -5,6 +5,7 @@ import { AnchorLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import { useClientsViewModel } from "@ViewModels/ClientsViewModel/ClientsViewModel";
 import styles from "./RunLog.module.scss";
+import { SiteChecks } from "./SiteChecks/SiteChecks";
 
 interface IRunLogProps {
 	runId: number;
@@ -109,6 +110,7 @@ export function RunLog({ runId }: IRunLogProps) {
 					</Table>
 				</Table.ScrollContainer>
 			)}
+			<SiteChecks checks={run.siteChecks} />
 		</Stack>
 	);
 }
