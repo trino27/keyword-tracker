@@ -142,9 +142,13 @@ describe('crawl (e2e, recorded sites)', () => {
       .select({ code: seoIssues.code, details: seoIssues.details })
       .from(seoIssues)
       .where(eq(seoIssues.pageId, page.id));
+    // Stored with the proof the finding quoted, so the screen can show it later.
     expect(issues).toContainEqual({
       code: 'STRUCTURED_DATA_MISSING',
-      details: { types: ['Organization'] },
+      details: {
+        types: ['Organization'],
+        evidence: ['JSON-LD types on the page: Organization'],
+      },
     });
     await expect(runDetail(client.latestRun.id)).resolves.toMatchObject({
       status: 'succeeded',
