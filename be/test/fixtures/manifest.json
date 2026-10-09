@@ -349,6 +349,13 @@
       },
       "file": "synthetic/sitemaps.crosshost.example/post-sitemap.xml"
     },
+    "https://status.search.google.com/incidents.json": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "file": "google-status/incidents.json"
+    },
     "https://text-sitemap.example/": {
       "status": 200,
       "headers": {
