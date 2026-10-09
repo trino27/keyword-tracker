@@ -46,8 +46,14 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   of that navigation on each crawl: blog.google's author pages were tracked, and their keywords
   changed under their own recorded position history. Measured here, real posts start at 256
   words and those pages ran 30–87, well under the catalogue's 300-word THIN_CONTENT warning,
-  which judges a page that IS a post.
+  which judges a page that IS a post. A page under the floor that is a client-rendered shell —
+  an empty framework mount point, or a `<noscript>` asking for JavaScript — is logged as
+  "Rendered by JavaScript" instead, because that is the finding: every crawler that runs no
+  scripts reads it as empty.
   Every considered entry is logged; the log ends at the 15th post.
+- **What the analysis is handed beyond the page:** every redirect hop with its status, and the
+  run's robots.txt as `IRobotsRules`, so the checks can ask it about Googlebot — the crawl itself
+  only ever asks about its own name.
 - **Outbound HTTP** goes through `SiteHttpClient` (extends `RemoteApiCore`): per-kind size caps,
   `.gz` sitemaps inflated under a second cap, retries for 429/5xx/network only, private and
   metadata addresses refused at connect time.

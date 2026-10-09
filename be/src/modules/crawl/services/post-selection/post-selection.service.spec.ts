@@ -221,6 +221,7 @@ describe('PostSelectionService', () => {
       url: `${ORIGIN}/posts/old/`,
       finalUrl: `${ORIGIN}/posts/new/`,
       redirected: true,
+      redirects: [{ url: `${ORIGIN}/posts/old/`, status: 301 }],
       parsed: { title: 'New' },
     });
   });
@@ -240,6 +241,29 @@ describe('PostSelectionService', () => {
     expect(items[0]).toMatchObject({
       status: 'skipped_listing',
       reason: 'Too little content to analyse (4 words)',
+    });
+  });
+
+  /**
+   * The word count alone says "nothing to read"; the shell says why, and the why is the
+   * finding: every crawler that runs no scripts reads this page as empty.
+   */
+  it('names a client-rendered shell as the reason there is nothing to read', async () => {
+    const { select } = setup({
+      [`${ORIGIN}/posts/spa/`]: {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+        body: '<html lang="en"><head><title>App</title><script src="/app.js"></script></head><body><div id="root"></div><noscript>You need to enable JavaScript to run this app.</noscript></body></html>',
+      },
+    });
+
+    const { items } = await select([`${ORIGIN}/posts/spa/`]);
+
+    expect(items[0]).toMatchObject({
+      status: 'skipped_listing',
+      reason: expect.stringMatching(
+        /^Rendered by JavaScript: the HTML itself holds \d+ words/,
+      ),
     });
   });
 

@@ -33,6 +33,8 @@ const crawledItem = (position: number): ISelectedItem => {
     url,
     finalUrl: url,
     redirected: false,
+    redirects: [],
+    robots: makeCheckInput().robots,
     httpStatus: 200,
     headers: {},
     responseMs: 100,

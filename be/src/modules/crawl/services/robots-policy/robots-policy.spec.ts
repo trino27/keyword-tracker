@@ -22,6 +22,37 @@ describe('RobotsPolicy', () => {
     expect(policy.isAllowed('https://a.example/blog/post/')).toBe(true);
   });
 
+  it('answers for another crawler by its own group', () => {
+    const policy = RobotsPolicy.parse(
+      ROBOTS_URL,
+      'User-agent: *\nAllow: /\n\nUser-agent: Googlebot\nDisallow: /blog/\n',
+    );
+
+    expect(policy.isAllowed('https://a.example/blog/post/')).toBe(true);
+    expect(policy.allows('https://a.example/blog/post/', 'Googlebot')).toBe(
+      false,
+    );
+    expect(policy.allows('https://a.example/about/', 'Googlebot')).toBe(true);
+    expect(
+      policy.matchingRule('https://a.example/blog/post/', 'Googlebot'),
+    ).toBe('line 5: Disallow: /blog/');
+    expect(
+      policy.matchingRule('https://a.example/about/', 'Googlebot'),
+    ).toBeNull();
+  });
+
+  it('says nothing about a URL on a host it does not govern', () => {
+    const policy = RobotsPolicy.parse(
+      ROBOTS_URL,
+      'User-agent: *\nDisallow: /\n',
+    );
+
+    expect(policy.allows('https://cdn.example/a.js', 'Googlebot')).toBeNull();
+    expect(
+      RobotsPolicy.allowAll().allows('https://a.example/x', 'Googlebot'),
+    ).toBe(true);
+  });
+
   it('lists Sitemap lines in file order', () => {
     const policy = RobotsPolicy.parse(
       ROBOTS_URL,

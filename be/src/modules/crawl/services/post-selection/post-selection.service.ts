@@ -161,7 +161,10 @@ export class PostSelectionService {
     if (parsed.wordCount < MIN_POST_WORD_COUNT)
       return skip(
         'skipped_listing',
-        `Too little content to analyse (${parsed.wordCount} words)`,
+        parsed.clientRendered
+          ? `Rendered by JavaScript: the HTML itself holds ${parsed.wordCount} words, ` +
+              'which is all a crawler that runs no scripts will ever read'
+          : `Too little content to analyse (${parsed.wordCount} words)`,
         response.status,
       );
 
@@ -174,6 +177,8 @@ export class PostSelectionService {
         url,
         finalUrl: response.finalUrl,
         redirected: response.redirected,
+        redirects: response.redirects,
+        robots: input.robots,
         httpStatus: response.status,
         headers: response.headers,
         responseMs: response.ttfbMs,
