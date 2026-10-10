@@ -22,6 +22,16 @@ Open http://localhost:8080 and sign in as **`semrush.manager@example.com`** or
 year of daily positions — about 56 000 snapshots. It is idempotent: run it again any time; it
 crawls nothing twice and fills positions up to today, including for clients added in the UI.
 
+**Core Web Vitals need a PageSpeed Insights key — optional.** Without one everything above
+works and the screens say *PageSpeed not configured*. To turn it on, create a key (Google Cloud
+console → enable the *PageSpeed Insights API* → Credentials → *Create API key*, or *Get a Key*
+on [the PSI getting-started page](https://developers.google.com/speed/docs/insights/v5/get-started)),
+put it in `.env` as `PAGESPEED_API_KEY=…`, and run `docker compose up -d` again. Pages already
+crawled are measured in the background, about one a second, re-measured at most once a day. A
+key Google refuses shows as *PageSpeed key rejected* on every screen until it is fixed in `.env`
+and the API restarted (`docker compose up -d`). Keyless requests are not an option: Google's
+quota for them is zero.
+
 ## Local development
 
 Node 24 and pnpm 10, with Postgres in Docker and the two apps on the host. The same
@@ -71,6 +81,19 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   nothing — pages it no longer finds keep their history.
 - **Time:** every instant is `timestamptz` in UTC and the user's zone is a column; the API turns a
   calendar range into UTC bounds in that zone, across DST, and the UI formats in it.
+- **PageSpeed Insights — the one call to Google, automatic, cached, mobile.** Rank positions
+  are still simulated; PageSpeed is a real request. A finished crawl queues its pages in its own
+  transaction and a worker in the API process measures them in the background — no button, and
+  opening a screen never calls Google: the last good measurement is stored per page and
+  re-measured at most once a day (Chrome's field data changes daily at most). **Mobile only:**
+  Google indexes and ranks with the mobile version (mobile-first indexing), and one strategy
+  halves the requests and keeps a row to three badges. Each metric takes the page's own
+  real-visitor data, else the whole site's, else Lighthouse's lab run — INP never from the lab,
+  which loads the page but never uses it — and says which on screen. When Google fails:
+  timeouts and 5xx retry after 1, 4, 16, 64 minutes, then the page shows *Couldn't measure*; a
+  429 pauses every request and costs the page nothing; a refused key halts the queue; a page
+  Google cannot load says so in plain words. The last good figures stay on screen through all
+  of it. The pause is held in process memory — right for the one API process this stack runs.
 - **Isolation:** every query is scoped by the session's user in the query itself, and a foreign id
   answers exactly like a missing one — an e2e matrix proves it per route. Sessions are server-side
   opaque cookies, passwords scrypt; outbound HTTP refuses private and loopback addresses.
@@ -113,8 +136,11 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
   lists, so "nothing links here" is a conclusion from evidence it never gathered. Outgoing
   internal links ship as `NO_INTERNAL_LINKS`, which one page can answer about itself; duplicate
   titles, duplicate descriptions and cannibalisation ship as the three run-scoped codes. Then
-  the network ones (Lighthouse, Core Web Vitals), and more crawl parallelism, which
-  `SKIP LOCKED` already leaves as only a second worker process away.
+  more crawl parallelism, which `SKIP LOCKED` already leaves as only a second worker process
+  away.
+- **Desktop Core Web Vitals,** if a client asks — a strategy column and a second request per
+  page; mobile is what Google ranks with. **A shared 429 pause** for more than one API process,
+  in the database rather than in memory.
 - **Keyword stuffing, the one spam rule the catalogue is missing — measured, not guessed.**
   Google's spam policies name it and publish no number. The comparative form was built (three
   times the site's median density of its top keyword) and fired on four ordinary posts on the
