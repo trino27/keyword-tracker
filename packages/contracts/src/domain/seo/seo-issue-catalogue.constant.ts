@@ -1107,7 +1107,7 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Largest Contentful Paint needs improvement',
     plain: {
       what: 'The main content is a bit slow to appear on phones',
-      why: "Google's measurements show many mobile visitors waiting over 2.5 seconds to see the page's main content. Speed is a small ranking signal; the bigger cost is visitors who leave before the page appears.",
+      why: "On phones the page's main content takes over 2.5 seconds to appear, by Google's measurement. Speed is a small ranking signal; the bigger cost is visitors who leave before the page appears.",
       fix: 'Ask your developer to make the largest image or text block at the top the first thing the page loads, for example by compressing the image and loading it early.',
     },
     hint: 'The main image or text block takes longer than 2.5 s to appear; make it the first thing the page loads.',
@@ -1122,7 +1122,7 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Largest Contentful Paint is poor',
     plain: {
       what: 'The main content takes too long to appear on phones',
-      why: 'Many mobile visitors wait over 4 seconds before they see the page, and some leave first. Google counts it as a small ranking signal; the bigger loss is visitors.',
+      why: "On phones the main content takes over 4 seconds to appear, by Google's measurement, and many visitors leave before it does. Google counts it as a small ranking signal; the bigger loss is visitors.",
       fix: 'Ask your developer to shrink and preload the largest image or text block at the top, and to remove scripts that hold back the first paint.',
     },
     hint: 'The main image or text block takes longer than 4 s to appear; shrink it, serve it sooner, and drop what blocks it.',
@@ -1182,7 +1182,7 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Cumulative Layout Shift is poor',
     plain: {
       what: 'The layout jumps a lot while visitors are reading',
-      why: "Google's measurements show content on phones jumping enough that people tap the wrong thing or lose their place. Google weighs page experience after relevance, so the main cost is frustrated readers, not rankings.",
+      why: "By Google's measurement, content on phones jumps enough that people tap the wrong thing or lose their place. Google weighs page experience after relevance, so the main cost is frustrated readers, not rankings.",
       fix: 'Ask your developer to give images and embeds fixed sizes, stop banners and ads from pushing content down, and check web fonts that reflow the text.',
     },
     hint: 'Content jumps a lot while the page loads; give images and embeds fixed dimensions and stop inserting content above what is being read.',
