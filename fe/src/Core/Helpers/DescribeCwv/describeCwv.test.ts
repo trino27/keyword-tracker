@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cwvSourcePhrase, formatCwvValue } from "./describeCwv";
+import { cwvReadingSentence, cwvSourceLabel, cwvSourcePhrase, formatCwvValue } from "./describeCwv";
 
 describe("formatCwvValue", () => {
 	it.each([
@@ -22,5 +22,26 @@ describe("cwvSourcePhrase", () => {
 		expect(cwvSourcePhrase("url")).toBe("this page's real visitors");
 		expect(cwvSourcePhrase("origin")).toBe("the whole site's real visitors");
 		expect(cwvSourcePhrase("lab")).toBe("a lab test, which may vary");
+	});
+});
+
+describe("cwvSourceLabel", () => {
+	it("names the source as a badge tooltip does", () => {
+		expect(cwvSourceLabel("url")).toBe("Real visitors to this page");
+		expect(cwvSourceLabel("origin")).toBe("Real visitors to the whole site");
+		expect(cwvSourceLabel("lab")).toBe("Lab test, may vary");
+	});
+});
+
+describe("cwvReadingSentence", () => {
+	it("says the value, the band, whose it is and when, in the user's zone", () => {
+		expect(
+			cwvReadingSentence(
+				"lcp",
+				{ value: 3100, band: "needsImprovement", source: "url" },
+				"2026-10-09T12:00:00.000Z",
+				"America/Toronto",
+			),
+		).toBe("LCP 3.1 s — needs improvement. Real visitors to this page, measured Oct 9.");
 	});
 });

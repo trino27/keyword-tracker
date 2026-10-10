@@ -110,6 +110,7 @@ export function PagesScreen() {
 				error={pages.error}
 				emptyKind={pages.emptyKind}
 				timeZone={timeZone}
+				pageSpeedAvailability={pages.pageSpeedAvailability}
 				showClient={search.clientId === undefined}
 				onRetry={() => void fetchPages(query, clients.length)}
 				onClearSearch={() => update({ q: undefined })}

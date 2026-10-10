@@ -1,4 +1,6 @@
 import { Badge, Group, Paper, Skeleton, Stack, Table, Text, Tooltip } from "@mantine/core";
+import type { IPageSpeedAvailability } from "@app/contracts";
+import { pageSpeedAvailabilityCopy } from "@Core/Constants/pageSpeedAvailabilityCopy";
 import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
 import type { TPageListItem } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { PositionBadge } from "@Modules/_Shared/PositionBadge/PositionBadge";
@@ -7,6 +9,7 @@ import { AnchorLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import type { TLoadStatus } from "@ViewModels/ClientsViewModel/ClientsViewModel";
 import type { TEmptyKind } from "@ViewModels/PagesViewModel/Services/ToEmptyKind/toEmptyKind";
+import { CwvBadges } from "./CwvBadges/CwvBadges";
 import { EmptyList } from "./EmptyList/EmptyList";
 import { IssueCounts } from "./IssueCounts/IssueCounts";
 import styles from "./PagesTable.module.scss";
@@ -19,6 +22,8 @@ interface IPagesTableProps {
 	error: string | null;
 	emptyKind: TEmptyKind | null;
 	timeZone: string;
+	/** Whether PageSpeed can measure — what an empty speed cell means. */
+	pageSpeedAvailability: IPageSpeedAvailability;
 	/** Hide the client column when the list is already filtered to one client. */
 	showClient: boolean;
 	onRetry: () => void;
@@ -31,10 +36,12 @@ export function PagesTable({
 	error,
 	emptyKind,
 	timeZone,
+	pageSpeedAvailability,
 	showClient,
 	onRetry,
 	onClearSearch,
 }: IPagesTableProps) {
+	const speedCopy = pageSpeedAvailabilityCopy[pageSpeedAvailability.state];
 	if (status === "error" && error) return <SectionError message={error} onRetry={onRetry} />;
 	if (status !== "ready" && items.length === 0) {
 		return (
@@ -57,6 +64,22 @@ export function PagesTable({
 						<Table.Tr>
 							<Table.Th>Page</Table.Th>
 							<Table.Th>Score</Table.Th>
+							<Table.Th>
+								{speedCopy ? (
+									<Tooltip label={speedCopy.notice} withArrow multiline maw={300}>
+										<Stack gap={0}>
+											<Text span size="sm" fw={600}>
+												Core Web Vitals
+											</Text>
+											<Text span size="xs" c="dimmed" fw={400}>
+												{speedCopy.short}
+											</Text>
+										</Stack>
+									</Tooltip>
+								) : (
+									"Core Web Vitals"
+								)}
+							</Table.Th>
 							{showClient && <Table.Th>Client</Table.Th>}
 							<Table.Th>Keywords</Table.Th>
 							{/* The page's latest position: the strongest of its keywords' current
@@ -89,6 +112,13 @@ export function PagesTable({
 									    them — worst first. A second sort here could only
 									    disagree with the one the database applied. */}
 									<ScoreBadge score={item.score} withNote />
+								</Table.Td>
+								<Table.Td>
+									<CwvBadges
+										pageSpeed={item.pageSpeed}
+										availability={pageSpeedAvailability}
+										timeZone={timeZone}
+									/>
 								</Table.Td>
 								{showClient && (
 									<Table.Td>
@@ -163,6 +193,11 @@ export function PagesTable({
 					</Table.Tbody>
 				</Table>
 			</Table.ScrollContainer>
+			<Text size="xs" c="dimmed" px="md" py="xs" className={styles.legend}>
+				Core Web Vitals, mobile: green good, yellow needs improvement (an Improvement in
+				Issues), red poor (Important in Issues). Speed is scored separately from the SEO
+				score.
+			</Text>
 		</Paper>
 	);
 }

@@ -43,6 +43,7 @@ const renderTable = (props: Partial<Parameters<typeof PagesTable>[0]>) =>
 			error={null}
 			emptyKind={null}
 			timeZone="America/Toronto"
+			pageSpeedAvailability={{ state: "active" }}
 			showClient
 			onRetry={vi.fn()}
 			onClearSearch={vi.fn()}
@@ -137,5 +138,45 @@ describe("PagesTable", () => {
 		expect(badges.map((badge) => badge.textContent)).toEqual(["35", "68", "94"]);
 		expect(badges[0]).toHaveAttribute("data-band", "poor");
 		expect(badges[2]).toHaveAttribute("data-band", "good");
+	});
+
+	it("the header says PageSpeed is not configured, and the cells are dashes", async () => {
+		renderTable({ items: [ROW], pageSpeedAvailability: { state: "notConfigured" } });
+
+		expect(await screen.findByText("PageSpeed not configured")).toBeInTheDocument();
+		expect(screen.getByLabelText("PageSpeed not configured")).toHaveTextContent("—");
+	});
+
+	it("the header says the key was rejected, and stored badges stay", async () => {
+		renderTable({
+			items: [
+				{
+					...ROW,
+					pageSpeed: {
+						status: "done",
+						lastError: null,
+						measurement: {
+							measuredAt: "2026-10-09T12:00:00.000Z",
+							lcp: { value: 1800, band: "good", source: "url" },
+							inp: { value: 150, band: "good", source: "url" },
+							cls: { value: 0.01, band: "good", source: "url" },
+							performanceScore: 90,
+						},
+					},
+				},
+			],
+			pageSpeedAvailability: { state: "keyRejected" },
+		});
+
+		expect(await screen.findByText("PageSpeed key rejected")).toBeInTheDocument();
+		expect(screen.getByText("LCP")).toBeInTheDocument();
+	});
+
+	it("explains the colours under the table", async () => {
+		renderTable({ items: [ROW] });
+
+		expect(
+			await screen.findByText(/Speed is scored separately from the SEO score/),
+		).toBeInTheDocument();
 	});
 });
