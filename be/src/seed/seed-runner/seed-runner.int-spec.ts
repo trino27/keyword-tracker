@@ -7,6 +7,7 @@ import { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-r
 import { CrawlWorker } from '@modules/crawl/workers/crawl-worker/crawl-worker';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
+import { pageSpeed } from '@persistence/schema/tables/page-speed/page-speed.schema';
 import { pages } from '@persistence/schema/tables/pages/pages.schema';
 import { rankSnapshots } from '@persistence/schema/tables/rank-snapshots/rank-snapshots.schema';
 import { users } from '@persistence/schema/tables/users/users.schema';
@@ -57,6 +58,11 @@ describe('SeedRunner (postgres, recorded sites)', () => {
       await testDb.db.$count(crawlRuns, eq(crawlRuns.trigger, 'seed')),
     ).toBe(2);
     expect(report.positions.total).toBeGreaterThanOrEqual(50_000);
+    // Each crawl queued its own pages for PageSpeed; the backfill had nothing left.
+    expect(await testDb.db.$count(pageSpeed)).toBe(
+      await testDb.db.$count(pages),
+    );
+    expect(report.pageSpeedQueued).toBe(0);
     expect(
       await testDb.db.$count(
         rankSnapshots,
@@ -73,6 +79,17 @@ describe('SeedRunner (postgres, recorded sites)', () => {
       true,
     );
     expect(await testDb.db.$count(crawlRuns)).toBe(2);
+  });
+
+  /** A database crawled before PageSpeed existed is repaired by one seed run. */
+  it('the backfill queues each current page once, and a second run queues none', async () => {
+    await testDb.db.delete(pageSpeed);
+
+    const first = await seed();
+    const second = await seed();
+
+    expect(first.pageSpeedQueued).toBe(await testDb.db.$count(pages));
+    expect(second.pageSpeedQueued).toBe(0);
   });
 
   it('a client added through the UI gets a full history on the next run', async () => {

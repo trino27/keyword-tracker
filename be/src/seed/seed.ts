@@ -42,6 +42,7 @@ async function main(): Promise<number> {
         `crawl  ${crawl.client.padEnd(8)} ${crawl.status}${crawl.runId ? ` (run ${crawl.runId})` : ''}`,
       );
     }
+    console.log(`pagespeed  ${report.pageSpeedQueued} pages queued`);
     const { pairs, days, rowsAdded, total } = report.positions;
     console.log(
       `positions  ${pairs} keyword pairs, ${days} days: ${rowsAdded} rows added, ${total} in total`,

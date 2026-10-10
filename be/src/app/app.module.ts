@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { APP_GLOBAL_PROVIDERS } from '@core/bootstrap/app-globals.providers';
 import { validateEnv } from '@infrastructure/config/env.schema/env.schema';
+import { PageSpeedSettingsModule } from '@infrastructure/config/page-speed-settings/page-speed-settings.module';
 import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/logger.config';
 import { DatabaseModule } from '@persistence/connections/postgres/database.module';
 import { AuthModule } from '@modules/auth/auth.module';
@@ -32,6 +33,7 @@ import { SearchUpdatesModule } from '@modules/search-updates/search-updates.modu
     // In-memory counters; applied per route by the throttler guards, never globally.
     ThrottlerModule.forRoot([PER_MINUTE_THROTTLE]),
     DatabaseModule,
+    PageSpeedSettingsModule,
     HealthModule,
     AuthModule,
     ClientsModule,

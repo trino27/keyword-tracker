@@ -22,6 +22,7 @@ import {
   CrawlResultsService,
   type IRunPage,
 } from '@modules/pages/services/crawl-results/crawl-results.service';
+import { PageSpeedQueueService } from '@modules/pages/services/page-speed-queue/page-speed-queue.service';
 import {
   BOT_CHALLENGE_REASON,
   MAX_PAGE_URL_LENGTH,
@@ -133,6 +134,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
     private readonly siteProbe: SiteProbeService,
     private readonly analysis: PageAnalysisService,
     private readonly results: CrawlResultsService,
+    private readonly pageSpeedQueue: PageSpeedQueueService,
     private readonly transactions: TransactionRunner,
     @InjectPinoLogger(CrawlRunExecutorService.name)
     private readonly logger: PinoLogger,
@@ -322,6 +324,14 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
               pages,
             })
           : new Map<string, number>();
+      // Queued in the finalize transaction: a rolled-back finalize queues nothing, and the
+      // NOTIFY reaches the PageSpeed worker only once the pages are committed. The crawl
+      // does not wait for Google — it only leaves the pages in line (plan D4).
+      const queuedForSpeed = await this.pageSpeedQueue.enqueueForWorker(
+        tx,
+        [...pageIds.values()],
+        new Date(),
+      );
       const items: ICrawlRunItemRecord[] = (selection?.items ?? []).map(
         (item) => ({
           sitemapPosition: item.sitemapPosition,
@@ -344,6 +354,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
           runId: run.id,
           status: outcome.status,
           pagesDone: outcome.pagesDone,
+          queuedForSpeed,
         },
         'Crawl run finished',
       );

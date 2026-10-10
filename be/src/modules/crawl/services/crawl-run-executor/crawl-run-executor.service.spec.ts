@@ -7,6 +7,7 @@ import type {
 } from '@modules/clients/interfaces/client-record.interface';
 import type { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import type { CrawlResultsService } from '@modules/pages/services/crawl-results/crawl-results.service';
+import type { PageSpeedQueueService } from '@modules/pages/services/page-speed-queue/page-speed-queue.service';
 import type { SiteProbeService } from '../site-probe/site-probe.service';
 import { PageAnalysisService } from '@modules/page-analysis/services/page-analysis/page-analysis.service';
 import { makeCheckInput } from '@modules/page-analysis/services/checks/_testing/make-check-input';
@@ -120,10 +121,21 @@ const setup = (options: {
       );
     },
   } as unknown as CrawlResultsService;
+  const openedTx: Transaction[] = [];
   const transactions = {
-    run: (work: (tx: Transaction) => Promise<unknown>) =>
-      work({} as Transaction),
+    run: (work: (tx: Transaction) => Promise<unknown>) => {
+      const tx = { id: openedTx.length } as unknown as Transaction;
+      openedTx.push(tx);
+      return work(tx);
+    },
   } as unknown as TransactionRunner;
+  const enqueued: { tx: Transaction; pageIds: number[] }[] = [];
+  const pageSpeedQueue = {
+    enqueueForWorker: (tx: Transaction, pageIds: number[]) => {
+      enqueued.push({ tx, pageIds });
+      return Promise.resolve(pageIds.length);
+    },
+  } as unknown as PageSpeedQueueService;
   const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() };
   const executor = new CrawlRunExecutorService(
     runs,
@@ -135,10 +147,11 @@ const setup = (options: {
     } as unknown as SiteProbeService,
     new PageAnalysisService(),
     results,
+    pageSpeedQueue,
     transactions,
     logger as unknown as PinoLogger,
   );
-  return { executor, finalized, applied, runs };
+  return { executor, finalized, applied, runs, enqueued, openedTx };
 };
 
 describe('outcomeOf', () => {
@@ -288,6 +301,30 @@ describe('CrawlRunExecutorService', () => {
 
     expect(applied).toEqual([]);
     expect(finalized).toEqual([]);
+  });
+
+  /** In the same transaction: a rolled-back finalize must queue nothing (plan D4). */
+  it("enqueues the run's pages in the finalize transaction", async () => {
+    const { executor, enqueued, openedTx } = setup({
+      items: [crawledItem(0), crawledItem(1)],
+    });
+
+    await executor.execute(RUN, new AbortController().signal);
+
+    expect(enqueued).toHaveLength(1);
+    expect(enqueued[0].pageIds).toEqual([100, 101]);
+    expect(enqueued[0].tx).toBe(openedTx.at(-1));
+  });
+
+  it('a superseded attempt enqueues nothing', async () => {
+    const { executor, enqueued } = setup({
+      items: [crawledItem(0)],
+      owned: false,
+    });
+
+    await executor.execute(RUN, new AbortController().signal);
+
+    expect(enqueued).toEqual([]);
   });
 
   it('an unexpected error finalizes CRAWL_INTERNAL_ERROR', async () => {

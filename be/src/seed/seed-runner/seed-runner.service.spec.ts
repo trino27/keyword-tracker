@@ -1,4 +1,5 @@
 import type { PinoLogger } from 'nestjs-pino';
+import type { PageSpeedQueueService } from '@modules/pages/services/page-speed-queue/page-speed-queue.service';
 import type { TCrawlRunStatus } from '@app/contracts';
 import type { UserAccountsService } from '@modules/auth/services/user-accounts/user-accounts.service';
 import type { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
@@ -43,10 +44,14 @@ const setup = (options: {
   } as unknown as PositionSeedService;
   const logger = { info: jest.fn(), warn: jest.fn() };
   const sleeps: number[] = [];
+  const pageSpeedQueue = {
+    backfillForWorker: jest.fn(() => Promise.resolve(0)),
+  } as unknown as PageSpeedQueueService;
   const runner = new SeedRunner(
     accounts,
     runs as unknown as ClientCrawlRunsService,
     positions,
+    pageSpeedQueue,
     logger as unknown as PinoLogger,
     {
       sleep: (ms) => {

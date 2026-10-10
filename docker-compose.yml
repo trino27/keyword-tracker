@@ -47,8 +47,10 @@ services:
     environment:
       <<: *be-env
       PORT: "3000"
-      # The API process also executes crawl runs (two at a time) from the crawl_runs queue.
+      # The API process also executes crawl runs (two at a time) from the crawl_runs queue,
+      # and — when a key is set — measures crawled pages with Google PageSpeed Insights.
       CRAWL_WORKER_ENABLED: "true"
+      PAGESPEED_API_KEY: ${PAGESPEED_API_KEY:-}
     depends_on:
       migrate:
         condition: service_completed_successfully

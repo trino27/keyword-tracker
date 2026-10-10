@@ -12,11 +12,14 @@ import { KeywordsRepository } from './repositories/keywords/keywords.repository'
 import { PageKeywordsRepository } from './repositories/page-keywords/page-keywords.repository';
 import { PageDetailRepository } from './repositories/page-detail/page-detail.repository';
 import { PageListRepository } from './repositories/page-list/page-list.repository';
+import { PageSpeedRepository } from './repositories/page-speed/page-speed.repository';
 import { PagesRepository } from './repositories/pages/pages.repository';
 import { RankSnapshotsRepository } from './repositories/rank-snapshots/rank-snapshots.repository';
 import { SeoIssuesRepository } from './repositories/seo-issues/seo-issues.repository';
 import { CrawlResultsService } from './services/crawl-results/crawl-results.service';
 import { PageReadService } from './services/page-read/page-read.service';
+import { PageSpeedQueueService } from './services/page-speed-queue/page-speed-queue.service';
+import { PageSpeedResultsService } from './services/page-speed-results/page-speed-results.service';
 import { PositionFillService } from './services/position-fill/position-fill.service';
 import { PositionHistoryService } from './services/position-history/position-history.service';
 import { selectRankProvider } from './services/rank-providers/select-rank-provider/select-rank-provider';
@@ -30,7 +33,7 @@ import { SnapshotWriterService } from './services/snapshot-writer/snapshot-write
  */
 const RANK_PROVIDERS = [SimulatedRankProvider];
 
-/** Owns pages, keywords, page_keywords, seo_issues and rank_snapshots. */
+/** Owns pages, keywords, page_keywords, seo_issues, rank_snapshots and page_speed. */
 @Module({
   imports: [ClientsModule],
   controllers: [PagesController, PositionsController],
@@ -42,6 +45,9 @@ const RANK_PROVIDERS = [SimulatedRankProvider];
     PageKeywordsRepository,
     SeoIssuesRepository,
     RankSnapshotsRepository,
+    PageSpeedRepository,
+    PageSpeedQueueService,
+    PageSpeedResultsService,
     CrawlResultsService,
     SnapshotWriterService,
     PageReadService,
@@ -63,6 +69,9 @@ const RANK_PROVIDERS = [SimulatedRankProvider];
   ],
   exports: [
     CrawlResultsService,
+    // The crawl and the seed queue pages; the PageSpeed worker writes what Google said.
+    PageSpeedQueueService,
+    PageSpeedResultsService,
     SnapshotWriterService,
     PositionFillService,
     // The seed asks for it by class, not through the token: whatever the API is

@@ -3,6 +3,7 @@ import { crawlRunItems } from '../tables/crawl-run-items/crawl-run-items.schema'
 import { crawlRuns } from '../tables/crawl-runs/crawl-runs.schema';
 import { keywords } from '../tables/keywords/keywords.schema';
 import { pageKeywords } from '../tables/page-keywords/page-keywords.schema';
+import { pageSpeed } from '../tables/page-speed/page-speed.schema';
 import { pages } from '../tables/pages/pages.schema';
 import { rankSnapshots } from '../tables/rank-snapshots/rank-snapshots.schema';
 import { seoIssues } from '../tables/seo-issues/seo-issues.schema';
@@ -28,6 +29,7 @@ export const databaseSchema = {
   seoIssues,
   rankSnapshots,
   siteChecks,
+  pageSpeed,
 };
 
 export type DatabaseSchema = typeof databaseSchema;

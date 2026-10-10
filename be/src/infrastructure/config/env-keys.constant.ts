@@ -14,6 +14,8 @@ export const EnvKeys = {
   RANK_PROVIDER: 'RANK_PROVIDER',
   /** Only the seed process reads it; validated here so a too-short one fails at boot. */
   SEED_USER_PASSWORD: 'SEED_USER_PASSWORD',
+  /** Google PageSpeed Insights. Empty is a working config: speed is "not configured". */
+  PAGESPEED_API_KEY: 'PAGESPEED_API_KEY',
 } as const;
 
 export type TEnvKey = (typeof EnvKeys)[keyof typeof EnvKeys];
