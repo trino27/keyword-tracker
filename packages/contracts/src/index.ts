@@ -26,6 +26,7 @@ export * from './domain/crawl/crawl-run-error.constant.js';
 export * from './domain/crawl/crawl-run.interface.js';
 export * from './domain/seo/seo-issue-severity.enum.js';
 export * from './domain/seo/issue-owner.enum.js';
+export * from './domain/seo/plain-copy.interface.js';
 export * from './domain/page-speed/cwv-metric.enum.js';
 export * from './domain/page-speed/cwv-band.enum.js';
 export * from './domain/page-speed/cwv-source.enum.js';
