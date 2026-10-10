@@ -146,13 +146,23 @@ inside the call.
 ### Requirement [SPEED-009]: Google's rate limit pauses every slot and costs the page nothing
 
 A 429 from PageSpeed MUST pause every slot of the process for the answer's `Retry-After`, or
-60 seconds without one, during which no slot claims a row; the row in flight MUST return to the
-queue with its attempt given back, not counted as a failure.
+60 seconds without one — or one hour when the answer says the day's quota is spent — during
+which no slot claims a row; the row in flight MUST return to the queue with its attempt given
+back, not counted as a failure.
+
+AMENDED during implementation (`page-speed-measurement`, review): a spent DAILY quota answers 429
+too, and a one-minute pause would ask Google again every minute until midnight for nothing; it
+pauses for an hour.
 
 #### Scenario: a 429 with Retry-After 120
 - **WHEN** slot 1's request answers 429 with `Retry-After: 120`
 - **THEN** neither slot claims a row for 120 seconds, and slot 1's row is `queued` with the
   attempts it had before the claim
+
+#### Scenario: the day's quota is spent
+- **WHEN** a request answers that the per-day quota is exceeded
+- **THEN** neither slot claims a row for an hour, and the row is `queued` with its attempt given
+  back
 
 ### Requirement [SPEED-010]: a rejected key stops measuring until restart, and loses nothing
 

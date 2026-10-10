@@ -12,11 +12,12 @@ then lands in the same commit as the code that turns it green.
 - [x] 1.1 Write first in `be/src/infrastructure/remote-api/remote-api.core.spec.ts`: "honours a per-call timeout", "makes exactly one request with maxRetries 0 on a 503", "sends caller headers beside the User-Agent, and cannot replace it"; they fail (options ignored). Verify: `pnpm --filter be test:ci -- src/infrastructure/remote-api` fails on those three
   AMENDED during implementation: the third case is named "sends caller headers beside the
   User-Agent, which they cannot replace".
-- [ ] 1.2 `remote-api.core.ts`: `IRemoteGetOptions` gains `timeoutMs?` (capped at 90 000), `maxRetries?`, `headers?`; defaults from `REMOTE_API_LIMITS`, so every existing caller is unchanged. Verify: `pnpm --filter be test:ci -- src/infrastructure/remote-api src/modules/crawl && pnpm --filter be test:db -- crawl`
-  NOT DONE: the cap. `timeoutMs`, `maxRetries` and `headers` exist with their defaults, but a
-  declared `timeoutMs` is used as given (`hopSignal(options.signal, options.timeoutMs ??
-  REMOTE_API_LIMITS.timeoutMs)`) — nothing holds it to 90 000, which REMOTE-002 requires. The
-  only caller declaring one today, `PsiClient`, declares exactly 90 000.
+- [x] 1.2 `remote-api.core.ts`: `IRemoteGetOptions` gains `timeoutMs?` (capped at 90 000), `maxRetries?`, `headers?`; defaults from `REMOTE_API_LIMITS`, so every existing caller is unchanged. Verify: `pnpm --filter be test:ci -- src/infrastructure/remote-api src/modules/crawl && pnpm --filter be test:db -- crawl`
+  AMENDED during implementation: the cap was missing at first — a declared `timeoutMs` was used
+  as given — and landed after review in `3bb1f74` (`REMOTE_API_LIMITS.maxTimeoutMs`), pinned by
+  `remote-api.core.spec.ts` -> "caps a declared timeout at 90 s". The same commit stops caller
+  headers following a redirect to another origin: "drops caller headers on a redirect to another
+  origin, keeps them on the same one".
 - [x] 1.3 Commit: `feat(remote-api): a caller may declare its own timeout, retries and headers`. Verify: `pnpm lint && pnpm typecheck && pnpm test`
   Committed as `12b7192`.
 
@@ -136,7 +137,10 @@ then lands in the same commit as the code that turns it green.
 - [x] 6.4 Write first `be/test/e2e/page-speed.e2e-spec.ts` (fixture transport, `pageSpeedApiKey: 'test-key'`, `PageSpeedWorker.runOnce()`): "a crawl queues its pages", "a measured page has its speed findings in the detail", "a speed finding counts among the issues and leaves the score and the order unchanged", "without a key the rows stay queued", "after Google rejects the key every row is still queued and the runtime state is keyRejected" (fixture `key-invalid.json`; `core-web-vitals-display` adds the payload half), "opening the list and the detail requests nothing from PageSpeed"; they fail until 6.3 lands. Verify: `pnpm --filter be test:db -- page-speed`
   AMENDED during implementation: "without a key" is its own `describe`, case "the rows stay queued
   and nothing asks Google"; the rejected-key case reads "… and the state is keyRejected" and
-  already asserts the list's `pageSpeedAvailability`.
+  already asserts the list's `pageSpeedAvailability`. After review (`8bd0589`) the read-path case
+  is "opening the list, the detail and the report requests nothing from PageSpeed and writes
+  nothing", and the executor gained "an unexpected error is a failed attempt, never a row left
+  running"; the classifier "a spent daily quota pauses for an hour".
 - [x] 6.5 `be/test/e2e/crawl.e2e-spec.ts`: the `checksFailed` comparison counts crawl-owned findings only (ANALYSIS-010 / plan I6). Verify: `pnpm --filter be test:db -- crawl`
 - [x] 6.6 Without a key on the stack. Verify: `docker compose up -d --build`, then `docker compose logs be | grep -i pagespeed` shows "not configured" once and no request
   VERIFIED: one line, `PageSpeed not configured (no PAGESPEED_API_KEY); pages stay queued`, and
@@ -160,9 +164,15 @@ then lands in the same commit as the code that turns it green.
   NOT DONE: the `docs/decisions.md` half. The README half is done (`f4e76bb`), and phase 5 added
   the PageSpeed decisions to `docs/decisions.md`, but calls per crawl and typical latency need a
   real key (6.7) and are written there as not yet measured.
-- [ ] 7.2 From a clean clone. Verify: clone into a scratch directory, `git checkout feat/issue-report-and-pagespeed`, `cp .env.example .env`, `docker compose -p skt-clean up -d --build && docker compose -p skt-clean run --rm seed`, then `docker compose -p skt-clean logs be | grep -i "not configured"`; `docker compose -p skt-clean down` (no `-v`)
-  NOT DONE: no `skt-clean` project was ever created. The empty-key boot is verified on the dev
-  stack (6.6) and `cp .env.example .env` is what CI runs, but the clean-clone walk is open.
+- [x] 7.2 From a clean clone. Verify: clone into a scratch directory, `git checkout feat/issue-report-and-pagespeed`, `cp .env.example .env`, `docker compose -p skt-clean up -d --build && docker compose -p skt-clean run --rm seed`, then `docker compose -p skt-clean logs be | grep -i "not configured"`; `docker compose -p skt-clean down` (no `-v`)
+  VERIFIED on 2026-10-10 from a fresh clone at `2891b42`, under the project name `skt-fresh` on a
+  brand-new volume: `skt-clean` still held an old volume from an earlier session, so its `migrate`
+  failed on data that was not clean, and volumes are never removed. `cp .env.example .env`, with
+  only `POSTGRES_PORT`/`WEB_PORT` moved to 55434/8090 beside the running dev stack. Health
+  `{"status":"ok","database":"up"}`; the API logged "PageSpeed not configured (no
+  PAGESPEED_API_KEY); pages stay queued"; the seed printed both crawls succeeded and `pagespeed  0
+  pages queued` (the crawls had already queued their own pages); `page_speed` held 30 rows, all
+  `queued`.
 - [x] 7.3 Commit: `docs(readme): PageSpeed — the optional key, mobile, and what failure looks like`. Verify: `git show --stat HEAD`
   Committed as `f4e76bb`.
 

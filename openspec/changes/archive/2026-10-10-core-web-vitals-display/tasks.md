@@ -22,10 +22,10 @@ then lands in the same commit as the code that turns it green.
   (`page-speed.e2e-spec.ts` -> "after Google rejects the key every row is still queued and the
   state is keyRejected"); the detail reaches the same `pageSpeedAvailabilityOf` and is pinned for
   it at unit level only.
-- [ ] 1.2 Contracts `page-speed/page-speed-summary.interface.ts` (`IPageSpeedAvailability` exists since `page-speed-measurement` 2.2); `page-list-item.interface.ts`, `page-list-response.interface.ts`, `page-detail.interface.ts`. Backend: `page-list.repository.ts` (`left join page_speed` in `listSlice`), `page-detail.repository.ts`, `page-read.service.ts` (`cwvBandOf`, `lastError` normalised, availability from `pageSpeedAvailabilityOf(settings, runtime)`). Frontend in the SAME commit: `PageSchemas.ts` gains `pageSpeedSummarySchema`, `pageSpeedAvailabilitySchema` (`state: z.enum(PAGE_SPEED_AVAILABILITY_STATES)`), each `satisfies z.ZodType<…>`, and `PageSchemas.test.ts` → "refuses a summary with an unknown band" and "refuses an unknown availability state". Verify: `pnpm typecheck && pnpm --filter be test:ci -- src/modules/pages && pnpm --filter be test:db -- page-list pages page-speed && pnpm --filter fe test:ci -- PageSchemas`
-  NOT DONE: the two `PageSchemas.test.ts` cases, "refuses a summary with an unknown band" and
-  "refuses an unknown availability state", were never written. Everything else in the task is
-  built in `901b2f1`: the contracts, the repositories' `page_speed` join (shared columns and row
+- [x] 1.2 Contracts `page-speed/page-speed-summary.interface.ts` (`IPageSpeedAvailability` exists since `page-speed-measurement` 2.2); `page-list-item.interface.ts`, `page-list-response.interface.ts`, `page-detail.interface.ts`. Backend: `page-list.repository.ts` (`left join page_speed` in `listSlice`), `page-detail.repository.ts`, `page-read.service.ts` (`cwvBandOf`, `lastError` normalised, availability from `pageSpeedAvailabilityOf(settings, runtime)`). Frontend in the SAME commit: `PageSchemas.ts` gains `pageSpeedSummarySchema`, `pageSpeedAvailabilitySchema` (`state: z.enum(PAGE_SPEED_AVAILABILITY_STATES)`), each `satisfies z.ZodType<…>`, and `PageSchemas.test.ts` → "refuses a summary with an unknown band" and "refuses an unknown availability state". Verify: `pnpm typecheck && pnpm --filter be test:ci -- src/modules/pages && pnpm --filter be test:db -- page-list pages page-speed && pnpm --filter fe test:ci -- PageSchemas`
+  AMENDED during implementation: the two `PageSchemas.test.ts` cases, "refuses a summary with an
+  unknown band" and "refuses an unknown availability state", were missing from `901b2f1` and
+  landed after review in `b2aa7e1`, beside "parses a measured summary". The rest is `901b2f1`: the contracts, the repositories' `page_speed` join (shared columns and row
   mapping in `repositories/page-speed/page-speed-read.ts`), the service, and both schemas, each
   `satisfies z.ZodType<…>`.
 - [x] 1.3 The list is still five statements and keeps its order and spread. Verify: `pnpm --filter be test:db -- page-list` (its `describe('cost')` count and PAGES-010/011 cases)
@@ -36,7 +36,7 @@ then lands in the same commit as the code that turns it green.
   was not updated, so it cannot show the `page_speed` access. Run instead on the seeded dev stack
   (834 `page_speed` rows): `explain analyze select … from pages p left join page_speed ps on
   ps.page_id = p.id order by p.id limit 20` → a Merge Left Join over `Index Scan using
-  page_speed_pkey`, 0.14 ms. The explain file still wants the join added.
+  page_speed_pkey`, 0.14 ms. After review `8bd0589` added that probe to the explain file.
 - [x] 1.5 On the stack. Verify: sign in with `curl -s -c c.txt -H 'Content-Type: application/json' -d '{"email":"yoast.manager@example.com","password":"demo-password-change-me"}' http://localhost:8080/api/auth/login`, then `curl -s -b c.txt 'http://localhost:8080/api/pages?pageSize=20' | grep -o '"pageSpeedAvailability":{[^}]*}'`
   VERIFIED on the rebuilt stack: the list and the detail carry `pageSpeedAvailability` (`{"state":
   "notConfigured"}`, no key) and a `pageSpeed` summary per page.

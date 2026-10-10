@@ -49,14 +49,15 @@ then lands in the same commit as the code that turns it green.
   AMENDED during implementation: the 404 comes from `ClientsService.getClient`, asked first, so
   the report says "not found" with the same exception and body as every other client route; the
   module imports `ClientsModule` and nothing of `page-speed`.
-- [ ] 2.5 Write first `be/test/e2e/issue-report.e2e-spec.ts`: "returns one snapshot of page, speed and site findings", "an origin speed finding on 15 pages is one Whole site row", "a client with no finished crawl has generatedFrom null and no issues", "the report carries the PageSpeed state, keyRejected after Google refused the key", "another user's client is the same 404 as a missing one", "reading the report requests nothing and writes nothing"; they pass only once 2.4 is in. Verify: `pnpm --filter be test:db -- issue-report isolation-matrix default-deny`
-  NOT DONE: two cases. "the report carries the PageSpeed state" asserts `active` only — the
-  report's `keyRejected` after Google refused the key is not asserted end to end (the list's is,
-  in `page-speed.e2e-spec.ts`, and all three read paths call `pageSpeedAvailabilityOf`); and
-  "reading the report requests nothing and writes nothing" was never written, so REPORT-004 rests
-  on the module's imports (no `PsiClient`, no write method). Done otherwise: the first three cases
-  as named, "a missing client is a 404", and the cross-user 404 is pinned by the isolation-matrix
-  row of 2.1 rather than a second copy here.
+- [x] 2.5 Write first `be/test/e2e/issue-report.e2e-spec.ts`: "returns one snapshot of page, speed and site findings", "an origin speed finding on 15 pages is one Whole site row", "a client with no finished crawl has generatedFrom null and no issues", "the report carries the PageSpeed state, keyRejected after Google refused the key", "another user's client is the same 404 as a missing one", "reading the report requests nothing and writes nothing"; they pass only once 2.4 is in. Verify: `pnpm --filter be test:db -- issue-report isolation-matrix default-deny`
+  AMENDED during implementation: two cases live in `be/test/e2e/page-speed.e2e-spec.ts`, which
+  has the stack with a key and the refusing fixture, and landed after review in `8bd0589`: "after
+  Google rejects the key every row is still queued and the state is keyRejected" now also reads
+  the report's `keyRejected`, and "opening the list, the detail and the report requests nothing
+  from PageSpeed and writes nothing" covers REPORT-004. Here: the first three cases as named, "the
+  report carries the PageSpeed state" (`active`) and "a missing client is a 404"; the cross-user
+  404 is the isolation-matrix row of 2.1 rather than a second copy. The same review made the
+  report one read-only, repeatable-read transaction (`IssueReportRepository.snapshot`).
 - [x] 2.6 On the seeded stack. Verify: sign in as each seed user with `curl -c`, then `curl -s -b a.txt http://localhost:8080/api/clients/<A's id>/issues | head -c 600` shows the snapshot, and `curl -s -b b.txt http://localhost:8080/api/clients/<A's id>/issues` equals `curl -s -b b.txt http://localhost:8080/api/clients/2000000000/issues`
   VERIFIED on the rebuilt stack: the owner gets the snapshot; the other user's request for it and
   for `2000000000` both answer `404 CLIENT_NOT_FOUND` with the same body.
@@ -82,12 +83,13 @@ then lands in the same commit as the code that turns it green.
   states) — the ViewModel only holds the load. As built: "turns CLIENT_NOT_FOUND into notFound",
   "drops a superseded answer — the earlier client's report", "reset on sign-out forgets the
   report"; the gateway adds "refuses a whole-site row that is not a speed finding".
-- [ ] 3.4 `Core/Constants/severityLabel.ts` (`Record<TSeoIssueSeverity, { label; color }>`, plan D28); the header's PageSpeed notice from `Core/Constants/pageSpeedAvailabilityCopy.ts` (created by `core-web-vitals-display` 2.2, or here if this change runs first) for each of `notConfigured`, `active`, `keyRejected` (plan D27); the `/issues` route under the `app` layout in `router.tsx`; `Modules/Issues/**` (screen, header with client selector and generated-from line, rubric, filters, cards with plain what/why/fix and collapsed Technical details, by-issue and by-page views, locations with the finding's sentence from `Core/Helpers/DescribeIssue`, the lab "may vary" note); `AppLayout.tsx` `NAVIGATION` gains Issues between Pages and Clients. Then `IssuesScreen.test.tsx` → one case per view, "the rubric is always shown", "Technical details are collapsed", "shows the notice of each PageSpeed state"; `router.test.tsx` → "/issues requires a session". Verify: `pnpm --filter fe test:ci -- IssuesScreen router AppLayout && pnpm --filter fe lint`
-  NOT DONE: two of the named cases are not committed. "Technical details are collapsed" has no
-  committed test (an uncommitted `fe/src/Modules/Issues/IssueCard/IssueCard.test.tsx` appeared in
-  the working tree during phase 5 with "keeps the technical account folded until asked"), and the
-  notice is asserted for `notConfigured` only ("says speed is not configured when there is no
-  key") — not for `active` or `keyRejected` on this screen. Built otherwise in `3744ee4`: every
+- [x] 3.4 `Core/Constants/severityLabel.ts` (`Record<TSeoIssueSeverity, { label; color }>`, plan D28); the header's PageSpeed notice from `Core/Constants/pageSpeedAvailabilityCopy.ts` (created by `core-web-vitals-display` 2.2, or here if this change runs first) for each of `notConfigured`, `active`, `keyRejected` (plan D27); the `/issues` route under the `app` layout in `router.tsx`; `Modules/Issues/**` (screen, header with client selector and generated-from line, rubric, filters, cards with plain what/why/fix and collapsed Technical details, by-issue and by-page views, locations with the finding's sentence from `Core/Helpers/DescribeIssue`, the lab "may vary" note); `AppLayout.tsx` `NAVIGATION` gains Issues between Pages and Clients. Then `IssuesScreen.test.tsx` → one case per view, "the rubric is always shown", "Technical details are collapsed", "shows the notice of each PageSpeed state"; `router.test.tsx` → "/issues requires a session". Verify: `pnpm --filter fe test:ci -- IssuesScreen router AppLayout && pnpm --filter fe lint`
+  AMENDED during implementation: two named cases were missing from `3744ee4` and landed after
+  review in `b2aa7e1`: Technical details start folded — `IssueCard/IssueCard.test.tsx` -> "keeps
+  the technical account folded until asked" — and the rejected-key notice —
+  `IssuesScreen.test.tsx` -> "says, in red, that Google rejected the key", beside "says speed is
+  not configured when there is no key"; `active` shows no notice. The same commit added
+  `IssuesByPage/IssuesByPage.test.tsx`. Built in `3744ee4`: every
   piece of the task, the search box moved to `fe/src/Modules/_Shared/SearchInput` for the second
   screen that needed it, and the `TechnicalDetails` component. The rubric is asserted in the rows
   view ("explains each problem in plain words, worst first, with the rubric in view"), not in
@@ -104,7 +106,8 @@ then lands in the same commit as the code that turns it green.
 
 - [x] 4.1 Write first: `PagesTable.test.tsx` → "the issue count opens the report filtered to this page"; `ClientsTable.test.tsx` → "View issues opens the client's report"; `IssuesSection.test.tsx` → "groups read Critical, Important, Improvement"; they fail. Verify: `pnpm --filter fe test:ci -- PagesTable ClientsTable IssuesSection` fails on those cases
   AMENDED during implementation: the PagesTable case reads "links a row's issue count to the
-  report, filtered to the page". The other two were assertions added to existing cases rather
+  report, filtered to the page"; after review (`b2aa7e1`) the link also names every level, so a
+  row whose findings are all Improvements does not open on an empty report. The other two were assertions added to existing cases rather
   than new ones: `ClientsTable.test.tsx` -> "disables re-crawl while a crawl runs, and links each
   client to its pages" now also expects the "View issues" link to `/issues?clientId=…`, and
   `IssuesSection.test.tsx` -> "groups by severity, worst first, with the sentence and the fix"
@@ -125,9 +128,11 @@ then lands in the same commit as the code that turns it green.
 ## 5. Phase acceptance
 
 - [x] 5.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
-- [ ] 5.2 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`, then the clean-clone path of the README from a scratch directory (`docker compose -p skt-clean …`, no `-v` on `down`)
-  NOT DONE: the clean-clone half (as `page-speed-measurement` 7.2). The rebuilt dev stack answers
-  `{"status":"ok","database":"up"}`.
+- [x] 5.2 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`, then the clean-clone path of the README from a scratch directory (`docker compose -p skt-clean …`, no `-v` on `down`)
+  VERIFIED: the rebuilt dev stack answers `{"status":"ok","database":"up"}`, and the fresh-clone
+  stack of `page-speed-measurement` 7.2 (`skt-fresh`, `2891b42`) served the report: signed in as
+  the Yoast demo user, `GET /api/clients/:id/issues` answered 200 with `currentPages` 15,
+  `pageSpeedAvailability.state` `notConfigured` and 23 issues, and the SPA's `/issues` answered 200.
 - [x] 5.3 Archive and deposit are plan phase 5: harvest into `be/src/modules/issue-report/ISSUE_REPORT_MODULE.md` (new), `CLIENTS_MODULE.md`, `PAGE_ANALYSIS_MODULE.md` per plan §18 before archiving; after it, fold SHELL-004 and PAGEDETAIL-005 by hand, rewrite the new headings into the `[ID]` form, deposit, and archive the plan. Verify: `pnpm exec openspec validate --specs` and `git grep -n "invariant: REPORT-" -- '*.md'`
   AMENDED during implementation: harvest, archive, fold and deposit are done; the PLAN is not
   archived — a further phase (live verification against a real PageSpeed key) was added to it, so

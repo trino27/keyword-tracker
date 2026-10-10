@@ -10,11 +10,13 @@ serves the pages list, the page detail and the position history.
 - **`page_speed` is the PageSpeed queue and the cache of the last good measurement**, one row
   per page; see `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. The list and the detail join it
   by primary key and carry a `pageSpeed` summary (bands derived at read time) and the
-  `pageSpeedAvailability` state. A speed finding counts among the page's issues by severity and in
+  `pageSpeedAvailability` state, from `PageSpeedAvailabilityService`. A speed finding counts among the page's issues by severity and in
   its code's client-wide spread like any other, and never enters the score, the checks list or
   the order: those read only `checks_applicable` / `checks_failed`, which only the crawl writes.
 
-- **Current = on the client's latest succeeded/partial run.** A page or keyword pair a re-crawl no
+- **Current = on the client's latest succeeded/partial run** — one SQL fragment,
+  `CURRENT_RUN_STATUSES_SQL` (`be/src/persistence/sql/current-run-statuses.ts`), for the list,
+  the detail, the issue report and the PageSpeed claim, so they agree on which pages are current. A page or keyword pair a re-crawl no
   longer finds keeps its `last_seen_run_id` and its history and simply stops being read. Nothing
   deletes pages or pairs (guard: `git grep -n -E "\.delete\((pages|pageKeywords)\)" -- be/src ':!*spec.ts'`);
   issues describe the latest fetch and are replaced.
@@ -125,7 +127,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/pages/spec.md`.
 
 <!-- invariant: PAGES-014 -->
 
-**The list and the detail carry each page's speed summary — bands derived when read, never stored; the failure reason only for a failed row; null for a page never queued — and PageSpeed's state from `pageSpeedAvailabilityOf`.** Pinned by `services/page-speed-summary/page-speed-summary-of.spec.ts` -> "a summary carries each metric's band from the thresholds", "a never-measured page has a null measurement", "INP without field data is null inside a measurement", "lastError is null unless failed", "a page never queued has no summary"; `services/page-read/page-read.service.spec.ts` -> "the availability state comes from pageSpeedAvailabilityOf"; `be/test/e2e/page-speed.e2e-spec.ts` -> "the list and the detail carry the PageSpeed state", "every non-good badge in the list has its finding in the detail, and no good one does" and, for `keyRejected` on the list, "after Google rejects the key every row is still queued and the state is keyRejected". The frontend schemas' refusal of an unknown band or state is typecheck only (`satisfies z.ZodType<…>`) — the two planned `PageSchemas.test.ts` cases were not written.
+**The list and the detail carry each page's speed summary — bands derived when read, never stored; the failure reason only for a failed row; null for a page never queued — and PageSpeed's state from `pageSpeedAvailabilityOf`.** Pinned by `services/page-speed-summary/page-speed-summary-of.spec.ts` -> "a summary carries each metric's band from the thresholds", "a never-measured page has a null measurement", "INP without field data is null inside a measurement", "lastError is null unless failed", "a page never queued has no summary"; `services/page-read/page-read.service.spec.ts` -> "the availability state comes from pageSpeedAvailabilityOf" (through `PageSpeedAvailabilityService`); `be/test/e2e/page-speed.e2e-spec.ts` -> "the list and the detail carry the PageSpeed state", "every non-good badge in the list has its finding in the detail, and no good one does" and, for `keyRejected` on the list, "after Google rejects the key every row is still queued and the state is keyRejected". The frontend refuses an unknown band or state: `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts` -> "refuses a summary with an unknown band" and "refuses an unknown availability state".
 
 <!-- invariant: CRAWL-009 -->
 

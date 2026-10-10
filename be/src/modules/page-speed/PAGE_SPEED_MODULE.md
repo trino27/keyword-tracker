@@ -2,8 +2,11 @@
 
 Measures queued pages with Google PageSpeed Insights (mobile, performance only) and writes what
 Google said. Owns no table: the pages module owns `page_speed` and `seo_issues`; this module only
-executes, the way the crawl module executes runs the clients module queues. Imported by
-`AppModule` only — the seed process must never hold a worker it would exit under mid-call.
+executes, the way the crawl module executes runs the clients module queues; the queue's shapes
+(`IClaimedPageSpeed`, `IPageSpeedJobWrite`, `IPageSpeedMeasurementWrite`) are the pages
+module's, in `be/src/modules/pages/interfaces/page-speed.interface.ts`, and nothing here
+imports its repository. Imported by `AppModule` only — the seed process must never hold a
+worker it would exit under mid-call.
 
 - **The queue is `page_speed`, one row per page.** A finished crawl queues its pages inside its
   finalize transaction (`PageSpeedQueueService.enqueueForWorker`) when a page has no row, failed
@@ -11,7 +14,10 @@ executes, the way the crawl module executes runs the clients module queues. Impo
   current pages that never had a row. There is no scheduler and no per-page button.
 - **The worker** (`PageSpeedWorker`) starts only with `CRAWL_WORKER_ENABLED=true` AND a key. Two
   slots take turns from an in-process rate limiter (≥ 1 s apart), then claim one row with
-  `SKIP LOCKED` under a 3-minute lease, only for pages still on their client's current run.
+  `SKIP LOCKED` under a 3-minute lease, only for pages still on their client's current run —
+  "current" spelled by `CURRENT_RUN_STATUSES_SQL` (`be/src/persistence/sql/current-run-statuses.ts`),
+  the same fragment the list, the detail and the report read, so the worker never measures a page
+  the screens no longer show.
 - **One request, no in-call retry** (`PsiClient`): the key in the `x-goog-api-key` header, never
   in the URL (the URL reaches error messages, logs and fixtures), 90 s timeout.
 - **Which value per metric** (`extractMeasurement`): the page's own field data, else the site's
@@ -20,13 +26,14 @@ executes, the way the crawl module executes runs the clients module queues. Impo
   from the distribution bounds in the answer.
 - **What Google's answer means** (`classifyPsiResponse`), and what happens to the row:
 
-  | outcome                                                               | row                                                                            | queue                                            |
-  | --------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------ |
-  | 200 with LCP, CLS and a score                                         | `done`, measurement + findings in one transaction                              | continues                                        |
-  | timeout, network, 5xx                                                 | back to `queued` after 1, 4, 16, 64 min; `failed PSI_UNAVAILABLE` at attempt 5 | continues                                        |
-  | 429 / quota                                                           | released, attempt given back                                                   | every slot pauses for Retry-After or 60 s        |
-  | key refused (400/403 key reasons)                                     | released, attempt given back                                                   | halted until restart; payloads say `keyRejected` |
-  | Lighthouse could not load / page errored / other 4xx / no measurement | `failed` with its reason                                                       | continues                                        |
+  | outcome | row | queue |
+  | --- | --- | --- |
+  | 200 with LCP, CLS and a score | `done`, measurement + findings in one transaction | continues |
+  | timeout, network, 5xx | back to `queued` after 1, 4, 16, 64 min; `failed PSI_UNAVAILABLE` at attempt 5 | continues |
+  | 429 / quota | released, attempt given back | every slot pauses for Retry-After or 60 s — an hour when the DAILY quota is spent |
+  | key refused (400/403 key reasons) | released, attempt given back | halted until restart; payloads say `keyRejected` |
+  | Lighthouse could not load / page errored / other 4xx / no measurement | `failed` with its reason | continues |
+  | an unexpected error (a bug, the database failing mid-write) | a failed attempt: back to `queued` with the same backoff, `failed PSI_UNAVAILABLE` at attempt 5 — never left `running` | continues |
 
   Every failure path writes job columns only, so the last good measurement survives.
 - **Findings** (`cwvIssuesOf`): a metric outside the good band yields exactly its one code —
@@ -37,7 +44,9 @@ executes, the way the crawl module executes runs the clients module queues. Impo
   address visitors land on, and measuring a redirect measures the redirect.
 - **No heartbeat.** One attempt is one bounded request (90 s) plus one transaction, so the 3-minute
   lease outlives it; a process that dies mid-call leaves the row to expire and be retaken as the
-  next attempt, and past attempt 5 `failAbandonedForWorker` fails it `ABANDONED`.
+  next attempt, and past attempt 5 `failAbandonedForWorker` fails it `ABANDONED` — swept at most
+  once a minute (`PAGE_SPEED_ABANDON_SWEEP_MS`), not on every idle poll. An error the worker
+  did not expect is not left to that path: it is recorded at once as a failed attempt.
 - **A threshold that moves leaves stored findings behind.** The badge's band is computed at read
   time from `CWV_THRESHOLDS`; the finding was written at measurement time. They disagree until the
   page is re-measured — at the next crawl, for any measurement at least 24 h old. The catalogue's
@@ -45,7 +54,12 @@ executes, the way the crawl module executes runs the clients module queues. Impo
   can only drift in time, never in value.
 - **Quota.** One call per current page per crawl at most, and none for a page measured in the last
   24 h. The real per-crawl cost and latency are NOT measured yet — the work was done without a key,
-  against synthesized answers; a 429 degrades to a shared pause, never to failed pages.
+  against synthesized answers; a 429 degrades to a shared pause, never to failed pages. A spent
+  DAILY quota (Google names a per-day limit, or `dailyLimitExceeded` / `quotaExceeded`) pauses
+  for an hour instead of a minute: asking again every minute would ask all day for nothing.
+- **What the screens say** comes from one `PageSpeedAvailabilityService`
+  (`be/src/infrastructure/config/page-speed-settings/page-speed-availability/`), which the list,
+  the detail and the report inject: the configured key plus what the worker learned since boot.
 - **Known limitation:** the 429 pause, the halt and the key-rejected state live in process
   memory — right for the one API process docker-compose runs.
 
@@ -83,19 +97,19 @@ and what pins it. Unless another path is named, the requirement lives in
 **A metric outside the good band is exactly one speed finding of its band's code, a good metric none, and only the speed worker writes them.** Pinned by `page-speed/services/cwv-issues/cwv-issues-of.spec.ts` -> "a metric outside the good band yields exactly its one code (%s %d → %s)", "never yields two codes for one metric", "takes severity from the catalogue: poor is a warning, needs improvement a notice"; `pages/repositories/seo-issues/seo-issues.repository.int-spec.ts` -> "a speed replace leaves the page's crawl findings"; `be/test/e2e/page-speed.e2e-spec.ts` -> "every non-good badge in the list has its finding in the detail, and no good one does". "Never two per metric" is NOT a database constraint — a CHECK cannot see the page's other rows.
 
 <!-- invariant: SPEED-008 -->
-**A timeout, network error or 5xx is retried after 1, 4, 16, 64 minutes and fails `PSI_UNAVAILABLE` at the fifth; a page Google cannot test fails at once with its reason; every reason but `ABANDONED` is producible.** Pinned by `page-speed/services/retry-delay/retry-delay.spec.ts` -> "waits 1, 4, 16, 64 minutes after the 1st to 4th failure"; `page-speed-executor.service.spec.ts` -> "a transient failure is retried later, with its attempt spent", "the 5th transient failure gives up on the page", "a permanent failure fails the page with its reason"; `page-speed/services/classify-psi-response/classify-psi-response.spec.ts` -> "produces %s from some answer"; `psi-client.spec.ts` -> "one request, no retry, 90 s timeout".
+**A timeout, network error or 5xx is retried after 1, 4, 16, 64 minutes and fails `PSI_UNAVAILABLE` at the fifth; a page Google cannot test fails at once with its reason; every reason but `ABANDONED` is producible.** Pinned by `page-speed/services/retry-delay/retry-delay.spec.ts` -> "waits 1, 4, 16, 64 minutes after the 1st to 4th failure"; `page-speed-executor.service.spec.ts` -> "a transient failure is retried later, with its attempt spent", "the 5th transient failure gives up on the page", "a permanent failure fails the page with its reason", "an unexpected error is a failed attempt, never a row left running"; `page-speed/services/classify-psi-response/classify-psi-response.spec.ts` -> "produces %s from some answer"; `psi-client.spec.ts` -> "one request, no retry, 90 s timeout".
 
 <!-- invariant: SPEED-009 -->
-**A 429 pauses every slot for `Retry-After` or 60 s, and the row in flight goes back with its attempt.** Pinned by `page-speed/services/rate-limiter/page-speed-rate-limiter.spec.ts` -> "a pause holds every slot"; `page-speed-executor.service.spec.ts` -> "a 429 pauses every slot and releases the row without spending an attempt"; `classify-psi-response.spec.ts` -> "a 429 pauses as long as Retry-After asks, in seconds or as a date" and "a 429 pauses for the default when Google names no Retry-After"; `page-speed.repository.int-spec.ts` -> "a release gives back the attempt". The pause is per process — the known limitation above.
+**A 429 pauses every slot for `Retry-After` or 60 s — an hour when the daily quota is spent — and the row in flight goes back with its attempt.** Pinned by `page-speed/services/rate-limiter/page-speed-rate-limiter.spec.ts` -> "a pause holds every slot"; `page-speed-executor.service.spec.ts` -> "a 429 pauses every slot and releases the row without spending an attempt"; `classify-psi-response.spec.ts` -> "a 429 pauses as long as Retry-After asks, in seconds or as a date", "a 429 pauses for the default when Google names no Retry-After" and "a spent daily quota pauses for an hour"; `page-speed.repository.int-spec.ts` -> "a release gives back the attempt". The pause is per process — the known limitation above.
 
 <!-- invariant: SPEED-010 -->
-**A key Google refuses halts every slot until restart, gives the row back, logs the cause without the key, and makes the API say `keyRejected`.** Pinned by `classify-psi-response.spec.ts` -> "a rejected key halts the queue rather than failing the page" and "a key Google refuses for %s is rejected too"; `page-speed-executor.service.spec.ts` -> "a rejected key halts the queue, marks the state and gives the row back" and "no log line and no stored error contains the key"; `page-speed-worker.spec.ts` -> "a rejected key halts both slots and leaves the rows to the queue"; `be/test/e2e/page-speed.e2e-spec.ts` -> "after Google rejects the key every row is still queued and the state is keyRejected" — the list's payload; the detail and the report reach the same `pageSpeedAvailabilityOf` and are not asserted end to end.
+**A key Google refuses halts every slot until restart, gives the row back, logs the cause without the key, and makes the API say `keyRejected`.** Pinned by `classify-psi-response.spec.ts` -> "a rejected key halts the queue rather than failing the page" and "a key Google refuses for %s is rejected too"; `page-speed-executor.service.spec.ts` -> "a rejected key halts the queue, marks the state and gives the row back" and "no log line and no stored error contains the key"; `page-speed-worker.spec.ts` -> "a rejected key halts both slots and leaves the rows to the queue"; `be/test/e2e/page-speed.e2e-spec.ts` -> "after Google rejects the key every row is still queued and the state is keyRejected", which reads the list's and the report's payloads; the detail reaches the same `PageSpeedAvailabilityService` and is asserted at unit level only.
 
 <!-- invariant: SPEED-011 -->
-**Without a key the worker never starts and nothing asks Google, crawls still queue, and the API says `notConfigured`; with one it says `active`.** Pinned by `page-speed-worker.spec.ts` -> "does not start without a key" and "does not start with the worker flag off"; `be/src/infrastructure/config/page-speed-settings/page-speed-availability-of/page-speed-availability-of.spec.ts` -> "no key is notConfigured, a key is active, a rejected key is keyRejected"; `be/test/e2e/page-speed.e2e-spec.ts` -> "the rows stay queued and nothing asks Google". "Adding a key and restarting drains the queue" is NOT pinned by a test.
+**Without a key the worker never starts and nothing asks Google, crawls still queue, and the API says `notConfigured`; with one it says `active`.** Pinned by `page-speed-worker.spec.ts` -> "does not start without a key" and "does not start with the worker flag off"; `be/src/infrastructure/config/page-speed-settings/page-speed-availability-of/page-speed-availability-of.spec.ts` -> "no key is notConfigured, a key is active, a rejected key is keyRejected"; `page-speed-availability/page-speed-availability.service.spec.ts` -> "answers from the configured key and what the worker learned since"; `be/test/e2e/page-speed.e2e-spec.ts` -> "the rows stay queued and nothing asks Google". "Adding a key and restarting drains the queue" is NOT pinned by a test.
 
 <!-- invariant: SPEED-012 -->
 **The key travels only in the `x-goog-api-key` header — never in a URL, a log line, a stored error or a fixture.** Pinned by `psi-client.spec.ts` -> "sends the key in a header and never in the URL"; `page-speed-executor.service.spec.ts` -> "no log line and no stored error contains the key". The fixtures are guarded by `be/test/fixtures/record-pagespeed-fixtures.ts`, which refuses an answer that echoes the key, and by the manual `git grep -n -E "key=|AIza" -- be/test/fixtures/pagespeed` — no test runs it.
 
 <!-- invariant: SPEED-013 -->
-**Reading a screen never calls PageSpeed.** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "opening the list and the detail requests nothing from PageSpeed". The issue report's half is NOT pinned by a test: it rests on `IssueReportModule` importing nothing of this module.
+**Reading a screen never calls PageSpeed.** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "opening the list, the detail and the report requests nothing from PageSpeed and writes nothing".
