@@ -1,8 +1,10 @@
 # SEO Keyword Tracker
 
 An agency tool: add a client's website, and it finds the blog, crawls the first 15 posts,
-works out which keywords each post targets, flags its SEO issues, and tracks the posts'
-Google positions over time. Each user sees only their own clients.
+works out which keywords each post targets, flags its SEO issues, measures each post's Core
+Web Vitals with Google PageSpeed Insights, and tracks the posts' Google positions over time.
+**Issues** lists every problem of a client's site in plain words, worst first. Each user sees
+only their own clients.
 
 ## Run it from a clean clone
 
@@ -81,6 +83,22 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   nothing — pages it no longer finds keep their history.
 - **Time:** every instant is `timestamptz` in UTC and the user's zone is a column; the API turns a
   calendar range into UTC bounds in that zone, across DST, and the UI formats in it.
+- **The Issues report is written for a marketer.** One screen per client lists every finding
+  of its current crawl — page checks, speed, and the site's robots.txt, sitemap and host — each
+  problem once: what is wrong, why it costs traffic or clicks, what to do and who does it (the
+  CMS editor, the developer, the hosting provider), with the technical account and its sources
+  folded underneath. Group by problem or by page; filter by level, type (SEO, Speed, Site) and
+  page. Google's whole-site speed figures are one row ("whole site, 15 pages"), not fifteen.
+  **Severity, and why:** three levels, set per check in the catalogue and never computed —
+  **Critical**: the page will not appear in search, or drops out of it (noindex, blocked by
+  robots.txt, no title, not https); **Important**: it shows, but ranks or is clicked less than
+  it could (duplicates, canonical conflicts, missing alt text, poor Core Web Vitals);
+  **Improvement**: good practice, worth doing once the rest is done. Within a level the
+  problem touching the most pages comes first. A priority score from weights × pages ×
+  position was rejected: positions here are simulated, and a number like 37 cannot be
+  explained to the person acting on it. A poor Core Web Vital is Important, not Critical —
+  Google shows the most relevant page even when its experience is sub-par, so a slow site
+  must not drown out a page that has fallen out of search.
 - **PageSpeed Insights — the one call to Google, automatic, cached, mobile.** Rank positions
   are still simulated; PageSpeed is a real request. A finished crawl queues its pages in its own
   transaction and a worker in the API process measures them in the background — no button, and
