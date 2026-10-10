@@ -1,7 +1,16 @@
 # Pages module
 
-Owns `pages`, `keywords`, `page_keywords`, `seo_issues` and `rank_snapshots`; serves the pages
-list, the page detail and the position history.
+Owns `pages`, `keywords`, `page_keywords`, `seo_issues`, `rank_snapshots` and `page_speed`;
+serves the pages list, the page detail and the position history.
+
+- **Two writers of `seo_issues`, each replacing only its own codes.** The catalogue names an
+  `owner` per code: the crawl's replace (`replaceCrawlFindingsForWorker`) deletes crawl codes
+  only, the PageSpeed worker's (`replacePageSpeedFindingsForWorker`) speed codes only — so a
+  re-crawl never erases a measurement's findings. Pinned by `seo-issues.repository.int-spec.ts`.
+- **`page_speed` is the PageSpeed queue and the cache of the last good measurement**, one row
+  per page; see `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. The list and the detail join it
+  by primary key and carry a `pageSpeed` summary (bands derived at read time) and the
+  `pageSpeedAvailability` state; speed never enters the score, the checks list or the order.
 
 - **Current = on the client's latest succeeded/partial run.** A page or keyword pair a re-crawl no
   longer finds keeps its `last_seen_run_id` and its history and simply stops being read. Nothing

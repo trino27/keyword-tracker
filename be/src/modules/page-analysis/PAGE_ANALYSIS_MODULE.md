@@ -2,6 +2,13 @@
 
 Pure business opinions about a run's pages — no I/O, no clock — behind `PageAnalysisService`.
 
+**Only crawl-owned codes are checks.** Every catalogue entry names its `owner`; the check
+registry is typed over `TCrawlIssueCode`, so a check for a speed code — or a crawl code without
+one — does not compile. The six `CWV_*` codes are written by the PageSpeed worker from Google's
+measurement and are never in `checks_judged`, the score or the checks list. Each entry also
+carries `plain` — what / why / fix for a marketer — beside the technical label, hint and
+explanation; `issue-plain-copy.test.ts` holds all 65 entries (page, speed and site) to it.
+
 - **Keywords (D15).** Candidates are 1–4-grams that never start or end with a stop word (the
   page's declared language; no language → 2-grams, no filtering), with the site's own word, or
   with a token that cannot bound a phrase — one character, or digits. Those sit INSIDE a
