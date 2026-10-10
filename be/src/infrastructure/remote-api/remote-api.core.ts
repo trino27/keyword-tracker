@@ -27,6 +27,18 @@ export interface IRemoteGetOptions {
   accept?: string;
   /** The caller's own cancellation — a lost crawl lease aborts every request it owns. */
   signal?: AbortSignal;
+  /**
+   * Per hop. Defaults to REMOTE_API_LIMITS.timeoutMs, which suits a web page; an API
+   * that runs a whole browser per request (PageSpeed) declares its own.
+   */
+  timeoutMs?: number;
+  /**
+   * Retries after the first attempt. Defaults to REMOTE_API_LIMITS.maxRetries; a caller
+   * with its own retry schedule (a durable queue) passes 0 and decides itself.
+   */
+  maxRetries?: number;
+  /** Extra request headers. The User-Agent is the crawler's and cannot be replaced. */
+  headers?: Record<string, string>;
 }
 
 /** One hop of a redirect chain: the URL that answered, and the 3xx it answered with. */
@@ -98,18 +110,23 @@ export class RemoteApiCore {
     url: URL,
     options: IRemoteGetOptions,
   ): Promise<IHttpResponse> {
+    const maxRetries = options.maxRetries ?? REMOTE_API_LIMITS.maxRetries;
     for (let attempt = 0; ; attempt += 1) {
-      const isLast = attempt === REMOTE_API_LIMITS.maxRetries;
+      const isLast = attempt === maxRetries;
       const startedAt = performance.now();
       let retryAfter: string | undefined;
       try {
         const response = await this.transport.send({
           url: url.href,
           headers: {
-            'user-agent': CRAWLER_USER_AGENT,
             accept: options.accept ?? '*/*',
+            ...options.headers,
+            'user-agent': CRAWLER_USER_AGENT,
           },
-          signal: hopSignal(options.signal),
+          signal: hopSignal(
+            options.signal,
+            options.timeoutMs ?? REMOTE_API_LIMITS.timeoutMs,
+          ),
           maxBytes: options.maxBytes,
           ...(options.overflow ? { overflow: options.overflow } : {}),
         });
@@ -174,8 +191,11 @@ function isRedirect(status: number): boolean {
   return status >= 300 && status < 400 && status !== 304;
 }
 
-function hopSignal(caller: AbortSignal | undefined): AbortSignal {
-  const timeout = AbortSignal.timeout(REMOTE_API_LIMITS.timeoutMs);
+function hopSignal(
+  caller: AbortSignal | undefined,
+  timeoutMs: number,
+): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
   return caller ? AbortSignal.any([caller, timeout]) : timeout;
 }
 

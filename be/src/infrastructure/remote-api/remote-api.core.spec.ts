@@ -159,6 +159,61 @@ describe('RemoteApiCore', () => {
     expect(calls).toBe(3);
   });
 
+  describe('options a caller may declare', () => {
+    /** The transport aborts on the hop signal, as undici does; the core picks its timeout. */
+    it('honours a per-call timeout', async () => {
+      const transport: IHttpTransport = {
+        send: (request) =>
+          new Promise((_, reject) =>
+            request.signal.addEventListener('abort', () =>
+              reject(new RemoteApiTimeoutError(request.url)),
+            ),
+          ),
+      };
+      const logger = { debug: jest.fn(), warn: jest.fn(), info: jest.fn() };
+      const core = new RemoteApiCore(
+        transport,
+        logger as unknown as PinoLogger,
+        {
+          sleep: () => Promise.resolve(),
+        },
+      );
+
+      const startedAt = Date.now();
+      await expect(
+        core.get('https://example.com/', {
+          maxBytes: 1024,
+          timeoutMs: 20,
+          maxRetries: 0,
+        }),
+      ).rejects.toBeInstanceOf(RemoteApiTimeoutError);
+      expect(Date.now() - startedAt).toBeLessThan(5_000);
+    });
+
+    it('makes exactly one request with maxRetries 0 on a 503', async () => {
+      const { core, requests } = makeCore(() => respond(503));
+
+      await expect(
+        core.get('https://example.com/', { maxBytes: 1024, maxRetries: 0 }),
+      ).resolves.toMatchObject({ status: 503 });
+      expect(requests).toHaveLength(1);
+    });
+
+    it('sends caller headers beside the User-Agent, which they cannot replace', async () => {
+      const { core, requests } = makeCore(() => respond(200));
+
+      await core.get('https://example.com/', {
+        maxBytes: 1024,
+        headers: { 'x-goog-api-key': 'k', 'user-agent': 'spoofed' },
+      });
+
+      expect(requests[0].headers['x-goog-api-key']).toBe('k');
+      expect(requests[0].headers['user-agent']).toMatch(
+        /^SeoKeywordTrackerBot\/1\.0/,
+      );
+    });
+  });
+
   it.each([
     'ftp://example.com/',
     'https://u:p@example.com/',
