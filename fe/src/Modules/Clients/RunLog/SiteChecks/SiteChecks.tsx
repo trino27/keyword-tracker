@@ -1,12 +1,7 @@
 import { Anchor, Badge, Code, Group, Paper, Stack, Text, Title } from "@mantine/core";
-import { SITE_CHECK_CATALOGUE, type TSeoIssueSeverity } from "@app/contracts";
+import { SITE_CHECK_CATALOGUE } from "@app/contracts";
+import { severityLabel } from "@Core/Constants/severityLabel";
 import type { TSiteCheckResult } from "@Gateways/ClientGateway/Validation/ClientSchemas";
-
-const SEVERITY_COLOR: Record<TSeoIssueSeverity, string> = {
-	error: "red",
-	warning: "yellow",
-	notice: "gray",
-};
 
 const evidenceOf = (check: TSiteCheckResult): string[] =>
 	Array.isArray(check.details.evidence)
@@ -39,11 +34,11 @@ export function SiteChecks({ checks }: { checks: TSiteCheckResult[] }) {
 						<Stack gap={4}>
 							<Group gap="xs">
 								<Badge
-									color={SEVERITY_COLOR[check.severity]}
+									color={severityLabel[check.severity].color}
 									variant="light"
 									size="sm"
 								>
-									{check.severity}
+									{severityLabel[check.severity].label}
 								</Badge>
 								<Text size="sm" fw={500}>
 									{entry.label}

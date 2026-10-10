@@ -12,7 +12,7 @@ export function KpiCards({ detail }: { detail: TPageDetail }) {
 			? null
 			: ranked.reduce((sum, keyword) => sum + keyword.latestPosition!, 0) / ranked.length;
 	const inTop10 = ranked.filter((keyword) => keyword.latestPosition! <= 10).length;
-	const errors = detail.issues.filter((issue) => issue.severity === "error").length;
+	const critical = detail.issues.filter((issue) => issue.severity === "error").length;
 
 	return (
 		<SimpleGrid cols={{ base: 1, xs: 2, md: 5 }} spacing="md">
@@ -51,11 +51,11 @@ export function KpiCards({ detail }: { detail: TPageDetail }) {
 			<Kpi
 				label="SEO issues"
 				value={
-					<Text fz={24} fw={700} className="tabular" c={errors > 0 ? "red" : undefined}>
+					<Text fz={24} fw={700} className="tabular" c={critical > 0 ? "red" : undefined}>
 						{detail.issues.length}
 					</Text>
 				}
-				note={errors > 0 ? `${errors} error${errors === 1 ? "" : "s"}` : "No errors"}
+				note={critical > 0 ? `${critical} Critical` : "Nothing Critical"}
 			/>
 		</SimpleGrid>
 	);

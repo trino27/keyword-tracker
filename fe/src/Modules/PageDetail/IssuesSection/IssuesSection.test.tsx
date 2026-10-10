@@ -24,9 +24,9 @@ describe("IssuesSection", () => {
 		]);
 
 		const headings = screen
-			.getAllByText(/^(Errors|Warnings|Notices)$/)
+			.getAllByText(/^(Critical|Important|Improvements)$/)
 			.map((node) => node.textContent);
-		expect(headings).toEqual(["Errors", "Warnings"]);
+		expect(headings).toEqual(["Critical", "Important"]);
 		expect(
 			screen.getByText("The content has 120 words; aim for at least 300."),
 		).toBeInTheDocument();

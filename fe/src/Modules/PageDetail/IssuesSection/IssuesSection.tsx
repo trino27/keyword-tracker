@@ -6,14 +6,28 @@ import {
 	IconInfoCircle,
 } from "@tabler/icons-react";
 import type { TSeoIssueSeverity } from "@app/contracts";
+import { severityLabel } from "@Core/Constants/severityLabel";
 import type { TDetailIssue } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { groupIssues } from "@ViewModels/PageDetailViewModel/Services/GroupIssues/groupIssues";
 
+/** The report's names and colours (plan D28); the icon is this section's own. */
 const SEVERITY: Record<TSeoIssueSeverity, { title: string; color: string; icon: React.ReactNode }> =
 	{
-		error: { title: "Errors", color: "red", icon: <IconAlertOctagon size={16} /> },
-		warning: { title: "Warnings", color: "yellow", icon: <IconAlertTriangle size={16} /> },
-		notice: { title: "Notices", color: "gray", icon: <IconInfoCircle size={16} /> },
+		error: {
+			title: severityLabel.error.plural,
+			color: severityLabel.error.color,
+			icon: <IconAlertOctagon size={16} />,
+		},
+		warning: {
+			title: severityLabel.warning.plural,
+			color: severityLabel.warning.color,
+			icon: <IconAlertTriangle size={16} />,
+		},
+		notice: {
+			title: severityLabel.notice.plural,
+			color: severityLabel.notice.color,
+			icon: <IconInfoCircle size={16} />,
+		},
 	};
 
 interface IIssuesSectionProps {

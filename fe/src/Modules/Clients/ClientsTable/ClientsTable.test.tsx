@@ -50,6 +50,10 @@ describe("ClientsTable", () => {
 			"href",
 			"/pages?clientId=2",
 		);
+		expect(within(idle).getByRole("link", { name: "View issues" })).toHaveAttribute(
+			"href",
+			"/issues?clientId=2",
+		);
 	});
 
 	it("deletes a client only after confirming", async () => {

@@ -179,7 +179,7 @@ export function PagesTable({
 									</Group>
 								</Table.Td>
 								<Table.Td>
-									<IssueCounts issues={item.issues} />
+									<IssueCounts item={item} />
 								</Table.Td>
 								<Table.Td>
 									<Text size="sm" c="dimmed">

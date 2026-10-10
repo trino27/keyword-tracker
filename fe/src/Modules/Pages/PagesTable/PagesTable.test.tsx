@@ -125,7 +125,7 @@ describe("PagesTable", () => {
 			],
 		});
 
-		expect(await screen.findByText("1 error")).toBeInTheDocument();
+		expect(await screen.findByText("1 Critical")).toBeInTheDocument();
 		expect(screen.queryByText(/site-wide/)).not.toBeInTheDocument();
 	});
 
@@ -178,5 +178,15 @@ describe("PagesTable", () => {
 		expect(
 			await screen.findByText(/Speed is scored separately from the SEO score/),
 		).toBeInTheDocument();
+	});
+
+	it("links a row's issue count to the report, filtered to the page", async () => {
+		renderTable({
+			items: [{ ...ROW, issues: { total: 1, error: 1, warning: 0, notice: 0, siteWide: 0 } }],
+		});
+
+		expect(
+			await screen.findByRole("link", { name: "See this page's 1 issues" }),
+		).toHaveAttribute("href", "/issues?clientId=7&pageId=42");
 	});
 });
