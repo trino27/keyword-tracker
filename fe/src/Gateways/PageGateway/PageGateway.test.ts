@@ -23,6 +23,7 @@ const ITEM = {
 	},
 	score: { value: 94, applicable: 18, failed: 1 },
 	issues: { total: 1, error: 0, warning: 1, notice: 0, siteWide: 0 },
+	pageSpeed: null,
 	lastCapturedAt: "2026-10-03T12:00:00.000Z",
 };
 
@@ -37,7 +38,13 @@ afterEach(() => {
 
 describe("PageGateway", () => {
 	it("lists with only the filters that are set", async () => {
-		const fetchSpy = answer({ items: [ITEM], page: 2, pageSize: 20, total: 21 });
+		const fetchSpy = answer({
+			items: [ITEM],
+			page: 2,
+			pageSize: 20,
+			total: 21,
+			pageSpeedAvailability: { state: "active" },
+		});
 
 		const response = await new PageGateway().list({ page: 2, pageSize: 20, clientId: 7 });
 

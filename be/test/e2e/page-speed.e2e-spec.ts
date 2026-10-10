@@ -78,17 +78,34 @@ async function drain(app: NestExpressApplication): Promise<number> {
   return measured;
 }
 
-const listOf = async ({ app, cookie }: ITestStack) =>
+interface IListItem {
+  id: number;
+  score: { value: number };
+  issues: { total: number; notice: number };
+  pageSpeed: {
+    status: string;
+    measurement: Record<
+      'lcp' | 'inp' | 'cls',
+      { value: number; band: string; source: string } | null
+    > | null;
+  } | null;
+}
+
+const listBodyOf = async ({ app, cookie }: ITestStack) =>
   (
     await request(app.getHttpServer())
       .get('/api/pages?pageSize=50')
       .set('Cookie', cookie)
       .expect(200)
-  ).body.items as {
-    id: number;
-    score: { value: number };
-    issues: { total: number; notice: number };
-  }[];
+  ).body as { items: IListItem[]; pageSpeedAvailability: { state: string } };
+
+const listOf = async (s: ITestStack) => (await listBodyOf(s)).items;
+
+const CODE_OF: Record<string, Record<string, string>> = {
+  lcp: { needsImprovement: 'CWV_LCP_NEEDS_IMPROVEMENT', poor: 'CWV_LCP_POOR' },
+  inp: { needsImprovement: 'CWV_INP_NEEDS_IMPROVEMENT', poor: 'CWV_INP_POOR' },
+  cls: { needsImprovement: 'CWV_CLS_NEEDS_IMPROVEMENT', poor: 'CWV_CLS_POOR' },
+};
 
 describe('PageSpeed (e2e, recorded sites and answers)', () => {
   beforeEach(() => testDb.reset());
@@ -163,6 +180,70 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       });
     });
 
+    /** Plan I16: a coloured badge and its finding can never disagree. */
+    it('every non-good badge in the list has its finding in the detail, and no good one does', async () => {
+      await crawlYoast(s);
+      const rows = await testDb.db
+        .select({ finalUrl: pages.finalUrl })
+        .from(pages);
+      // Three different answers, so good, needs-improvement and poor all occur.
+      const fixtures = [
+        'url-field.synthesized.json',
+        'origin-only.synthesized.json',
+        'lab-only.synthesized.json',
+      ];
+      rows.forEach(({ finalUrl }, i) =>
+        s.transport.override(
+          PsiClient.requestUrl(finalUrl),
+          psiAnswer(200, fixtures[i % fixtures.length]),
+        ),
+      );
+      await drain(s.app);
+
+      for (const item of await listOf(s)) {
+        const detail = (
+          await request(s.app.getHttpServer())
+            .get(`/api/pages/${item.id}`)
+            .set('Cookie', s.cookie)
+            .expect(200)
+        ).body as { issues: { code: string }[] };
+        const speedCodes = detail.issues
+          .map(({ code }) => code)
+          .filter((code) => code.startsWith('CWV_'))
+          .sort();
+        const expected = (['lcp', 'inp', 'cls'] as const)
+          .flatMap((metric) => {
+            const reading = item.pageSpeed?.measurement?.[metric];
+            return reading && reading.band !== 'good'
+              ? [CODE_OF[metric][reading.band]]
+              : [];
+          })
+          .sort();
+        expect(speedCodes).toEqual(expected);
+      }
+    });
+
+    it('the list and the detail carry the PageSpeed state', async () => {
+      const [pageId] = await crawlYoast(s);
+
+      const list = await listBodyOf(s);
+      const detail = (
+        await request(s.app.getHttpServer())
+          .get(`/api/pages/${pageId}`)
+          .set('Cookie', s.cookie)
+          .expect(200)
+      ).body;
+
+      expect(list.pageSpeedAvailability).toEqual({ state: 'active' });
+      expect(list.items[0].pageSpeed).toEqual({
+        status: 'queued',
+        measurement: null,
+        lastError: null,
+      });
+      expect(detail.pageSpeedAvailability).toEqual({ state: 'active' });
+      expect(detail.pageSpeed).toMatchObject({ status: 'queued' });
+    });
+
     it('opening the list and the detail requests nothing from PageSpeed', async () => {
       const [pageId] = await crawlYoast(s);
       const asked = s.transport.requests.filter(isGoogle).length;
@@ -188,6 +269,9 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       expect(rows.every((row) => row.attempts === 0)).toBe(true);
       expect(s.app.get(PageSpeedRuntimeState).keyRejected).toBe(true);
       expect(s.transport.requests.filter(isGoogle)).toHaveLength(1);
+      expect((await listBodyOf(s)).pageSpeedAvailability).toEqual({
+        state: 'keyRejected',
+      });
     });
   });
 
@@ -201,6 +285,9 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         expect(rows).toHaveLength(15);
         expect(rows.every((row) => row.status === 'queued')).toBe(true);
         expect(s.transport.requests.filter(isGoogle)).toEqual([]);
+        expect((await listBodyOf(s)).pageSpeedAvailability).toEqual({
+          state: 'notConfigured',
+        });
       } finally {
         await s.app.close();
       }

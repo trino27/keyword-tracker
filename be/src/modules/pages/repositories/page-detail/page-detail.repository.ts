@@ -11,6 +11,12 @@ import {
   type Database,
 } from '@persistence/connections/postgres/database-provider/database.provider';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
+import {
+  PAGE_SPEED_COLUMNS,
+  pageSpeedRowOf,
+  type IPageSpeedColumns,
+  type IPageSpeedRow,
+} from '../page-speed/page-speed-read';
 
 export interface ICurrentPageRecord {
   id: number;
@@ -34,6 +40,7 @@ export interface ICurrentPageRecord {
   clientWebsiteUrl: string;
   /** Pages on the client's current run — the denominator of "on 5 of 15 pages". */
   clientCurrentPages: number;
+  pageSpeed: IPageSpeedRow | null;
 }
 
 /**
@@ -51,7 +58,7 @@ export interface IHistoryRow {
   position: number | null;
 }
 
-interface IPageRow extends Record<string, unknown> {
+interface IPageRow extends Record<string, unknown>, IPageSpeedColumns {
   id: string;
   url: string;
   final_url: string;
@@ -105,9 +112,11 @@ export class PageDetailRepository {
              c.id as client_id, c.name as client_name, c.website_url as client_website_url,
              (select count(*) from pages sib
                where sib.client_id = p.client_id
-                 and sib.last_seen_run_id = p.last_seen_run_id) as client_current_pages
+                 and sib.last_seen_run_id = p.last_seen_run_id) as client_current_pages,
+             ${PAGE_SPEED_COLUMNS}
       from pages p
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
+      left join page_speed ps on ps.page_id = p.id
       where p.id = ${pageId}
         and p.last_seen_run_id = (
           select r.id from crawl_runs r
@@ -141,6 +150,7 @@ export class PageDetailRepository {
       clientName: row.client_name,
       clientWebsiteUrl: row.client_website_url,
       clientCurrentPages: Number(row.client_current_pages),
+      pageSpeed: pageSpeedRowOf(row),
     };
   }
 

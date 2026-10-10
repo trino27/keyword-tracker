@@ -2,7 +2,11 @@ import { z } from "zod";
 import {
 	CHECK_STATUSES,
 	CRAWL_ISSUE_CODES,
+	CWV_BANDS,
 	CWV_SOURCES,
+	PAGE_SPEED_AVAILABILITY_STATES,
+	PAGE_SPEED_ERROR_CODES,
+	PAGE_SPEED_STATUSES,
 	MEASURED_ISSUE_CODES,
 	PAGE_SPEED_ISSUE_CODES,
 	SEO_ISSUE_SEVERITIES,
@@ -13,10 +17,13 @@ import {
 	type IPageListItem,
 	type IPageListResponse,
 	type IPageScore,
+	type IPageSpeedAvailability,
+	type IPageSpeedSummary,
 	type IPositionHistory,
 	isIsoDay,
 	type TIsoDay,
 	type TCrawlIssueCode,
+	type TPageSpeedErrorCode,
 	type TMeasuredIssueCode,
 	type TSeoIssue as TContractSeoIssue,
 } from "@app/contracts";
@@ -54,6 +61,33 @@ export const pageCheckSchema = z.object({
 	status: z.enum(CHECK_STATUSES),
 }) satisfies z.ZodType<IPageCheck>;
 
+/** One Core Web Vital: an unknown band or source is contract drift, not a grey badge. */
+const cwvReadingSchema = z.object({
+	value: z.number().min(0),
+	band: z.enum(CWV_BANDS),
+	source: z.enum(CWV_SOURCES),
+});
+
+export const pageSpeedSummarySchema = z.object({
+	status: z.enum(PAGE_SPEED_STATUSES),
+	measurement: z
+		.object({
+			measuredAt: z.string(),
+			lcp: cwvReadingSchema,
+			inp: cwvReadingSchema.nullable(),
+			cls: cwvReadingSchema,
+			performanceScore: z.number().int().min(0).max(100),
+		})
+		.nullable(),
+	lastError: z
+		.enum(PAGE_SPEED_ERROR_CODES as [TPageSpeedErrorCode, ...TPageSpeedErrorCode[]])
+		.nullable(),
+}) satisfies z.ZodType<IPageSpeedSummary>;
+
+export const pageSpeedAvailabilitySchema = z.object({
+	state: z.enum(PAGE_SPEED_AVAILABILITY_STATES),
+}) satisfies z.ZodType<IPageSpeedAvailability>;
+
 export const pageListItemSchema = z.object({
 	id: z.number().int(),
 	url: z.string(),
@@ -69,6 +103,7 @@ export const pageListItemSchema = z.object({
 		notice: z.number().int(),
 		siteWide: z.number().int().min(0),
 	}),
+	pageSpeed: pageSpeedSummarySchema.nullable(),
 	lastCapturedAt: z.string().nullable(),
 }) satisfies z.ZodType<IPageListItem>;
 
@@ -77,6 +112,7 @@ export const pageListResponseSchema = z.object({
 	page: z.number().int(),
 	pageSize: z.number().int(),
 	total: z.number().int(),
+	pageSpeedAvailability: pageSpeedAvailabilitySchema,
 }) satisfies z.ZodType<IPageListResponse>;
 
 /** A threshold finding: the value as found, and the bounds the crawl judged it against. */
@@ -185,6 +221,8 @@ export const pageDetailSchema = z.object({
 	checks: z.array(pageCheckSchema).nullable(),
 	issues: z.array(detailIssueSchema),
 	lastCrawl: crawlRunSummarySchema.nullable(),
+	pageSpeed: pageSpeedSummarySchema.nullable(),
+	pageSpeedAvailability: pageSpeedAvailabilitySchema,
 }) satisfies z.ZodType<IPageDetail>;
 
 const isoDaySchema = z.custom<TIsoDay>((value) => typeof value === "string" && isIsoDay(value));
@@ -210,3 +248,6 @@ export type TPositionHistory = z.infer<typeof positionHistorySchema>;
 export type TSeoIssue = z.infer<typeof seoIssueSchema>;
 export type TDetailIssue = z.infer<typeof detailIssueSchema>;
 export type TPageCheck = z.infer<typeof pageCheckSchema>;
+export type TPageSpeedSummary = z.infer<typeof pageSpeedSummarySchema>;
+export type TPageSpeedAvailability = z.infer<typeof pageSpeedAvailabilitySchema>;
+export type TCwvReading = z.infer<typeof cwvReadingSchema>;

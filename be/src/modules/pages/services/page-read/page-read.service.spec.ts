@@ -1,4 +1,5 @@
 import { ACTIVE_ISSUE_CODES, type TSeoIssueCode } from '@app/contracts';
+import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { ClientsService } from '@modules/clients/services/clients/clients.service';
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
@@ -80,6 +81,8 @@ const setup = (rowCount: number) => {
     list,
     {} as PageDetailRepository,
     clients as unknown as ClientsService,
+    { apiKey: 'k' },
+    new PageSpeedRuntimeState(),
   );
   const query = (overrides: Partial<ListPagesQueryDto> = {}) => ({
     page: 1,
@@ -192,6 +195,7 @@ const detailSetup = (
     clientName: 'Site',
     clientWebsiteUrl: 'https://a.example',
     clientCurrentPages: 15,
+    pageSpeed: null,
   };
   const detail = {
     findCurrentPage: () =>
@@ -214,15 +218,37 @@ const detailSetup = (
   const clients = {
     getClient: jest.fn(() => Promise.resolve({ latestRun })),
   };
+  const runtime = new PageSpeedRuntimeState();
   const service = new PageReadService(
     list,
     detail,
     clients as unknown as ClientsService,
+    { apiKey: 'k' },
+    runtime,
   );
-  return { service, clients, latestRun };
+  return { service, clients, latestRun, runtime };
 };
 
 describe('PageReadService.getPage', () => {
+  /** D27: one function answers every read path, so the screens cannot disagree. */
+  it('the availability state comes from pageSpeedAvailabilityOf', async () => {
+    const { service, runtime } = detailSetup();
+
+    expect((await service.getPage(scope, 1)).pageSpeedAvailability).toEqual({
+      state: 'active',
+    });
+    runtime.markKeyRejected();
+    expect((await service.getPage(scope, 1)).pageSpeedAvailability).toEqual({
+      state: 'keyRejected',
+    });
+  });
+
+  it('a page never queued for PageSpeed has no summary', async () => {
+    const { service } = detailSetup();
+
+    expect((await service.getPage(scope, 1)).pageSpeed).toBeNull();
+  });
+
   it('refuses a page the scope cannot reach, exactly like a missing one', async () => {
     const { service } = detailSetup({ page: null });
 

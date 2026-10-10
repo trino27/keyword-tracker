@@ -37,6 +37,7 @@ export * from './domain/page-speed/page-speed-availability-state.enum.js';
 export * from './domain/page-speed/page-speed-availability.interface.js';
 export * from './domain/page-speed/page-speed-status.enum.js';
 export * from './domain/page-speed/page-speed-error.constant.js';
+export * from './domain/page-speed/page-speed-summary.interface.js';
 export * from './domain/seo/seo-issue-catalogue.constant.js';
 export * from './domain/seo/seo-measurement.interface.js';
 export * from './domain/seo/measured-issue-codes.constant.js';

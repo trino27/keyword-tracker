@@ -4,6 +4,8 @@ import type { IBestPosition } from './best-position.interface.js';
 import type { IKeywordPosition } from './keyword-position.interface.js';
 import type { IPageCheck } from './page-check.interface.js';
 import type { IPageScore } from './page-score/page-score.util.js';
+import type { IPageSpeedAvailability } from '../page-speed/page-speed-availability.interface.js';
+import type { IPageSpeedSummary } from '../page-speed/page-speed-summary.interface.js';
 
 export interface IPageDetail {
   page: {
@@ -58,4 +60,7 @@ export interface IPageDetail {
   issues: (TSeoIssue & { pagesAffected: number })[];
   /** The client's latest run, whatever its status. */
   lastCrawl: ICrawlRunSummary | null;
+  /** Null: never queued for PageSpeed. Never part of `score`. */
+  pageSpeed: IPageSpeedSummary | null;
+  pageSpeedAvailability: IPageSpeedAvailability;
 }

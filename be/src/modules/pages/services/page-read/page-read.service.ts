@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   pageScoreOf,
   SEO_ISSUE_CODES,
@@ -8,6 +8,12 @@ import {
   type IPageListResponse,
 } from '@app/contracts';
 import { escapeLike } from '@core/utils/escape-like/escape-like';
+import { pageSpeedAvailabilityOf } from '@infrastructure/config/page-speed-settings/page-speed-availability-of';
+import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
+import {
+  PAGE_SPEED_SETTINGS,
+  type IPageSpeedSettings,
+} from '@infrastructure/config/page-speed-settings/page-speed-settings';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { ClientsService } from '@modules/clients/services/clients/clients.service';
 import { normalizeText } from '@modules/page-analysis/services/text/normalize-text/normalize-text';
@@ -21,6 +27,7 @@ import {
 } from '../../repositories/page-list/page-list.repository';
 import { pickBestPosition } from '../best-position/pick-best-position';
 import { composePageChecks } from '../page-checks/compose-page-checks';
+import { pageSpeedSummaryOf } from '../page-speed-summary/page-speed-summary-of';
 
 const contains = (text: string) => `%${escapeLike(text)}%`;
 
@@ -52,6 +59,9 @@ export class PageReadService {
     private readonly list: PageListRepository,
     private readonly detail: PageDetailRepository,
     private readonly clients: ClientsService,
+    @Inject(PAGE_SPEED_SETTINGS)
+    private readonly pageSpeedSettings: IPageSpeedSettings,
+    private readonly pageSpeedRuntime: PageSpeedRuntimeState,
   ) {}
 
   /**
@@ -128,12 +138,14 @@ export class PageReadService {
             notice: 0,
             siteWide: 0,
           },
+          pageSpeed: pageSpeedSummaryOf(row.pageSpeed),
           lastCapturedAt: lastCapturedAtOf(keywords),
         };
       }),
       page: query.page,
       pageSize: query.pageSize,
       total,
+      pageSpeedAvailability: this.pageSpeedAvailability(),
     };
   }
 
@@ -182,6 +194,15 @@ export class PageReadService {
           SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),
       ),
       lastCrawl: client.latestRun,
+      pageSpeed: pageSpeedSummaryOf(page.pageSpeed),
+      pageSpeedAvailability: this.pageSpeedAvailability(),
     };
+  }
+
+  private pageSpeedAvailability() {
+    return pageSpeedAvailabilityOf(
+      this.pageSpeedSettings,
+      this.pageSpeedRuntime,
+    );
   }
 }

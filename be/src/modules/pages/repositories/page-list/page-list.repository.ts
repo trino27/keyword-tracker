@@ -9,6 +9,12 @@ import {
   type Database,
 } from '@persistence/connections/postgres/database-provider/database.provider';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
+import {
+  PAGE_SPEED_COLUMNS,
+  pageSpeedRowOf,
+  type IPageSpeedColumns,
+  type IPageSpeedRow,
+} from '../page-speed/page-speed-read';
 
 export interface IPageListFilter {
   clientId?: number;
@@ -24,6 +30,7 @@ export interface IPageListRow {
   clientName: string;
   checksApplicable: number;
   checksFailed: number;
+  pageSpeed: IPageSpeedRow | null;
 }
 
 export interface IPageKeywordRow {
@@ -53,7 +60,7 @@ export interface ISiteWideCountRow {
   siteWide: number;
 }
 
-interface ISliceRow extends Record<string, unknown> {
+interface ISliceRow extends Record<string, unknown>, IPageSpeedColumns {
   id: string;
   url: string;
   title: string | null;
@@ -115,9 +122,12 @@ export class PageListRepository {
     const { rows } = await this.db.execute<ISliceRow>(sql`
       ${this.currentPages(scope, filter)}
       select p.id, p.url, p.title, p.checks_applicable, p.checks_failed,
-             c.id as client_id, c.name as client_name
+             c.id as client_id, c.name as client_name,
+             ${PAGE_SPEED_COLUMNS}
       from current_pages p
       join clients c on c.id = p.client_id
+      -- One primary-key probe per listed page; never part of the order below.
+      left join page_speed ps on ps.page_id = p.id
       -- Worst first: the score exists so a user can triage a portfolio, and an order that
       -- buries the worst page of the second client under the best page of the first
       -- defeats it. Three things here are load-bearing:
@@ -141,6 +151,7 @@ export class PageListRepository {
       clientName: row.client_name,
       checksApplicable: Number(row.checks_applicable),
       checksFailed: Number(row.checks_failed),
+      pageSpeed: pageSpeedRowOf(row),
     }));
   }
 
