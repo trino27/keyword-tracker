@@ -32,8 +32,14 @@ export type TPsiCallResult =
     }
   | { error: unknown };
 
-/** A Retry-After longer than this is still honoured, up to here. */
+/**
+ * A Retry-After longer than this is still honoured, up to here — and a spent DAILY quota
+ * pauses this long: retrying it every minute would ask Google all day for nothing.
+ */
 const MAX_PAUSE_MS = 60 * 60 * 1000;
+
+/** Reasons that mean the day's quota is gone, not a burst over the per-minute rate. */
+const DAILY_QUOTA_REASONS = new Set(['dailyLimitExceeded', 'quotaExceeded']);
 
 /** Google's quota reasons, old and new. */
 const RATE_LIMIT_REASONS = new Set([
@@ -68,7 +74,14 @@ const googleErrorSchema = z.object({
     message: z.string().optional(),
     status: z.string().optional(),
     errors: z.array(z.object({ reason: z.string().optional() })).optional(),
-    details: z.array(z.object({ reason: z.string().optional() })).optional(),
+    details: z
+      .array(
+        z.object({
+          reason: z.string().optional(),
+          metadata: z.record(z.string(), z.string()).optional(),
+        }),
+      )
+      .optional(),
   }),
 });
 
@@ -116,7 +129,9 @@ export function classifyPsiResponse(
   )
     return {
       kind: 'rateLimited',
-      pauseMs: pauseOf(headers['retry-after'], now),
+      pauseMs: isDailyQuota(googleError.data, reasons, message)
+        ? MAX_PAUSE_MS
+        : pauseOf(headers['retry-after'], now),
     };
 
   if (
@@ -155,6 +170,21 @@ export function classifyPsiResponse(
     );
   if (status >= 500) return { kind: 'transient', error: 'PSI_UNAVAILABLE' };
   return { kind: 'permanent', error: 'PSI_REJECTED' };
+}
+
+/** Google names the spent limit in the answer: a per-day one, or a per-minute one. */
+function isDailyQuota(
+  error: z.infer<typeof googleErrorSchema> | undefined,
+  reasons: string[],
+  message: string,
+): boolean {
+  if (reasons.some((reason) => DAILY_QUOTA_REASONS.has(reason))) return true;
+  const limits = (error?.error.details ?? []).map(
+    (detail) => detail.metadata?.quota_limit ?? '',
+  );
+  return (
+    limits.some((limit) => /PerDay/i.test(limit)) || /per day/i.test(message)
+  );
 }
 
 function parseJson(body: Buffer): unknown {

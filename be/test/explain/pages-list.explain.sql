@@ -29,3 +29,15 @@ LEFT JOIN LATERAL (
   LIMIT 1
 ) latest ON true
 ORDER BY pk.page_id, pk.relevance DESC, k.term;
+
+-- The slice with its PageSpeed summary: page_speed is joined by primary key, one probe
+-- per listed page. Expect an Index Scan using page_speed_pkey (or a hash on the small
+-- table), never a Seq Scan feeding a sort.
+EXPLAIN (ANALYZE, BUFFERS, COSTS OFF)
+SELECT p.id, ps.status, ps.lcp_ms, ps.inp_ms, ps.cls, ps.measured_at
+FROM pages p
+JOIN clients c ON c.id = p.client_id
+JOIN users u ON u.id = c.user_id AND u.email = :user_email
+LEFT JOIN page_speed ps ON ps.page_id = p.id
+ORDER BY c.name, c.id, p.sitemap_position, p.id
+LIMIT 20;

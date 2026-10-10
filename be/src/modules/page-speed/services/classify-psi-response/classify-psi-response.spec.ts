@@ -43,25 +43,55 @@ describe('classifyPsiResponse', () => {
     expect(() => classify({ error: new TypeError('boom') })).toThrow('boom');
   });
 
-  /** Recorded: a keyless request, whose daily quota is zero. */
+  /** A burst over the per-minute rate, as Google words it. */
+  const PER_MINUTE = JSON.stringify({
+    error: {
+      code: 429,
+      status: 'RESOURCE_EXHAUSTED',
+      message:
+        "Quota exceeded for quota metric 'Queries' and limit 'Queries per minute' of service 'pagespeedonline.googleapis.com'.",
+      details: [
+        {
+          reason: 'RATE_LIMIT_EXCEEDED',
+          metadata: { quota_limit: 'defaultPerMinutePerProject' },
+        },
+      ],
+    },
+  });
+
   it('a 429 pauses for the default when Google names no Retry-After', () => {
-    expect(classify(answer(429, 'rate-limited.json'))).toEqual({
+    expect(classify(raw(429, PER_MINUTE))).toEqual({
       kind: 'rateLimited',
       pauseMs: 60_000,
     });
   });
 
   it('a 429 pauses as long as Retry-After asks, in seconds or as a date', () => {
+    const withRetryAfter = (value: string) => ({
+      response: {
+        status: 429,
+        headers: { 'retry-after': value },
+        body: Buffer.from(PER_MINUTE),
+      },
+    });
+    expect(classify(withRetryAfter('120'))).toEqual({
+      kind: 'rateLimited',
+      pauseMs: 120_000,
+    });
     expect(
-      classify(answer(429, 'rate-limited.json', { 'retry-after': '120' })),
-    ).toEqual({ kind: 'rateLimited', pauseMs: 120_000 });
-    expect(
-      classify(
-        answer(429, 'rate-limited.json', {
-          'retry-after': new Date(NOW + 30_000).toUTCString(),
-        }),
-      ),
+      classify(withRetryAfter(new Date(NOW + 30_000).toUTCString())),
     ).toEqual({ kind: 'rateLimited', pauseMs: 30_000 });
+  });
+
+  /**
+   * Recorded: a keyless request, whose DAILY quota is zero. Retrying a spent day every
+   * minute would ask Google all day for nothing, so the pause is an hour.
+   */
+  it('a spent daily quota pauses for an hour', () => {
+    expect(classify(answer(429, 'rate-limited.json'))).toEqual({
+      kind: 'rateLimited',
+      pauseMs: 3_600_000,
+    });
   });
 
   it('a quota answer is a rate limit whatever its status', () => {

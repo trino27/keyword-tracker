@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { TPageSpeedSeoIssue } from '@app/contracts';
 import { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
-import {
-  PageSpeedRepository,
-  type IClaimedPageSpeed,
-  type IPageSpeedJobWrite,
-  type IPageSpeedMeasurementWrite,
-} from '../../repositories/page-speed/page-speed.repository';
+import type {
+  IClaimedPageSpeed,
+  IPageSpeedJobWrite,
+  IPageSpeedMeasurementWrite,
+} from '../../interfaces/page-speed.interface';
+import { PageSpeedRepository } from '../../repositories/page-speed/page-speed.repository';
 import { SeoIssuesRepository } from '../../repositories/seo-issues/seo-issues.repository';
 
 /**

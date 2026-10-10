@@ -16,6 +16,7 @@ import { PageSpeedResultsService } from '@modules/pages/services/page-speed-resu
 import { PgNotificationListener } from '@persistence/connections/postgres/notification-listener/pg-notification-listener';
 import { PAGE_SPEED_QUEUED_CHANNEL } from '@shared/page-speed-queue/page-speed-queue.constant';
 import {
+  PAGE_SPEED_ABANDON_SWEEP_MS,
   PAGE_SPEED_LEASE_MS,
   PAGE_SPEED_POLL_INTERVAL_MS,
   PAGE_SPEED_WORKER_SLOTS,
@@ -40,6 +41,8 @@ export class PageSpeedWorker
   private loops: Promise<void>[] = [];
   private readonly sleepers = new Set<() => void>();
   private stopping = new AbortController();
+  /** When abandoned rows were last swept; the sweep is an UPDATE, not worth every poll. */
+  private lastSweepAt = 0;
 
   constructor(
     @InjectPinoLogger(PageSpeedWorker.name) private readonly logger: PinoLogger,
@@ -104,7 +107,10 @@ export class PageSpeedWorker
   runOnce(): Promise<boolean> {
     return runWithTraceId(undefined, async () => {
       if (!(await this.limiter.acquire(this.stopping.signal))) return false;
-      await this.results.failAbandonedForWorker();
+      if (Date.now() - this.lastSweepAt >= PAGE_SPEED_ABANDON_SWEEP_MS) {
+        this.lastSweepAt = Date.now();
+        await this.results.failAbandonedForWorker();
+      }
       const claim = await this.results.claimNextForWorker(PAGE_SPEED_LEASE_MS);
       if (!claim) return false;
       await this.executor.execute(claim, this.stopping.signal);

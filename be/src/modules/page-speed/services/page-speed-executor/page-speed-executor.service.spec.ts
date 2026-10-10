@@ -140,7 +140,8 @@ describe('PageSpeedExecutorService', () => {
 
     await run();
 
-    expect(pause).toHaveBeenCalledWith(60_000);
+    // The recorded answer is a spent daily quota: an hour's pause (see the classifier).
+    expect(pause).toHaveBeenCalledWith(3_600_000);
     expect(results.releaseForWorker).toHaveBeenCalledWith(
       claim,
       expect.any(Date),
@@ -229,5 +230,25 @@ describe('PageSpeedExecutorService', () => {
 
     expect(results.releaseForWorker).toHaveBeenCalled();
     expect(results.recordFailureForWorker).not.toHaveBeenCalled();
+  });
+
+  /** A bug or a database blip must not leave the row running until its lease expires. */
+  it('an unexpected error is a failed attempt, never a row left running', async () => {
+    const { run, results, claim, logger } = setup(
+      answer(200, 'url-field.synthesized.json'),
+      2,
+    );
+    results.completeForWorker.mockRejectedValue(new Error('connection reset'));
+
+    await run();
+
+    expect(results.recordFailureForWorker).toHaveBeenCalledWith(
+      claim,
+      expect.objectContaining({
+        status: 'queued',
+        lastError: 'PSI_UNAVAILABLE',
+      }),
+    );
+    expect(logger.error).toHaveBeenCalled();
   });
 });

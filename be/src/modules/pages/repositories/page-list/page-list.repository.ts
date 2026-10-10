@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { sql, type SQL } from 'drizzle-orm';
-import {
-  CURRENT_CRAWL_RUN_STATUSES,
-  type TSeoIssueSeverity,
-} from '@app/contracts';
+import { type TSeoIssueSeverity } from '@app/contracts';
+import { CURRENT_RUN_STATUSES_SQL } from '@persistence/sql/current-run-statuses';
 import {
   DATABASE_CONNECTION,
   type Database,
@@ -95,11 +93,6 @@ interface ISiteWideRow extends Record<string, unknown> {
   page_id: string;
   site_wide: string;
 }
-
-const CURRENT_STATUSES = sql.join(
-  CURRENT_CRAWL_RUN_STATUSES.map((status) => sql`${status}`),
-  sql`, `,
-);
 
 /**
  * The pages list, in FIVE statements whatever the page size: the slice, the total, the
@@ -315,7 +308,7 @@ export class PageListRepository {
         from crawl_runs r
         join clients c on c.id = r.client_id
         where c.user_id = ${scope.userId}
-          and r.status in (${CURRENT_STATUSES})
+          and r.status in (${CURRENT_RUN_STATUSES_SQL})
           ${byClient}
         order by r.client_id, r.finished_at desc, r.id desc
       ),

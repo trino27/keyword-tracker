@@ -244,17 +244,31 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       expect(detail.pageSpeed).toMatchObject({ status: 'queued' });
     });
 
-    it('opening the list and the detail requests nothing from PageSpeed', async () => {
+    it('opening the list, the detail and the report requests nothing from PageSpeed and writes nothing', async () => {
       const [pageId] = await crawlYoast(s);
       const asked = s.transport.requests.filter(isGoogle).length;
+
+      const [{ id: clientId }] = (
+        await request(s.app.getHttpServer())
+          .get('/api/clients')
+          .set('Cookie', s.cookie)
+          .expect(200)
+      ).body.items as { id: number }[];
+      const rowsBefore = await testDb.db.select().from(pageSpeed);
 
       await listOf(s);
       await request(s.app.getHttpServer())
         .get(`/api/pages/${pageId}`)
         .set('Cookie', s.cookie)
         .expect(200);
+      await request(s.app.getHttpServer())
+        .get(`/api/clients/${clientId}/issues`)
+        .set('Cookie', s.cookie)
+        .expect(200);
 
+      // No request to Google, and the queue is exactly as it was: reading writes nothing.
       expect(s.transport.requests.filter(isGoogle)).toHaveLength(asked);
+      expect(await testDb.db.select().from(pageSpeed)).toEqual(rowsBefore);
     });
 
     it('after Google rejects the key every row is still queued and the state is keyRejected', async () => {
@@ -272,6 +286,19 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       expect((await listBodyOf(s)).pageSpeedAvailability).toEqual({
         state: 'keyRejected',
       });
+      const [{ id: clientId }] = (
+        await request(s.app.getHttpServer())
+          .get('/api/clients')
+          .set('Cookie', s.cookie)
+          .expect(200)
+      ).body.items as { id: number }[];
+      const report = (
+        await request(s.app.getHttpServer())
+          .get(`/api/clients/${clientId}/issues`)
+          .set('Cookie', s.cookie)
+          .expect(200)
+      ).body as { pageSpeedAvailability: { state: string } };
+      expect(report.pageSpeedAvailability).toEqual({ state: 'keyRejected' });
     });
   });
 

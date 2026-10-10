@@ -5,10 +5,8 @@ import { expectPgError } from '../../../../../test/support/expect-pg-error';
 import { seedCurrentPage } from '../../../../../test/support/seed-page';
 import { seedTestUser } from '../../../../../test/support/sign-in';
 import { createTestDatabase } from '../../../../../test/support/test-database';
-import {
-  PageSpeedRepository,
-  type IPageSpeedMeasurementWrite,
-} from './page-speed.repository';
+import type { IPageSpeedMeasurementWrite } from '../../interfaces/page-speed.interface';
+import { PageSpeedRepository } from './page-speed.repository';
 
 const testDb = createTestDatabase();
 const repository = new PageSpeedRepository(testDb.db);

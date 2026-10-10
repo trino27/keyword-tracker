@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import {
-  CURRENT_CRAWL_RUN_STATUSES,
   type TSeoIssue,
   type TSeoIssueCode,
   type TSeoIssueSeverity,
 } from '@app/contracts';
+import { CURRENT_RUN_STATUSES_SQL } from '@persistence/sql/current-run-statuses';
 import {
   DATABASE_CONNECTION,
   type Database,
@@ -87,11 +87,6 @@ interface IHistoryDbRow extends Record<string, unknown> {
   position: number | null;
 }
 
-const CURRENT_STATUSES = sql.join(
-  CURRENT_CRAWL_RUN_STATUSES.map((status) => sql`${status}`),
-  sql`, `,
-);
-
 @Injectable()
 export class PageDetailRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
@@ -120,7 +115,7 @@ export class PageDetailRepository {
       where p.id = ${pageId}
         and p.last_seen_run_id = (
           select r.id from crawl_runs r
-          where r.client_id = p.client_id and r.status in (${CURRENT_STATUSES})
+          where r.client_id = p.client_id and r.status in (${CURRENT_RUN_STATUSES_SQL})
           order by r.finished_at desc, r.id desc
           limit 1
         )

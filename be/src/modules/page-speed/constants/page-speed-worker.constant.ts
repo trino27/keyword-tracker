@@ -29,3 +29,6 @@ export const PAGE_SPEED_BACKOFF_FACTOR = 4;
 
 /** How long every slot pauses after a 429 that names no Retry-After. */
 export const PAGE_SPEED_DEFAULT_PAUSE_MS = 60_000;
+
+/** How often a slot sweeps rows whose lease expired on their last attempt. */
+export const PAGE_SPEED_ABANDON_SWEEP_MS = 60_000;

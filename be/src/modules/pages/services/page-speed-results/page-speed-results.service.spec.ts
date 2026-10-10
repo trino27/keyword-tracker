@@ -1,9 +1,7 @@
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import type { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
-import type {
-  IPageSpeedMeasurementWrite,
-  PageSpeedRepository,
-} from '../../repositories/page-speed/page-speed.repository';
+import type { IPageSpeedMeasurementWrite } from '../../interfaces/page-speed.interface';
+import type { PageSpeedRepository } from '../../repositories/page-speed/page-speed.repository';
 import type { SeoIssuesRepository } from '../../repositories/seo-issues/seo-issues.repository';
 import { PageSpeedResultsService } from './page-speed-results.service';
 

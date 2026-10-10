@@ -1,11 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { IClientIssueReport, TReportIssue } from '@app/contracts';
-import { pageSpeedAvailabilityOf } from '@infrastructure/config/page-speed-settings/page-speed-availability-of/page-speed-availability-of';
-import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
-import {
-  PAGE_SPEED_SETTINGS,
-  type IPageSpeedSettings,
-} from '@infrastructure/config/page-speed-settings/page-speed-settings';
+import { PageSpeedAvailabilityService } from '@infrastructure/config/page-speed-settings/page-speed-availability/page-speed-availability.service';
 import { ClientsService } from '@modules/clients/services/clients/clients.service';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { IssueReportRepository } from '../../repositories/issue-report/issue-report.repository';
@@ -20,9 +15,7 @@ export class IssueReportService {
   constructor(
     private readonly reports: IssueReportRepository,
     private readonly clients: ClientsService,
-    @Inject(PAGE_SPEED_SETTINGS)
-    private readonly pageSpeedSettings: IPageSpeedSettings,
-    private readonly pageSpeedRuntime: PageSpeedRuntimeState,
+    private readonly pageSpeed: PageSpeedAvailabilityService,
   ) {}
 
   async reportFor(
@@ -30,11 +23,13 @@ export class IssueReportService {
     clientId: number,
   ): Promise<IClientIssueReport> {
     const client = await this.clients.getClient(scope, clientId);
-    const pageSpeedAvailability = pageSpeedAvailabilityOf(
-      this.pageSpeedSettings,
-      this.pageSpeedRuntime,
+    const pageSpeedAvailability = this.pageSpeed.current();
+    // One read-only, repeatable-read snapshot: a crawl finishing mid-read cannot pair one
+    // run's site checks with another run's pages.
+    const { run, pageFindings, siteFindings } = await this.reports.snapshot(
+      scope,
+      clientId,
     );
-    const run = await this.reports.currentRun(scope, clientId);
     if (!run)
       return {
         client: { id: client.id, name: client.name },
@@ -44,10 +39,6 @@ export class IssueReportService {
         issues: [],
       };
 
-    const [pageFindings, siteFindings] = await Promise.all([
-      this.reports.pageFindings(scope, clientId, run.runId),
-      this.reports.failedSiteChecks(scope, run.runId),
-    ]);
     const issues: TReportIssue[] = [
       ...siteFindings.map((finding): TReportIssue => ({
         ...finding,

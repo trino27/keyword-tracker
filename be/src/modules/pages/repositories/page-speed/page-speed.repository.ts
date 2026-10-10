@@ -1,48 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, sql } from 'drizzle-orm';
-import type { TCwvSource, TPageSpeedErrorCode } from '@app/contracts';
+import type { TPageSpeedErrorCode } from '@app/contracts';
 import {
   DATABASE_CONNECTION,
   type Database,
 } from '@persistence/connections/postgres/database-provider/database.provider';
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import { pageSpeed } from '@persistence/schema/tables/page-speed/page-speed.schema';
+import { CURRENT_RUN_STATUSES_SQL } from '@persistence/sql/current-run-statuses';
+import type {
+  IClaimedPageSpeed,
+  IPageSpeedJobWrite,
+  IPageSpeedMeasurementWrite,
+} from '../../interfaces/page-speed.interface';
 import {
   PAGE_SPEED_MAX_ATTEMPTS,
   PAGE_SPEED_QUEUED_CHANNEL,
 } from '@shared/page-speed-queue/page-speed-queue.constant';
-
-/** A measurement as the worker writes it: whole, with each value's source. */
-export interface IPageSpeedMeasurementWrite {
-  lcpMs: number;
-  lcpSource: TCwvSource;
-  /** Null with its source: Google has no field INP for the page or the site. */
-  inpMs: number | null;
-  inpSource: Exclude<TCwvSource, 'lab'> | null;
-  cls: number;
-  clsSource: TCwvSource;
-  performanceScore: number;
-  measuredAt: Date;
-}
-
-/**
- * What a failed attempt may write — job columns only, by construction: there is no key
- * here a measurement could travel under, so a failure cannot erase the last good one.
- */
-export interface IPageSpeedJobWrite {
-  /** `queued` to try again at `nextAttemptAt`, `failed` to give up. */
-  status: 'queued' | 'failed';
-  nextAttemptAt?: Date;
-  lastError: TPageSpeedErrorCode;
-}
-
-/** A claimed row: the page, the attempt that owns it, and the URL Google measures. */
-export interface IClaimedPageSpeed {
-  pageId: number;
-  attempt: number;
-  /** The page's final URL — field data is keyed by where visitors land (plan D22). */
-  url: string;
-}
 
 /**
  * The PageSpeed queue and its cache, one row per page. Every method is unscoped
@@ -89,7 +63,7 @@ export class PageSpeedRepository {
       select p.id from pages p
       where p.last_seen_run_id = (
         select r.id from crawl_runs r
-        where r.client_id = p.client_id and r.status in ('succeeded', 'partial')
+        where r.client_id = p.client_id and r.status in (${CURRENT_RUN_STATUSES_SQL})
         order by r.finished_at desc, r.id desc
         limit 1)
       on conflict (page_id) do nothing`);
@@ -129,7 +103,7 @@ export class PageSpeedRepository {
             and q.attempts < ${PAGE_SPEED_MAX_ATTEMPTS}
             and qp.last_seen_run_id = (
               select r.id from crawl_runs r
-              where r.client_id = qp.client_id and r.status in ('succeeded', 'partial')
+              where r.client_id = qp.client_id and r.status in (${CURRENT_RUN_STATUSES_SQL})
               order by r.finished_at desc, r.id desc
               limit 1)
           order by q.next_attempt_at, q.page_id

@@ -1,15 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import {
-  CURRENT_CRAWL_RUN_STATUSES,
   type TSeoIssue,
   type TSeoIssueSeverity,
   type TSiteCheckCode,
 } from '@app/contracts';
+import { CURRENT_RUN_STATUSES_SQL } from '@persistence/sql/current-run-statuses';
 import {
   DATABASE_CONNECTION,
   type Database,
 } from '@persistence/connections/postgres/database-provider/database.provider';
+import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { IPageFinding } from '../../interfaces/page-finding.interface';
 
@@ -20,16 +21,20 @@ export interface ICurrentRun {
   pages: number;
 }
 
+/** Everything the report reads, from one consistent view of the database. */
+export interface IReportSnapshot {
+  run: ICurrentRun | null;
+  pageFindings: IPageFinding[];
+  siteFindings: ISiteFinding[];
+}
+
+type TReader = Database | Transaction;
+
 export interface ISiteFinding {
   code: TSiteCheckCode;
   severity: TSeoIssueSeverity;
   details: Record<string, unknown>;
 }
-
-const CURRENT_STATUSES = sql.join(
-  CURRENT_CRAWL_RUN_STATUSES.map((status) => sql`${status}`),
-  sql`, `,
-);
 
 /**
  * The report's reads — a read model over three owners' tables (pages, clients, site
@@ -41,14 +46,38 @@ export class IssueReportRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
 
   /**
+   * The current run, its pages' findings and its failed site checks, read in ONE
+   * read-only, repeatable-read transaction — so the report is a snapshot in fact, not
+   * three reads a finishing crawl could fall between.
+   */
+  snapshot(scope: IUserScope, clientId: number): Promise<IReportSnapshot> {
+    return this.db.transaction(
+      async (tx) => {
+        const run = await this.currentRun(scope, clientId, tx);
+        if (!run) return { run, pageFindings: [], siteFindings: [] };
+        const pageFindings = await this.pageFindings(
+          scope,
+          clientId,
+          run.runId,
+          tx,
+        );
+        const siteFindings = await this.failedSiteChecks(scope, run.runId, tx);
+        return { run, pageFindings, siteFindings };
+      },
+      { isolationLevel: 'repeatable read', accessMode: 'read only' },
+    );
+  }
+
+  /**
    * The client's current run — never a newer FAILED one, whose site checks describe a
    * crawl whose pages are not the ones listed. Null: no crawl has finished yet.
    */
   async currentRun(
     scope: IUserScope,
     clientId: number,
+    reader: TReader = this.db,
   ): Promise<ICurrentRun | null> {
-    const { rows } = await this.db.execute<{
+    const { rows } = await reader.execute<{
       id: string;
       finished_at: string | Date;
       pages: string;
@@ -57,7 +86,7 @@ export class IssueReportRepository {
              (select count(*) from pages p where p.last_seen_run_id = r.id) as pages
       from crawl_runs r
       join clients c on c.id = r.client_id and c.user_id = ${scope.userId}
-      where r.client_id = ${clientId} and r.status in (${CURRENT_STATUSES})
+      where r.client_id = ${clientId} and r.status in (${CURRENT_RUN_STATUSES_SQL})
       order by r.finished_at desc, r.id desc
       limit 1
     `);
@@ -76,8 +105,9 @@ export class IssueReportRepository {
     scope: IUserScope,
     clientId: number,
     runId: number,
+    reader: TReader = this.db,
   ): Promise<IPageFinding[]> {
-    const { rows } = await this.db.execute<{
+    const { rows } = await reader.execute<{
       code: TSeoIssue['code'];
       severity: TSeoIssueSeverity;
       details_json: Record<string, unknown>;
@@ -111,8 +141,9 @@ export class IssueReportRepository {
   async failedSiteChecks(
     scope: IUserScope,
     runId: number,
+    reader: TReader = this.db,
   ): Promise<ISiteFinding[]> {
-    const { rows } = await this.db.execute<{
+    const { rows } = await reader.execute<{
       code: TSiteCheckCode;
       severity: TSeoIssueSeverity;
       details_json: Record<string, unknown>;

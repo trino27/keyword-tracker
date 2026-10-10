@@ -1,4 +1,5 @@
 import { ACTIVE_ISSUE_CODES, type TSeoIssueCode } from '@app/contracts';
+import { PageSpeedAvailabilityService } from '@infrastructure/config/page-speed-settings/page-speed-availability/page-speed-availability.service';
 import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { ClientsService } from '@modules/clients/services/clients/clients.service';
@@ -81,8 +82,10 @@ const setup = (rowCount: number) => {
     list,
     {} as PageDetailRepository,
     clients as unknown as ClientsService,
-    { apiKey: 'k' },
-    new PageSpeedRuntimeState(),
+    new PageSpeedAvailabilityService(
+      { apiKey: 'k' },
+      new PageSpeedRuntimeState(),
+    ),
   );
   const query = (overrides: Partial<ListPagesQueryDto> = {}) => ({
     page: 1,
@@ -223,8 +226,7 @@ const detailSetup = (
     list,
     detail,
     clients as unknown as ClientsService,
-    { apiKey: 'k' },
-    runtime,
+    new PageSpeedAvailabilityService({ apiKey: 'k' }, runtime),
   );
   return { service, clients, latestRun, runtime };
 };

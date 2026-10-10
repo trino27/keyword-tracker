@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   pageScoreOf,
   SEO_ISSUE_CODES,
@@ -8,12 +8,7 @@ import {
   type IPageListResponse,
 } from '@app/contracts';
 import { escapeLike } from '@core/utils/escape-like/escape-like';
-import { pageSpeedAvailabilityOf } from '@infrastructure/config/page-speed-settings/page-speed-availability-of/page-speed-availability-of';
-import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
-import {
-  PAGE_SPEED_SETTINGS,
-  type IPageSpeedSettings,
-} from '@infrastructure/config/page-speed-settings/page-speed-settings';
+import { PageSpeedAvailabilityService } from '@infrastructure/config/page-speed-settings/page-speed-availability/page-speed-availability.service';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { ClientsService } from '@modules/clients/services/clients/clients.service';
 import { normalizeText } from '@modules/page-analysis/services/text/normalize-text/normalize-text';
@@ -59,9 +54,7 @@ export class PageReadService {
     private readonly list: PageListRepository,
     private readonly detail: PageDetailRepository,
     private readonly clients: ClientsService,
-    @Inject(PAGE_SPEED_SETTINGS)
-    private readonly pageSpeedSettings: IPageSpeedSettings,
-    private readonly pageSpeedRuntime: PageSpeedRuntimeState,
+    private readonly pageSpeed: PageSpeedAvailabilityService,
   ) {}
 
   /**
@@ -145,7 +138,7 @@ export class PageReadService {
       page: query.page,
       pageSize: query.pageSize,
       total,
-      pageSpeedAvailability: this.pageSpeedAvailability(),
+      pageSpeedAvailability: this.pageSpeed.current(),
     };
   }
 
@@ -195,14 +188,7 @@ export class PageReadService {
       ),
       lastCrawl: client.latestRun,
       pageSpeed: pageSpeedSummaryOf(page.pageSpeed),
-      pageSpeedAvailability: this.pageSpeedAvailability(),
+      pageSpeedAvailability: this.pageSpeed.current(),
     };
-  }
-
-  private pageSpeedAvailability() {
-    return pageSpeedAvailabilityOf(
-      this.pageSpeedSettings,
-      this.pageSpeedRuntime,
-    );
   }
 }

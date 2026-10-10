@@ -5,10 +5,13 @@ import {
   type IPageSpeedSettings,
 } from '@infrastructure/config/page-speed-settings/page-speed-settings';
 import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
-import type { IClaimedPageSpeed } from '@modules/pages/repositories/page-speed/page-speed.repository';
+import type { IClaimedPageSpeed } from '@modules/pages/interfaces/page-speed.interface';
 import { PageSpeedResultsService } from '@modules/pages/services/page-speed-results/page-speed-results.service';
 import { PAGE_SPEED_MAX_ATTEMPTS } from '@shared/page-speed-queue/page-speed-queue.constant';
-import { classifyPsiResponse } from '../classify-psi-response/classify-psi-response';
+import {
+  classifyPsiResponse,
+  type TPsiCallResult,
+} from '../classify-psi-response/classify-psi-response';
 import { cwvIssuesOf } from '../cwv-issues/cwv-issues-of';
 import type { IExtractedMeasurement } from '../extract-measurement/extract-measurement';
 import { PsiClient } from '../psi-client/psi-client';
@@ -53,6 +56,43 @@ export class PageSpeedExecutorService {
       await this.results.releaseForWorker(claim, new Date());
       return;
     }
+    try {
+      await this.settle(claim, result);
+    } catch (err: unknown) {
+      await this.settleUnexpected(claim, err);
+    }
+  }
+
+  /**
+   * A bug, or the database failing mid-write: the row is not left `running` until its
+   * lease expires and it is filed as ABANDONED. It is counted as a failed attempt and
+   * tried again later — never released, or a bug would retry forever for free.
+   */
+  private async settleUnexpected(
+    claim: IClaimedPageSpeed,
+    err: unknown,
+  ): Promise<void> {
+    this.logger.error(
+      { err, pageId: claim.pageId, attempt: claim.attempt },
+      'PageSpeed measurement failed unexpectedly',
+    );
+    const final = claim.attempt >= PAGE_SPEED_MAX_ATTEMPTS;
+    await this.results.recordFailureForWorker(
+      claim,
+      final
+        ? { status: 'failed', lastError: 'PSI_UNAVAILABLE' }
+        : {
+            status: 'queued',
+            lastError: 'PSI_UNAVAILABLE',
+            nextAttemptAt: new Date(Date.now() + retryDelayMs(claim.attempt)),
+          },
+    );
+  }
+
+  private async settle(
+    claim: IClaimedPageSpeed,
+    result: TPsiCallResult,
+  ): Promise<void> {
     const now = new Date();
     const outcome = classifyPsiResponse(result, now.getTime());
     const where = { pageId: claim.pageId, attempt: claim.attempt };
