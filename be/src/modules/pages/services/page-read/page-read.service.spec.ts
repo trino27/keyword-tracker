@@ -1,4 +1,4 @@
-import { SEO_ISSUE_CODES, type TSeoIssueCode } from '@app/contracts';
+import { ACTIVE_ISSUE_CODES, type TSeoIssueCode } from '@app/contracts';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { ClientsService } from '@modules/clients/services/clients/clients.service';
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
@@ -177,11 +177,11 @@ const detailSetup = (
     wordCount: 800,
     httpStatus: 200,
     responseMs: 120,
-    checksApplicable: overrides.checksApplicable ?? SEO_ISSUE_CODES.length,
+    checksApplicable: overrides.checksApplicable ?? ACTIVE_ISSUE_CODES.length,
     checksFailed: overrides.checksFailed ?? issueCodes.length,
     checksJudged:
       overrides.checksJudged === undefined
-        ? [...SEO_ISSUE_CODES]
+        ? [...ACTIVE_ISSUE_CODES]
         : overrides.checksJudged,
     checksNotApplicable:
       overrides.checksNotApplicable === undefined
@@ -236,7 +236,7 @@ describe('PageReadService.getPage', () => {
 
     const { checks } = await service.getPage(scope, 1);
 
-    expect(checks?.map(({ code }) => code)).toEqual(SEO_ISSUE_CODES);
+    expect(checks?.map(({ code }) => code)).toEqual(ACTIVE_ISSUE_CODES);
   });
 
   /** The composition reads the issue codes, so a finding is never reported as a pass. */
@@ -252,7 +252,7 @@ describe('PageReadService.getPage', () => {
   });
 
   it('separates a skipped check from a passed one', async () => {
-    const judged = SEO_ISSUE_CODES.filter((code) => code !== 'HEADING_SKIP');
+    const judged = ACTIVE_ISSUE_CODES.filter((code) => code !== 'HEADING_SKIP');
     const { service } = detailSetup({
       checksJudged: judged,
       checksNotApplicable: ['HEADING_SKIP'],
@@ -266,7 +266,7 @@ describe('PageReadService.getPage', () => {
     expect(checks?.find((check) => check.code === 'HEADING_SKIP')?.status).toBe(
       'notApplicable',
     );
-    expect(score.applicable).toBe(SEO_ISSUE_CODES.length - 1);
+    expect(score.applicable).toBe(ACTIVE_ISSUE_CODES.length - 1);
   });
 
   /** A page whose crawl predates the record cannot be enumerated, and says so. */

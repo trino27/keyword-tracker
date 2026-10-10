@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { SEO_ISSUE_CODES } from "@app/contracts";
+import { ACTIVE_ISSUE_CODES } from "@app/contracts";
 import type { TPageCheck } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { summariseChecks } from "./summariseChecks";
 
 const allPassing = (): TPageCheck[] =>
-	SEO_ISSUE_CODES.map((code) => ({ code, status: "passed" as const }));
+	ACTIVE_ISSUE_CODES.map((code) => ({ code, status: "passed" as const }));
 
 const withStatus = (code: string, status: TPageCheck["status"]): TPageCheck[] =>
 	allPassing().map((check) => (check.code === code ? { ...check, status } : check));
@@ -14,11 +14,13 @@ const withStatus = (code: string, status: TPageCheck["status"]): TPageCheck[] =>
  * checks there are, and a test that hard-codes the number fails on the next check
  * added without anything being wrong.
  */
-const ALL = SEO_ISSUE_CODES.length;
+const ALL = ACTIVE_ISSUE_CODES.length;
 
 describe("summariseChecks", () => {
 	it("keeps the order it was given", () => {
-		expect(summariseChecks(allPassing()).rows.map((row) => row.code)).toEqual(SEO_ISSUE_CODES);
+		expect(summariseChecks(allPassing()).rows.map((row) => row.code)).toEqual(
+			ACTIVE_ISSUE_CODES,
+		);
 	});
 
 	it("labels each row from the catalogue", () => {
@@ -69,7 +71,7 @@ describe("summariseChecks subtitle", () => {
 	 * the parts and the "not yet checked" noun are only pinned here.
 	 */
 	it("orders the groups judged, not applicable, not yet checked", () => {
-		const checks = SEO_ISSUE_CODES.map((code, i) => ({
+		const checks = ACTIVE_ISSUE_CODES.map((code, i) => ({
 			code,
 			status:
 				i === 0
@@ -87,7 +89,7 @@ describe("summariseChecks subtitle", () => {
 	});
 
 	it("counts every status, not only the ones it names", () => {
-		const checks = SEO_ISSUE_CODES.map((code, i) => ({
+		const checks = ACTIVE_ISSUE_CODES.map((code, i) => ({
 			code,
 			status: i === 0 ? ("failed" as const) : ("passed" as const),
 		}));

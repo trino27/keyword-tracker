@@ -1,8 +1,10 @@
 import { z } from "zod";
 import {
 	CHECK_STATUSES,
+	CRAWL_ISSUE_CODES,
+	CWV_SOURCES,
 	MEASURED_ISSUE_CODES,
-	SEO_ISSUE_CODES,
+	PAGE_SPEED_ISSUE_CODES,
 	SEO_ISSUE_SEVERITIES,
 	type IBestPosition,
 	type IKeywordPosition,
@@ -14,9 +16,9 @@ import {
 	type IPositionHistory,
 	isIsoDay,
 	type TIsoDay,
+	type TCrawlIssueCode,
 	type TMeasuredIssueCode,
 	type TSeoIssue as TContractSeoIssue,
-	type TSeoIssueCode,
 } from "@app/contracts";
 import { crawlRunSummarySchema } from "../../ClientGateway/Validation/ClientSchemas";
 
@@ -48,7 +50,7 @@ export const pageScoreSchema = z.object({
  * union takes on an unknown code.
  */
 export const pageCheckSchema = z.object({
-	code: z.enum([...SEO_ISSUE_CODES] as [TSeoIssueCode, ...TSeoIssueCode[]]),
+	code: z.enum([...CRAWL_ISSUE_CODES] as [TCrawlIssueCode, ...TCrawlIssueCode[]]),
 	status: z.enum(CHECK_STATUSES),
 }) satisfies z.ZodType<IPageCheck>;
 
@@ -85,10 +87,21 @@ const measurementSchema = z.object({
 	evidence: z.array(z.string()).optional(),
 });
 
+/** A speed finding: the value Google reported, the bound it crossed, and whose it is. */
+const cwvMeasurementSchema = measurementSchema.extend({ source: z.enum(CWV_SOURCES) });
+
 const plainDetailsSchema = z.record(z.string(), z.unknown());
 
-const isMeasured = (code: TSeoIssueCode): code is TMeasuredIssueCode =>
-	(MEASURED_ISSUE_CODES as readonly TSeoIssueCode[]).includes(code);
+const isMeasured = (code: TCrawlIssueCode): code is TMeasuredIssueCode =>
+	(MEASURED_ISSUE_CODES as readonly TCrawlIssueCode[]).includes(code);
+
+const speedVariants = PAGE_SPEED_ISSUE_CODES.map((code) =>
+	z.object({
+		code: z.literal(code),
+		severity: z.enum(SEO_ISSUE_SEVERITIES),
+		details: cwvMeasurementSchema,
+	}),
+);
 
 const measuredVariants = MEASURED_ISSUE_CODES.map((code) =>
 	z.object({
@@ -98,7 +111,7 @@ const measuredVariants = MEASURED_ISSUE_CODES.map((code) =>
 	}),
 );
 
-type TPlainIssueCode = Exclude<TSeoIssueCode, TMeasuredIssueCode>;
+type TPlainIssueCode = Exclude<TCrawlIssueCode, TMeasuredIssueCode>;
 
 const plainVariantOf = <K extends TPlainIssueCode>(code: K) =>
 	z.object({
@@ -117,20 +130,25 @@ type TPlainVariant = {
 	[K in TPlainIssueCode]: ReturnType<typeof plainVariantOf<K>>;
 }[TPlainIssueCode];
 
-const plainVariants = SEO_ISSUE_CODES.filter(
+const plainVariants = CRAWL_ISSUE_CODES.filter(
 	(code): code is TPlainIssueCode => !isMeasured(code),
 ).map((code) => plainVariantOf(code)) as TPlainVariant[];
 
 /**
- * One variant per catalogued code, the measured ones parsed as a measurement. Built by
- * mapping the catalogue, so a code added or retired without its validator cannot drift.
- * An unknown code is contract drift — a parse error, not a blank cell — and so is a
- * threshold finding that arrives without the value it is supposed to carry.
+ * One variant per catalogued code, the measured ones parsed as a measurement and the
+ * speed ones as a measurement with its source. Built by mapping the catalogue, so a code
+ * added or retired without its validator cannot drift. An unknown code is contract drift
+ * — a parse error, not a blank cell — and so is a threshold finding that arrives without
+ * the value it is supposed to carry, or a speed finding without its source.
  */
-type TIssueVariant = (typeof measuredVariants)[number] | (typeof plainVariants)[number];
+type TIssueVariant =
+	| (typeof measuredVariants)[number]
+	| (typeof speedVariants)[number]
+	| (typeof plainVariants)[number];
 
 export const seoIssueSchema = z.discriminatedUnion("code", [
 	...measuredVariants,
+	...speedVariants,
 	...plainVariants,
 ] as [TIssueVariant, ...TIssueVariant[]]) satisfies z.ZodType<TContractSeoIssue>;
 

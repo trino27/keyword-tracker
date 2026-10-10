@@ -1,4 +1,4 @@
-import type { TSeoIssueCode } from '../seo/seo-issue-catalogue.constant.js';
+import type { TCrawlIssueCode } from '../seo/seo-issue-catalogue.constant.js';
 
 /**
  * What one catalogue check concluded about one page.
@@ -27,6 +27,7 @@ export type TCheckStatus = (typeof CHECK_STATUSES)[number];
  * measurement and the count of sibling pages that share the code.
  */
 export interface IPageCheck {
-  code: TSeoIssueCode;
+  /** A crawl code: speed findings are not checks and never count in the score. */
+  code: TCrawlIssueCode;
   status: TCheckStatus;
 }

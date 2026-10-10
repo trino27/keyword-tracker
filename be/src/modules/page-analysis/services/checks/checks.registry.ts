@@ -1,7 +1,8 @@
 import {
   ACTIVE_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
-  type TSeoIssue,
+  type TCrawlIssueCode,
+  type TCrawlSeoIssue,
   type TSeoIssueCode,
 } from '@app/contracts';
 import { AUTHOR_MISSING_CHECK } from './author-missing/author-missing.check';
@@ -57,10 +58,12 @@ import { VIEWPORT_MISSING_CHECK } from './viewport-missing/viewport-missing.chec
 import type { IRunInput, TCheck, TVerdict } from './check.interface';
 
 /**
- * One check per catalogued code, in catalogue order.
+ * One check per crawl-owned code, in catalogue order. The speed codes have none: Google's
+ * measurement produces them, and only the PageSpeed worker writes them.
  *
  * The mapped type is the completeness check, and it is `pnpm typecheck` rather than a
- * test: a code added to the catalogue without a check does not compile, and neither does
+ * test: a crawl code added to the catalogue without a check does not compile, a check
+ * keyed by a speed code does not compile either, and neither does
  * a check registered under the wrong code — the unit carries its own code, so the two
  * must agree. Whether a check reads one page or the whole crawl follows from the code's
  * `scope` in the catalogue, so that cannot disagree either.
@@ -68,7 +71,7 @@ import type { IRunInput, TCheck, TVerdict } from './check.interface';
  * Retired codes stay here. `enabled: false` decides what RUNS; this record decides what
  * EXISTS, and a retired check still has to exist for its stored findings to be read.
  */
-export type TCheckRegistry = { [K in TSeoIssueCode]: TCheck<K> };
+export type TCheckRegistry = { [K in TCrawlIssueCode]: TCheck<K> };
 
 export const CHECKS: TCheckRegistry = {
   TITLE_MISSING: TITLE_MISSING_CHECK,
@@ -125,8 +128,8 @@ export const CHECKS: TCheckRegistry = {
 
 /** What one pass over the checks concluded about a page. */
 export interface ISeoEvaluation {
-  /** In catalogue order, as the screens read them. */
-  issues: TSeoIssue[];
+  /** In catalogue order, as the screens read them. Crawl findings only. */
+  issues: TCrawlSeoIssue[];
   /**
    * The codes that could be judged, and the codes that could not, both in catalogue
    * order and disjoint. Their union is THE CATALOGUE THIS CRAWL RAN, which is the only
@@ -135,8 +138,8 @@ export interface ISeoEvaluation {
    * was seen, and without these two lists it would be indistinguishable from one that
    * passed.
    */
-  checksJudged: TSeoIssueCode[];
-  checksNotApplicable: TSeoIssueCode[];
+  checksJudged: TCrawlIssueCode[];
+  checksNotApplicable: TCrawlIssueCode[];
   /** Outcomes that were not `notApplicable` — the score's denominator. */
   checksApplicable: number;
   /** Outcomes that were `fails`. Always `issues.length`; see below. */
@@ -161,11 +164,11 @@ class MissingVerdictsError extends Error {
 function verdictsByCode(
   run: IRunInput,
   checks: TCheckRegistry,
-): Record<TSeoIssueCode, TVerdict<TSeoIssueCode>[]> {
-  const verdicts = {} as Record<TSeoIssueCode, TVerdict<TSeoIssueCode>[]>;
+): Record<TCrawlIssueCode, TVerdict<TCrawlIssueCode>[]> {
+  const verdicts = {} as Record<TCrawlIssueCode, TVerdict<TCrawlIssueCode>[]>;
 
   for (const code of ACTIVE_ISSUE_CODES) {
-    const check: TCheck<TSeoIssueCode> = checks[code];
+    const check: TCheck<TCrawlIssueCode> = checks[code];
     if (check.scope === 'run') {
       const perPage = check.evaluate(run);
       if (perPage.length !== run.pages.length)
@@ -213,9 +216,9 @@ export function evaluateChecks(
   const verdicts = verdictsByCode(run, checks);
 
   return run.pages.map((_, index) => {
-    const issues: TSeoIssue[] = [];
-    const checksJudged: TSeoIssueCode[] = [];
-    const checksNotApplicable: TSeoIssueCode[] = [];
+    const issues: TCrawlSeoIssue[] = [];
+    const checksJudged: TCrawlIssueCode[] = [];
+    const checksNotApplicable: TCrawlIssueCode[] = [];
 
     for (const code of ACTIVE_ISSUE_CODES) {
       const verdict = verdicts[code][index];
@@ -229,7 +232,7 @@ export function evaluateChecks(
           code,
           severity: SEO_ISSUE_CATALOGUE[code].severity,
           details: verdict.details,
-        } as TSeoIssue);
+        } as TCrawlSeoIssue);
     }
 
     return {

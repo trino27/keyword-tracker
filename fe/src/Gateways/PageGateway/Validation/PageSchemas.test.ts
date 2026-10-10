@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SEO_ISSUE_CODES } from "@app/contracts";
+import { CRAWL_ISSUE_CODES, PAGE_SPEED_ISSUE_CODES } from "@app/contracts";
 import { pageCheckSchema, seoIssueSchema } from "./PageSchemas";
 
 describe("seoIssueSchema", () => {
@@ -57,11 +57,28 @@ describe("seoIssueSchema", () => {
 
 		expect(parsed.details).toEqual({ types: ["Organization"] });
 	});
+
+	it("parses a speed finding with its source; refuses one without", () => {
+		const finding = {
+			code: "CWV_LCP_POOR",
+			severity: "warning",
+			details: { value: 5200, max: 4000, source: "url" },
+		};
+
+		expect(seoIssueSchema.parse(finding).details).toEqual(finding.details);
+		expect(
+			seoIssueSchema.safeParse({ ...finding, details: { value: 5200, max: 4000 } }).success,
+		).toBe(false);
+		expect(
+			seoIssueSchema.safeParse({ ...finding, details: { value: 5200, source: "guess" } })
+				.success,
+		).toBe(false);
+	});
 });
 
 describe("pageCheckSchema", () => {
-	it("accepts every catalogue code with every status", () => {
-		for (const code of SEO_ISSUE_CODES) {
+	it("accepts every crawl code with every status", () => {
+		for (const code of CRAWL_ISSUE_CODES) {
 			for (const status of ["passed", "failed", "notApplicable", "notYetChecked"]) {
 				expect(pageCheckSchema.safeParse({ code, status }).success).toBe(true);
 			}
@@ -77,6 +94,13 @@ describe("pageCheckSchema", () => {
 		expect(pageCheckSchema.safeParse({ code: "NOT_HTTPS", status: "skipped" }).success).toBe(
 			false,
 		);
+	});
+
+	/** A speed finding is not a check; a check row for one is contract drift. */
+	it("refuses a speed code", () => {
+		for (const code of PAGE_SPEED_ISSUE_CODES) {
+			expect(pageCheckSchema.safeParse({ code, status: "failed" }).success).toBe(false);
+		}
 	});
 
 	it("refuses a code the catalogue does not have", () => {

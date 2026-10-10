@@ -4,9 +4,10 @@ import { join } from 'node:path';
 import {
   ACTIVE_ISSUE_CODES,
   CONDITIONAL_ISSUE_CODES,
+  CRAWL_ISSUE_CODES,
+  PAGE_SPEED_ISSUE_CODES,
   RUN_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
-  SEO_ISSUE_CODES,
   skipReasonOf,
   type TSeoIssueCode,
 } from '@app/contracts';
@@ -48,14 +49,22 @@ const twoUnrelatedPages = () =>
   );
 
 describe('CHECKS', () => {
-  it('has exactly one check per catalogued code', () => {
-    expect(Object.keys(CHECKS).sort()).toEqual([...SEO_ISSUE_CODES].sort());
+  it('has exactly one check per crawl-owned code', () => {
+    expect(Object.keys(CHECKS).sort()).toEqual([...CRAWL_ISSUE_CODES].sort());
+  });
+
+  // A speed finding comes from Google's measurement, not from the HTML; a check for one
+  // would let the crawl write a code whose findings only the PageSpeed worker may clear.
+  it('has no check for a pageSpeed-owned code', () => {
+    for (const code of PAGE_SPEED_ISSUE_CODES) {
+      expect(Object.keys(CHECKS)).not.toContain(code);
+    }
   });
 
   // The key alone is not enough: two unmeasured checks are structurally identical, so
   // without the code on the unit, registering one under the other's key would compile.
   it('registers every check under the code it carries', () => {
-    for (const code of SEO_ISSUE_CODES) {
+    for (const code of CRAWL_ISSUE_CODES) {
       expect(CHECKS[code].code).toBe(code);
     }
   });
@@ -63,7 +72,7 @@ describe('CHECKS', () => {
   // What a check reads follows from the catalogue, never from the check — which is what
   // makes a run-shaped check under a page code a compile error rather than a silent no-op.
   it('gives a check the shape its catalogue scope calls for', () => {
-    for (const code of SEO_ISSUE_CODES) {
+    for (const code of CRAWL_ISSUE_CODES) {
       const expected = (RUN_ISSUE_CODES as TSeoIssueCode[]).includes(code)
         ? 'run'
         : 'page';

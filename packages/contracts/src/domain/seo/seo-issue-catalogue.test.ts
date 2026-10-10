@@ -1,16 +1,76 @@
 import { describe, expect, it } from 'vitest';
 import {
   ACTIVE_ISSUE_CODES,
+  CRAWL_ISSUE_CODES,
   PAGE_ISSUE_CODES,
+  PAGE_SPEED_ISSUE_CODES,
   RUN_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
   SEO_ISSUE_CODES,
 } from './seo-issue-catalogue.constant';
+import { CWV_ISSUE_CODES } from '../page-speed/cwv-issue-codes.constant';
+import { CWV_THRESHOLDS } from '../page-speed/cwv-thresholds.constant';
+import { CWV_METRICS } from '../page-speed/cwv-metric.enum';
+
+describe('the catalogue split by owner', () => {
+  /**
+   * Each writer replaces only its own codes, so a code in both sets would be deleted by
+   * one writer's replace and re-added by the other's, and a code in neither would never
+   * be cleared at all.
+   */
+  it("partitions the catalogue by owner: every code in exactly one writer's set", () => {
+    expect([...CRAWL_ISSUE_CODES, ...PAGE_SPEED_ISSUE_CODES].sort()).toEqual(
+      [...SEO_ISSUE_CODES].sort(),
+    );
+    const overlap = CRAWL_ISSUE_CODES.filter((code) =>
+      (PAGE_SPEED_ISSUE_CODES as string[]).includes(code),
+    );
+    expect(overlap).toEqual([]);
+  });
+
+  it('gives the PageSpeed worker exactly the six Core Web Vitals codes', () => {
+    expect([...PAGE_SPEED_ISSUE_CODES].sort()).toEqual([
+      'CWV_CLS_NEEDS_IMPROVEMENT',
+      'CWV_CLS_POOR',
+      'CWV_INP_NEEDS_IMPROVEMENT',
+      'CWV_INP_POOR',
+      'CWV_LCP_NEEDS_IMPROVEMENT',
+      'CWV_LCP_POOR',
+    ]);
+  });
+
+  /**
+   * The badge reads the thresholds, the finding reads the catalogue's bound; if they
+   * drifted, a yellow badge could sit beside no finding, or a finding beside a green one.
+   */
+  it("each CWV code's max is its metric's threshold for its band", () => {
+    for (const metric of CWV_METRICS) {
+      expect(
+        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].needsImprovement].max,
+      ).toBe(CWV_THRESHOLDS[metric].good);
+      expect(SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].poor].max).toBe(
+        CWV_THRESHOLDS[metric].poor,
+      );
+    }
+  });
+
+  /** D10: falling out of search is Critical; a slow page shows, so it is at most Important. */
+  it('makes a poor metric a warning and one that needs improvement a notice', () => {
+    for (const metric of CWV_METRICS) {
+      expect(SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].poor].severity).toBe(
+        'warning',
+      );
+      expect(
+        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].needsImprovement].severity,
+      ).toBe('notice');
+    }
+  });
+});
 
 describe('the catalogue split by scope', () => {
-  it('partitions the catalogue: every code in exactly one list', () => {
+  it("partitions the crawl's codes: every one in exactly one list", () => {
     expect([...PAGE_ISSUE_CODES, ...RUN_ISSUE_CODES].sort()).toEqual(
-      [...SEO_ISSUE_CODES].sort(),
+      [...CRAWL_ISSUE_CODES].sort(),
     );
     const overlap = PAGE_ISSUE_CODES.filter((code) =>
       (RUN_ISSUE_CODES as string[]).includes(code),
@@ -75,9 +135,9 @@ describe('what the catalogue tells a reader', () => {
 });
 
 describe('the catalogue split by whether the check still runs', () => {
-  it('holds every code the catalogue has not retired', () => {
+  it('holds every crawl code the catalogue has not retired', () => {
     const running = Object.entries(SEO_ISSUE_CATALOGUE)
-      .filter(([, entry]) => !('enabled' in entry))
+      .filter(([, entry]) => entry.owner === 'crawl' && !('enabled' in entry))
       .map(([code]) => code)
       .sort();
 
@@ -99,8 +159,13 @@ describe('the catalogue split by whether the check still runs', () => {
     );
   });
 
-  /** Nothing is retired today; this says so out loud rather than by silence. */
-  it('runs every catalogued check right now', () => {
-    expect([...ACTIVE_ISSUE_CODES].sort()).toEqual([...SEO_ISSUE_CODES].sort());
+  /**
+   * Nothing is retired today; this says so out loud rather than by silence. The speed
+   * codes are not checks — no crawl runs them — so they are never active.
+   */
+  it('runs every catalogued crawl check right now', () => {
+    expect([...ACTIVE_ISSUE_CODES].sort()).toEqual(
+      [...CRAWL_ISSUE_CODES].sort(),
+    );
   });
 });

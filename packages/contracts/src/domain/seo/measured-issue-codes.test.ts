@@ -13,9 +13,16 @@ describe('MEASURED_ISSUE_CODES', () => {
     ]);
   });
 
-  it('holds every catalogue entry that declares a min or a max', () => {
+  /**
+   * Crawl codes only: a speed finding is measured too, but it carries a source as well
+   * (`ICwvMeasurement`), so it has its own variant on both sides of the wire.
+   */
+  it('holds every crawl entry that declares a min or a max', () => {
     const bounded = Object.entries(SEO_ISSUE_CATALOGUE)
-      .filter(([, entry]) => 'min' in entry || 'max' in entry)
+      .filter(
+        ([, entry]) =>
+          entry.owner === 'crawl' && ('min' in entry || 'max' in entry),
+      )
       .map(([code]) => code)
       .sort();
 

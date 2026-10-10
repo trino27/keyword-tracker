@@ -1,12 +1,12 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { SEO_ISSUE_CODES } from "@app/contracts";
+import { ACTIVE_ISSUE_CODES } from "@app/contracts";
 import type { TPageCheck } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProviders";
 import { ChecksSection } from "./ChecksSection";
 
 const allPassing = (): TPageCheck[] =>
-	SEO_ISSUE_CODES.map((code) => ({ code, status: "passed" as const }));
+	ACTIVE_ISSUE_CODES.map((code) => ({ code, status: "passed" as const }));
 
 const withStatus = (code: string, status: TPageCheck["status"]): TPageCheck[] =>
 	allPassing().map((check) => (check.code === code ? { ...check, status } : check));
@@ -26,7 +26,7 @@ describe("ChecksSection", () => {
 		render(withStatus("HEADING_SKIP", "notApplicable"));
 
 		expect(
-			await screen.findByText(`${SEO_ISSUE_CODES.length - 1} judged · 1 not applicable`),
+			await screen.findByText(`${ACTIVE_ISSUE_CODES.length - 1} judged · 1 not applicable`),
 		).toBeInTheDocument();
 	});
 
