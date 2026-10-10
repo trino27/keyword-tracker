@@ -25,6 +25,7 @@ import {
 	type TCrawlIssueCode,
 	type TPageSpeedErrorCode,
 	type TMeasuredIssueCode,
+	type TPageSpeedSeoIssue as TContractPageSpeedSeoIssue,
 	type TSeoIssue as TContractSeoIssue,
 } from "@app/contracts";
 import { crawlRunSummarySchema } from "../../ClientGateway/Validation/ClientSchemas";
@@ -187,6 +188,13 @@ export const seoIssueSchema = z.discriminatedUnion("code", [
 	...speedVariants,
 	...plainVariants,
 ] as [TIssueVariant, ...TIssueVariant[]]) satisfies z.ZodType<TContractSeoIssue>;
+
+/** A speed finding alone — what a report's whole-site row is. */
+type TSpeedVariant = (typeof speedVariants)[number];
+export const pageSpeedIssueSchema = z.discriminatedUnion(
+	"code",
+	speedVariants as [TSpeedVariant, ...TSpeedVariant[]],
+) satisfies z.ZodType<TContractPageSpeedSeoIssue>;
 
 /** The detail's issues carry the spread; the list's issue counts carry a total instead. */
 export const detailIssueSchema = z.intersection(

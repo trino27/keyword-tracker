@@ -7,13 +7,20 @@ export const SEARCH_DEBOUNCE_MS = 300;
 interface ISearchInputProps {
 	initial: string;
 	onCommit: (q: string | undefined) => void;
+	label?: string;
+	placeholder?: string;
 }
 
 /**
  * Search is instant to type and lazy to send: the text lives here and reaches the URL
  * once the user pauses, so a word is one request, not one per letter.
  */
-export function SearchInput({ initial, onCommit }: ISearchInputProps) {
+export function SearchInput({
+	initial,
+	onCommit,
+	label = "Search pages",
+	placeholder = "Search by URL or keyword",
+}: ISearchInputProps) {
 	const [text, setText] = useState(initial);
 
 	useEffect(() => {
@@ -24,8 +31,8 @@ export function SearchInput({ initial, onCommit }: ISearchInputProps) {
 
 	return (
 		<TextInput
-			aria-label="Search pages"
-			placeholder="Search by URL or keyword"
+			aria-label={label}
+			placeholder={placeholder}
 			leftSection={<IconSearch size={16} />}
 			value={text}
 			onChange={(event) => setText(event.currentTarget.value)}

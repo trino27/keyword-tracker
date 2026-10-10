@@ -10,6 +10,7 @@ const CONTENT_WIDTH = 1600;
 /** The screens the navigation offers; a screen joins it when it is finished. */
 const NAVIGATION = [
 	{ to: "/pages", label: "Pages" },
+	{ to: "/issues", label: "Issues" },
 	{ to: "/clients", label: "Clients" },
 ] as const;
 

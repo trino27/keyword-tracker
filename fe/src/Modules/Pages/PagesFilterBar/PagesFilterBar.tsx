@@ -1,7 +1,7 @@
 import { Group, Select } from "@mantine/core";
 import type { TPagesSearch } from "@App/Router/SearchSchemas/PagesSearchSchema/pagesSearchSchema";
 import type { TClient } from "@Gateways/ClientGateway/Validation/ClientSchemas";
-import { SearchInput } from "./SearchInput/SearchInput";
+import { SearchInput } from "@Modules/_Shared/SearchInput/SearchInput";
 
 export type TPagesFilterChange = Partial<Pick<TPagesSearch, "clientId" | "q">>;
 

@@ -1,4 +1,5 @@
 import { ClientGateway } from "./ClientGateway/ClientGateway";
+import { IssueReportGateway } from "./IssueReportGateway/IssueReportGateway";
 import { PageGateway } from "./PageGateway/PageGateway";
 import { PositionGateway } from "./PositionGateway/PositionGateway";
 import { SearchUpdateGateway } from "./SearchUpdateGateway/SearchUpdateGateway";
@@ -16,4 +17,5 @@ export const gateways = {
 	pages: new PageGateway(),
 	positions: new PositionGateway(),
 	searchUpdates: new SearchUpdateGateway(),
+	issueReports: new IssueReportGateway(),
 };
