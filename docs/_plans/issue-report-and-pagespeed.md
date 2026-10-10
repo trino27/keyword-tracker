@@ -26,7 +26,8 @@ corrected through this document, never beside it. The requirement-id convention,
 form, the harvest rule and the task vocabulary are owned by `openspec/README.md` and
 `openspec/config.yaml` and are not restated here. The decision log (§20) is verbatim; D21–D26 are
 consequences the planner derived from it, marked so, and confirmed by the user on 2026-10-10;
-D27 and D28 record how open questions O6 and O7 were resolved the same day.
+D27 and D28 record how open questions O6 and O7 were resolved the same day; D29 records the
+user's addition of Phase 6, which keeps this plan active after phases 1–5 closed.
 
 ---
 
@@ -1386,6 +1387,125 @@ sentences. No badge yet; nothing half-built is reachable.
    `docs(openspec): archive the four changes and deposit their requirements` ·
    `docs(plans): archive issue-report-and-pagespeed`.
 
+Closed 2026-10-10 except its last deliverable. The four changes are archived under
+`openspec/changes/archive/2026-10-10-*`. The plan's move to `docs/_plans-archive/` is deferred to
+Phase 6 step 8 (D29): a plan archived while its success path rests on synthesized answers would
+claim a finished present it does not have.
+
+### Phase 6 — Verified against the live API (no change; plan-only)
+
+Phases 1–5 shipped every PageSpeed behaviour pinned against fixtures, but the success-path
+answers — `be/test/fixtures/pagespeed/{url-field,origin-only,lab-only,failed-document,
+errored-document,server-error}.synthesized.json` — were written from Google's documentation,
+because no key was available (D29). The brief requires a real PageSpeed call. This phase makes the
+fixtures real, settles the VERIFY items of §8, §10.2 and D23, and watches the stack drain against
+Google.
+
+**No OpenSpec change carries this phase.** Its requirements (SPEED-001..013 and the rest) are
+already approved truth. This phase changes no requirement; it replaces test inputs and records
+measurements. The four archived changes are not reopened. Where a test NAME changes, the archived
+`tasks.md` and the deposit line that cite it are amended in step 8, with an `AMENDED` line — and
+nowhere else. The items below are this phase's work list. They are ticked here, because no
+`tasks.md` holds them.
+
+**Who does what.** The user does steps 1–2. The session does steps 3–8. The session never asks
+for the key, never reads `.env` aloud, and never prints a line that could contain the key. It
+learns the key is in place only from the user's word and from the worker's own log line.
+
+**Steps.**
+
+- [ ] 6.1 **User:** create a Google Cloud project; enable the PageSpeed Insights API; create an
+  API key restricted to that API (the README's "Run it from a clean clone" lists the steps). Put
+  it in the local `.env` as `PAGESPEED_API_KEY` — `.env` is git-ignored and is never committed.
+  Then run `docker compose up -d`.
+- [ ] 6.2 **User:** tell the session the key is in place.
+- [ ] 6.3 **Record real fixtures** with `be/test/fixtures/record-pagespeed-fixtures.ts`:
+  url-field, origin-only and lab-only. Add a real failed-document answer if a URL exists that
+  PageSpeed cannot load and that the crawler's address guard is not involved in. Replace the
+  `*.synthesized.json` success fixtures read by `extract-measurement.spec.ts`,
+  `classify-psi-response.spec.ts`, `page-speed-executor.service.spec.ts`,
+  `be/test/e2e/page-speed.e2e-spec.ts` and `be/test/e2e/issue-report.e2e-spec.ts` (through
+  `be/src/modules/page-speed/_testing/read-page-speed-fixture.ts` and the manifest) with the
+  recorded ones. Keep a synthesized file only where no real answer can be produced on demand — a
+  5xx, and a quota error unless one occurs — and keep its `.synthesized.json` name.
+  VERIFY: whether `rate-limited.json` and `key-invalid.json`, which carry no `.synthesized` suffix,
+  were recorded or written by hand. Rename whichever was written by hand.
+  Then settle the VERIFY items, amending §8, §10.2, §10.5 and D23 to what the answers show:
+  - `loadingExperience.origin_fallback` semantics;
+  - the CLS ×100 scale — check the `distributions` bounds against the percentile;
+  - the metric key names;
+  - header authentication (`x-goog-api-key`) working at all;
+  - the quota-error shape with a real key.
+  If the recorded answers contradict an assertion, the code is corrected first. Then a
+  `fix(page-speed): …` commit names the defect a synthesized fixture had hidden.
+- [ ] 6.4 **Live end-to-end on the docker stack.**
+  - `docker compose logs be | grep "PageSpeed worker started"` prints the line.
+  - The queued rows (834 at the time of writing) drain at least 1 s apart:
+    `docker compose logs be` request timestamps are ≥ `PAGE_SPEED_MIN_INTERVAL_MS` apart.
+  - `docker compose exec postgres psql -U tracker -d seo_tracker -c "select status, count(*), count(measured_at) from page_speed group by status"`
+    shows `done` rows with measurements.
+  - `… -c "select code, count(*) from seo_issues where code like 'CWV\_%' group by code"` lists
+    only the six speed codes.
+  - The list, detail and report payloads (`curl -b` after sign-in) carry measurements and
+    `"state":"active"`.
+  - For one URL, the stored LCP, INP and CLS are compared with pagespeed.web.dev, mobile.
+    Field values must match for the same CrUX window. Lab values are only expected to be close,
+    and the comparison says which source each value came from.
+- [ ] 6.5 **Failure behaviour against the real API.**
+  - Put a deliberately wrong key in `.env` and run `docker compose up -d` (the container is
+    recreated with the changed environment).
+  - Every payload says `"state":"keyRejected"`.
+  - `select status, count(*) from page_speed group by status` shows the queued rows unchanged.
+  - `docker compose logs be | grep -c "Google rejected PAGESPEED_API_KEY"` prints 1.
+  - Restore the key and run `docker compose up -d` again: the state returns to `active` and the
+    rows drain.
+- [ ] 6.6 **Record measured facts** in `docs/decisions.md`, and the cost per crawl in
+  `PAGE_SPEED_MODULE.md` (§18):
+  - PSI calls per crawl (≤ 15 per client);
+  - typical latency (median and slowest of the drain, from the log);
+  - quota headroom against the default daily quota (25 000/day — VERIFY in the Cloud console for
+    this project);
+  - the time to drain the seed's backlog.
+- [ ] 6.7 **Browser walk.**
+  - `/pages`: badges, legend, tooltips with source and date.
+  - `/pages/:id`: Speed block with sources and dates; the fifth score paragraph.
+  - `/issues`: By issue and By page, level filters with Improvement hidden by default, the Speed
+    type, Whole site rows kept under a page filter.
+  - No console error on any screen. Screenshots are optional.
+- [ ] 6.8 **Close.**
+  - Tick 6.1–6.8.
+  - Amend the archived `openspec/changes/archive/2026-10-10-*/tasks.md` lines and the module
+    deposit lines only where a cited test name changed, each with an `AMENDED` line.
+  - Move this plan to `docs/_plans-archive/` with its header: branch, what was harvested where,
+    what was left open.
+
+1. **Deliverables.** Recorded `be/test/fixtures/pagespeed/*.json` and their manifest entries.
+   Specs pointed at the recorded files. Amended §8/§10.2/§10.5/D23 text in this plan.
+   `docs/decisions.md` and `PAGE_SPEED_MODULE.md` facts. The archived plan.
+2. **Pre-conditions.** Phases 1–5 closed. A key the user created (6.1–6.2). D29.
+3. **TDD points.** The recorded fixtures replace the synthesized ones under the existing
+   assertions. Every assertion that fails on a real answer is a finding: read it before changing
+   it. If the code was wrong, fix the code under the unchanged assertion. If the assertion encoded
+   a wrong reading of the documentation, change the assertion. Either way, record which it was in
+   the commit body. No new test is written before a real answer shows what it must say.
+4. **Acceptance.**
+   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db` green on the recorded fixtures.
+   - `git grep -n -E "AIza|key=" -- be/test/fixtures` prints nothing.
+   - 6.4's and 6.5's queries and log greps answer as stated.
+5. **Regression guard.**
+   - The crawl shares the fixture manifest: `pnpm --filter be test:ci -- src/modules/crawl && pnpm --filter be test:db -- crawl`.
+   - The key must not escape: `git status --porcelain` shows no `.env`; the 6.3 grep above;
+     `docker compose logs be | grep -c AIza` prints 0.
+6. **Rollback.**
+   - Fixtures: `git revert` restores the synthesized files.
+   - Key: delete the key in the Google Cloud console, then empty `PAGESPEED_API_KEY` in `.env`.
+     Measurements already stored stay and age out — a re-crawl re-queues rows at least 24 h old.
+7. **Commit points.** `test(fixtures): PageSpeed answers recorded from the live API` ·
+   `fix(page-speed): …` (only if 6.3 finds a defect; one commit per defect) ·
+   `docs(plans): settle the PageSpeed VERIFY items against recorded answers` ·
+   `docs: PageSpeed cost, latency and quota as measured` ·
+   `docs(plans): archive issue-report-and-pagespeed`.
+
 ---
 
 ## 16. Risks
@@ -1402,6 +1522,7 @@ sentences. No badge yet; nothing half-built is reachable.
 | R8 | The report's "type" filter files the five HTML CWV-risk checks under SEO, surprising a reader looking under Speed | O4's reopen trigger; `issueTypeOf.test.ts` pins today's answer so a change is deliberate |
 | R9 | MODIFIED deltas are not folded by the tool against `[ID]`-form specs | VERIFY in each proposal; phase 5 folds them by hand and `openspec validate --specs` checks the result |
 | R10 | Quota: 30 seed pages + re-crawls exceed the daily limit | VERIFY the default quota; `docs/decisions.md` records calls per crawl measured in 2f; the 429 pause degrades to one call per minute rather than failing pages |
+| R11 | Recording live fixtures, or the live walk, leaks the key into a file, a commit or a log | Phase 6 acceptance `git grep -n -E "AIza\|key=" -- be/test/fixtures`; the recorder refuses to write a file containing the key; `git status --porcelain` shows no `.env`; `docker compose logs be \| grep -c AIza` prints 0 |
 
 ---
 
@@ -1565,3 +1686,5 @@ D26. (derived, from D2's "a field without a reader") `performance_score` is show
 D27. (2026-10-10, resolves O6; widens D12's flag and D17's `pageSpeed {configured}` — those lines stay as written) PageSpeed availability is `IPageSpeedAvailability { state: 'notConfigured' | 'active' | 'keyRejected' }`, carried by the pages list, the page detail and the issue report. `notConfigured` = no key in the API process; `active` = a key, and the worker has not halted; `keyRejected` = Google refused the key and the worker halted until restart (D11). The worker records the halt in an in-process `PageSpeedRuntimeState` (infrastructure, beside `PAGE_SPEED_SETTINGS`, so read paths see it without importing the worker's module — D21), and one function, `pageSpeedAvailabilityOf(settings, runtime)`, answers every read path. UI copy for `keyRejected`: "Google rejected the PageSpeed key — speed measurements are paused. See the README."; a row that would read "Measuring…" reads "Paused"; stored measurements stay visible. The README names the symptom and the cure (fix the key in `.env`, restart). Why: under a boolean the screen would say "Measuring…" indefinitely for a key Google refuses — exactly the unexplained absence D12 exists to prevent; the API process already knows, and it is one field. Rejected: keeping the boolean and relying on the log (a marketer never reads the log); storing the rejection in the database (the halt is per process and ends at restart, O1 — a stored flag would outlive the cause).
 
 D28. (2026-10-10, resolves O7; settles the scope D9 left open) The severity names Critical / Important / Improvement replace Errors / Warnings / Notices everywhere severity is shown — the issue report, the page detail's SEO issues section, the pages list's issue badges, and the run log's site checks — from one `Record<TSeoIssueSeverity, { label; color }>` in `fe/src/Core/Constants/severityLabel.ts`, so a severity without a name does not compile. PAGEDETAIL-005 and SHELL-004 are modified to say so. Why: one scale under two sets of names on two screens reads as two scales. Rejected: the new names in the report only (a reader moving from a page to the report would meet "Warning" and "Important" for one level).
+
+D29. (2026-10-10, added by the user after phases 1–5 closed) A Phase 6, "Verified against the live API", is added. It records real PageSpeed answers as fixtures, settles the VERIFY items, watches the docker stack drain against Google, exercises a rejected key against the real API, and records the measured cost and latency. The plan stays active until it closes; Phase 5's move of the plan to the archive is deferred to Phase 6 step 8. The phase is plan-only: no OpenSpec change is created and the archived changes are not reopened, because no requirement changes — only test inputs and measured facts do. Why: the brief requires a real PageSpeed call, and the success-path fixtures (`url-field`, `origin-only`, `lab-only`) were synthesized from Google's documentation for lack of a key (task 5.1 of `page-speed-measurement`). The behaviour is pinned, but against answers nobody has seen Google give. The user creates the key and puts it in `.env`; the session never asks for it or prints it.
