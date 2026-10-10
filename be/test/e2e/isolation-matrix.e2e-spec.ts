@@ -123,6 +123,15 @@ const ISOLATION_MATRIX: Record<
       pageId,
     );
   },
+  'GET /api/clients/:id/issues': async (context) => {
+    const { clientId } = await context.createOwnedClient();
+    await expectSameAsMissing(
+      context,
+      'get',
+      (id) => `/api/clients/${id}/issues`,
+      clientId,
+    );
+  },
   'GET /api/crawl-runs/:id': async (context) => {
     const { runId } = await context.createOwnedClient();
     await expectSameAsMissing(
