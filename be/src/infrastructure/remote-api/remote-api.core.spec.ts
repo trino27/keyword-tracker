@@ -160,6 +160,28 @@ describe('RemoteApiCore', () => {
   });
 
   describe('options a caller may declare', () => {
+    /** A key in a header must not follow a redirect to someone else's server. */
+    it('drops caller headers on a redirect to another origin, keeps them on the same one', async () => {
+      const { core, requests } = makeCore((request) =>
+        request.url === 'https://api.example.com/a'
+          ? respond(302, { location: '/b' })
+          : request.url === 'https://api.example.com/b'
+            ? respond(302, { location: 'https://elsewhere.example/c' })
+            : respond(200),
+      );
+
+      await core.get('https://api.example.com/a', {
+        maxBytes: 1024,
+        headers: { 'x-goog-api-key': 'secret' },
+      });
+
+      expect(requests.map((r) => r.headers['x-goog-api-key'])).toEqual([
+        'secret',
+        'secret',
+        undefined,
+      ]);
+    });
+
     /** The transport aborts on the hop signal, as undici does; the core picks its timeout. */
     it('honours a per-call timeout', async () => {
       const transport: IHttpTransport = {
@@ -188,6 +210,20 @@ describe('RemoteApiCore', () => {
         }),
       ).rejects.toBeInstanceOf(RemoteApiTimeoutError);
       expect(Date.now() - startedAt).toBeLessThan(5_000);
+    });
+
+    /** REMOTE-002: a caller may lengthen the bound, never past 90 s. */
+    it('caps a declared timeout at 90 s', async () => {
+      const timeout = jest.spyOn(AbortSignal, 'timeout');
+      const { core } = makeCore(() => respond(200));
+
+      await core.get('https://example.com/', {
+        maxBytes: 1024,
+        timeoutMs: 600_000,
+      });
+
+      expect(timeout).toHaveBeenCalledWith(90_000);
+      timeout.mockRestore();
     });
 
     it('makes exactly one request with maxRetries 0 on a 503', async () => {

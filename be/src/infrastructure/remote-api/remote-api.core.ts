@@ -37,7 +37,11 @@ export interface IRemoteGetOptions {
    * with its own retry schedule (a durable queue) passes 0 and decides itself.
    */
   maxRetries?: number;
-  /** Extra request headers. The User-Agent is the crawler's and cannot be replaced. */
+  /**
+   * Extra request headers — credentials among them. The User-Agent is the crawler's and
+   * cannot be replaced. Sent only to the origin first asked: a redirect to another host
+   * drops them, as browsers drop credentials, so an API key never follows a 3xx away.
+   */
   headers?: Record<string, string>;
 }
 
@@ -87,9 +91,15 @@ export class RemoteApiCore {
 
   async get(url: string, options: IRemoteGetOptions): Promise<IRemoteResponse> {
     let current = assertFetchable(url);
+    const origin = current.origin;
     const redirects: IRedirectHop[] = [];
     for (let hop = 0; hop <= REMOTE_API_LIMITS.maxRedirects; hop += 1) {
-      const response = await this.sendWithRetries(current, options);
+      const response = await this.sendWithRetries(
+        current,
+        current.origin === origin
+          ? options
+          : { ...options, headers: undefined },
+      );
       const location = response.headers.location;
       if (!isRedirect(response.status) || !location) {
         return {
@@ -125,7 +135,10 @@ export class RemoteApiCore {
           },
           signal: hopSignal(
             options.signal,
-            options.timeoutMs ?? REMOTE_API_LIMITS.timeoutMs,
+            Math.min(
+              options.timeoutMs ?? REMOTE_API_LIMITS.timeoutMs,
+              REMOTE_API_LIMITS.maxTimeoutMs,
+            ),
           ),
           maxBytes: options.maxBytes,
           ...(options.overflow ? { overflow: options.overflow } : {}),
