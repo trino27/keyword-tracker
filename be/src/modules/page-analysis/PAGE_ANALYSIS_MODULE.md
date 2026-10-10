@@ -8,6 +8,11 @@ one — does not compile. The six `CWV_*` codes are written by the PageSpeed wor
 measurement and are never in `checks_judged`, the score or the checks list. Each entry also
 carries `plain` — what / why / fix for a marketer — beside the technical label, hint and
 explanation; `issue-plain-copy.test.ts` holds all 65 entries (page, speed and site) to it.
+The speed codes therefore have no `<code>.check.spec.ts`: they are pinned where they are written,
+by `be/src/modules/page-speed/services/cwv-issues/cwv-issues-of.spec.ts`. The five HTML Core Web
+Vitals risk checks below stay crawl checks at notice — measured speed did not replace them — and
+their plain copy says each is a risk read from the code, not a measurement; the issue report
+files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
 
 - **Keywords (D15).** Candidates are 1–4-grams that never start or end with a stop word (the
   page's declared language; no language → 2-grams, no filtering), with the site's own word, or
@@ -346,7 +351,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per catalogued code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The fifty checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per catalogued code), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+**The fifty checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".

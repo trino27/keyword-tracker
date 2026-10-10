@@ -10,7 +10,9 @@ serves the pages list, the page detail and the position history.
 - **`page_speed` is the PageSpeed queue and the cache of the last good measurement**, one row
   per page; see `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. The list and the detail join it
   by primary key and carry a `pageSpeed` summary (bands derived at read time) and the
-  `pageSpeedAvailability` state; speed never enters the score, the checks list or the order.
+  `pageSpeedAvailability` state. A speed finding counts among the page's issues by severity and in
+  its code's client-wide spread like any other, and never enters the score, the checks list or
+  the order: those read only `checks_applicable` / `checks_failed`, which only the crawl writes.
 
 - **Current = on the client's latest succeeded/partial run.** A page or keyword pair a re-crawl no
   longer finds keeps its `last_seen_run_id` and its history and simply stops being read. Nothing
@@ -22,8 +24,9 @@ ORDER BY captured_at DESC LIMIT 1` on the snapshot primary key; the best positio
   (~56 000 snapshots): a 15-page slice, 79 pairs, `Index Scan Backward using rank_snapshots_pk`,
   0.8 ms (`be/test/explain/pages-list.explain.sql`). Sorting the list by position would need a
   stored latest position — the trigger to reopen this (D7).
-- **The list is four statements whatever the page size** (slice, total, keywords, issue counts);
-  a `describe('cost')` test counts them. Search matches the raw text against URLs and its
+- **The list is five statements whatever the page size** (slice — with its `page_speed` row —
+  total, keywords, issue counts, the site-wide spread); a `describe('cost')` test counts them.
+  Search matches the raw text against URLs and its
   normalized form against keywords, `%`/`_` escaped, served by trigram GIN indexes.
 - **History** turns the user's calendar days into UTC bounds once (`dayRangeToUtc`, the user's
   zone from the session — a `timeZone` parameter is refused) and scans one key range per pair.

@@ -144,6 +144,67 @@ history and are hidden; issues describe the latest fetch only.
 **Outbound HTTP is guarded:** private, loopback and metadata addresses are refused at connect
 time (no DNS-rebinding window), with size caps, timeouts and bounded retries.
 
+**Core Web Vitals come from Google PageSpeed Insights, measured in the background.** A finished
+crawl queues its pages in the same transaction that makes them current, and a worker in the API
+process measures them later — mobile only, because Google indexes mobile-first and both
+strategies would double the calls and duplicate every finding. One `page_speed` row per page is
+both the queue and the cache of the last good measurement: nobody reads a speed history, so none
+is kept. A page is re-measured at most once a day, and only when a crawl finds it again — no
+schedule, no "measure now" button. Rejected: measuring inside the crawl (PageSpeed takes tens of
+seconds, which breaks the crawl's lease, and a Google outage would fail crawls) and a periodic
+sweeper (no moment at which a page is guaranteed to be queued). PageSpeed is the only call this
+app makes to Google; rank positions are still simulated.
+
+**Which value, and whose it is.** Per metric: this page's real-visitor data, else the whole
+site's, else Lighthouse's lab run — and INP never from the lab, which has no interactions (TBT is
+not INP). Every value keeps its source and the screen says it ("Real visitors to the whole site",
+"Lab test, may vary"). Field data alone leaves most low-traffic posts with the site's figure or
+nothing; lab data alone has no INP and moves between runs. The address measured is the page's
+final URL, not the sitemap's — measuring a redirect measures the redirect. The Chrome UX Report
+gives CLS multiplied by 100; the scale is read from the distribution bounds in each answer rather
+than assumed.
+
+**A badge and its issue cannot disagree.** Google's thresholds (75th percentile: LCP 2.5 / 4 s,
+INP 200 / 500 ms, CLS 0.1 / 0.25) exist once, in the shared package. The badge's band is derived
+when the page is read; a value outside the good band is exactly one finding —
+`CWV_*_NEEDS_IMPROVEMENT` or `CWV_*_POOR` — stored in `seo_issues` beside the crawl's, so the
+list's counts, the page's issues and the report read one table. Each catalogue code names the
+one writer that owns it, and each writer replaces only its own codes: a re-crawl never erases a
+measurement's findings. Speed never enters the SEO score — Lighthouse keeps SEO and Performance
+apart, Search Console reports Core Web Vitals on their own — so the formula and the list's order
+are unchanged; the page shows a separate Speed block. A poor value is Important, not Critical:
+Critical is kept for a page that drops out of search, and a slow site must not bury a `noindex`.
+
+**When Google fails, nothing measured is lost.** One request, 90 s, no retry inside the call. A
+timeout or a 5xx retries after 1, 4, 16 and 64 minutes and gives the page up after the fifth
+attempt; a 429 pauses every slot for `Retry-After` (or 60 s) and costs the page no attempt; a page
+Lighthouse cannot load fails at once with a plain reason; a key Google refuses stops measuring
+until the API restarts, keeps every page queued and says "PageSpeed key rejected" on every screen.
+No failure touches the last good measurement. The key is optional: without one the app runs from
+a clean clone, crawls still queue, and the screens say "PageSpeed not configured". It travels in
+the `x-goog-api-key` header, never in the URL, because a URL reaches error messages, logs and
+fixtures. Recorded against the live API on 2026-10-10: a bad key in that header answers `400
+API_KEY_INVALID` (so Google reads it there), and a request with no key answers `429
+RESOURCE_EXHAUSTED` with a daily quota of 0 — keyless use is not an option. The pause and the halt
+live in process memory, which is right for the one API process this stack runs.
+
+**The Issues report is one snapshot of one client.** `GET /api/clients/:id/issues` answers every
+finding of the client's current crawl — each page's, the speed findings, and the site checks
+that failed — as facts: code, severity, details and where. The current crawl is the latest one
+that succeeded or partly succeeded, the same one the pages list reads, never a newer failed one.
+Google's whole-site figure, the same on every page, is folded into one "Whole site (N pages)" row
+per code. A client has at most 15 pages, so a few hundred rows: filtering and grouping happen in
+memory, never disagree with each other, and need no pagination. Every catalogue entry carries a
+plain what / why / fix for a marketer, the fix naming who acts (CMS editor or developer), while
+the curated label, hint and explanation stay as "Technical details".
+
+**Three levels, renamed rather than reinvented.** The catalogue's error / warning / notice are
+shown as Critical (the page will not appear in search, or drops out of it), Important (it shows
+or ranks worse than it could) and Improvement (good practice, small effect) — everywhere severity
+appears, from one record — and within a level the report sorts by pages affected. Rejected: a
+computed priority (weights × pages × position, resting on simulated positions) and a new
+four-level scale (a migration of every stored finding and a re-audit of a curated catalogue).
+
 ## Not done, and next
 
 - External signals instead of the system's own guesses: Google Search Console (real impressions,
@@ -189,10 +250,13 @@ time (no DNS-rebinding window), with size caps, timeouts and bounded retries.
   that removes one removes the other, and the separation that worked was grammatical rather than
   numeric. A larger corpus would move this; real impressions per keyword would settle it.
 - More checks and metrics. Duplicate titles, duplicate descriptions and cannibalisation now ship
-  as the three run-scoped codes, and outgoing internal links as `NO_INTERNAL_LINKS`. What is left
-  is the network ones (Lighthouse, Core Web Vitals, broken links), content freshness, and orphan
+  as the three run-scoped codes, outgoing internal links as `NO_INTERNAL_LINKS`, and Core Web
+  Vitals as PageSpeed measurements. What is left is broken links, content freshness, and orphan
   pages — which need a crawler that follows links, where this one visits the URLs a sitemap
   lists, so "nothing links here" is a conclusion from evidence it never gathered.
+- PageSpeed's real cost. Calls per crawl and the typical latency of a measurement were never
+  measured — the work was built without a key, against answers synthesized from Google's
+  documented format. They come from the first crawl run with a real key.
 - More parallelism in the crawl. Three fetches at a time in fixed windows, two runs per worker:
   a slow page holds its window, and a big client waits behind another. A per-host sliding window
   and more worker slots would cut a run to a fraction of its time, and the queue already

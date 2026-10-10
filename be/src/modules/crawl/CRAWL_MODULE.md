@@ -70,8 +70,14 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   crawlers — the crawl itself only ever asks about its own name — and what the client's previous
   crawl recorded for each URL, read before the transaction opens.
 - **Outbound HTTP** goes through `SiteHttpClient` (extends `RemoteApiCore`): per-kind size caps,
-  `.gz` sitemaps inflated under a second cap, retries for 429/5xx/network only, private and
-  metadata addresses refused at connect time.
+  `.gz` sitemaps inflated under a second cap, retries for a timeout, a network error, 408, 429 and
+  500/502/503/504 only (`RETRYABLE_STATUSES`), private and metadata addresses refused at connect
+  time. The crawl takes the core's defaults (10 s, two retries); `PsiClient` declares its own.
+- **Finalize queues the run's pages for PageSpeed** (`PageSpeedQueueService.enqueueForWorker`), in
+  the same transaction that makes them current, after the pages and before the outcome; a
+  superseded attempt queues nothing, and a rolled-back finalize queues nothing. The crawl never
+  waits for Google — the PageSpeed worker measures later
+  (`be/src/modules/page-speed/PAGE_SPEED_MODULE.md`).
 - **Tests never touch the network:** `createTestApp` swaps in `FixtureHttpTransport`; an unknown
   URL is a 404. `node be/test/fixtures/record-fixtures.ts` refreshes the recordings.
 

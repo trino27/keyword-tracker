@@ -20,19 +20,32 @@ executes, the way the crawl module executes runs the clients module queues. Impo
   from the distribution bounds in the answer.
 - **What Google's answer means** (`classifyPsiResponse`), and what happens to the row:
 
-  | outcome | row | queue |
-  | --- | --- | --- |
-  | 200 with LCP, CLS and a score | `done`, measurement + findings in one transaction | continues |
-  | timeout, network, 5xx | back to `queued` after 1, 4, 16, 64 min; `failed PSI_UNAVAILABLE` at attempt 5 | continues |
-  | 429 / quota | released, attempt given back | every slot pauses for Retry-After or 60 s |
-  | key refused (400/403 key reasons) | released, attempt given back | halted until restart; payloads say `keyRejected` |
-  | Lighthouse could not load / page errored / other 4xx / no measurement | `failed` with its reason | continues |
+  | outcome                                                               | row                                                                            | queue                                            |
+  | --------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------ |
+  | 200 with LCP, CLS and a score                                         | `done`, measurement + findings in one transaction                              | continues                                        |
+  | timeout, network, 5xx                                                 | back to `queued` after 1, 4, 16, 64 min; `failed PSI_UNAVAILABLE` at attempt 5 | continues                                        |
+  | 429 / quota                                                           | released, attempt given back                                                   | every slot pauses for Retry-After or 60 s        |
+  | key refused (400/403 key reasons)                                     | released, attempt given back                                                   | halted until restart; payloads say `keyRejected` |
+  | Lighthouse could not load / page errored / other 4xx / no measurement | `failed` with its reason                                                       | continues                                        |
 
   Every failure path writes job columns only, so the last good measurement survives.
 - **Findings** (`cwvIssuesOf`): a metric outside the good band yields exactly its one code —
   `CWV_*_POOR` (Important) or `CWV_*_NEEDS_IMPROVEMENT` (Improvement) — with `{value, max,
   source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree. Speed never
   enters the SEO score.
+- **What is measured is the page's `final_url`**, not the sitemap URL: field data is keyed by the
+  address visitors land on, and measuring a redirect measures the redirect.
+- **No heartbeat.** One attempt is one bounded request (90 s) plus one transaction, so the 3-minute
+  lease outlives it; a process that dies mid-call leaves the row to expire and be retaken as the
+  next attempt, and past attempt 5 `failAbandonedForWorker` fails it `ABANDONED`.
+- **A threshold that moves leaves stored findings behind.** The badge's band is computed at read
+  time from `CWV_THRESHOLDS`; the finding was written at measurement time. They disagree until the
+  page is re-measured — at the next crawl, for any measurement at least 24 h old. The catalogue's
+  CWV bounds read the same constants (`seo-issue-catalogue.test.ts` holds them equal), so the two
+  can only drift in time, never in value.
+- **Quota.** One call per current page per crawl at most, and none for a page measured in the last
+  24 h. The real per-crawl cost and latency are NOT measured yet — the work was done without a key,
+  against synthesized answers; a 429 degrades to a shared pause, never to failed pages.
 - **Known limitation:** the 429 pause, the halt and the key-rejected state live in process
   memory — right for the one API process docker-compose runs.
 
