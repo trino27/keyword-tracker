@@ -1,0 +1,177 @@
+import { z } from 'zod';
+import type { TPageSpeedErrorCode } from '@app/contracts';
+import { RemoteApiError } from '@infrastructure/remote-api/remote-api.errors';
+import { PAGE_SPEED_DEFAULT_PAUSE_MS } from '../../constants/page-speed-worker.constant';
+import {
+  extractMeasurement,
+  type IExtractedMeasurement,
+} from '../extract-measurement/extract-measurement';
+
+/** What one PageSpeed call came to, and therefore what the worker does next. */
+export type TPsiOutcome =
+  | { kind: 'measured'; measurement: IExtractedMeasurement }
+  /** Google did not answer usefully this time: try the page again later. */
+  | { kind: 'transient'; error: 'PSI_UNAVAILABLE' }
+  /** Too many requests: every slot pauses, and the page loses no attempt. */
+  | { kind: 'rateLimited'; pauseMs: number }
+  /** The key is refused: the queue halts until the key is fixed and the API restarted. */
+  | { kind: 'keyRejected' }
+  /** Something about this page that retrying will not change. */
+  | {
+      kind: 'permanent';
+      error: Exclude<TPageSpeedErrorCode, 'PSI_UNAVAILABLE' | 'ABANDONED'>;
+    };
+
+export type TPsiCallResult =
+  | {
+      response: {
+        status: number;
+        headers: Record<string, string>;
+        body: Buffer;
+      };
+    }
+  | { error: unknown };
+
+/** A Retry-After longer than this is still honoured, up to here. */
+const MAX_PAUSE_MS = 60 * 60 * 1000;
+
+/** Google's quota reasons, old and new. */
+const RATE_LIMIT_REASONS = new Set([
+  'rateLimitExceeded',
+  'RATE_LIMIT_EXCEEDED',
+  'userRateLimitExceeded',
+  'dailyLimitExceeded',
+  'quotaExceeded',
+]);
+
+/** Reasons that mean the key — not the page — is the problem. */
+const KEY_REASONS = new Set([
+  'API_KEY_INVALID',
+  'API_KEY_EXPIRED',
+  'API_KEY_SERVICE_BLOCKED',
+  'API_KEY_HTTP_REFERRER_BLOCKED',
+  'API_KEY_IP_ADDRESS_BLOCKED',
+  'API_KEY_ANDROID_APP_BLOCKED',
+  'API_KEY_IOS_APP_BLOCKED',
+  'SERVICE_DISABLED',
+  'CONSUMER_INVALID',
+  'keyInvalid',
+]);
+
+const LIGHTHOUSE_ERRORS: Record<string, TPsiOutcome & { kind: 'permanent' }> = {
+  FAILED_DOCUMENT_REQUEST: { kind: 'permanent', error: 'PAGE_LOAD_FAILED' },
+  ERRORED_DOCUMENT_REQUEST: { kind: 'permanent', error: 'PAGE_ERRORED' },
+};
+
+const googleErrorSchema = z.object({
+  error: z.object({
+    message: z.string().optional(),
+    status: z.string().optional(),
+    errors: z.array(z.object({ reason: z.string().optional() })).optional(),
+    details: z.array(z.object({ reason: z.string().optional() })).optional(),
+  }),
+});
+
+const runtimeErrorSchema = z.object({
+  lighthouseResult: z.object({
+    runtimeError: z.object({ code: z.string() }),
+  }),
+});
+
+/**
+ * Reads one PageSpeed call, in this precedence (plan §10.5): a network failure; a rate
+ * limit; a refused key; a Lighthouse error naming the page; any other 5xx or 4xx; and a
+ * 200, which is a measurement or says there is none. A thrown error that is not an
+ * outbound failure is a bug and is rethrown, never filed as Google's.
+ */
+export function classifyPsiResponse(
+  input: TPsiCallResult,
+  now: number = Date.now(),
+): TPsiOutcome {
+  if ('error' in input) {
+    if (!(input.error instanceof RemoteApiError)) throw input.error;
+    return input.error.retryable
+      ? { kind: 'transient', error: 'PSI_UNAVAILABLE' }
+      : { kind: 'permanent', error: 'PSI_REJECTED' };
+  }
+
+  const { status, headers, body } = input.response;
+  const json = parseJson(body);
+  const googleError = googleErrorSchema.safeParse(json);
+  const reasons = googleError.success
+    ? [
+        ...(googleError.data.error.errors ?? []),
+        ...(googleError.data.error.details ?? []),
+      ].flatMap((entry) => (entry.reason ? [entry.reason] : []))
+    : [];
+  const message = googleError.success
+    ? (googleError.data.error.message ?? '')
+    : '';
+
+  if (
+    status === 429 ||
+    (googleError.success &&
+      googleError.data.error.status === 'RESOURCE_EXHAUSTED') ||
+    reasons.some((reason) => RATE_LIMIT_REASONS.has(reason))
+  )
+    return {
+      kind: 'rateLimited',
+      pauseMs: pauseOf(headers['retry-after'], now),
+    };
+
+  if (
+    (status === 400 || status === 403) &&
+    (reasons.some((reason) => KEY_REASONS.has(reason)) ||
+      /api key/i.test(message))
+  )
+    return { kind: 'keyRejected' };
+
+  const lighthouseCode =
+    /Lighthouse returned error: ([A-Z_]+)/.exec(message)?.[1] ??
+    (status === 200
+      ? runtimeErrorSchema.safeParse(json).data?.lighthouseResult.runtimeError
+          .code
+      : undefined);
+
+  if (status === 200) {
+    const measurement = extractMeasurement(json);
+    if (measurement) return { kind: 'measured', measurement };
+    if (lighthouseCode)
+      return (
+        LIGHTHOUSE_ERRORS[lighthouseCode] ?? {
+          kind: 'permanent',
+          error: 'PSI_REJECTED',
+        }
+      );
+    return { kind: 'permanent', error: 'NO_MEASUREMENT' };
+  }
+
+  if (lighthouseCode)
+    return (
+      LIGHTHOUSE_ERRORS[lighthouseCode] ?? {
+        kind: 'permanent',
+        error: 'PSI_REJECTED',
+      }
+    );
+  if (status >= 500) return { kind: 'transient', error: 'PSI_UNAVAILABLE' };
+  return { kind: 'permanent', error: 'PSI_REJECTED' };
+}
+
+function parseJson(body: Buffer): unknown {
+  try {
+    return JSON.parse(body.toString('utf8')) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Retry-After in seconds or as an HTTP date; the default when absent or unreadable. */
+function pauseOf(retryAfter: string | undefined, now: number): number {
+  if (!retryAfter) return PAGE_SPEED_DEFAULT_PAUSE_MS;
+  const seconds = Number(retryAfter);
+  const ms = Number.isFinite(seconds)
+    ? seconds * 1_000
+    : Date.parse(retryAfter) - now;
+  if (!Number.isFinite(ms) || ms <= 0) return PAGE_SPEED_DEFAULT_PAUSE_MS;
+  return Math.min(ms, MAX_PAUSE_MS);
+}

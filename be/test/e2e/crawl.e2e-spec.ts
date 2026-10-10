@@ -3,10 +3,11 @@ import { join } from 'node:path';
 import {
   ACTIVE_ISSUE_CODES,
   CONDITIONAL_ISSUE_CODES,
+  CRAWL_ISSUE_CODES,
   SITE_CHECK_CODES,
 } from '@app/contracts';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { count, eq } from 'drizzle-orm';
+import { count, eq, inArray } from 'drizzle-orm';
 import { MAX_KEYWORDS } from '../../src/modules/page-analysis/constants/keyword-scoring.constant';
 import request from 'supertest';
 import {
@@ -127,10 +128,12 @@ describe('crawl (e2e, recorded sites)', () => {
     expect(await testDb.db.$count(seoIssues)).toBeGreaterThan(0);
 
     // The write path, end to end: every page carries a denominator a score can divide by,
-    // and a failed count that agrees with the issue rows written in the same transaction.
+    // and a failed count that agrees with the CRAWL's issue rows written in the same
+    // transaction — speed findings are another writer's and never count in the score.
     const issueCounts = await testDb.db
       .select({ pageId: seoIssues.pageId, found: count() })
       .from(seoIssues)
+      .where(inArray(seoIssues.code, CRAWL_ISSUE_CODES))
       .groupBy(seoIssues.pageId);
     const failedByPage = new Map(
       issueCounts.map(({ pageId, found }) => [pageId, found]),

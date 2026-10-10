@@ -11,6 +11,7 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { ClientsModule } from '@modules/clients/clients.module';
 import { CrawlModule } from '@modules/crawl/crawl.module';
 import { PagesModule } from '@modules/pages/pages.module';
+import { PageSpeedModule } from '@modules/page-speed/page-speed.module';
 import { PER_MINUTE_THROTTLE } from '@core/constants/throttle.constant';
 import { HealthModule } from '@modules/health/health.module';
 import { SearchUpdatesModule } from '@modules/search-updates/search-updates.module';
@@ -39,6 +40,8 @@ import { SearchUpdatesModule } from '@modules/search-updates/search-updates.modu
     ClientsModule,
     PagesModule,
     CrawlModule,
+    // Measures queued pages with Google PageSpeed; never imported by the seed (plan D21).
+    PageSpeedModule,
     SearchUpdatesModule,
   ],
   providers: [...APP_GLOBAL_PROVIDERS],

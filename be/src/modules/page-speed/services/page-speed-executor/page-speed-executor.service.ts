@@ -1,0 +1,145 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import {
+  PAGE_SPEED_SETTINGS,
+  type IPageSpeedSettings,
+} from '@infrastructure/config/page-speed-settings/page-speed-settings';
+import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
+import type { IClaimedPageSpeed } from '@modules/pages/repositories/page-speed/page-speed.repository';
+import { PageSpeedResultsService } from '@modules/pages/services/page-speed-results/page-speed-results.service';
+import { PAGE_SPEED_MAX_ATTEMPTS } from '@shared/page-speed-queue/page-speed-queue.constant';
+import { classifyPsiResponse } from '../classify-psi-response/classify-psi-response';
+import { cwvIssuesOf } from '../cwv-issues/cwv-issues-of';
+import type { IExtractedMeasurement } from '../extract-measurement/extract-measurement';
+import { PsiClient } from '../psi-client/psi-client';
+import { PageSpeedRateLimiter } from '../rate-limiter/page-speed-rate-limiter';
+import { retryDelayMs } from '../retry-delay/retry-delay';
+
+/**
+ * One claimed row from request to write (plan §9):
+ *
+ * - measured → the measurement and its findings, in one transaction;
+ * - transient → back in the queue after 1, 4, 16, 64 minutes; the 5th time, failed;
+ * - 429 → every slot pauses, the row is given back with its attempt;
+ * - key refused → the queue halts until restart, the row is given back, every screen
+ *   says so;
+ * - permanent → failed, with the reason the screen will show.
+ *
+ * Every failure path writes job columns only: the last good measurement survives. The key
+ * is never logged and never stored — `last_error` is a catalogue code, not a message.
+ */
+@Injectable()
+export class PageSpeedExecutorService {
+  constructor(
+    private readonly results: PageSpeedResultsService,
+    private readonly psi: PsiClient,
+    private readonly limiter: PageSpeedRateLimiter,
+    private readonly runtime: PageSpeedRuntimeState,
+    @Inject(PAGE_SPEED_SETTINGS) private readonly settings: IPageSpeedSettings,
+    @InjectPinoLogger(PageSpeedExecutorService.name)
+    private readonly logger: PinoLogger,
+  ) {}
+
+  async execute(claim: IClaimedPageSpeed, signal: AbortSignal): Promise<void> {
+    const apiKey = this.settings.apiKey;
+    // The worker never starts without a key; a claim without one is given straight back.
+    if (apiKey === null) {
+      await this.results.releaseForWorker(claim, new Date());
+      return;
+    }
+    const result = await this.psi.runPagespeed(claim.url, apiKey, signal);
+    if (signal.aborted) {
+      // Shutting down: not the page's failure, so it keeps its attempt.
+      await this.results.releaseForWorker(claim, new Date());
+      return;
+    }
+    const now = new Date();
+    const outcome = classifyPsiResponse(result, now.getTime());
+    const where = { pageId: claim.pageId, attempt: claim.attempt };
+
+    switch (outcome.kind) {
+      case 'measured': {
+        const findings = cwvIssuesOf(outcome.measurement);
+        const written = await this.results.completeForWorker(
+          claim,
+          toWrite(outcome.measurement, now),
+          findings,
+        );
+        this.logger.info(
+          { ...where, findings: findings.map(({ code }) => code), written },
+          'Page measured',
+        );
+        return;
+      }
+      case 'transient': {
+        const final = claim.attempt >= PAGE_SPEED_MAX_ATTEMPTS;
+        await this.results.recordFailureForWorker(
+          claim,
+          final
+            ? { status: 'failed', lastError: outcome.error }
+            : {
+                status: 'queued',
+                lastError: outcome.error,
+                nextAttemptAt: new Date(
+                  now.getTime() + retryDelayMs(claim.attempt),
+                ),
+              },
+        );
+        this.logger.warn(
+          { ...where, final },
+          final
+            ? 'PageSpeed did not answer; giving up on the page'
+            : 'PageSpeed did not answer; retrying later',
+        );
+        return;
+      }
+      case 'rateLimited': {
+        this.limiter.pause(outcome.pauseMs);
+        await this.results.releaseForWorker(
+          claim,
+          new Date(now.getTime() + outcome.pauseMs),
+        );
+        this.logger.warn(
+          { ...where, pauseMs: outcome.pauseMs },
+          'PageSpeed rate limit reached; pausing every slot',
+        );
+        return;
+      }
+      case 'keyRejected': {
+        const first = !this.limiter.isHalted;
+        this.limiter.halt();
+        this.runtime.markKeyRejected();
+        await this.results.releaseForWorker(claim, now);
+        if (first)
+          this.logger.error(
+            'Google rejected PAGESPEED_API_KEY; measurements are paused until the key is fixed and the API restarted',
+          );
+        return;
+      }
+      case 'permanent': {
+        await this.results.recordFailureForWorker(claim, {
+          status: 'failed',
+          lastError: outcome.error,
+        });
+        this.logger.info(
+          { ...where, error: outcome.error },
+          'PageSpeed could not measure the page',
+        );
+        return;
+      }
+    }
+  }
+}
+
+function toWrite(measurement: IExtractedMeasurement, measuredAt: Date) {
+  return {
+    lcpMs: measurement.lcp.value,
+    lcpSource: measurement.lcp.source,
+    inpMs: measurement.inp?.value ?? null,
+    inpSource: measurement.inp?.source ?? null,
+    cls: measurement.cls.value,
+    clsSource: measurement.cls.source,
+    performanceScore: measurement.performanceScore,
+    measuredAt,
+  };
+}

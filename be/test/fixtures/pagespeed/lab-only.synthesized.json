@@ -1,0 +1,29 @@
+{
+  "kind": "pagespeedonline#result",
+  "id": "https://small-blog.example/first-post/",
+  "loadingExperience": {
+    "initial_url": "https://small-blog.example/first-post/"
+  },
+  "lighthouseResult": {
+    "requestedUrl": "https://small-blog.example/first-post/",
+    "finalUrl": "https://small-blog.example/first-post/",
+    "audits": {
+      "largest-contentful-paint": {
+        "id": "largest-contentful-paint",
+        "numericValue": 5210.4
+      },
+      "cumulative-layout-shift": {
+        "id": "cumulative-layout-shift",
+        "numericValue": 0.18
+      }
+    },
+    "categories": {
+      "performance": {
+        "id": "performance",
+        "title": "Performance",
+        "score": 0.41
+      }
+    }
+  },
+  "analysisUTCTimestamp": "2026-10-10T12:00:00.000Z"
+}

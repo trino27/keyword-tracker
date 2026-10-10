@@ -1,0 +1,95 @@
+{
+  "kind": "pagespeedonline#result",
+  "id": "https://yoast.com/a-new-post/",
+  "loadingExperience": {
+    "id": "https://yoast.com",
+    "metrics": {
+      "CUMULATIVE_LAYOUT_SHIFT_SCORE": {
+        "percentile": 3,
+        "distributions": [
+          { "min": 0, "max": 10, "proportion": 0.92 },
+          { "min": 10, "max": 25, "proportion": 0.05 },
+          { "min": 25, "proportion": 0.03 }
+        ],
+        "category": "FAST"
+      },
+      "INTERACTION_TO_NEXT_PAINT": {
+        "percentile": 210,
+        "distributions": [
+          { "min": 0, "max": 200, "proportion": 0.73 },
+          { "min": 200, "max": 500, "proportion": 0.19 },
+          { "min": 500, "proportion": 0.08 }
+        ],
+        "category": "AVERAGE"
+      },
+      "LARGEST_CONTENTFUL_PAINT_MS": {
+        "percentile": 2900,
+        "distributions": [
+          { "min": 0, "max": 2500, "proportion": 0.7 },
+          { "min": 2500, "max": 4000, "proportion": 0.2 },
+          { "min": 4000, "proportion": 0.1 }
+        ],
+        "category": "AVERAGE"
+      }
+    },
+    "overall_category": "AVERAGE",
+    "initial_url": "https://yoast.com/a-new-post/",
+    "origin_fallback": true
+  },
+  "originLoadingExperience": {
+    "id": "https://yoast.com",
+    "metrics": {
+      "CUMULATIVE_LAYOUT_SHIFT_SCORE": {
+        "percentile": 3,
+        "distributions": [
+          { "min": 0, "max": 10, "proportion": 0.92 },
+          { "min": 10, "max": 25, "proportion": 0.05 },
+          { "min": 25, "proportion": 0.03 }
+        ],
+        "category": "FAST"
+      },
+      "INTERACTION_TO_NEXT_PAINT": {
+        "percentile": 210,
+        "distributions": [
+          { "min": 0, "max": 200, "proportion": 0.73 },
+          { "min": 200, "max": 500, "proportion": 0.19 },
+          { "min": 500, "proportion": 0.08 }
+        ],
+        "category": "AVERAGE"
+      },
+      "LARGEST_CONTENTFUL_PAINT_MS": {
+        "percentile": 2900,
+        "distributions": [
+          { "min": 0, "max": 2500, "proportion": 0.7 },
+          { "min": 2500, "max": 4000, "proportion": 0.2 },
+          { "min": 4000, "proportion": 0.1 }
+        ],
+        "category": "AVERAGE"
+      }
+    },
+    "overall_category": "AVERAGE",
+    "initial_url": "https://yoast.com/a-new-post/"
+  },
+  "lighthouseResult": {
+    "requestedUrl": "https://yoast.com/a-new-post/",
+    "finalUrl": "https://yoast.com/a-new-post/",
+    "audits": {
+      "largest-contentful-paint": {
+        "id": "largest-contentful-paint",
+        "numericValue": 4420.1
+      },
+      "cumulative-layout-shift": {
+        "id": "cumulative-layout-shift",
+        "numericValue": 0.31
+      }
+    },
+    "categories": {
+      "performance": {
+        "id": "performance",
+        "title": "Performance",
+        "score": 0.48
+      }
+    }
+  },
+  "analysisUTCTimestamp": "2026-10-10T12:00:00.000Z"
+}
