@@ -2,6 +2,7 @@ import {
   ISSUE_SOURCES as SOURCE,
   type ISeoIssueSource,
 } from '../seo/seo-issue-catalogue.constant.js';
+import type { IPlainCopy } from '../seo/plain-copy.interface.js';
 import type { TSeoIssueSeverity } from '../seo/seo-issue-severity.enum.js';
 
 /**
@@ -13,6 +14,8 @@ import type { TSeoIssueSeverity } from '../seo/seo-issue-severity.enum.js';
 export interface ISiteCheckDefinition {
   severity: TSeoIssueSeverity;
   label: string;
+  /** The finding in a marketer's words, as a page check carries it. */
+  plain: IPlainCopy;
   hint: string;
   explanation: string;
   sources: readonly ISeoIssueSource[];
@@ -37,6 +40,11 @@ export const SITE_CHECK_CATALOGUE = {
   ROBOTS_TXT_TRUNCATED: {
     severity: 'warning',
     label: 'robots.txt is past 500 KiB',
+    plain: {
+      what: 'Your robots.txt is so long that Google ignores the end of it',
+      why: 'Google reads only the first 500 KiB of the file, so any rules after that point do not exist for Google, and a rule cut off at the limit may block more than intended.',
+      fix: 'Ask your developer to shorten robots.txt by replacing one-line-per-page rules with a few broader patterns and removing rules for pages that no longer exist.',
+    },
     hint: 'Shorten robots.txt: merge rules with wildcards and drop rules for paths that no longer exist.',
     explanation:
       'Google reads only the first 500 KiB of robots.txt and ignores everything after it, so every rule past that point does not exist for Googlebot — and a rule cut at the limit may read broader than it was written. This crawl read the file the same way. A robots.txt this large is almost always generated: one line per URL where one pattern would do.',
@@ -46,6 +54,11 @@ export const SITE_CHECK_CATALOGUE = {
   ROBOTS_TXT_UNSUPPORTED_RULES: {
     severity: 'notice',
     label: 'robots.txt rules Google does not support',
+    plain: {
+      what: 'Your robots.txt relies on rules Google ignores',
+      why: 'Lines such as "noindex" in robots.txt have not worked in Google since 2019, so pages you think are hidden from search may be indexed, and a preferred domain set there is not actually set.',
+      fix: 'Ask your developer to remove those lines and use the per-page search-visibility setting in your CMS or SEO plugin instead, plus redirects to choose the main domain.',
+    },
     hint: 'Remove noindex, nofollow and host lines from robots.txt; use a robots meta tag or X-Robots-Tag, and redirects, instead.',
     explanation:
       'robots.txt contains noindex:, nofollow: or host: lines. Google has never supported them and stopped honouring the undocumented noindex rule in 2019; host: was never part of the robots.txt standard Google follows. A site that relies on one of these believes pages are kept out of the index, or a host is chosen, when nothing of the sort happens. Keep pages out of the index with a robots meta tag or X-Robots-Tag, and choose a host with redirects.',
@@ -55,6 +68,11 @@ export const SITE_CHECK_CATALOGUE = {
   ROBOTS_GOOGLEBOT_GROUP_DROPS_RULES: {
     severity: 'warning',
     label: "Googlebot's robots.txt group drops the general rules",
+    plain: {
+      what: "Your robots.txt has a Google-only section that skips the site's general rules",
+      why: 'Google follows only the section addressed to it, never the general one as well, so areas blocked for everyone else are open to Google. That section was usually added for one extra rule, assuming the general ones still applied.',
+      fix: 'Ask your developer to copy into the Google section every general robots.txt rule that should apply to Google too.',
+    },
     hint: 'Repeat in the Googlebot group every rule from the * group that should apply to Google too.',
     explanation:
       "robots.txt has a group addressed to Googlebot, and the general User-agent: * group disallows paths that Googlebot's group does not. Google follows only the single most specific group that matches it, never a combination, so those paths are open to Googlebot however closed they are to everyone else. Usually the Googlebot group was added for one extra rule, in the belief that the general ones still applied.",
@@ -65,6 +83,11 @@ export const SITE_CHECK_CATALOGUE = {
   SITEMAP_LISTS_NON_INDEXABLE: {
     severity: 'warning',
     label: 'Sitemap lists URLs that are not meant to be indexed',
+    plain: {
+      what: "The site's sitemap lists pages that aren't meant to be in search results",
+      why: 'Some listed pages redirect, show errors, are hidden from search or point to another main version. Each contradicts the sitemap, and search engines learn to trust such a sitemap less. Based on a sample of the sitemap.',
+      fix: "Ask your developer, or check your sitemap plugin's settings, so the sitemap lists only live pages that are meant to appear in search.",
+    },
     hint: 'List only URLs that answer 200, are indexable and name themselves as canonical.',
     explanation:
       'A sitemap is a list of the URLs you want in search results. Among the entries this crawl fetched, some redirect, answer an error, are set to noindex, or name another URL as canonical — each a contradiction between the sitemap and the page. Google asks for canonical URLs only, and a sitemap that keeps contradicting its pages is a sitemap search engines learn to trust less. Only the entries this crawl fetched are judged, so the count is a sample of the sitemap, not all of it.',
@@ -74,6 +97,11 @@ export const SITE_CHECK_CATALOGUE = {
   SITEMAP_LISTS_OTHER_HOST_VARIANTS: {
     severity: 'warning',
     label: 'Sitemap lists URLs on another protocol or host variant',
+    plain: {
+      what: "The site's sitemap uses the wrong version of the site's address",
+      why: 'Entries use http instead of https, or www when the site runs without it (or the reverse). Each costs a redirect and tells Google a different address is the main one than the pages themselves do.',
+      fix: 'Ask your developer to update the site address in the sitemap generator or CMS settings; it is usually left over from a move to https or a new domain.',
+    },
     hint: 'List every URL with the scheme and host the site serves — the one its pages declare as canonical.',
     explanation:
       'Some sitemap URLs use a different scheme or host variant than the one the site serves its pages from — http:// on an https site, the www host on a site served without it, or the reverse. Every one costs a redirect and tells Google a different URL is the main one than the pages themselves do. The usual cause is a generator that takes the host from configuration that was never updated after a move.',
@@ -84,6 +112,11 @@ export const SITE_CHECK_CATALOGUE = {
   SITEMAP_LASTMOD_UNRELIABLE: {
     severity: 'notice',
     label: 'Sitemap lastmod dates look generated, not real',
+    plain: {
+      what: "The sitemap's last-updated dates don't look real",
+      why: 'Google uses these dates only if they are consistently accurate. Once it stops trusting them, updates to your pages are found only when Google happens to recrawl, so refreshed content can take longer to show in search.',
+      fix: 'Ask your developer, or check your sitemap plugin, so each date is when the page last changed meaningfully, not when the sitemap was generated.',
+    },
     hint: 'Set lastmod to the date the page last changed significantly, not the date the sitemap was built.',
     explanation:
       "Google uses lastmod only if it is consistently and verifiably accurate, checking it against the page's own last modification. This sitemap's dates fail that: every entry carries the same date, or the dates are the moment the sitemap was generated, or they are older than the modification date the pages themselves declare. Once Google stops trusting a site's lastmod, updates are found only when it happens to recrawl.",
@@ -93,6 +126,11 @@ export const SITE_CHECK_CATALOGUE = {
   HOST_VARIANT_SERVES_CONTENT: {
     severity: 'warning',
     label: 'Another host or protocol serves the site too',
+    plain: {
+      what: 'The site loads at two different addresses instead of redirecting',
+      why: 'Every page then exists twice, Google has to decide which copy to show, and links pointing at the other copy count for it rather than for yours.',
+      fix: 'Your hosting provider or developer can set a permanent (301) redirect from every other version, http or https, www or not, to the one address the site uses.',
+    },
     hint: 'Redirect every variant — http://, www or non-www — with a 301 to the one the site uses.',
     explanation:
       "The site's home page answers 200 at a second address — over http:// as well as https://, or at both the www and the bare host — instead of redirecting. Every page then exists twice, Google has to work out which copy to show, and links pointing at the other copy count for it rather than for yours. A server-side 301 to the address the site has chosen settles it.",
@@ -102,6 +140,11 @@ export const SITE_CHECK_CATALOGUE = {
   HOST_REDIRECT_CHAIN: {
     severity: 'notice',
     label: 'Host redirects form a chain, or are temporary',
+    plain: {
+      what: "The site's other addresses redirect in too many steps, or only temporarily",
+      why: 'Each extra step slows visitors and crawlers, and a temporary redirect tells Google to keep showing the old address. Two permanent steps are fine and are not reported here.',
+      fix: 'Ask your developer or hosting provider to send every version of the address straight to the final one in a single permanent redirect.',
+    },
     hint: 'Redirect every variant straight to the final address in one permanent (301 or 308) hop.',
     explanation:
       'The other addresses of the site redirect, but badly: through three hops or more before they reach the address the site serves, with a temporary 302 or 307 on the way, or to somewhere else entirely. Each hop is another request for readers and crawlers, and a temporary redirect tells Google to keep the old address as the one to show. Two permanent hops (http:// → https:// → the canonical host) are not reported: more than half the sites measured do exactly that, and Google follows them without loss. What the home page does once the host is right — a redirect to a language version — is not counted. Check all conditions in one rule and send the reader straight to the final URL.',
@@ -111,6 +154,11 @@ export const SITE_CHECK_CATALOGUE = {
   SOFT_404: {
     severity: 'warning',
     label: 'Missing pages answer 200 (soft 404)',
+    plain: {
+      what: 'The site answers missing pages as if they exist',
+      why: 'Addresses that do not exist return a normal page, so Google has to guess, may index error pages at mistyped or removed addresses, and removed pages do not clearly drop out. A proper "not found" answer does no harm.',
+      fix: 'Ask your developer or hosting provider to make the server answer a real "404 not found" for pages that do not exist; a theme or plugin may be overriding it.',
+    },
     hint: 'Answer a URL that does not exist with a real 404 or 410.',
     explanation:
       'The crawl asked for an address that cannot exist on the site, and the server answered 200 instead of 404. Google then has to judge from the content whether the page is real, reports it as a soft 404, and may index error pages at every mistyped or removed URL — while a real removal stays unclear. A 404 for a missing page does the site no harm; a 200 does.',

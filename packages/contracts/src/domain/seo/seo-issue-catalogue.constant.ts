@@ -1,5 +1,6 @@
 import type { TSeoIssueSeverity } from './seo-issue-severity.enum.js';
 import type { TIssueOwner } from './issue-owner.enum.js';
+import type { IPlainCopy } from './plain-copy.interface.js';
 import { CWV_THRESHOLDS } from '../page-speed/cwv-thresholds.constant.js';
 
 /** A page that backs a check's claim, named for the reader as its publisher names it. */
@@ -17,6 +18,11 @@ export interface ISeoIssueDefinition {
   severity: TSeoIssueSeverity;
   /** Short, shown as the issue's name. */
   label: string;
+  /**
+   * The finding in a marketer's words — what is wrong, what it costs, who fixes it. Required,
+   * so an entry cannot be added without the version its reader acts on.
+   */
+  plain: IPlainCopy;
   /** One sentence on what to do. */
   hint: string;
   /**
@@ -320,6 +326,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'error',
     label: 'Title is missing',
+    plain: {
+      what: 'This page has no title for search results',
+      why: 'Google then writes a headline itself from text on the page, which often describes the page worse and earns fewer clicks.',
+      fix: 'Add a page title in your CMS (usually an "SEO title" field), or ask your developer to add one to the page template.',
+    },
     hint: 'Search results show the title as the headline; add a <title> in <head>.',
     explanation:
       'The <title> element is the first source Google reads for the headline of a search result (its "title link"). Without one, Google builds the headline itself from headings, anchor text or other text on the page, and the result may not say what the page is about. Google asks for a title on every page, written to describe that page specifically.',
@@ -331,6 +342,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Title length',
+    plain: {
+      what: 'The page title is too long or too short for search results',
+      why: 'Long titles get cut off mid-phrase in Google, and very short ones often leave out what makes the page worth clicking. Google sets no fixed limit, so treat this as a prompt to reread the title, not a rule.',
+      fix: "In your CMS's SEO title field, the writer or editor can aim for roughly 30–60 characters that say specifically what this page offers.",
+    },
     hint: 'Titles outside 30–60 characters are cut off or waste the space in results.',
     explanation:
       "Google does not publish a length limit; it truncates a title link to fit the width of the result, and asks for titles that are descriptive and concise rather than vague or stuffed. The 30–60 character range is the audit industry's working approximation of that width: longer titles tend to be cut mid-phrase, and very short ones often leave out what distinguishes the page. Treat this as a prompt to reread the title, not as a rule Google enforces.",
@@ -343,6 +359,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Meta description is missing',
+    plain: {
+      what: 'This page has no summary for search results',
+      why: 'Google then picks a passage from the page to show under the headline, which may be out of context. The summary does not affect rankings, but a well-written one can earn more clicks.',
+      fix: 'The writer or editor can add a short, accurate summary of this page in the "meta description" field of your CMS or SEO plugin.',
+    },
     hint: 'Without one, search engines pick a snippet from the page themselves.',
     explanation:
       'The meta description is not a ranking factor, but Google may use it as the snippet under the headline in a search result when it describes the page better than any passage of the text. Without one, the snippet is always an excerpt Google picks, which for a long article may be a passage out of context. A short, accurate summary written for this page is what Google recommends.',
@@ -352,6 +373,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Meta description length',
+    plain: {
+      what: 'The summary shown in search results is too long or too short',
+      why: 'A long summary gets cut off in results, and a very short one rarely says enough for Google to show it instead of a passage it picks itself. Google sets no fixed limit; the range is a rule of thumb.',
+      fix: 'In the meta description field of your CMS, the writer can aim for roughly 70–160 characters that describe this page and give a reason to click.',
+    },
     hint: 'Descriptions outside 70–160 characters are cut off or look thin.',
     explanation:
       "Google sets no length limit for meta descriptions; snippets are truncated to the space the result has, which depends on the device. The 70–160 character range is the audit industry's approximation of that space: a longer description is cut, and a much shorter one rarely says enough for Google to prefer it over a passage from the page.",
@@ -367,6 +393,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'H1 is missing',
+    plain: {
+      what: 'This page has no main heading',
+      why: 'Visitors and screen-reader users rely on the main heading to confirm they landed on the right page, and Google reads headings to understand it. The page is still indexed; it just loses a clear signal.',
+      fix: 'Ask your developer to make the post title the page\'s main heading (an "H1") in the theme template, or the editor can set the title block to "Heading 1" in the CMS.',
+    },
     hint: 'The main heading tells readers and crawlers what the page is about.',
     explanation:
       "The <h1> is the page's main heading: readers and screen readers use it to confirm they are on the page they expected, and Google lists headings among the sources it reads to understand a page and to build its title link. A post whose title is styled as a <div> or an <h2> loses that signal while looking unchanged to a sighted reader.",
@@ -378,6 +409,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'More than one H1',
+    plain: {
+      what: 'This page has more than one main heading',
+      why: 'Screen-reader users are told the page is about several things at once. Google says it copes with any heading structure, so this is about clarity for readers, not rankings.',
+      fix: 'The editor can keep one top-level heading and turn the others into subheadings in the CMS; if the extra one comes from the theme, ask your developer to change it.',
+    },
     hint: 'Several main headings blur what the page is about; keep one.',
     explanation:
       'The HTML standard no longer allows several <h1> elements to describe one document, and MDN advises one per page: a page with several main headings tells screen-reader users that it is about several things. Google says it copes with any heading structure, so the cost is clarity for readers and assistive technology rather than a ranking penalty.',
@@ -387,6 +423,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Heading level skipped',
+    plain: {
+      what: "The subheadings skip a level in the page's outline",
+      why: 'People using screen readers move through a page by its headings, and a skipped level makes the outline confusing. Google says heading order does not matter for Search, so this is an accessibility fix, not a ranking one.',
+      fix: 'The editor can adjust the heading levels in the CMS so they go in order, for example Heading 2 then Heading 3, never jumping from 2 to 4.',
+    },
     hint: 'Going from H2 straight to H4 breaks the outline that headings describe.',
     explanation:
       "Headings form an outline that screen-reader users navigate by, and a jump from <h2> to <h4> tells them a level is missing. MDN asks never to skip heading levels. Google's own guidance is explicit that heading order does not matter to Search, so this is an accessibility and readability finding, not a ranking one.",
@@ -397,6 +438,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Canonical URL is missing',
+    plain: {
+      what: "The page doesn't say which of its web addresses is the main one",
+      why: 'The same post is often reachable at several addresses. Without a stated main one, Google chooses for you, and links pointing at the other copies may be credited to an address you did not pick.',
+      fix: 'An SEO plugin such as Yoast SEO usually adds this; otherwise ask your developer to add a "canonical" link naming the page\'s preferred address to the page template.',
+    },
     hint: 'A canonical link says which URL should rank when copies exist.',
     explanation:
       'The same post is often reachable at several URLs — with and without a trailing slash, with tracking parameters, through a category path. Google groups such copies and picks one to show; a rel="canonical" link in <head> (or a Link HTTP header) is the strongest hint you control about which one. Without it Google picks by itself, and links pointing at the other copies may be credited to a URL you did not choose. Google only accepts the canonical from <head>: one written in <body> is ignored.',
@@ -406,6 +452,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Canonical points elsewhere',
+    plain: {
+      what: 'This page tells Google that another address is its main version',
+      why: 'Google will usually index that other address and leave this page out of results. That is right for a genuine copy, but on an original post it is usually a template mistake that hides the page.',
+      fix: "If this page is the original, check your SEO plugin's settings for it, or ask your developer to make the page name its own address as the main version.",
+    },
     hint: 'The page names another URL as canonical, so this one may not be indexed.',
     explanation:
       'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the HTTP or the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal.',
@@ -418,6 +469,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Conflicting canonical URLs',
+    plain: {
+      what: 'The page names two different addresses as its main version',
+      why: 'A signal that contradicts itself cannot be followed, so Google decides on its own which address to show, and it may not be the one you want.',
+      fix: 'Ask your developer to keep a single main-version link. This usually happens when the theme and an SEO plugin each add their own, so one of them can be switched off.',
+    },
     hint: 'Declare one canonical URL, in one place; canonicals that disagree are no signal at all.',
     explanation:
       'The page names more than one canonical URL — two <link rel="canonical"> tags, or a tag and a Link header that disagree. Google asks you not to specify different canonical URLs for the same page, and a hint that contradicts itself cannot be followed: Google then chooses the canonical by its own signals. This usually comes from a theme and an SEO plugin each adding their own tag.',
@@ -431,6 +487,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Points at a development or staging host',
+    plain: {
+      what: 'The page points to a test or staging copy of the site',
+      why: "Where the page's main-version or language links point there, Google is asked to credit a copy that should never be found. Links to it send visitors to a server they cannot reach, and they advertise a site meant to stay private.",
+      fix: "Ask your developer to replace test and staging addresses with the live site's addresses, and to build links from the site's settings rather than from wherever the site was built or tested.",
+    },
     hint: 'Replace development and staging addresses with production URLs; generate them from configuration, not from the host the build ran on.',
     explanation:
       "The page names a development or staging address — localhost, a private IP, a staging., dev. or preview host, or a hosting platform's preview domain such as *.vercel.app — in its canonical, its og:url, its hreflang, a content link or a loaded resource. The usual cause is a URL built from the host the site was built or tested on. A canonical or hreflang pointing there asks Google to consolidate the page into a copy that should not be indexed at all; a link sends readers to a server they cannot reach. Google's advice for keeping such environments out of Search is to password-protect them, which this reference undoes by advertising the address.",
@@ -440,6 +501,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Canonical URL is relative',
+    plain: {
+      what: "The page's main-version link is written without the domain",
+      why: 'Google accepts it but asks for full addresses: written this way, a staging copy or an http or www mirror of the page claims to be the main version itself instead of pointing to the real page.',
+      fix: 'Ask your developer to write the main-version ("canonical") link as a full address, including https:// and the domain; most SEO plugins already do this.',
+    },
     hint: 'Write the canonical as a full URL, with scheme and host.',
     explanation:
       'The canonical is written as a path (href="/post/") rather than a full URL. Google supports relative canonicals, but asks for absolute ones, because a relative path silently follows whatever host serves the page: a staging copy, an http:// mirror or a www variant each declares itself canonical instead of the real page.',
@@ -450,6 +516,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'error',
     label: 'Page is set to noindex',
+    plain: {
+      what: 'This page is set to stay out of Google',
+      why: 'A "noindex" instruction tells Google to drop the page from search results, so it gets no search traffic at all. On a post listed in the sitemap this is almost always a mistake, such as a staging setting left on.',
+      fix: 'Check the setting that hides this page (or its category) from search engines in your CMS or SEO plugin; if it comes from the server, ask your developer to remove it.',
+    },
     hint: 'A robots meta tag or X-Robots-Tag header — noindex, or an unavailable_after date that has passed — keeps the page out of search results.',
     explanation:
       'A noindex rule — in a <meta name="robots"> or <meta name="googlebot"> tag, or in an X-Robots-Tag HTTP header — tells Google to drop the page from search results, and Google obeys it once it recrawls the page. An unavailable_after date that has passed does the same. On a post listed in the blog sitemap it is almost always unintended: a staging setting left on, or a plugin rule for a category applied too widely. A sitemap entry and a noindex on the same URL are also contradictory signals.',
@@ -459,6 +530,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Search snippet is restricted',
+    plain: {
+      what: 'This page stops Google from showing any of its text in results',
+      why: 'The result appears with no description, which draws fewer clicks, and Google will not quote the page in AI Overviews either. Sometimes that is intended, but rarely on a blog post that wants readers.',
+      fix: 'Unless hiding the text is deliberate, ask your developer, or check your SEO plugin\'s advanced settings, to remove the "nosnippet" or zero-length snippet setting.',
+    },
     hint: 'Remove nosnippet or max-snippet:0 unless hiding the text from results is the intent.',
     explanation:
       'A nosnippet or max-snippet:0 rule — in a robots or googlebot meta tag, or an X-Robots-Tag header — tells Google to show no text from the page under its result, and Google applies the same controls to its AI features: the page cannot be quoted in an AI Overview. Sometimes that is the point; on a blog post that wants readers it usually is not, and a result with no description draws fewer clicks.',
@@ -470,6 +546,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'error',
     label: 'robots.txt blocks Googlebot',
+    plain: {
+      what: "The site's robots.txt stops Google from reading this page",
+      why: 'Google cannot read the content, so it cannot rank the page for it. The address may still appear in results, but with no description, known only from what other pages say about it.',
+      fix: 'Ask your developer or web team to remove or narrow the robots.txt rule that blocks Google from this address; some SEO plugins let you edit robots.txt directly.',
+    },
     hint: 'Remove or narrow the Disallow rule that matches this URL for Googlebot.',
     explanation:
       "The site's robots.txt forbids Googlebot from fetching this URL, so Google cannot read the page's content and cannot rank it on that content. The URL can still appear in results — robots.txt blocks crawling, not indexing — but without a description, known only from what other pages say about it. This tracker obeys robots.txt under its own name, which is why it could read the page; Googlebot obeys the group addressed to it, and that group says no.",
@@ -480,6 +561,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'robots.txt blocks scripts or styles',
+    plain: {
+      what: 'Google is blocked from the files that make this page look and work right',
+      why: 'Google views a page as a browser would before indexing it. With styling or scripts blocked, the page can look broken or unfit for phones to Google, and content added by scripts may be missed.',
+      fix: "Ask your developer to change the site's robots.txt so Google may fetch the style and script files this page needs.",
+    },
     hint: 'Allow Googlebot to fetch the CSS and JavaScript the page needs to render.',
     explanation:
       "Google renders a page in a headless Chrome before indexing it, fetching every script and stylesheet as Googlebot and obeying robots.txt — and it states that it will not render JavaScript from blocked files. A blocked stylesheet can make the page look broken or unfit for mobile to Google; a blocked script can leave out whatever that script puts on the page. Only resources on the site's own host are judged, because only its robots.txt was read.",
@@ -491,6 +577,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'robots.txt blocks AI search crawlers',
+    plain: {
+      what: 'AI search tools such as ChatGPT search are blocked from this page',
+      why: 'ChatGPT search, Perplexity and Copilot (through Bing) cannot show or cite the page in their answers. It does not affect Google Search, and blocking AI training bots is a separate, legitimate choice not judged here.',
+      fix: 'If you want to be cited by these assistants, ask your developer to allow their search crawlers in robots.txt; their training crawlers can stay blocked.',
+    },
     hint: 'Allow the search crawlers of the assistants you want to be cited by; their training crawlers are a separate choice.',
     explanation:
       'robots.txt keeps one or more search crawlers of AI assistants from this page — OAI-SearchBot (ChatGPT search), PerplexityBot, or Bingbot, whose index Copilot answers from. OpenAI documents that a site opted out of OAI-SearchBot is not shown in ChatGPT search answers, and Perplexity asks sites to allow PerplexityBot to appear in its results. This is not about training: GPTBot and Google-Extended govern training and are not judged here, because closing them is a legitimate choice that costs no visibility. It does not affect Google Search.',
@@ -501,6 +592,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Images without alt text',
+    plain: {
+      what: 'Some images on this page have no text description',
+      why: 'Screen readers have nothing to announce for them, and Google relies on this text to understand images for image search. Purely decorative images should be marked as decorative instead.',
+      fix: 'The writer or editor can fill in the "alt text" field for each image in the CMS, describing in a few words what the image shows.',
+    },
     hint: 'Alt text describes an image to screen readers and image search.',
     explanation:
       'Alt text is what a screen reader announces in place of an image and what a browser shows when the image fails to load. Google calls it the most important attribute for providing metadata about an image, and uses it together with the surrounding text for image search. An image that carries no information should have an empty alt="" so assistive technology skips it; an image without the attribute at all leaves the reader to guess.',
@@ -513,6 +609,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Thin content',
+    plain: {
+      what: 'This page has very little text',
+      why: 'Under 300 words a post is often a stub or teaser that does not fully answer a search, which makes it harder to rank. Google has no minimum word count, so a short page that answers the question fully is fine.',
+      fix: 'The writer can reread the page and add what a searcher still needs, or the editor can merge it into a fuller related post.',
+    },
     hint: 'Posts under 300 words rarely answer a query well enough to rank.',
     explanation:
       "Google says plainly that it has no preferred word count, and a short page that fully answers its question is fine. The 300-word line is an audit heuristic, not a Google rule: below it a blog post is more often a stub, a teaser for another page or a placeholder than a complete answer, and Google's guidance asks whether a page provides substantial, complete value compared with others on the topic. Read the page and decide whether it says everything a searcher needs.",
@@ -523,6 +624,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'No author named',
+    plain: {
+      what: "The page doesn't say who wrote it",
+      why: "Google's guidance suggests a byline so readers can judge the expertise behind a post. It is not a ranking switch, but an anonymous post gives readers one less reason to trust it.",
+      fix: "The editor can show an author byline linked to an author bio in the CMS; ask your developer to include the author in the page's article details for Google too.",
+    },
     hint: 'Name the author on the page and in the article markup, linked to a page about them.',
     explanation:
       'Nothing on the page says who wrote it: no author in the article markup, no <meta name="author">, no rel="author" link and no byline the markup identifies. Google\'s guidance on helpful content asks "who created the content" first and suggests a byline linking to more about the author — it helps readers judge the expertise behind a post. It is not a ranking switch: adding a name does not add expertise, but hiding who wrote a post takes away a reason to trust it.',
@@ -532,6 +638,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Date changed, content did not',
+    plain: {
+      what: "The page's updated date changed but its content didn't",
+      why: 'Google names refreshing dates without real changes as a sign of content made for search engines rather than people. Often it is just a CMS that updates the date on every save, but it can look like faked freshness.',
+      fix: 'Editors should change the updated date only after a real revision. If the CMS or a plugin changes it on every save or deploy, ask your developer to stop that.',
+    },
     hint: 'Change the modified date only when the content substantially changes.',
     explanation:
       'Since the previous crawl the page\'s declared modification date moved, while its main content stayed word-for-word the same. Google\'s guidance on helpful content names "changing the date of pages to make them seem fresh when the content has not substantially changed" as a mark of content written for search engines rather than people. Often it is not deliberate: a CMS that rewrites dateModified on every save or deploy does the same.',
@@ -546,6 +657,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Content links nowhere on the site',
+    plain: {
+      what: "The text of this page doesn't link to any other page on the site",
+      why: "Links in the text help Google find your other pages and understand what they are about, and carry readers deeper into the site. Menus, sidebars and footers don't count here, only links the author wrote.",
+      fix: 'The writer can add a few links in the body text to related posts or service pages, using words that describe the page being linked to.',
+    },
     hint: 'Links written into the text carry readers and crawlers on to the pages they name.',
     explanation:
       "Google finds pages and learns how they relate mainly by following links, and reads a link's anchor text as a description of the page it points to. A post whose text never links to another page on the same site passes none of that on. Links to a heading of this same page (a table of contents) do not count, since they lead nowhere new; nor do the navigation, related-posts rail and footer, which are not what the author wrote.",
@@ -555,6 +671,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Internal links marked nofollow',
+    plain: {
+      what: 'Links to the site\'s own pages are marked "nofollow"',
+      why: 'That mark is meant for links you do not vouch for. On links to your own posts it only withholds what those links would tell Google about them. A small effect, usually caused by a plugin or template.',
+      fix: 'Ask your developer to remove the "nofollow" mark from links to your own pages, or find which plugin or theme setting adds it to every link.',
+    },
     hint: 'Drop rel="nofollow" from links to your own pages; use robots.txt to keep a page from being crawled.',
     explanation:
       'rel="nofollow" asks Google not to associate your site with the linked page and not to crawl it from yours. Google reserves it for links you do not vouch for, and for links within your own site points to robots.txt instead. On a link to your own post it only withholds what the link would have told Google about that page — usually a template or a plugin adding the attribute to every link indiscriminately.',
@@ -565,6 +686,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Internal links to non-canonical URLs',
+    plain: {
+      what: "Links to the site's own pages use outdated or tracking-tagged addresses",
+      why: 'Each such link costs an extra redirect or creates a duplicate address that Google has to crawl and match back to the real page. Google asks sites to link to their preferred addresses.',
+      fix: 'The editor can update these links in the CMS to the exact live address (https, the right www form, no tracking tags); ask your developer if the template adds them.',
+    },
     hint: 'Link to the URL the site actually serves: same scheme, same host, no tracking parameters.',
     explanation:
       'The content links to pages of this site through a different URL than the one this page is served at — plain HTTP from an HTTPS page, the www host from a site served without it (or the other way round), or a URL carrying tracking or session parameters. Each such link costs a redirect or creates a duplicate URL for Google to crawl and fold back into the canonical one. Google asks sites to link internally to the canonical URL rather than a duplicate, and to avoid session IDs in URLs.',
@@ -575,6 +701,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Links with no text',
+    plain: {
+      what: 'Some links on this page have no words to describe them',
+      why: 'Google reads link text to learn what the linked page is about, so these links tell it nothing. Screen readers announce them as just "link", which fails accessibility guidelines.',
+      fix: 'The editor can add descriptive text, or alt text on a linked image, in the CMS; for icon links in the template, ask your developer to add a hidden label.',
+    },
     hint: 'Give every link words: text, alt on a linked image, or an aria-label.',
     explanation:
       'Some links in the content have no text at all — an icon or an image without alt inside an <a>. Google reads a link\'s text as a description of the page it points to, falls back to the title attribute and, for a linked image, to its alt text; a link with none of these tells it nothing. A screen reader announces such a link by its URL, or as just "link", which WCAG 2.2 counts as a failure of link purpose. Text hidden visually for screen readers counts and passes.',
@@ -584,6 +715,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Links Google cannot follow',
+    plain: {
+      what: 'Some links on this page are dead ends for Google',
+      why: 'They work for a visitor clicking with a mouse, but Google cannot follow them, so the pages they lead to are not discovered through them and get no credit from the link.',
+      fix: 'Ask your developer to turn these into real links with a proper web address, keeping any script behaviour on top of them.',
+    },
     hint: 'Give every link a real URL in href; keep JavaScript for behaviour on top of it.',
     explanation:
       'Google states that it can generally only crawl a link if it is an <a> element with an href attribute that resolves to a real web address. An <a> that navigates through onclick with no href, or whose href is a javascript: call, works for a reader with a mouse and is a dead end for a crawler: the page it leads to is not discovered through it and receives none of its anchor text. A control that leads nowhere — javascript:void(0), a toggle whose script names no address — is not reported: there is no page behind it to miss. A client-side route in the fragment (href="#/pricing", "#!pricing") is the same dead end: Google drops everything after #, so the link leads to the page it sits on, and Google asks single-page apps to route with the History API instead.',
@@ -593,6 +729,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Language is not declared',
+    plain: {
+      what: "The page doesn't declare what language it's written in",
+      why: 'This does not affect Google rankings: Google detects the language from the text. It matters to visitors, as screen readers use it for pronunciation and browsers for translation, and accessibility standards require it.',
+      fix: "Ask your developer to declare the page's language in the theme template so every page carries it.",
+    },
     hint: 'Add lang to <html> so browsers, screen readers and translation tools read the page right.',
     explanation:
       "Google determines a page's language from its visible text and states that it does not use the lang attribute, so this does not affect Google rankings. It still matters to readers: screen readers choose pronunciation by it, browsers offer translation and hyphenate by it, and WCAG 2.2 requires the page's language to be declared (success criterion 3.1.1).",
@@ -608,6 +749,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Hreflang is malformed',
+    plain: {
+      what: "The page's links to its other language versions contain errors",
+      why: 'These links tell Google which version to show readers of each language or country. With a wrong code, or without listing this page itself, Google may ignore them and show visitors the wrong language version.',
+      fix: 'Ask your developer, or check your multilingual plugin, to use valid codes (for example "uk" for Ukrainian and "en-GB" for the UK) and to list this page among its own versions.',
+    },
     hint: 'A hreflang with an invalid language code, or that never names this page, is ignored.',
     explanation:
       'hreflang links tell Google which URL to show readers of each language or region. Google requires each value to be a valid ISO 639-1 language code, optionally followed by an ISO 3166-1 region, and requires each page of the set to list itself as well as the others; annotations that break these rules may be ignored, and readers shown the wrong language version. The usual slips are country codes written for languages — ua for Ukrainian (uk), kz for Kazakh (kk), jp for Japanese (ja) — and UK for the United Kingdom (GB). A page whose canonical names another URL declares itself a duplicate, which takes it out of its own hreflang set.',
@@ -621,6 +767,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'No mobile viewport',
+    plain: {
+      what: "The page isn't set up to display properly on phones",
+      why: 'Google ranks the version of a page it sees on a phone. Without this setting, phones show the desktop layout shrunk down, so text is tiny and visitors have to zoom in, a poor first impression on mobile.',
+      fix: 'Ask your developer to add the standard mobile "viewport" setting to the theme template, or move to a mobile-friendly theme.',
+    },
     hint: 'Google indexes the mobile version; without a viewport the page renders at desktop width on a phone.',
     explanation:
       'Google indexes and ranks the version of a page its smartphone crawler sees. Without <meta name="viewport" content="width=device-width, initial-scale=1">, mobile browsers lay the page out at a desktop width (typically 980 px) and shrink it to fit, so text is tiny and readers have to zoom.',
@@ -630,6 +781,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Open Graph tags missing',
+    plain: {
+      what: "Links to this page won't look good when shared on social media",
+      why: 'Without sharing details, social networks and messaging apps guess the title, text and image, often showing the logo or no image at all. This does not affect Google rankings, but can cost clicks from shares.',
+      fix: 'Most SEO plugins, such as Yoast SEO, can fill in the sharing details; the editor can set a sharing title, description and image for the page in the CMS.',
+    },
     hint: 'og:title, og:description and og:image control how shared links look.',
     explanation:
       'Open Graph tags decide the title, description and image shown when the post is shared on social networks and in messengers. They do not affect Google rankings. Without them each platform guesses, and a shared link often shows the site logo or no image at all.',
@@ -639,6 +795,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Character encoding declared late or not at all',
+    plain: {
+      what: 'Accented letters and symbols on this page may show up garbled',
+      why: 'The page does not tell browsers early enough how its text is encoded, so a browser may guess wrong and display accented letters, non-Latin scripts and curly quotes as gibberish.',
+      fix: 'Ask your developer or hosting provider to send the UTF-8 encoding with the page, or to move the encoding declaration to the very top of the page template.',
+    },
     hint: 'Send charset=utf-8 in the Content-Type header, or put <meta charset="utf-8"> first in <head>.',
     explanation:
       'Neither the Content-Type header nor the first 1024 bytes of the HTML say how the text is encoded. The HTML standard requires a <meta charset> to sit entirely within those first 1024 bytes; a browser that has to guess may decode the page in a legacy encoding and show every non-ASCII character as garbage — accented letters, Cyrillic, curly quotes. A late declaration usually follows a large inline script or style placed before it.',
@@ -648,6 +809,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'error',
     label: 'Not served over HTTPS',
+    plain: {
+      what: 'This page is not served over a secure connection',
+      why: 'Browsers label it "Not secure", which undermines visitors\' trust, and data sent to it can be read or altered on the way. Google counts security as a ranking signal, but only a very light one.',
+      fix: 'Your hosting provider or developer can install a security certificate and permanently redirect every http address to https.',
+    },
     hint: 'Browsers mark plain HTTP pages as not secure, and search engines prefer HTTPS.',
     explanation:
       'The page was served over plain HTTP. Browsers label such pages "Not secure" and traffic to them can be read and altered on the way — the reason this is an error is the reader\'s trust, not rankings: Google has counted HTTPS since 2014, but announced it as a very lightweight signal. Serve every page over HTTPS and redirect HTTP to it permanently.',
@@ -659,6 +825,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Insecure resources on a secure page',
+    plain: {
+      what: 'This secure page loads some files over an insecure connection',
+      why: 'Browsers block or flag those files, so images, scripts or styling may be missing for visitors and for Google, and the padlock in the address bar disappears.',
+      fix: 'Ask your developer to switch those files to https addresses; the editor can update old image links inside posts in the CMS.',
+    },
     hint: 'Browsers block images and scripts fetched over plain HTTP on an HTTPS page; serve them over HTTPS.',
     explanation:
       "The page is served over HTTPS but loads some resources over plain HTTP. Browsers block insecure scripts, stylesheets and frames on a secure page outright and upgrade or flag insecure images, so parts of the page may be missing for readers — and for Google's renderer, which is a Chrome browser. The padlock is lost as well.",
@@ -669,6 +840,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Sitemap URL redirects',
+    plain: {
+      what: 'The sitemap lists this page at an address that redirects',
+      why: 'The sitemap should list the addresses you want in results. A redirecting entry wastes a request on every crawl, and with a temporary redirect Google keeps showing the old address.',
+      fix: "Ask your developer, or check your sitemap plugin, so the sitemap lists this page's final address instead of the one that redirects.",
+    },
     hint: 'The sitemap lists a URL that redirects; list the final URL instead.',
     explanation:
       'A sitemap should list the canonical URLs you want shown in results. This entry redirects, so every crawl of it costs an extra request and the sitemap names a URL that is not the one you want indexed. The status matters too: Google shows the target of a permanent redirect (301, 308) in results, but keeps showing the source of a temporary one (302, 307).',
@@ -678,6 +854,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Redirects with a meta refresh',
+    plain: {
+      what: 'This page sends visitors elsewhere with a slow, in-page redirect',
+      why: 'Google understands it but reads it less reliably than a proper server redirect; visitors see the old page flash first, and some other search engines may not follow it at all.',
+      fix: 'Ask your developer or hosting provider to replace it with a permanent server-side (301) redirect; a redirect plugin in your CMS may also do it.',
+    },
     hint: 'Google asks for a server-side 301; a meta refresh is slower and states the move less clearly.',
     explanation:
       'The page moves readers on with <meta http-equiv="refresh">. Google understands it — an instant refresh as a permanent redirect, a delayed one as a temporary one — but ranks it below server-side redirects for how reliably the move is interpreted, and suggests it only where a server-side redirect is not possible. Readers see the old page flash first, and other crawlers may not follow it at all.',
@@ -687,6 +868,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Large HTML',
+    plain: {
+      what: "This page's code is unusually large to download",
+      why: 'Google reads only the first 2 MB of a page and never indexes the rest; this page is past 1 MB, so there is still room to act. The same weight slows the page for visitors on mobile connections.',
+      fix: "Ask your developer to move large embedded data, images or graphics out of the page's code, so the text comes first and the page downloads faster.",
+    },
     hint: 'HTML over 1 MB is slow to download and parse; Googlebot reads only the first 2 MB.',
     explanation:
       'When crawling for Google Search, Googlebot reads only the first 2 MB of an HTML file; anything past that is never indexed. This check fires at half that, while there is still room to act. Most pages this large carry a big inline data blob — framework hydration state, embedded SVGs, base64 images — ahead of the text, and the same weight slows every reader on a mobile connection.',
@@ -697,6 +883,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Featured image is lazy-loaded',
+    plain: {
+      what: 'The featured image is likely set to load late, slowing the top of the page',
+      why: "Something in the page's code tells browsers to wait before fetching the main image, which usually makes the page appear later. This is a risk read from the code, not a speed measurement. Speed is a small ranking signal; the bigger cost is visitors.",
+      fix: 'Ask your developer to load the featured image straight away instead of lazily. WordPress itself stopped lazy-loading the first featured image, so an outdated theme or plugin may be the cause.',
+    },
     hint: 'Load the featured image eagerly — drop loading="lazy" and add fetchpriority="high".',
     explanation:
       'The image the page names as its featured image (og:image) sits at the top of the post, under the headline, and is marked loading="lazy". A featured image there is usually the page\'s Largest Contentful Paint, and a lazy image is only requested once layout has shown it to be on screen — hundreds of milliseconds after the browser could have started. web.dev measured that lazy-loading above-the-fold images makes LCP worse, which is why WordPress stopped lazy-loading the first featured image. Core Web Vitals are a page-experience signal Google\'s ranking systems reward, but a small one; the bigger cost is to readers. This is read from the HTML, not measured in a browser: only field data (Chrome UX Report) says what LCP readers actually get.',
@@ -708,6 +899,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Scripts in <head> block rendering',
+    plain: {
+      what: "Scripts at the top of the page's code likely delay it from appearing",
+      why: "Something in the page's code makes browsers download and run these scripts before showing anything. This is a risk read from the code, not a measurement: how long the delay is depends on the scripts and the visitor's connection.",
+      fix: 'Ask your developer to load these scripts in a deferred way, so they no longer hold up the first view of the page.',
+    },
     hint: 'Add defer (or async, for scripts nothing depends on) to external scripts in <head>.',
     explanation:
       "External scripts in <head> without async or defer stop the HTML parser: nothing below them is parsed, and nothing is painted, until each is downloaded and run. Every one of them delays the first paint and the Largest Contentful Paint. defer keeps their order and runs them after parsing; async runs them as soon as they arrive; a module defers by itself. This is read from the HTML — whether the delay is large depends on the scripts' size and the reader's network, which only field data measures.",
@@ -717,6 +913,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Font preload without crossorigin',
+    plain: {
+      what: 'A web font is likely downloaded twice because of a setup slip',
+      why: "Something in the page's code requests a font early in a way the browser can't reuse, so it downloads the font again. This is read from the code, not measured: it wastes bandwidth during loading and text waits for the second copy.",
+      fix: 'Ask your developer to add the missing "crossorigin" setting to the font preload in the theme; it is a small change.',
+    },
     hint: 'Add crossorigin to <link rel="preload" as="font">, even for a font on the same host.',
     explanation:
       'Fonts are always fetched in CORS mode, and MDN notes that preloading a font requires the crossorigin attribute. Without it the preloaded copy does not match the request the stylesheet later makes, so the browser downloads the font twice — the preload is wasted bandwidth at the moment the page is loading, and the text still waits for the second download.',
@@ -727,6 +928,11 @@ export const SEO_ISSUE_CATALOGUE = {
     severity: 'notice',
     label:
       'Cache-Control: no-store keeps the page out of the back/forward cache',
+    plain: {
+      what: 'Going back to this page likely reloads it instead of showing it instantly',
+      why: "A server setting meant for private data likely stops browsers from keeping the page ready for the Back button, so it reloads from scratch. This is read from the server's answer, not measured; on phones, Back is one of the most common moves.",
+      fix: 'Ask your developer or hosting provider to drop the "no-store" caching setting for public pages and keep it only for pages with personal data.',
+    },
     hint: 'Serve public pages without no-store; keep it for responses that carry personal data.',
     explanation:
       'The page is served with Cache-Control: no-store. Browsers have historically refused to keep such pages in the back/forward cache, so pressing Back reloads the page from the network instead of restoring it instantly — and on mobile, Back is one of the most common navigations. no-store is meant for responses with sensitive data; a public blog post has none.',
@@ -736,6 +942,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Large DOM',
+    plain: {
+      what: 'The page is built from so many parts that it likely responds slowly to taps',
+      why: "Something in the page's code is likely slowing it down: it has more than 1,400 building blocks, so each tap or click takes longer to show a result and phones use more memory. This is a count from the code, not a measurement.",
+      fix: 'Ask your developer to trim unnecessary layers in the theme, load long lists and lower sections later, or split very long pages.',
+    },
     hint: 'Trim wrappers, render long lists and below-the-fold sections lazily, or split the page.',
     explanation:
       'The HTML holds more elements than Lighthouse considers excessive (1,400). Every style recalculation and layout has to walk them, so a large DOM makes each interaction slower to paint — the delay Interaction to Next Paint measures — and costs memory on every phone that opens it. The count is of the HTML as served; scripts may add more.',
@@ -746,6 +957,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'HTML is not compressed',
+    plain: {
+      what: 'The server sends this page without compression',
+      why: 'Compression typically makes a page several times smaller to download, so it reaches visitors faster and takes less of the time Google spends crawling the site.',
+      fix: 'Your hosting provider, CDN or developer can turn on gzip or Brotli compression; it is usually a one-line server setting.',
+    },
     hint: 'Enable gzip or Brotli for HTML responses on the server or CDN.',
     explanation:
       "The crawl asked for the page with Accept-Encoding: gzip, deflate, br — as Google's crawlers do — and the server answered uncompressed. Google's crawlers support all three encodings, and text compression typically shrinks HTML several times over, so the page downloads faster for readers and takes less of the time Google spends crawling the site. It is a server or CDN setting, usually a one-line change.",
@@ -756,6 +972,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Two pages lead with the same keyword',
+    plain: {
+      what: 'Another page on the site leads with the same keyword as this one',
+      why: "If both answer the same question they may compete for one search, with Google switching between them and links split. This is a sign, not proof: only real search data shows it, and this tracker's positions are simulated.",
+      fix: 'The editor can compare the pages: if they say the same thing, merge them and ask your developer for a permanent redirect; if not, have the writer give each its own angle.',
+    },
     hint: 'Check whether the pages answer the same question; if they do, merge them or retarget one.',
     explanation:
       "Two or more posts lead with the same keyword as this crawl extracts it from their text. That is a sign they may compete for one query, not proof: real cannibalisation is one query showing different URLs of the site in turn, which only search data can show, and this tracker's positions are simulated. When pages do compete, the choice between them can change from week to week and the links each earned are split instead of combined. Google has written no guidance under this name; the term and the remedy — merge with a 301 to the stronger page, or give each page its own intent — come from the SEO industry.",
@@ -768,6 +989,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Title is used by another page',
+    plain: {
+      what: 'Another page on the site has exactly the same title',
+      why: 'In search results the two pages look the same, so searchers cannot tell which one answers their question. Google asks for a distinct title on every page.',
+      fix: 'The writer or editor can give each page a title in the CMS that names what is specific to it.',
+    },
     hint: 'Identical titles give search engines no way to tell the pages apart in results.',
     explanation:
       'Another page of this crawl has exactly the same <title>. Google asks for a distinct title on every page, and gives the example of a site whose pages are all titled alike, which makes them impossible to tell apart in results.',
@@ -780,6 +1006,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Meta description is used by another page',
+    plain: {
+      what: 'Another page on the site has exactly the same search summary',
+      why: 'A summary that fits several pages describes each of them poorly, so it is less likely to earn the click. Google asks for a unique summary per page; summaries do not affect rankings.',
+      fix: 'The writer can write a separate meta description for each page in the CMS or SEO plugin, describing what that page alone offers.',
+    },
     hint: 'A description written for one page describes the others worse; write one per page.',
     explanation:
       'Another page of this crawl has exactly the same meta description. Google asks for a unique description for each page, since identical or similar descriptions are not helpful when the individual pages appear in results.',
@@ -792,6 +1023,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Nearly the same text as another page',
+    plain: {
+      what: 'Most of the text on this page also appears on another page of the site',
+      why: 'Google shows only one of near-identical pages, so they compete for the same spot. Pages mass-produced from one template with a word swapped can be treated as spam.',
+      fix: 'The editor can merge the pages (with a permanent redirect from your developer), or have the writer make each page say something the other does not.',
+    },
     hint: 'Merge the pages, or make each one say something the other does not.',
     explanation:
       "Most of this page's main text also appears, nearly word for word, on another page of this crawl. Google groups near-duplicates and shows one of them, so the copies compete for one place; pages built from one template with a word swapped — a city, a product — are what Google's spam policies call doorway abuse. Quoting or syndication with a canonical is fine; two posts that say the same thing are not two answers.",
@@ -803,6 +1039,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'warning',
     label: 'Structured data that cannot be read',
+    plain: {
+      what: "The page's hidden details for Google are broken and can't be read",
+      why: 'Google ignores the whole block, so any article, breadcrumb or organization details in it count as missing. Structured data is optional, but a broken block gives you none of its benefit.',
+      fix: "Ask your developer to fix the error in the block; Google's Rich Results Test points to the exact spot. If a plugin generates it, update or reconfigure the plugin.",
+    },
     hint: 'Fix the JSON in the quoted block; Rich Results Test points at the exact character.',
     explanation:
       'A <script type="application/ld+json"> block on the page is not valid JSON, so nothing in it reaches Google: whatever article, breadcrumb or organization markup it holds counts as absent. Google asks for markup that passes its Rich Results Test. The usual causes are a trailing comma, an unescaped quote inside a value, or a template that printed an empty variable.',
@@ -813,6 +1054,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Dates contradict each other',
+    plain: {
+      what: "The page's publish and update dates contradict each other",
+      why: 'Google shows a date beside results and asks for consistent dates. Given dates that cannot all be true, it has to pick one and may show the wrong one, making the post look older or newer than it is.',
+      fix: 'The editor can correct the published and updated dates in the CMS so they agree with each other and with any year in the address; ask your developer if the template sets them.',
+    },
     hint: 'Make the published date, the modified date and any year in the URL agree.',
     explanation:
       "The page's dates cannot all be true: the article was modified before it was published, it was published after the day it was crawled, or its URL carries a year the markup does not. Google asks for dates that are consistent, accurate and not in the future, and uses them for the date it shows beside the result — given a contradiction, it has to pick one, and may pick the wrong one.",
@@ -825,6 +1071,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'No article structured data',
+    plain: {
+      what: 'The page has no article details marked up for Google',
+      why: 'This is optional, and Google requires none. Marking up the headline, author, date and image helps Google show them correctly, for example the date and image beside the result.',
+      fix: 'An SEO plugin such as Yoast SEO can add article markup; otherwise ask your developer to add it to the post template.',
+    },
     hint: 'Article or BlogPosting markup makes the post eligible for rich results; Google requires none.',
     explanation:
       'The page carries no JSON-LD typed Article, BlogPosting or NewsArticle. Structured data is optional; what it does is state facts Google would otherwise infer — the headline, the author, the publication date, the image — which helps Google show them correctly, for example the date and image beside the result.',
@@ -839,6 +1090,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'crawl',
     severity: 'notice',
     label: 'Article markup is missing recommended fields',
+    plain: {
+      what: "The page's article markup leaves out recommended details",
+      why: 'None of these details is required, but each one missing, such as the image, dates or author, is something Google has to guess, like the date it shows or who it credits as the author.',
+      fix: "Ask your developer to fill in the missing fields in the article markup, or check that your SEO plugin's author and image settings are complete.",
+    },
     hint: 'Google recommends headline, image, datePublished, dateModified and author; it requires none of them.',
     explanation:
       'The article markup leaves out some of the properties Google recommends for Article: headline, image, datePublished, dateModified and author. None is required, but each one omitted is a fact Google has to guess — the date it shows, the author it attributes the post to — rather than read from you.',
@@ -849,6 +1105,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'pageSpeed',
     severity: 'notice',
     label: 'Largest Contentful Paint needs improvement',
+    plain: {
+      what: 'The main content is a bit slow to appear on phones',
+      why: "Google's measurements show many mobile visitors waiting over 2.5 seconds to see the page's main content. Speed is a small ranking signal; the bigger cost is visitors who leave before the page appears.",
+      fix: 'Ask your developer to make the largest image or text block at the top the first thing the page loads, for example by compressing the image and loading it early.',
+    },
     hint: 'The main image or text block takes longer than 2.5 s to appear; make it the first thing the page loads.',
     explanation:
       'Largest Contentful Paint (LCP) is how long the largest image or text block in the viewport takes to appear — the moment a visitor sees that the page has loaded. Google calls 2.5 s or less good and more than 4 s poor, judged at the 75th percentile of mobile visits. The value comes from PageSpeed Insights: real Chrome visitors to this page over the last 28 days where Google has enough of them, otherwise visitors to the whole site, otherwise one lab test. Google says it shows the most relevant content even when page experience is sub-par, so this is a small ranking signal; the larger cost is visitors who leave before the page appears.',
@@ -859,6 +1120,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'pageSpeed',
     severity: 'warning',
     label: 'Largest Contentful Paint is poor',
+    plain: {
+      what: 'The main content takes too long to appear on phones',
+      why: 'Many mobile visitors wait over 4 seconds before they see the page, and some leave first. Google counts it as a small ranking signal; the bigger loss is visitors.',
+      fix: 'Ask your developer to shrink and preload the largest image or text block at the top, and to remove scripts that hold back the first paint.',
+    },
     hint: 'The main image or text block takes longer than 4 s to appear; shrink it, serve it sooner, and drop what blocks it.',
     explanation:
       "Largest Contentful Paint (LCP) is how long the largest image or text block in the viewport takes to appear. More than 4 s at the 75th percentile of mobile visits is Google's poor band: a quarter of visitors wait at least that long to see the page. The value comes from PageSpeed Insights — real visitors to this page, to the whole site when the page has too few, or one lab test. The usual causes are an oversized hero image, a slow server response, and scripts or stylesheets that hold back the first paint. Google shows the most relevant content even when page experience is sub-par, so the cost is mostly in visitors who give up.",
@@ -869,6 +1135,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'pageSpeed',
     severity: 'notice',
     label: 'Interaction to Next Paint needs improvement',
+    plain: {
+      what: 'The page is a little slow to respond to taps and clicks',
+      why: 'Data from real Chrome visitors shows at least a quarter of mobile visits wait over 0.2 seconds for the page to react to a tap or click. It is a small ranking signal; to visitors, a lagging page feels less reliable.',
+      fix: 'Ask your developer to find and break up the long-running scripts that run while visitors use the page, including third-party ones.',
+    },
     hint: 'Taps and clicks take longer than 200 ms to show a response; break up long scripts that run while the page is in use.',
     explanation:
       "Interaction to Next Paint (INP) is how long the page takes to respond visibly to a tap, click or key press, taken across the visit. Google calls 200 ms or less good and more than 500 ms poor, at the 75th percentile of mobile visits. Only real visitors measure it — a lab test loads the page but never uses it — so this value is Chrome's field data for this page, or for the whole site when the page has too few visits. It is a small ranking signal; to a visitor, a page that lags after a tap feels broken.",
@@ -879,6 +1150,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'pageSpeed',
     severity: 'warning',
     label: 'Interaction to Next Paint is poor',
+    plain: {
+      what: 'The page responds sluggishly to taps and clicks',
+      why: 'Data from real Chrome visitors shows at least a quarter of mobile visits wait over half a second for a response. Page experience is a small ranking signal; the bigger loss is visitors who tap, see nothing happen, and leave.',
+      fix: 'Ask your developer to find the scripts that block the page after it loads, often heavy third-party tools, and remove, delay or split them.',
+    },
     hint: 'Taps and clicks take longer than 500 ms to show a response; find the scripts that block the page after it loads.',
     explanation:
       "Interaction to Next Paint (INP) is how long the page takes to respond visibly to a tap, click or key press. More than 500 ms at the 75th percentile of mobile visits is Google's poor band. The value is Chrome's field data for this page, or for the whole site when the page has too few visits — a lab test cannot measure it, because it never interacts with the page. Heavy third-party scripts, large pages and long tasks on the main thread are the usual causes. Page experience is a small ranking signal next to relevance; the bigger cost is visitors who tap, see nothing happen, and leave.",
@@ -889,6 +1165,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'pageSpeed',
     severity: 'notice',
     label: 'Cumulative Layout Shift needs improvement',
+    plain: {
+      what: 'Content shifts around somewhat while the page loads',
+      why: 'Text that moves as images or ads load above it makes some readers lose their place or tap the wrong thing. Google treats it as a small ranking signal; it is mainly a reading-experience problem.',
+      fix: 'Ask your developer to reserve space in the theme for images, embeds and ads, so the content stays put while they load.',
+    },
     hint: 'Content moves while the page loads; reserve space for images, embeds and ads before they arrive.',
     explanation:
       'Cumulative Layout Shift (CLS) scores how much visible content jumps around while the page is open — the text you were reading sliding down as an image or an ad loads above it. It is a unitless score: Google calls 0.1 or less good and more than 0.25 poor, at the 75th percentile of mobile visits. The value comes from PageSpeed Insights — real visitors to this page, to the whole site when the page has too few, or one lab test, which only sees shifts during loading. It is a small ranking signal; to a reader, it is mis-taps and a lost place.',
@@ -899,6 +1180,11 @@ export const SEO_ISSUE_CATALOGUE = {
     owner: 'pageSpeed',
     severity: 'warning',
     label: 'Cumulative Layout Shift is poor',
+    plain: {
+      what: 'The layout jumps a lot while visitors are reading',
+      why: "Google's measurements show content on phones jumping enough that people tap the wrong thing or lose their place. Google weighs page experience after relevance, so the main cost is frustrated readers, not rankings.",
+      fix: 'Ask your developer to give images and embeds fixed sizes, stop banners and ads from pushing content down, and check web fonts that reflow the text.',
+    },
     hint: 'Content jumps a lot while the page loads; give images and embeds fixed dimensions and stop inserting content above what is being read.',
     explanation:
       "Cumulative Layout Shift (CLS) scores how much visible content jumps around while the page is open. More than 0.25 at the 75th percentile of mobile visits is Google's poor band. The usual causes are images and embeds without width and height, ads and banners injected above the content, and web fonts that reflow the text. The value comes from PageSpeed Insights — real visitors to this page, to the whole site, or one lab test. Google weighs page experience after relevance, so the main cost is readers who tap the wrong thing or lose their place.",
