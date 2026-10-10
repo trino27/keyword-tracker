@@ -48,7 +48,7 @@ export function SpeedSection({ pageSpeed, availability, timeZone }: ISpeedSectio
 		<Stack gap="sm">
 			<Title order={4}>Speed (Core Web Vitals, mobile)</Title>
 			{notice && (
-				<Alert variant="light" color="gray" icon={<IconInfoCircle size={18} />}>
+				<Alert variant="light" color={notice.color} icon={<IconInfoCircle size={18} />}>
 					{notice.notice}
 				</Alert>
 			)}

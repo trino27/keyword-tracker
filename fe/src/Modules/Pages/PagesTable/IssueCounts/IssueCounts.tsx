@@ -22,7 +22,13 @@ export function IssueCounts({ item }: { item: TPageListItem }) {
 	return (
 		<AnchorLink
 			to="/issues"
-			search={{ clientId: item.client.id, pageId: item.id }}
+			// Every level: the count it links from includes Improvements, which the report
+			// hides by default; a row reading "2 Improvements" must not open an empty page.
+			search={{
+				clientId: item.client.id,
+				pageId: item.id,
+				levels: ["error", "warning", "notice"],
+			}}
 			underline="never"
 			aria-label={`See this page's ${issues.total} issues`}
 		>

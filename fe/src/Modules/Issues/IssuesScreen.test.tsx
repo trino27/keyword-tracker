@@ -96,6 +96,17 @@ describe("IssuesScreen", () => {
 		expect(await screen.findByText(/no PageSpeed key is configured/)).toBeInTheDocument();
 	});
 
+	it("says, in red, that Google rejected the key", async () => {
+		vi.spyOn(IssueReportGateway.prototype, "get").mockResolvedValue({
+			kind: "report",
+			report: { ...REPORT, pageSpeedAvailability: { state: "keyRejected" } },
+		});
+
+		await renderAt("/issues?clientId=7");
+
+		expect(await screen.findByText(/Google rejected the PageSpeed key/)).toBeInTheDocument();
+	});
+
 	it("opens the first client when none is in the URL", async () => {
 		const get = vi
 			.spyOn(IssueReportGateway.prototype, "get")

@@ -187,6 +187,9 @@ describe("PagesTable", () => {
 
 		expect(
 			await screen.findByRole("link", { name: "See this page's 1 issues" }),
-		).toHaveAttribute("href", "/issues?clientId=7&pageId=42");
+		).toHaveAttribute(
+			"href",
+			"/issues?clientId=7&pageId=42&levels=%5B%22error%22%2C%22warning%22%2C%22notice%22%5D",
+		);
 	});
 });

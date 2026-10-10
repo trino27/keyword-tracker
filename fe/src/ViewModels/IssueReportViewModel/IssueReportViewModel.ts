@@ -35,7 +35,16 @@ export const useIssueReportViewModel = create<IIssueReportViewModel>()((set, get
 	...initialState,
 	fetchReport: async (clientId) => {
 		const requestId = get().requestId + 1;
-		set({ requestId, clientId, status: "loading", error: null });
+		// Another client: the previous report must not stand in for this one while it
+		// loads, or its crawl date and speed notice would be shown for the wrong client.
+		const sameClient = get().clientId === clientId;
+		set({
+			requestId,
+			clientId,
+			status: "loading",
+			error: null,
+			...(sameClient ? {} : { report: null }),
+		});
 		try {
 			const result = await gateways.issueReports.get(clientId);
 			// Switching clients mid-load: the earlier answer is about the wrong client.

@@ -12,6 +12,12 @@ describe("formatCwvValue", () => {
 		["cls", 0.1, "0.1"],
 		["cls", 0.25, "0.25"],
 		["cls", 0.123456, "0.12"],
+		// Never print a threshold the value is past: one more digit instead.
+		["lcp", 2540, "2.54 s"],
+		["lcp", 4040, "4.04 s"],
+		["inp", 200.4, "200.4 ms"],
+		["cls", 0.104, "0.104"],
+		["cls", 0.2504, "0.2504"],
 	] as const)("%s %d reads %s", (metric, value, text) => {
 		expect(formatCwvValue(metric, value)).toBe(text);
 	});

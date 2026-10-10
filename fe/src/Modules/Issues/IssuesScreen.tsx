@@ -133,7 +133,11 @@ export function IssuesScreen() {
 			)}
 			<SeverityRubric />
 			{speedNotice ? (
-				<Alert variant="light" color="gray" icon={<IconInfoCircle size={18} />}>
+				<Alert
+					variant="light"
+					color={speedNotice.color}
+					icon={<IconInfoCircle size={18} />}
+				>
 					{speedNotice.notice}
 				</Alert>
 			) : (

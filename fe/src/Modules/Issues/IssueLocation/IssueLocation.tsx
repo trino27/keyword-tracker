@@ -1,7 +1,7 @@
 import { Code, Group, Stack, Text } from "@mantine/core";
 import { IconWorld } from "@tabler/icons-react";
 import type { TSeoIssueCode } from "@app/contracts";
-import { describeIssue } from "@Core/Helpers/DescribeIssue/describeIssue";
+import { describeIssue, urls } from "@Core/Helpers/DescribeIssue/describeIssue";
 import type { TReportIssue } from "@Gateways/IssueReportGateway/Validation/IssueReportSchemas";
 import { AnchorLink } from "@Modules/_Shared/RouterLink/RouterLink";
 
@@ -11,11 +11,6 @@ interface IIssueLocationProps {
 	withPage?: boolean;
 }
 
-const evidenceOf = (details: Record<string, unknown>): string[] =>
-	Array.isArray(details.evidence)
-		? details.evidence.filter((item): item is string => typeof item === "string")
-		: [];
-
 /**
  * Where one finding is, and what exactly was found there: the page as a link with the
  * finding's own sentence, or "Whole site" for a site check or Google's whole-site figures.
@@ -23,7 +18,7 @@ const evidenceOf = (details: Record<string, unknown>): string[] =>
 export function IssueLocation({ row, withPage = true }: IIssueLocationProps) {
 	const { location } = row;
 	if (location.kind === "site") {
-		const evidence = evidenceOf(row.details as Record<string, unknown>);
+		const evidence = urls(row.details as Record<string, unknown>, "evidence");
 		return (
 			<Stack gap={4}>
 				<Group gap={6}>
@@ -56,7 +51,7 @@ export function IssueLocation({ row, withPage = true }: IIssueLocationProps) {
 				<Group gap={6}>
 					<IconWorld size={14} />
 					<Text size="sm" fw={500}>
-						Whole site ({location.pageCount} pages)
+						Whole site ({location.pageCount} page{location.pageCount === 1 ? "" : "s"})
 					</Text>
 				</Group>
 				<Text size="sm" c="dimmed">

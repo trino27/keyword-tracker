@@ -54,6 +54,17 @@ describe("IssueReportViewModel", () => {
 		expect(vm().report?.client.id).toBe(8);
 	});
 
+	it("switching clients clears the previous report while the next one loads", async () => {
+		vi.spyOn(IssueReportGateway.prototype, "get")
+			.mockResolvedValueOnce({ kind: "report", report: report(7) })
+			.mockImplementationOnce(() => new Promise(() => undefined));
+		await vm().fetchReport(7);
+
+		void vm().fetchReport(8);
+
+		expect(vm()).toMatchObject({ clientId: 8, status: "loading", report: null });
+	});
+
 	it("a failed load shows the reason", async () => {
 		vi.spyOn(IssueReportGateway.prototype, "get").mockRejectedValue(new Error("offline"));
 

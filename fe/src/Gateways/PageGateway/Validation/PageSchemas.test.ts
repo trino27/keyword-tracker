@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { CRAWL_ISSUE_CODES, PAGE_SPEED_ISSUE_CODES } from "@app/contracts";
-import { pageCheckSchema, seoIssueSchema } from "./PageSchemas";
+import {
+	pageCheckSchema,
+	pageSpeedAvailabilitySchema,
+	pageSpeedSummarySchema,
+	seoIssueSchema,
+} from "./PageSchemas";
 
 describe("seoIssueSchema", () => {
 	it("parses a measured finding with its stored bounds", () => {
@@ -73,6 +78,42 @@ describe("seoIssueSchema", () => {
 			seoIssueSchema.safeParse({ ...finding, details: { value: 5200, source: "guess" } })
 				.success,
 		).toBe(false);
+	});
+});
+
+describe("the PageSpeed summary", () => {
+	const SUMMARY = {
+		status: "done",
+		lastError: null,
+		measurement: {
+			measuredAt: "2026-10-09T12:00:00.000Z",
+			lcp: { value: 3100, band: "needsImprovement", source: "url" },
+			inp: null,
+			cls: { value: 0.02, band: "good", source: "lab" },
+			performanceScore: 72,
+		},
+	};
+
+	it("parses a measured summary", () => {
+		expect(pageSpeedSummarySchema.parse(SUMMARY)).toEqual(SUMMARY);
+	});
+
+	/** A band the screen has no colour for is contract drift, not a grey badge. */
+	it("refuses a summary with an unknown band", () => {
+		expect(
+			pageSpeedSummarySchema.safeParse({
+				...SUMMARY,
+				measurement: {
+					...SUMMARY.measurement,
+					lcp: { value: 3100, band: "meh", source: "url" },
+				},
+			}).success,
+		).toBe(false);
+	});
+
+	it("refuses an unknown availability state", () => {
+		expect(pageSpeedAvailabilitySchema.safeParse({ state: "maybe" }).success).toBe(false);
+		expect(pageSpeedAvailabilitySchema.safeParse({ state: "keyRejected" }).success).toBe(true);
 	});
 });
 

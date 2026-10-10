@@ -1,12 +1,26 @@
-import type { ICwvReading, TCwvMetric, TCwvSource } from "@app/contracts";
+import { CWV_THRESHOLDS, type ICwvReading, type TCwvMetric, type TCwvSource } from "@app/contracts";
 import { cwvBandLabel } from "../../Constants/cwvBandColor";
 import { formatInZone } from "../FormatInZone/formatInZone";
 
-/** A Core Web Vital as people read it: "3.1 s", "180 ms", "0.12". */
+/**
+ * A Core Web Vital as people read it: "3.1 s", "180 ms", "0.12". One more digit when the
+ * short form would print a threshold the value is not: 2540 ms is "2.54 s", never "2.5 s"
+ * beside "needs improvement; good is 2.5 s or less".
+ */
 export function formatCwvValue(metric: TCwvMetric, value: number): string {
-	if (metric === "lcp") return `${Number((value / 1000).toFixed(1))} s`;
-	if (metric === "inp") return `${Math.round(value)} ms`;
-	return String(Number(value.toFixed(2)));
+	const { good, poor } = CWV_THRESHOLDS[metric];
+	const scale = metric === "lcp" ? 1000 : 1;
+	const shown = (digits: number) => Number((value / scale).toFixed(digits));
+	const landsOnThreshold = (digits: number) => {
+		const rounded = shown(digits) * scale;
+		return value !== rounded && (rounded === good || rounded === poor);
+	};
+	let digits = metric === "lcp" ? 1 : metric === "inp" ? 0 : 2;
+	while (landsOnThreshold(digits) && digits < 6) digits += 1;
+	const text = String(shown(digits));
+	if (metric === "lcp") return `${text} s`;
+	if (metric === "inp") return `${text} ms`;
+	return text;
 }
 
 /** Whose experience a value is, in words: the page's visitors, the site's, or a lab run. */
