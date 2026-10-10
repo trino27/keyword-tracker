@@ -54,4 +54,11 @@ describe("explainScore", () => {
 			"not a traffic forecast",
 		);
 	});
+
+	it("the fifth paragraph says speed is scored separately", () => {
+		const paragraphs = explainScore({ value: 100, applicable: 18, failed: 0 });
+
+		expect(paragraphs).toHaveLength(5);
+		expect(paragraphs[4]).toMatch(/^Speed is scored separately\./);
+	});
 });

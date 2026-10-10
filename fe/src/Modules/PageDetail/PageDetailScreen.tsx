@@ -14,10 +14,11 @@ import { KpiCards } from "./KpiCards/KpiCards";
 import { PageDetailHeader } from "./PageDetailHeader/PageDetailHeader";
 import { PositionHistory } from "./PositionHistory/PositionHistory";
 import { ScoreExplainer } from "./ScoreExplainer/ScoreExplainer";
+import { SpeedSection } from "./SpeedSection/SpeedSection";
 
 /**
- * One page: header with summary metrics, then its position history, then what was
- * checked, how the score follows from it, and finally what to fix.
+ * One page: header with summary metrics, its speed, then its position history, then what
+ * was checked, how the score follows from it, and finally what to fix.
  */
 export function PageDetailScreen() {
 	const { pageId: rawPageId } = useParams({ from: "/app/pages/$pageId" });
@@ -75,6 +76,11 @@ export function PageDetailScreen() {
 				<PageDetailHeader detail={vm.detail} timeZone={timeZone} />
 				<KpiCards detail={vm.detail} />
 			</Stack>
+			<SpeedSection
+				pageSpeed={vm.detail.pageSpeed}
+				availability={vm.detail.pageSpeedAvailability}
+				timeZone={timeZone}
+			/>
 			<PositionHistory
 				history={vm.history}
 				status={vm.historyStatus}

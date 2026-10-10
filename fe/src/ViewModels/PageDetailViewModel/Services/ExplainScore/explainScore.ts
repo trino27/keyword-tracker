@@ -8,9 +8,9 @@ import { SCORE_BANDS, type IPageScore } from "@app/contracts";
  */
 const QUOTIENT_DECIMALS = 2;
 
-/** The four paragraphs of the score explainer, the first on this page's own numbers. */
+/** The five paragraphs of the score explainer, the first on this page's own numbers. */
 export function explainScore(score: IPageScore): string[] {
-	return [arithmetic(score), EQUAL_WEIGHT, DENOMINATOR, bands()];
+	return [arithmetic(score), EQUAL_WEIGHT, DENOMINATOR, bands(), SPEED];
 }
 
 function arithmetic({ value, applicable, failed }: IPageScore): string {
@@ -55,3 +55,12 @@ function bands(): string {
 		"competitor, and not a judgement of the writing."
 	);
 }
+
+/**
+ * Said outright, because the issue count above includes speed findings and the score
+ * does not: without this sentence a 100 beside an Important speed issue reads as a bug.
+ */
+const SPEED =
+	"Speed is scored separately. Core Web Vitals are shown in the Speed block and count as " +
+	"issues below, but they do not change this score — the way Lighthouse keeps SEO and " +
+	"Performance apart.";

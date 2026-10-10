@@ -94,6 +94,10 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   429 pauses every request and costs the page nothing; a refused key halts the queue; a page
   Google cannot load says so in plain words. The last good figures stay on screen through all
   of it. The pause is held in process memory — right for the one API process this stack runs.
+  **Reading a badge:** green, yellow, red are Google's good / needs improvement / poor bands at
+  the 75th percentile (LCP 2.5 s / 4 s, INP 200 / 500 ms, CLS 0.1 / 0.25); grey is no data; the
+  tooltip says whose experience the value is. Speed never moves the SEO score — the way
+  Lighthouse keeps SEO and Performance apart — but every non-green badge is an issue.
 - **Isolation:** every query is scoped by the session's user in the query itself, and a foreign id
   answers exactly like a missing one — an e2e matrix proves it per route. Sessions are server-side
   opaque cookies, passwords scrypt; outbound HTTP refuses private and loopback addresses.
