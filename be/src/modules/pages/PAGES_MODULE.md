@@ -41,8 +41,11 @@ ORDER BY captured_at DESC LIMIT 1` on the snapshot primary key; the best positio
 
 <!-- invariant: PAGES-012 -->
 
-**A page answers every catalogue check with one of four statuses.** Composed on the backend, in
-catalogue order, from the lists the crawl stored; a page whose crawl predates the recording says
+**A page answers every crawl-owned catalogue check with one of four statuses.** Composed on the
+backend, in catalogue order, from the lists the crawl stored; a speed code is never a check
+entry (the composition iterates `ACTIVE_ISSUE_CODES`, crawl codes only, and `IPageCheck.code` is
+a `TCrawlIssueCode`; `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts` -> "refuses a
+speed code"); a page whose crawl predates the recording says
 so rather than reporting a status it never observed. Pinned by
 `be/src/modules/pages/services/page-checks/compose-page-checks.spec.ts` (the four statuses, the
 catalogue order, the retired code, the null case),
@@ -116,13 +119,21 @@ named, the requirement lives in `openspec/specs/be/src/modules/pages/spec.md`.
 
 **Each finding reports how many of the client’s current pages carry it — over the whole client, never over the slice on screen.** Pinned by `page-list.repository.int-spec.ts` -> `describe("the site-wide spread")`, notably "a search matching one page still reports the code on five" and "never reports another user’s spread"; the no-query-per-row half by `page-read.service.spec.ts` -> `describe("cost")`.
 
+<!-- invariant: PAGES-013 -->
+
+**A speed finding counts among a page's issues — by severity and in the detail — and never moves its score, its counters or its place in the list.** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "a speed finding counts among the issues and leaves the score and the order unchanged" and "a measured page has its speed findings in the detail". The client-wide spread of a speed code is not asserted on its own: it is the one statement over every code that PAGES-011's pins hold.
+
+<!-- invariant: PAGES-014 -->
+
+**The list and the detail carry each page's speed summary — bands derived when read, never stored; the failure reason only for a failed row; null for a page never queued — and PageSpeed's state from `pageSpeedAvailabilityOf`.** Pinned by `services/page-speed-summary/page-speed-summary-of.spec.ts` -> "a summary carries each metric's band from the thresholds", "a never-measured page has a null measurement", "INP without field data is null inside a measurement", "lastError is null unless failed", "a page never queued has no summary"; `services/page-read/page-read.service.spec.ts` -> "the availability state comes from pageSpeedAvailabilityOf"; `be/test/e2e/page-speed.e2e-spec.ts` -> "the list and the detail carry the PageSpeed state", "every non-good badge in the list has its finding in the detail, and no good one does" and, for `keyRejected` on the list, "after Google rejects the key every row is still queued and the state is keyRejected". The frontend schemas' refusal of an unknown band or state is typecheck only (`satisfies z.ZodType<…>`) — the two planned `PageSchemas.test.ts` cases were not written.
+
 <!-- invariant: CRAWL-009 -->
 
 **A re-crawl upserts and deletes nothing; "current" is whatever the latest succeeded or partial run saw. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `repositories/pages/pages.repository.int-spec.ts` -> "upserts on (client_id, url): a re-crawl keeps the id and moves last_seen_run_id"; `page-list.repository.int-spec.ts` -> "a failed or running re-crawl keeps showing the previous run’s pages"; `be/test/e2e/crawl.e2e-spec.ts` -> "a re-crawl keeps a post the sitemap no longer lists, at its old run".
 
 <!-- invariant: ANALYSIS-007 -->
 
-**A re-crawl replaces a page’s issues and its check counters together, and refreshes its keyword pairs without deleting any. (`openspec/specs/be/src/modules/page-analysis/spec.md`)** Pinned by `services/crawl-results/crawl-results.service.spec.ts` -> "replaces the issues of every re-fetched page, even a page with none now" and "upserts every pair with the new relevance and run — and deletes none"; `repositories/pages/pages.repository.int-spec.ts` -> "a re-crawl refreshes the check counters with the issues, not only the page".
+**A re-crawl replaces a page’s crawl-owned issues and its check counters together — never another writer’s findings — and refreshes its keyword pairs without deleting any. (`openspec/specs/be/src/modules/page-analysis/spec.md`)** Pinned by `services/crawl-results/crawl-results.service.spec.ts` -> "replaces the issues of every re-fetched page, even a page with none now" and "upserts every pair with the new relevance and run — and deletes none"; `repositories/seo-issues/seo-issues.repository.int-spec.ts` -> "a crawl's replace leaves the page's speed findings"; `repositories/pages/pages.repository.int-spec.ts` -> "a re-crawl refreshes the check counters with the issues, not only the page".
 
 <!-- invariant: SEED-003 -->
 
@@ -135,6 +146,10 @@ named, the requirement lives in `openspec/specs/be/src/modules/pages/spec.md`.
 <!-- invariant: SEED-005 -->
 
 **A pair’s baseline follows its relevance, and each day walks from the previous position with pull, noise and a rare jump, clamped to 1–100. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `services/position-generator/baseline/baseline.spec.ts` -> "puts the strongest keyword at 3–15" and "puts a weak keyword (relevance 0.2) around 64–76"; `generate-positions.spec.ts` -> "stays near the baseline: a strong pair averages in the top 20"; the CHECK `rank_snapshots_position_range`.
+
+<!-- invariant: SEED-006 -->
+
+**The seed queues every current page that has no `page_speed` row, once, and waits for no measurement. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "the backfill queues each current page once, and a second run queues none"; `repositories/page-speed/page-speed.repository.int-spec.ts` -> "queues each current page once, and a second run queues none". Not waiting is structural: the seed process does not import `PageSpeedModule`.
 
 <!-- invariant: TZ-003 -->
 

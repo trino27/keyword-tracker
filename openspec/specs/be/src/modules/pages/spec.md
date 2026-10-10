@@ -97,19 +97,24 @@ after today MUST be clamped to today; `from` after `to`, or a span above 366 day
 - **WHEN** a request spans 367 calendar days
 - **THEN** the answer is 400 INVALID_DATE_RANGE
 
-### Requirement [PAGES-012]: a page answers every catalogue check with one of four statuses
+### Requirement [PAGES-012]: a page answers every crawl-owned catalogue check with one of four statuses
 
-A page's detail MUST carry one entry per catalogue code, in catalogue order, each with exactly one
-of four statuses: the check passed, the check failed, the check could not be judged on this page,
-or the check did not exist when this page was last crawled. The status MUST be composed on the
-backend from the lists the crawl stored on the page row, because only those lists can tell a check
-that was skipped from one that did not yet exist. A page whose last crawl predates the recording
-MUST say so rather than report a status it never observed.
+A page's detail MUST carry one entry per active crawl-owned catalogue code, in catalogue order,
+each with exactly one of four statuses: the check passed, the check failed, the check could not be
+judged on this page, or the check did not exist when this page was last crawled. A code another
+writer owns MUST NOT appear as a check entry. The status MUST be composed on the backend from the
+lists the crawl stored on the page row, because only those lists can tell a check that was skipped
+from one that did not yet exist. A page whose last crawl predates the recording MUST say so rather
+than report a status it never observed.
 
 The stored lists MUST be written by the same statement that writes the page's check counters, and
 the database MUST refuse a row whose judged list disagrees with its applicable count, whose two
 lists share a code, or whose lists hold a duplicate, a null or an empty code. A re-crawl MUST
 replace both lists rather than merge them.
+
+Modified by `issue-catalogue-owners`: the catalogue gained codes the crawl does not run. Listed as
+checks they would read "not yet checked" on every page forever, since no crawl will ever judge
+them; a speed finding is shown in the page's issues and in its Speed block instead.
 
 #### Scenario: a page whose crawl skipped two checks
 
@@ -118,9 +123,15 @@ replace both lists rather than merge them.
 - **THEN** the detail carries 18 entries: 15 passed, 1 failed and 2 not applicable, in catalogue
   order
 
+#### Scenario: a page carrying a speed finding
+
+- **WHEN** a page holds `CWV_CLS_POOR` among its findings
+- **THEN** no check entry names a speed code, and every other entry's status is what it was
+  without the speed finding
+
 #### Scenario: a check added to the catalogue after the crawl
 
-- **WHEN** a code is in neither stored list
+- **WHEN** a crawl-owned code is in neither stored list
 - **THEN** its status is "not yet checked", and the page's score is unchanged because the score
   reads the stored counters and never today's catalogue
 
@@ -212,3 +223,54 @@ produced without a query per row.
 
 - **WHEN** two clients of the same user both have pages carrying the code
 - **THEN** each client's pages count only their own client's pages
+
+### Requirement [PAGES-013]: a speed finding counts among a page's issues and never in its score
+
+A speed finding MUST be counted in the page's issue counts by severity and in the client-wide
+spread of its code, exactly as a crawl finding is, and MUST be returned among the detail's issues.
+The page's score, its applicable and failed counts, and its place in the list's order MUST NOT
+change when a speed finding is written or removed.
+
+#### Scenario: a page gains a poor LCP
+- **WHEN** a page scoring 88 out of 16 applicable checks gains `CWV_LCP_POOR`
+- **THEN** its warning count grows by one, its detail lists the finding, and it still scores 88
+  out of 16 in the same position of the list
+
+#### Scenario: the same origin figure on every page
+- **WHEN** fifteen pages of a client carry `CWV_INP_NEEDS_IMPROVEMENT` from origin data
+- **THEN** each reports the code as affecting fifteen pages, and each counts it as site-wide
+
+### Requirement [PAGES-014]: the list and the detail carry each page's speed summary and PageSpeed's state
+
+Each pages-list item and each page detail MUST carry the page's speed summary — its queue status,
+its last measurement with each metric's value, band and source and the time measured, and the
+reason of its last failure — or null when the page was never queued. Each metric's band MUST be
+derived when read, from the stored value and `CWV_THRESHOLDS`, by the same function the PageSpeed
+worker uses to choose findings; the band MUST NOT be stored. The failure reason MUST be sent only
+for a failed row. The list response and the detail MUST carry PageSpeed's state in the API
+process — `notConfigured` without a key, `keyRejected` after Google refused the key and the worker
+halted, `active` otherwise — answered by the one function every read path uses. The list MUST
+still be read in a constant number of statements.
+
+#### Scenario: a page with a poor CLS from the lab
+- **WHEN** a page's stored measurement holds CLS 0.31 from `lab`
+- **THEN** its summary's CLS reads value 0.31, band `poor`, source `lab`, and its detail lists
+  `CWV_CLS_POOR`
+
+#### Scenario: a page Google could not load, measured yesterday
+- **WHEN** a row is `failed` with `PAGE_LOAD_FAILED` and holds yesterday's measurement
+- **THEN** the summary carries yesterday's values, status `failed` and `lastError`
+  `PAGE_LOAD_FAILED`
+
+#### Scenario: a page in backoff
+- **WHEN** a row is `queued` after a timeout with `last_error` set
+- **THEN** the summary's `lastError` is null
+
+#### Scenario: no key
+- **WHEN** the API runs with no PageSpeed key
+- **THEN** the list and the detail carry `state: 'notConfigured'`
+
+#### Scenario: Google rejected the key
+- **WHEN** the worker has halted on a rejected key
+- **THEN** the list and the detail carry `state: 'keyRejected'`, and stored measurements are
+  still returned

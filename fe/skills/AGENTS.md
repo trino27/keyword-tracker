@@ -53,7 +53,7 @@ Where a requirement is not pinned, that is said in words rather than left silent
 **Sign-out ends the server session and resets every ViewModel, stopping its polling timers.** Pinned by `ViewModels/SessionViewModel/SessionViewModel.test.ts` -> "signing out clears every registered user store"; the timers indirectly, by each store’s own "stopPolling stops it". No test asserts the two together. Specified in `openspec/specs/fe/src/App/spec.md`.
 
 <!-- invariant: SHELL-004 -->
-**One shell for every screen, and one colour per crawl status over the whole status set.** Pinned by `pnpm --filter fe typecheck`: `crawlStatusColor` is a `Record<TCrawlRunStatus, …>`, so a new status without a colour does not compile. The shell itself is NOT pinned — `AppLayout/`, `PageHeader/` and `CrawlStatusBadge/` have no test. Specified in `openspec/specs/fe/src/App/spec.md`.
+**One shell for every screen — Pages, Issues, Clients — one colour per crawl status, and one name and colour per severity (Critical, Important, Improvement), each over its whole set.** Pinned by `pnpm --filter fe typecheck`: `crawlStatusColor` is a `Record<TCrawlRunStatus, …>` and `Core/Constants/severityLabel.ts` a `Record<TSeoIssueSeverity, { label; color }>`, so a new status or severity without its entry does not compile; `Modules/PageDetail/IssuesSection/IssuesSection.test.tsx` -> "groups by severity, worst first, with the sentence and the fix" reads the new names. The shell itself and the navigation's order are NOT pinned — `AppLayout/`, `PageHeader/` and `CrawlStatusBadge/` have no test. Specified in `openspec/specs/fe/src/App/spec.md`.
 
 <!-- invariant: GATEWAY-001 -->
 **Every gateway response is parsed against a zod schema typed as the contract shape; a wrong shape is refused rather than rendered.** Pinned by `Gateways/_Shared/ABaseGateway/ABaseGateway.test.ts` -> "rejects a response the schema does not describe"; `Gateways/PageGateway/PageGateway.test.ts` -> "rejects an issue code the catalogue does not have"; `Gateways/PageGateway/Validation/PageSchemas.test.ts`. The `z.ZodType<contract>` half is typecheck. Specified in `openspec/specs/fe/src/Gateways/spec.md`.
@@ -72,6 +72,9 @@ Where a requirement is not pinned, that is said in words rather than left silent
 
 <!-- invariant: CLIENTSUI-005 -->
 **The run log shows the selected sitemap and every candidate in sitemap order with its status and reason.** Pinned by `Modules/Clients/RunLog/RunLog.test.tsx` -> "lists every considered entry in sitemap order with its result and reason". The selection REASON sentence itself is not asserted. Specified in `openspec/specs/fe/src/Modules/Clients/spec.md`.
+
+<!-- invariant: CLIENTSUI-006 -->
+**Each client row offers View issues, opening `/issues?clientId=<id>`.** Pinned by `Modules/Clients/ClientsTable/ClientsTable.test.tsx` -> "disables re-crawl while a crawl runs, and links each client to its pages", which also expects the View issues link. Specified in `openspec/specs/fe/src/Modules/Clients/spec.md`.
 
 <!-- invariant: PAGELIST-001 -->
 **Filter, search, page and page size live in the URL with defaults, and the search is debounced.** Pinned by `App/Router/SearchSchemas/PagesSearchSchema/pagesSearchSchema.test.ts` -> "defaults to the first page of 20" and "falls back on malformed values instead of failing"; `Modules/Pages/PagesFilterBar/PagesFilterBar.test.tsx` -> "writes the search once, after the user pauses". The return-to-page-1 rule is NOT pinned — `PagesScreen.tsx` has no test. Specified in `openspec/specs/fe/src/Modules/Pages/spec.md`.
@@ -94,6 +97,12 @@ Where a requirement is not pinned, that is said in words rather than left silent
 <!-- invariant: PAGELIST-007 -->
 **The issues cell says how many findings other pages of the client share, and nothing when that is none.** Pinned by `PagesTable.test.tsx` -> "a row with two shared findings reads '2 site-wide'" and "a row sharing nothing shows only the severity badges". Specified in `openspec/specs/fe/src/Modules/Pages/spec.md`.
 
+<!-- invariant: PAGELIST-008 -->
+**Each row shows LCP · INP · CLS as badges coloured by band beside the score, with value, source and date in the tooltip, and says in words when a page is measuring, paused, failed, unmeasured or PageSpeed is not configured.** Pinned by `Modules/Pages/PagesTable/CwvBadges/CwvBadges.test.tsx` -> "colours each metric by its band, and grey for no data", "says in the tooltip the value, the band, whose it is and when", "reads Measuring… while queued", "a queued row reads Paused under keyRejected", "reads Not measured for a page never queued", "reads Couldn't measure for a page given up on", "keeps an old measurement and flags that the refresh failed", "is a dash without a key"; `PagesTable.test.tsx` -> "the header says PageSpeed is not configured, and the cells are dashes", "the header says the key was rejected, and stored badges stay", "explains the colours under the table"; `Core/Helpers/DescribePageSpeed/describePageSpeed.test.ts` and `Core/Helpers/DescribeCwv/describeCwv.test.ts`. Specified in `openspec/specs/fe/src/Modules/Pages/spec.md`.
+
+<!-- invariant: PAGELIST-009 -->
+**A row's issue count opens the report filtered to that page, without taking over the row's link to the detail.** Pinned by `PagesTable.test.tsx` -> "links a row's issue count to the report, filtered to the page". Specified in `openspec/specs/fe/src/Modules/Pages/spec.md`.
+
 <!-- invariant: PAGEDETAIL-001 -->
 **The detail opens with a breadcrumb restoring the list’s search, a header and the KPI cards.** Pinned by NOT pinned by a test — `PageDetailScreen.tsx`, `PageDetailHeader/` and `KpiCards/` have no test, so neither the breadcrumb’s restoration of the list’s search nor the cards are asserted anywhere. Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
 
@@ -107,7 +116,7 @@ Where a requirement is not pinned, that is said in words rather than left silent
 **The table gives each keyword its latest, its change with direction, and its best and worst over the range.** Pinned by `PositionHistory/PositionTable/PositionTable.test.tsx` -> "shows latest, change as places gained, best and worst per keyword"; `Services/BuildHistoryTable/buildHistoryTable.test.ts` -> "a falling keyword has a negative change" and "a keyword without points keeps its row, empty". Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
 
 <!-- invariant: PAGEDETAIL-005 -->
-**Issues are grouped by severity and read their numbers from the measurement the crawl stored, not from today’s catalogue.** Pinned by `IssuesSection/IssuesSection.test.tsx` -> "groups by severity, worst first, with the sentence and the fix"; `Services/GroupIssues/groupIssues.test.ts` -> "reads a measured sentence from the bounds the crawl stored, not from today’s catalogue". Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
+**Issues are grouped Critical / Important / Improvement and read their numbers from the measurement the crawl stored, not from today’s catalogue.** Pinned by `IssuesSection/IssuesSection.test.tsx` -> "groups by severity, worst first, with the sentence and the fix", which expects the headings Critical and Important; `Services/GroupIssues/groupIssues.test.ts` -> "reads a measured sentence from the bounds the crawl stored, not from today’s catalogue". Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
 
 <!-- invariant: PAGEDETAIL-006 -->
 **The crawl’s response time is shown as one fetch by our crawler — never as an issue, never as a score input.** Pinned by NOT pinned on the frontend — the wording lives in `PageDetailHeader.tsx`, which has no test. The value’s presence and the absence of a timing issue are pinned backend-side by `be/test/e2e/pages.e2e-spec.ts`. Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
@@ -118,8 +127,32 @@ Where a requirement is not pinned, that is said in words rather than left silent
 <!-- invariant: PAGEDETAIL-008 -->
 **A finding on several of the client’s pages says how many; a finding on this page alone says nothing extra.** Pinned by `IssuesSection/IssuesSection.test.tsx` -> "an issue on five of fifteen pages reads 'on 5 of 15 pages'" and "an issue on one page says nothing extra". Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
 
+<!-- invariant: PAGEDETAIL-011 -->
+**The page's Speed block shows each metric's value, band, source and date, the lab score as a caption, and every state in words — measuring, could not refresh, could not measure, not measured, not configured, key rejected.** Pinned by `Modules/PageDetail/SpeedSection/SpeedSection.test.tsx` -> "shows each metric's value, band and source", "a lab value says it may vary", "INP without data says why", "shows the lab performance score as a caption", "says a queued page is being measured", "under keyRejected the block opens with the key-rejected notice", "says PageSpeed is not configured without a key", "says why a page could not be measured", "keeps the old figures when a refresh failed, and says so". Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
+
+<!-- invariant: PAGEDETAIL-012 -->
+**The score's explanation says speed is scored separately, and its arithmetic is unchanged.** Pinned by `ViewModels/PageDetailViewModel/Services/ExplainScore/explainScore.test.ts` -> "the fifth paragraph says speed is scored separately", beside PAGEDETAIL-010's cases, which did not change. Specified in `openspec/specs/fe/src/Modules/PageDetail/spec.md`.
+
 <!-- invariant: SIGNIN-001 -->
 **One generic refusal for any bad credential, a distinct sentence for the throttle, and the inputs kept.** Pinned by `Modules/SignIn/SignInForm/SignInForm.test.tsx` -> "shows the refusal and keeps what was typed"; `Gateways/SessionGateway/SessionGateway.test.ts` -> "a 401 on login is { kind: 'invalid' }" and "a 429 on login is { kind: 'throttled' }". The absence of sign-up and reset offers is not pinned. Specified in `openspec/specs/fe/src/Modules/SignIn/spec.md`.
 
 <!-- invariant: SIGNIN-002 -->
 **Opening the sign-in route with a valid session goes straight to the pages list.** Pinned by `App/Router/router.test.tsx` -> "a signed-in visit to /sign-in goes to the pages list". Specified in `openspec/specs/fe/src/Modules/SignIn/spec.md`.
+
+<!-- invariant: ISSUESUI-001 -->
+**The Issues screen opens on the client the URL names, else the first one, and says so when a client is not found or there are none.** Pinned by `Modules/Issues/IssuesScreen.test.tsx` -> "opens the first client when none is in the URL", "says another user's or a deleted client was not found", "offers to add a client when there are none", "is behind the session guard"; `App/Router/SearchSchemas/IssuesSearchSchema/issuesSearchSchema.test.ts` -> "keeps a client and a page from the URL". The client selector is NOT pinned. Specified in `openspec/specs/fe/src/Modules/Issues/spec.md`.
+
+<!-- invariant: ISSUESUI-002 -->
+**The three levels and what each means are shown above the findings.** Pinned by `IssuesScreen.test.tsx` -> "explains each problem in plain words, worst first, with the rubric in view" — in the view with rows only; "at all times" is NOT asserted for the empty and error states. The names come from `severityLabel` (SHELL-004). Specified in `openspec/specs/fe/src/Modules/Issues/spec.md`.
+
+<!-- invariant: ISSUESUI-003 -->
+**By default findings group by level, then by issue, widest first — a whole-site row counting its pages; by page, the whole site leads and pages order by Critical, then Important, then Improvement.** Pinned by `ViewModels/IssueReportViewModel/Services/GroupByIssue/groupByIssue.test.ts` -> "puts Critical first and leaves empty levels out", "orders a level by pages affected, a whole-site row counting its pages", "shows each problem once, with every page it was found on"; `Services/GroupByPage/groupByPage.test.ts` -> "leads with the whole-site rows", "orders pages by their Critical, then Important, then Improvement counts"; `issuesSearchSchema.test.ts` -> "defaults to grouping by issue, Critical and Important only, every type". The toggle on the screen is NOT pinned by a committed test. Specified in `openspec/specs/fe/src/Modules/Issues/spec.md`.
+
+<!-- invariant: ISSUESUI-004 -->
+**Filters by level (Improvement hidden by default), type and URL live in the URL and run on the one snapshot; a page filter never hides the whole-site rows.** Pinned by `Services/FilterReport/filterReport.test.ts` -> "a page filter keeps site and whole-site rows", "searches page URLs and titles, case-insensitively, keeping whole-site rows", "keeps only the chosen levels", "keeps only the chosen type"; `issuesSearchSchema.test.ts` -> "defaults to grouping by issue, Critical and Important only, every type", "lets the reader show Improvements too", "falls back to the defaults on malformed values"; `Services/IssueTypeOf/issueTypeOf.test.ts` -> "files the HTML speed risks under SEO" (O4, on purpose). Specified in `openspec/specs/fe/src/Modules/Issues/spec.md`.
+
+<!-- invariant: ISSUESUI-005 -->
+**Each issue reads what, why it matters and what to do, with the catalogue's technical text under a collapsed "Technical details".** Pinned by `IssuesScreen.test.tsx` -> "explains each problem in plain words, worst first, with the rubric in view"; the lab note by `Core/Helpers/DescribeIssue/describeIssue.test.ts` -> "names a lab value as one". That Technical details start collapsed, and the location's link to the page, are NOT pinned by a committed test. Specified in `openspec/specs/fe/src/Modules/Issues/spec.md`.
+
+<!-- invariant: ISSUESUI-006 -->
+**Every state of the report is said in words, and PageSpeed's state in the words the list and the page use.** Pinned by `Services/ReportViewOf/reportViewOf.test.ts` (one case per state family: rows, no clients, not found, no crawl yet, nothing found vs filtered out, a load failure, loading); `IssuesScreen.test.tsx` -> "says no crawl has finished yet", "says when the filters hide everything, and clears them", "says speed is not configured when there is no key". The words are shared through `Core/Constants/pageSpeedAvailabilityCopy.ts`, a `Record` over the states; the `keyRejected` notice on THIS screen is NOT asserted. Specified in `openspec/specs/fe/src/Modules/Issues/spec.md`.

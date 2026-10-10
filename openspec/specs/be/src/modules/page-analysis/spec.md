@@ -6,14 +6,15 @@ catalogue, and the phrases it presents itself as being about.
 
 ## Requirements
 
-### Requirement [ANALYSIS-001]: issues come only from the shared catalogue, and every catalogued code has a check
+### Requirement [ANALYSIS-001]: issues come only from the shared catalogue, and every crawl-owned code has a check
 
 Every SEO issue MUST carry a code defined in `SEO_ISSUE_CATALOGUE` in `@app/contracts`, with the
-severity the catalogue gives it; every catalogued code MUST have exactly one check, and a page MUST
-have at most one issue per code. A check MUST carry the code it is registered under. What a check
-READS and what it may RETURN are both decided by the code: a code the catalogue marks `scope: 'run'`
-reads the whole crawl and answers once per page, every other code reads one page and answers once;
-a code whose catalogue entry declares a bound returns a measurement — the value as found and the
+severity the catalogue gives it; every code the catalogue gives to the crawl MUST have exactly one
+check, a code the catalogue gives to another writer MUST have none, and a page MUST have at most
+one issue per code. A check MUST carry the code it is registered under. What a check READS and
+what it may RETURN are both decided by the code: a code the catalogue marks `scope: 'run'` reads
+the whole crawl and answers once per page, every other code reads one page and answers once; a
+code whose catalogue entry declares a bound returns a measurement — the value as found and the
 bounds it was judged against — and every other code returns details.
 
 AMENDED during implementation (`seo-check-catalogue-correction`, task 5.1): this requirement said
@@ -30,12 +31,22 @@ file carrying its own code and its own `evaluate`. The guarantee is unchanged an
 mapped type still fails to compile on a missing code, and now also on a check registered under the
 wrong code or given the wrong shape for its scope.
 
+Modified by `issue-catalogue-owners`: the catalogue now holds codes the crawl does not write — the
+Core Web Vitals codes, written by the PageSpeed worker from Google's measurements. A check for one
+of them could only guess from HTML at what Google measured in a browser. "Every catalogued code has
+a check" becomes "every crawl-owned code has a check", and the mapped type is keyed by
+`TCrawlIssueCode`, so a missing crawl check and a check under a speed code both fail to compile.
+
 #### Scenario: analysing every fixture page
 - **WHEN** the analyser runs over every recorded and synthetic fixture page
-- **THEN** every emitted code is a catalogue key
+- **THEN** every emitted code is a crawl-owned catalogue key
 
-#### Scenario: a catalogue entry without a check
-- **WHEN** a code is added to the catalogue and no check is registered for it
+#### Scenario: a crawl-owned catalogue entry without a check
+- **WHEN** a code owned by the crawl is added to the catalogue and no check is registered for it
+- **THEN** `pnpm typecheck` fails
+
+#### Scenario: a check registered under a speed code
+- **WHEN** a check is registered in `CHECKS` under a code the catalogue gives to the PageSpeed worker
 - **THEN** `pnpm typecheck` fails
 
 #### Scenario: a check registered under another code
@@ -133,12 +144,13 @@ term present on every page of the run ranks below page-specific terms; with one 
 - **WHEN** "yoast" appears on all 15 pages of a run
 - **THEN** it is not in any page's top 3 keywords
 
-### Requirement [ANALYSIS-007]: a re-crawl refreshes analysis without deleting it
+### Requirement [ANALYSIS-007]: a re-crawl refreshes its own analysis without deleting another writer's
 
-A re-crawl MUST replace the issues of each page it fetched AND refresh that page's two check
-counters in the same act, insert new page-keyword pairs, update the relevance and
-`last_seen_run_id` of surviving pairs, and MUST NOT delete any pair; analysis MUST run once per
-run, after all its pages are fetched.
+A re-crawl MUST replace the crawl-owned issues of each page it fetched AND refresh that page's two
+check counters in the same act, MUST NOT delete or alter a finding under a code another writer
+owns, MUST insert new page-keyword pairs, update the relevance and `last_seen_run_id` of surviving
+pairs, and MUST NOT delete any pair; analysis MUST run once per run, after all its pages are
+fetched.
 
 AMENDED during implementation (`page-health-score`, task 5.1): the requirement covered the issues
 and the pairs, which was the whole of a page's analysis when it was written. A page now also
@@ -146,6 +158,11 @@ carries the counters its score is derived from, and they are part of the same ve
 issues beside counters left at their first value would show a score that contradicts the issue
 list printed next to it. "In the same act" is the requirement, not an implementation note — the
 counters are columns of the same upsert, inside the same transaction as the issue rows.
+
+Modified by `issue-catalogue-owners`: "replace the issues" deleted every finding of the page, which
+was the same thing while the crawl was the only writer. With the PageSpeed worker writing speed
+findings into the same table, it would erase them on every re-crawl and leave a red badge with no
+issue behind it until the next measurement. The crawl now replaces only what it owns.
 
 #### Scenario: a keyword drops out
 - **WHEN** a re-crawled page no longer yields a keyword it had
@@ -155,14 +172,18 @@ counters are columns of the same upsert, inside the same transaction as the issu
 - **WHEN** a page that failed 7 of 18 checks is re-crawled and now fails 2 of 16
 - **THEN** its stored counters are 16 and 2, not the earlier pair
 
+#### Scenario: a page carrying a speed finding is re-crawled
+- **WHEN** a page holds `CWV_LCP_POOR` and a crawl re-fetches it with no crawl findings at all
+- **THEN** the page's crawl findings are gone and `CWV_LCP_POOR` is still stored
+
 ### Requirement [ANALYSIS-011]: one pass records which checks it judged and which it could not
 
 The analysis MUST record, for each page and in the same single pass that produces its issues, the
 catalogue codes whose check reached a verdict and the codes whose check could not be judged on that
 page. The two lists MUST be disjoint, MUST each hold a code at most once, and their union MUST be
-exactly the catalogue that ran — the catalogued codes the catalogue had not retired at the time of
-that crawl. A code whose check can answer "not applicable" MUST declare, in the shared catalogue,
-the reason it can be skipped.
+exactly the catalogue that ran — the crawl-owned catalogued codes the catalogue had not retired at
+the time of that crawl. A code whose check can answer "not applicable" MUST declare, in the shared
+catalogue, the reason it can be skipped.
 
 AMENDED during implementation (`seo-check-units`): "the catalogue that ran" now also excludes a
 code retired with `enabled: false`. A retired code keeps its catalogue entry, so findings already
@@ -170,18 +191,27 @@ stored under it stay readable; it is simply not evaluated and not listed. A page
 retirement keeps the code in its stored lists and therefore in its denominator, which is why the
 score is explained as what applied when the page was crawled.
 
+Modified by `issue-catalogue-owners`: "the catalogue that ran" excludes the codes another writer
+owns. A speed code is not run by the crawl; in either stored list it would put Google's
+measurement into the SEO score's denominator, which the score must never contain.
+
 #### Scenario: a page with no meta description and no images
 
 - **WHEN** the checks are evaluated against it
 - **THEN** META_DESCRIPTION_LENGTH and IMAGES_MISSING_ALT are in the not-applicable list, every
-  other active catalogue code is in the judged list, and no code is in both
+  other active crawl-owned code is in the judged list, and no code is in both
 
 #### Scenario: the two lists over every recorded page
 
 - **WHEN** the checks are evaluated against each recorded fixture post
 - **THEN** the number of judged codes plus the number of not-applicable codes equals the number of
-  active catalogue codes, and every not-applicable code is one the catalogue declares as
-  conditional
+  active crawl-owned catalogue codes, and every not-applicable code is one the catalogue declares
+  as conditional
+
+#### Scenario: a speed code in the stored lists
+
+- **WHEN** a crawl stores a page
+- **THEN** neither of its lists holds a code the PageSpeed worker owns
 
 #### Scenario: a retired check
 
@@ -255,3 +285,48 @@ separated before any text is read, so two neighbouring strings never fuse into o
 
 - **WHEN** a `<span aria-hidden="true">` sits inside a paragraph of the main content
 - **THEN** its text contributes neither to the block nor to the word count
+
+### Requirement [ANALYSIS-012]: every catalogue code names the one process that writes it
+
+Every entry of `SEO_ISSUE_CATALOGUE` MUST declare its owner — the crawl or the PageSpeed worker —
+and the set of codes each owner writes MUST be derived from those declarations, never listed a
+second time. The two sets MUST be disjoint and together MUST be the whole catalogue. A writer MUST
+replace only the findings under codes it owns.
+
+#### Scenario: an entry added without an owner
+
+- **WHEN** a catalogue entry is added with no `owner`
+- **THEN** `pnpm typecheck` fails
+
+#### Scenario: the partition
+
+- **WHEN** the crawl's codes and the PageSpeed worker's codes are listed from the catalogue
+- **THEN** no code is in both and every catalogue code is in one
+
+#### Scenario: the Core Web Vitals codes
+
+- **WHEN** the catalogue is read
+- **THEN** `CWV_LCP_POOR`, `CWV_INP_POOR` and `CWV_CLS_POOR` are owned by the PageSpeed worker
+  with severity warning, the three `…_NEEDS_IMPROVEMENT` codes are owned by it with severity
+  notice, and each declares as its `max` the threshold of `CWV_THRESHOLDS` its band begins above
+
+### Requirement [ANALYSIS-013]: every finding explains itself to a marketer in three plain parts
+
+Every entry of the page catalogue and of the site catalogue MUST carry, beside its curated label,
+hint, explanation and sources, a plain `what` (the problem in one sentence), `why` (its cost in
+visibility, traffic or clicks) and `fix` (what to do, naming who does it — an editor in the CMS, an
+SEO plugin, a developer, the host). None of the three MAY contain markup characters, and each MUST
+stay within its declared length bounds. The curated fields MUST NOT be rewritten to serve as plain
+copy.
+
+#### Scenario: an entry added without plain copy
+- **WHEN** a catalogue entry is added with no `plain`
+- **THEN** `pnpm typecheck` fails
+
+#### Scenario: a fix that names nobody
+- **WHEN** an entry's `fix` names no one who would act
+- **THEN** the plain-copy test fails
+
+#### Scenario: a fix that quotes a tag
+- **WHEN** an entry's `fix` says "add a <title> tag"
+- **THEN** the plain-copy test fails on the markup character
