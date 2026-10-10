@@ -13,7 +13,7 @@ import {
 } from '../../repositories/pages/pages.repository';
 import {
   SeoIssuesRepository,
-  type TNewSeoIssue,
+  type TNewCrawlIssue,
 } from '../../repositories/seo-issues/seo-issues.repository';
 
 /** One crawled post as the pages module stores it. */
@@ -135,13 +135,13 @@ export class CrawlResultsService {
     );
     await this.pageKeywords.upsertManyForWorker(tx, pairs);
 
-    const issues: TNewSeoIssue[] = results.pages.flatMap((page) =>
+    const issues: TNewCrawlIssue[] = results.pages.flatMap((page) =>
       page.issues.map((issue) => ({
         pageId: pageIds.get(page.url)!,
         ...issue,
       })),
     );
-    await this.seoIssues.replaceForPagesForWorker(
+    await this.seoIssues.replaceCrawlFindingsForWorker(
       tx,
       [...pageIds.values()],
       issues,

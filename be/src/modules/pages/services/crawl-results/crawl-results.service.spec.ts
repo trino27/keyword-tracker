@@ -10,7 +10,7 @@ import type {
   PagesRepository,
 } from '../../repositories/pages/pages.repository';
 import type {
-  TNewSeoIssue,
+  TNewCrawlIssue,
   SeoIssuesRepository,
 } from '../../repositories/seo-issues/seo-issues.repository';
 import { CrawlResultsService, type IRunPage } from './crawl-results.service';
@@ -46,7 +46,7 @@ describe('CrawlResultsService', () => {
     const calls = {
       pages: [] as IUpsertPage[][],
       pairs: [] as IUpsertPageKeyword[][],
-      issues: [] as { pageIds: number[]; rows: TNewSeoIssue[] }[],
+      issues: [] as { pageIds: number[]; rows: TNewCrawlIssue[] }[],
     };
     const pages = {
       upsertManyForWorker: (_tx: Transaction, rows: IUpsertPage[]) => {
@@ -69,10 +69,10 @@ describe('CrawlResultsService', () => {
       },
     } as unknown as PageKeywordsRepository;
     const seoIssues = {
-      replaceForPagesForWorker: (
+      replaceCrawlFindingsForWorker: (
         _tx: Transaction,
         pageIds: number[],
-        rows: TNewSeoIssue[],
+        rows: TNewCrawlIssue[],
       ) => {
         calls.issues.push({ pageIds, rows });
         return Promise.resolve();

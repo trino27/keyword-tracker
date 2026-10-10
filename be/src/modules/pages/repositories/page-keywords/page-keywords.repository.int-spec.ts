@@ -165,13 +165,15 @@ describe('keywords, page_keywords and seo_issues (postgres)', () => {
 
     await expectPgError(
       inTx((tx) =>
-        issues.replaceForPagesForWorker(tx, [pageId], [issue, issue]),
+        issues.replaceCrawlFindingsForWorker(tx, [pageId], [issue, issue]),
       ),
       { code: '23505', constraint: 'seo_issues_page_id_code_uq' },
     );
-    await inTx((tx) => issues.replaceForPagesForWorker(tx, [pageId], [issue]));
     await inTx((tx) =>
-      issues.replaceForPagesForWorker(
+      issues.replaceCrawlFindingsForWorker(tx, [pageId], [issue]),
+    );
+    await inTx((tx) =>
+      issues.replaceCrawlFindingsForWorker(
         tx,
         [pageId],
         [
@@ -205,7 +207,7 @@ describe('keywords, page_keywords and seo_issues (postgres)', () => {
           lastSeenRunId: firstRunId,
         },
       ]);
-      await issues.replaceForPagesForWorker(
+      await issues.replaceCrawlFindingsForWorker(
         tx,
         [pageId],
         [{ pageId, code: 'LANG_MISSING', severity: 'notice', details: {} }],
