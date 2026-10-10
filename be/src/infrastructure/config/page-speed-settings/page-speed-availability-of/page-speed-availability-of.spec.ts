@@ -1,5 +1,5 @@
 import { pageSpeedAvailabilityOf } from './page-speed-availability-of';
-import { PageSpeedRuntimeState } from './page-speed-runtime-state';
+import { PageSpeedRuntimeState } from '../page-speed-runtime-state';
 
 describe('pageSpeedAvailabilityOf', () => {
   it('no key is notConfigured, a key is active, a rejected key is keyRejected', () => {

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { IClientIssueReport, TReportIssue } from '@app/contracts';
-import { pageSpeedAvailabilityOf } from '@infrastructure/config/page-speed-settings/page-speed-availability-of';
+import { pageSpeedAvailabilityOf } from '@infrastructure/config/page-speed-settings/page-speed-availability-of/page-speed-availability-of';
 import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
 import {
   PAGE_SPEED_SETTINGS,

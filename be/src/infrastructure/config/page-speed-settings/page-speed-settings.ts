@@ -9,10 +9,3 @@ export interface IPageSpeedSettings {
  * in one place — and a developer's real key in `.env` can never reach a test.
  */
 export const PAGE_SPEED_SETTINGS = Symbol('PAGE_SPEED_SETTINGS');
-
-export function pageSpeedSettingsFrom(
-  raw: string | undefined,
-): IPageSpeedSettings {
-  const apiKey = raw?.trim() ?? '';
-  return { apiKey: apiKey === '' ? null : apiKey };
-}

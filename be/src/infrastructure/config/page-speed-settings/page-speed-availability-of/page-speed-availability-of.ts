@@ -1,6 +1,6 @@
 import type { IPageSpeedAvailability } from '@app/contracts';
-import type { IPageSpeedSettings } from './page-speed-settings';
-import type { PageSpeedRuntimeState } from './page-speed-runtime-state';
+import type { IPageSpeedSettings } from '../page-speed-settings';
+import type { PageSpeedRuntimeState } from '../page-speed-runtime-state';
 
 /**
  * The one answer every read path gives about PageSpeed. A process with a key but the

@@ -1,4 +1,4 @@
-import { pageSpeedSettingsFrom } from './page-speed-settings';
+import { pageSpeedSettingsFrom } from './page-speed-settings-of';
 
 describe('pageSpeedSettingsFrom', () => {
   it.each([undefined, '', '   ', '\t\n'])(
