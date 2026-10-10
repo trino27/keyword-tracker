@@ -29,10 +29,10 @@ async function main(): Promise<void> {
   if (!key) throw new Error('Set PAGESPEED_API_KEY to record.');
   for (const [file, url] of Object.entries(TARGETS)) {
     const requestUrl = `${ENDPOINT}?url=${encodeURIComponent(url)}&strategy=mobile&category=performance`;
-    const response = await fetch(requestUrl, {
+    const response: Response = await fetch(requestUrl, {
       headers: { 'x-goog-api-key': key, accept: 'application/json' },
     });
-    const body = await response.text();
+    const body: string = await response.text();
     if (body.includes(key))
       throw new Error(`${file}: the answer echoes the key`);
     writeFileSync(join(__dirname, 'pagespeed', file), body);
