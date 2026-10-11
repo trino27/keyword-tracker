@@ -522,7 +522,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 8. End to end
 
-- [ ] 8.1 Run the stack with a real `PAGESPEED_API_KEY` (`docker compose up -d --build`), crawl
+- [x] 8.1 Run the stack with a real `PAGESPEED_API_KEY` (`docker compose up -d --build`), crawl
   one client, and wait for its measurements. Open a page detail and confirm, by reading the
   screen:
   - a group row with both verdicts;
@@ -534,5 +534,34 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
   Record anything that contradicts a requirement with `AMENDED during implementation:` on the
   task that built it. Verify: a short note under this task naming the client and page checked.
-- [ ] 8.2 `pnpm exec openspec validate lighthouse-checks` passes, and `pnpm lint && pnpm
+
+  AMENDED during implementation: not run as the docker stack, and not checked on screen.
+  - **Why not docker.** Other agents run that stack on ports 8080 and 55433 from the main tree.
+    Instead the API ran from this worktree on port 3100, against its own database
+    (`seo_tracker_lighthouse`), with the real `PAGESPEED_API_KEY` and both workers.
+  - **What ran.** `pnpm seed` crawled Semrush live, 15 pages, then crashed on the second
+    client. The crash is the crawler's `RequestAbortedError` on a preview image, which 0f331b4
+    on the main branch fixes. That fix arrived with the merge of the main branch, and the
+    worker then measured two pages live.
+  - **What the API said.** Read through it, for
+    `https://www.semrush.com/blog/seo-split-test-result-does-bolded-text-help-your-seo/`:
+    - score 90 = 90 passed of 100 applicable (crawl 63/4, Lighthouse 37/6). The two measured
+      pages head the list at 90 and 93;
+    - TTFB 1384 ms from `origin`, needs improvement, and every metric's shares from the same
+      source as its value;
+    - an LCP breakdown of a text element (h1), in two phases;
+    - SEO 92 and accessibility 82;
+    - Lighthouse checks: 66 = 31 passed + 6 failed + 29 not applicable + 0 not recorded. No
+      "catalogue does not know" warning was logged, so the catalogue matches the live
+      Lighthouse;
+    - six `LH_*` issues with their page counts.
+  - **Not done.** The screen itself (columns, marker, Speed block) was not looked at in a
+    browser here. Its rendering is pinned only by the component tests.
+- [x] 8.2 `pnpm exec openspec validate lighthouse-checks` passes, and `pnpm lint && pnpm
   typecheck && pnpm test` passes. Verify: both exit 0.
+
+  Done after merging `feat/issue-report-and-pagespeed` (up to 75254fa) into this branch:
+  - the four crawl entries it added lost their `owner` field;
+  - `openspec validate` is valid;
+  - lint and typecheck are clean;
+  - contracts run 760 tests, the backend 1306 unit and 202 db/e2e, the frontend 394.
