@@ -49,6 +49,33 @@ describe('INTERNAL_LINK_VARIANTS', () => {
     ).toEqual(PASSES);
   });
 
+  // cossa.ru, 2026-10-11: http://cossa.ru/74/habrahabr is both a variant and dead. A dead
+  // link is BROKEN_LINKS' finding; how its address is written no longer matters.
+  it('leaves a link the crawl found broken to BROKEN_LINKS', () => {
+    const dead = 'http://a.example/gone/';
+    expect(
+      INTERNAL_LINK_VARIANTS_CHECK.evaluate(
+        makeCheckInput({
+          parsed: { links: [dead, 'https://a.example/fine/'] },
+          linkStatuses: {
+            links: new Map([
+              [
+                dead,
+                {
+                  kind: 'answered',
+                  status: 404,
+                  redirects: [{ url: dead, status: 301 }],
+                  finalUrl: 'https://a.example/gone/',
+                },
+              ],
+            ]),
+            documents: new Map(),
+          },
+        }),
+      ),
+    ).toEqual(PASSES);
+  });
+
   it('cannot be judged without internal links', () => {
     expect(
       INTERNAL_LINK_VARIANTS_CHECK.evaluate(withLinks('https://b.example/')),

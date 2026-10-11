@@ -980,7 +980,7 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'Link to the URL the site actually serves: same scheme, same host, no tracking parameters.',
     explanation:
-      'The content links to pages of this site through a different URL than the one this page is served at — plain HTTP from an HTTPS page, the www host from a site served without it (or the other way round), or a URL carrying tracking or session parameters. Each such link costs a redirect or creates a duplicate URL for Google to crawl and fold back into the canonical one. Google asks sites to link internally to the canonical URL rather than a duplicate, and to avoid session IDs in URLs.',
+      'The content links to pages of this site through a different URL than the one this page is served at — plain HTTP from an HTTPS page, the www host from a site served without it (or the other way round), or a URL carrying tracking or session parameters. Each such link costs a redirect or creates a duplicate URL for Google to crawl and fold back into the canonical one. Google asks sites to link internally to the canonical URL rather than a duplicate, and to avoid session IDs in URLs. A link the crawl found dead is reported by BROKEN_LINKS instead.',
     sources: [SOURCE.canonical, SOURCE.urlStructure],
     skipReason: 'The content links nowhere on the site.',
   },
