@@ -35,10 +35,35 @@ function jpegSize(b: Uint8Array): { width: number; height: number } | null {
 }
 
 /**
+ * A WebP's canvas size, from the first chunk after `RIFF····WEBP` (Google's WebP container
+ * specification): VP8X carries it as two 24-bit values less one, a lossy VP8 frame as two
+ * 14-bit values after its start code, a lossless VP8L as 14-bit values less one after its
+ * signature byte. All within the first 30 bytes.
+ */
+function webpSize(b: Uint8Array): { width: number; height: number } | null {
+  const chunk = String.fromCharCode(b[12], b[13], b[14], b[15]);
+  const u24le = (at: number) => b[at] | (b[at + 1] << 8) | (b[at + 2] << 16);
+  if (chunk === 'VP8X' && b.length >= 30)
+    return { width: u24le(24) + 1, height: u24le(27) + 1 };
+  if (
+    chunk === 'VP8 ' &&
+    b.length >= 30 &&
+    startsWith(b.subarray(23), 0x9d, 0x01, 0x2a)
+  )
+    return { width: u16le(b, 26) & 0x3fff, height: u16le(b, 28) & 0x3fff };
+  if (chunk === 'VP8L' && b.length >= 25 && b[20] === 0x2f)
+    return {
+      width: 1 + (b[21] | ((b[22] & 0x3f) << 8)),
+      height: 1 + ((b[22] >> 6) | (b[23] << 2) | ((b[24] & 0x0f) << 10)),
+    };
+  return null;
+}
+
+/**
  * The format and pixel size of an image from its first bytes, read the way each format
  * lays out its header — never the extension, which is what a server misconfigures. Null
  * for bytes that are no format it knows. The size is null where the format puts it out
- * of reach of a header (TIFF, PPM, WebP, AVIF, SVG): only what is certain is said.
+ * of reach of a header (TIFF, PPM, AVIF, SVG): only what is certain is said.
  */
 export function readImageHeader(bytes: Uint8Array): IImageHeader | null {
   const b = bytes;
@@ -83,8 +108,14 @@ export function readImageHeader(bytes: Uint8Array): IImageHeader | null {
     .decode(b.slice(0, 512))
     .trimStart()
     .toLowerCase();
-  if (startsWith(b, 0x52, 0x49, 0x46, 0x46) && text.slice(8, 12) === 'webp')
-    return { format: 'webp', width: null, height: null };
+  if (startsWith(b, 0x52, 0x49, 0x46, 0x46) && text.slice(8, 12) === 'webp') {
+    const size = webpSize(b);
+    return {
+      format: 'webp',
+      width: size?.width ?? null,
+      height: size?.height ?? null,
+    };
+  }
   if (text.slice(4, 12).startsWith('ftypavi'))
     return { format: 'avif', width: null, height: null };
   if (/^(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*<svg/.test(text))

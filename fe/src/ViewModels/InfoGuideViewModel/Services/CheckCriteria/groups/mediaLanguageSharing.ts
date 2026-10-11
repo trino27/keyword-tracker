@@ -243,7 +243,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 			bad: '<meta property="og:image" content="https://example.com/img/local-seo-300x169.jpg">\n<!-- the file itself is 300 × 169 px -->',
 			lang: "html",
 		},
-		howChecked: `During the crawl the tracker downloads the start of the page's own image — og:image, else the first image of its article markup — and reads the width from the file's header, not from the size the page declares. It fails below ${thousands(C.PREVIEW_IMAGE_TOO_SMALL.min)} px. It is not judged when the page names no image, the file could not be read (or robots.txt forbids it), or the image is the site logo (PREVIEW_IMAGE_IS_LOGO reports that).`,
+		howChecked: `During the crawl the tracker downloads the start of the page's own image — og:image, else the first image of its article markup — and reads the width from the file's header — PNG, JPEG, GIF, WebP, BMP or ICO; an AVIF, SVG or TIFF is not measured — not from the size the page declares. It fails below ${thousands(C.PREVIEW_IMAGE_TOO_SMALL.min)} px. It is not judged when the page names no image, the file could not be read (or robots.txt forbids it), or the image is the site logo (PREVIEW_IMAGE_IS_LOGO reports that).`,
 		manualCheck: [
 			"Press Ctrl+U, search for og:image and open that image URL in a new tab.",
 			"Right-click the image → Inspect, or hover the src in DevTools, to see its natural width.",

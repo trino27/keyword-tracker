@@ -61,6 +61,46 @@ describe('readImageHeader', () => {
     });
   });
 
+  /**
+   * The first 30 bytes of Google's own WebP gallery samples, fetched 2026-10-11: lossy
+   * gallery/1.webp is 550×368, lossless and extended gallery3/1_webp_ll and _a 400×301.
+   */
+  it.each([
+    [
+      'lossy VP8',
+      [
+        82, 73, 70, 70, 104, 118, 0, 0, 87, 69, 66, 80, 86, 80, 56, 32, 92, 118,
+        0, 0, 210, 190, 1, 157, 1, 42, 38, 2, 112, 1,
+      ],
+      550,
+      368,
+    ],
+    [
+      'lossless VP8L',
+      [
+        82, 73, 70, 70, 164, 63, 1, 0, 87, 69, 66, 80, 86, 80, 56, 76, 152, 63,
+        1, 0, 47, 143, 1, 75, 16, 77, 72, 108, 219, 72,
+      ],
+      400,
+      301,
+    ],
+    [
+      'extended VP8X',
+      [
+        82, 73, 70, 70, 206, 70, 0, 0, 87, 69, 66, 80, 86, 80, 56, 88, 10, 0, 0,
+        0, 16, 0, 0, 0, 143, 1, 0, 44, 1, 0,
+      ],
+      400,
+      301,
+    ],
+  ])('reads the size of a %s WebP', (_, bytes, width, height) => {
+    expect(readImageHeader(new Uint8Array(bytes))).toEqual({
+      format: 'webp',
+      width,
+      height,
+    });
+  });
+
   it('says nothing of bytes it does not know', () => {
     expect(readImageHeader(text('hello'))).toBeNull();
     expect(readImageHeader(new Uint8Array())).toBeNull();
