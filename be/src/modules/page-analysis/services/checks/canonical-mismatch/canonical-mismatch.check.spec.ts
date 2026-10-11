@@ -26,6 +26,15 @@ describe('CANONICAL_MISMATCH', () => {
     );
   });
 
+  // The page's own http:// twin is CANONICAL_TO_HTTP's finding, not a second one here.
+  it("is not applicable to the page's http twin — CANONICAL_TO_HTTP's", () => {
+    expect(
+      CANONICAL_MISMATCH_CHECK.evaluate(
+        makeCheckInput({ parsed: { canonicals: ['http://a.example/post/'] } }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
   it('cannot be judged without a canonical', () => {
     expect(
       CANONICAL_MISMATCH_CHECK.evaluate(

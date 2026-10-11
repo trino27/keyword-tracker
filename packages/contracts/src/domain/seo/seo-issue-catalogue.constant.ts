@@ -572,9 +572,10 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'The page names another URL as canonical, so this one may not be indexed.',
     explanation:
-      'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the HTTP or the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal.',
+      'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal. A canonical that is this very page over http:// is reported as CANONICAL_TO_HTTP instead.',
     sources: [SOURCE.canonical, SOURCE.sitemaps],
-    skipReason: 'No canonical to disagree with.',
+    skipReason:
+      'No canonical to disagree with, or it is the page over http:// (CANONICAL_TO_HTTP).',
   },
   CANONICAL_TO_HTTP: {
     // A warning: the page asks Google to prefer the insecure copy of itself, against
@@ -589,9 +590,10 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'Make the canonical URL of an HTTPS page an https:// address.',
     explanation:
-      'The page is served over HTTPS, but the canonical it declares — in <head>, or in the Link header when the head has none — starts with http://. Google prefers HTTPS pages over equivalent HTTP pages as canonical, and a canonical that names the HTTP copy is a signal against that preference: Google may follow it, or weigh it against the redirects and sitemap and pick either. The cause is almost always a site address set to http:// in the CMS or SEO plugin, which every page then repeats. A page served over HTTP is not judged here; NOT_HTTPS reports it.',
+      'The page is served over HTTPS, but the canonical it declares — in <head>, or in the Link header when the head has none — is the same address over http://. Google prefers HTTPS pages over equivalent HTTP pages as canonical, and a canonical that names the HTTP copy is a signal against that preference: Google may follow it, or weigh it against the redirects and sitemap and pick either. The cause is almost always a site address set to http:// in the CMS or SEO plugin, which every page then repeats. A page served over HTTP is not judged here; NOT_HTTPS reports it. An http:// canonical naming a different page is reported as CANONICAL_MISMATCH instead.',
     sources: [SOURCE.canonical, SOURCE.httpsSignal],
-    skipReason: 'No canonical declared, or the page is not served over HTTPS.',
+    skipReason:
+      'No canonical declared, the page is not served over HTTPS, or the http:// canonical names another page (CANONICAL_MISMATCH).',
   },
   CANONICAL_CONFLICT: {
     // A warning: conflicting canonicals leave the page where CANONICAL_MISSING would — a
@@ -1055,9 +1057,10 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'Set og:url to the canonical URL of the page.',
     explanation:
-      "The page's og:url names a different document from its canonical URL — or, when it declares no canonical, from the address it was served at; a trailing slash is not counted as a difference. The Open Graph protocol defines og:url as the canonical URL of the object, the permanent ID social platforms use to collect its likes and shares. When it disagrees with the canonical, shares and search results describe two addresses for one post. It does not affect Google rankings. The usual cause is a theme that writes og:url from the request address, with tracking parameters or a different host.",
+      "The page's og:url names a different document from its canonical URL — or, when it declares no canonical, from the address it was served at; a trailing slash is not counted as a difference. The Open Graph protocol defines og:url as the canonical URL of the object, the permanent ID social platforms use to collect its likes and shares. When it disagrees with the canonical, shares and search results describe two addresses for one post. It does not affect Google rankings. The usual cause is a theme that writes og:url from the request address, with tracking parameters or a different host. An og:url on a staging or preview host is reported as DEVELOPMENT_HOST_REFERENCES instead.",
     sources: [SOURCE.openGraph, SOURCE.canonical],
-    skipReason: 'The page declares no og:url.',
+    skipReason:
+      'The page declares no og:url, or it names a development host (DEVELOPMENT_HOST_REFERENCES).',
   },
   PREVIEW_IMAGE_TOO_SMALL: {
     owner: 'crawl',

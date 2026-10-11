@@ -24,6 +24,15 @@ describe('CANONICAL_TO_HTTP', () => {
     ).toEqual(failsWith({ source: 'header' }));
   });
 
+  // One fact, one finding: an http canonical naming ANOTHER page is CANONICAL_MISMATCH's.
+  it("is not applicable to an http canonical naming another page — CANONICAL_MISMATCH's", () => {
+    expect(
+      CANONICAL_TO_HTTP_CHECK.evaluate(
+        makeCheckInput({ parsed: { canonicals: ['http://a.example/other/'] } }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
   it('passes an https canonical', () => {
     expect(CANONICAL_TO_HTTP_CHECK.evaluate(makeCheckInput())).toEqual(PASSES);
   });

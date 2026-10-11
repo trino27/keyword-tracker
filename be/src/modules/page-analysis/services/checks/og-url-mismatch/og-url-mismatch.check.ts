@@ -1,4 +1,5 @@
 import { declaredCanonicals } from '../_shared/declared-canonicals';
+import { isDevelopmentHost } from '../_shared/development-host';
 import { attribute, evidence } from '../_shared/evidence';
 import { sameDocument } from '../_shared/same-document';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
@@ -18,6 +19,11 @@ export const OG_URL_MISMATCH_CHECK = defineCheck('OG_URL_MISMATCH', (page) => {
   } catch {
     return NOT_APPLICABLE;
   }
+  // A staging or preview og:url is DEVELOPMENT_HOST_REFERENCES's finding (plan D36).
+  if (
+    isDevelopmentHost(new URL(ogUrl).hostname, new URL(page.finalUrl).hostname)
+  )
+    return NOT_APPLICABLE;
   const expected = declaredCanonicals(page)[0]?.url ?? page.finalUrl;
   return sameDocument(ogUrl, expected)
     ? PASS

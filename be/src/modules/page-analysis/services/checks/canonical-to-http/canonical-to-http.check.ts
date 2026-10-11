@@ -3,16 +3,14 @@ import {
   quoteCanonical,
 } from '../_shared/declared-canonicals';
 import { evidence } from '../_shared/evidence';
+import { isHttpTwin } from '../_shared/http-twin';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
  * A page served over HTTPS whose canonical — the first it declares, `<head>` before
- * header — names a plain-HTTP address. A page served over HTTP is NOT_HTTPS's to report:
- * there an http canonical only agrees with the page.
- *
- * It fires beside CANONICAL_MISMATCH on the same tag, and both statements are true: one
- * says the canonical names another address, this one that the address is insecure (plan
- * O4).
+ * header — is its own address over plain HTTP. One fact, one finding (plan D32): for that
+ * twin CANONICAL_MISMATCH steps aside, and an http canonical naming ANOTHER page is
+ * CANONICAL_MISMATCH's alone. A page served over HTTP is NOT_HTTPS's to report.
  */
 export const CANONICAL_TO_HTTP_CHECK = defineCheck(
   'CANONICAL_TO_HTTP',
@@ -20,14 +18,9 @@ export const CANONICAL_TO_HTTP_CHECK = defineCheck(
     const [first] = declaredCanonicals(page);
     if (!first || new URL(page.finalUrl).protocol !== 'https:')
       return NOT_APPLICABLE;
-    let protocol: string;
-    try {
-      protocol = new URL(first.url).protocol;
-    } catch {
-      return NOT_APPLICABLE;
-    }
-    return protocol !== 'http:'
-      ? PASS
+    if (!first.url.toLowerCase().startsWith('http:')) return PASS;
+    return !isHttpTwin(first.url, page.finalUrl)
+      ? NOT_APPLICABLE
       : fails({
           canonical: first.url,
           source: first.source,

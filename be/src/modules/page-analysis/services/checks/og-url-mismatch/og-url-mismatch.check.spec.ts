@@ -62,6 +62,16 @@ describe('OG_URL_MISMATCH', () => {
     ).toEqual(PASSES);
   });
 
+  it("is not applicable to a staging og:url — DEVELOPMENT_HOST_REFERENCES's", () => {
+    expect(
+      OG_URL_MISMATCH_CHECK.evaluate(
+        makeCheckInput({
+          parsed: { openGraph: og('https://staging.a.example/post/') },
+        }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
   it('is not applicable without og:url', () => {
     expect(
       OG_URL_MISMATCH_CHECK.evaluate(

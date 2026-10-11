@@ -96,7 +96,8 @@ describe('evaluateChecks', () => {
 
   it('does not count against a page a check that could not be judged', () => {
     // No title: TITLE_LENGTH has nothing to measure, TITLE_SCRIPT_MISMATCH no script to
-    // read, and META_DESCRIPTION_REPEATS_TITLE and TITLE_DUPLICATE nothing to compare.
+    // read nor year to date, and META_DESCRIPTION_REPEATS_TITLE and TITLE_DUPLICATE
+    // nothing to compare.
     // Passing any would reward the page for the very thing TITLE_MISSING is failing it for.
     const run = twoUnrelatedPages();
     const { issues, checksApplicable, checksFailed, checksNotApplicable } =
@@ -107,7 +108,7 @@ describe('evaluateChecks', () => {
         ),
       )[0];
 
-    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 4);
+    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 5);
     expect(issues.map(({ code }) => code)).toEqual(['TITLE_MISSING']);
     expect(checksFailed).toBe(1);
     // Named, not counted: the screen quotes this code's reason back to the reader, so
@@ -317,7 +318,12 @@ describe('evaluateChecks', () => {
           blocks: sameText,
           metaRefresh: '0; url=/elsewhere/',
           viewport: null,
-          canonicals: ['http://a.example/x/', 'https://a.example/y/'],
+          // Two canonicals that disagree; on `a` the first is the page's own http://
+          // twin (CANONICAL_TO_HTTP), on `b` another page (CANONICAL_MISMATCH).
+          canonicals: [
+            path === 'a' ? 'http://a.example/a/' : 'https://a.example/x/',
+            'https://a.example/y/',
+          ],
           alternates: [{ lang: 'english', href: 'https://a.example/en/' }],
           openGraph: { 'og:url': 'https://staging.a.example/post/' },
           jsonLd: { types: [], keywords: [], articleFields: [] },
@@ -345,7 +351,10 @@ describe('evaluateChecks', () => {
             { level: 1, text: 'One' },
             { level: 3, text: 'Three' },
           ],
-          images: [makeImage({ src: 'IMG_1234.heic', alt: null })],
+          images: [
+            makeImage({ src: 'IMG_1234.jpg', alt: null }),
+            makeImage({ src: null, srcset: 'b-800.jpg 800w' }),
+          ],
           resourceUrls: ['http://a.example/i.png'],
           renderResources: ['https://a.example/app.js'],
           links: ['http://a.example/other/?utm_source=x'],
@@ -371,6 +380,11 @@ describe('evaluateChecks', () => {
         links: [],
         jsonLd: { types: ['Article'], keywords: [], articleFields: [] },
         breadcrumbs: [],
+        // Not the page's address, and not a staging host either.
+        openGraph: {
+          ...makeCheckInput().parsed.openGraph,
+          'og:url': 'http://a.example/elsewhere/',
+        },
         // A time with no zone, and an author written as a bare string.
         datePublished: '2026-10-03T09:00:00',
         articleMarkup: {
