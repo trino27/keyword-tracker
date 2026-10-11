@@ -102,7 +102,7 @@ const RESOURCE_ATTRIBUTES: readonly [string, string][] = [
   ['img[srcset], source[srcset]', 'srcset'],
   ['img[data-src]', 'data-src'],
   ['script[src]', 'src'],
-  ['link[rel~="stylesheet"][href]', 'href'],
+  ['link[rel~="stylesheet" i][href]', 'href'],
   ['iframe[src], frame[src], embed[src]', 'src'],
   ['video[src], audio[src], source[src], track[src]', 'src'],
   ['object[data]', 'data'],

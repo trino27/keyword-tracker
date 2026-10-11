@@ -566,7 +566,7 @@ describe('extractPage', () => {
         '<img data-src="http://a.example/lazy.png" src="/placeholder.gif">' +
         '</main>',
       '<script src="http://cdn.example/t.js"></script>' +
-        '<link rel="stylesheet" href="/site.css">',
+        '<link rel="Stylesheet" href="/site.css">',
     );
 
     expect([...parsed.resourceUrls].sort()).toEqual([

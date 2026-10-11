@@ -1,4 +1,4 @@
-import { evidence } from '../_shared/evidence';
+import { attribute, evidence } from '../_shared/evidence';
 import { titleSegments } from '../_shared/title-without-brand';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
@@ -33,7 +33,7 @@ export const META_DESCRIPTION_REPEATS_TITLE_CHECK = defineCheck(
           description: metaDescription,
           evidence: evidence([
             `<title>${title}</title>`,
-            `<meta name="description" content="${metaDescription}">`,
+            `<meta name="description" content="${attribute(metaDescription)}">`,
           ]),
         });
   },
