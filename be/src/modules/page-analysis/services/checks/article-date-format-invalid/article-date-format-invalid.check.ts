@@ -14,7 +14,8 @@ function problemOf(value: string): string | null {
   if (!date || Number.isNaN(Date.parse(`${date}T00:00:00Z`)))
     return 'not an ISO 8601 date';
   const time = DATE_TIME.exec(value);
-  if (time && !time[3]) return 'a time of day with no time zone';
+  if (time && !time[3])
+    return "a time of day with no time zone — valid ISO 8601, but Google then reads it in Googlebot's own zone";
   return null;
 }
 

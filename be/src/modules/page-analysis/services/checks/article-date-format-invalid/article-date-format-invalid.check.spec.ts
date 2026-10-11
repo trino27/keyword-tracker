@@ -33,7 +33,10 @@ describe('ARTICLE_DATE_FORMAT_INVALID', () => {
     ['03/10/2026', 'not an ISO 8601 date'],
     ['2026-13-45', 'not an ISO 8601 date'],
     ['2026-10-03 09:00:00', 'not an ISO 8601 date'],
-    ['2026-10-03T09:00:00', 'a time of day with no time zone'],
+    [
+      '2026-10-03T09:00:00',
+      "a time of day with no time zone — valid ISO 8601, but Google then reads it in Googlebot's own zone",
+    ],
   ])('fails %s: %s', (date, problem) => {
     const result = verdict(date);
     expect(result).toEqual(failsWith({ fields: ['datePublished'] }));

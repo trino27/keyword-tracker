@@ -153,7 +153,7 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 	},
 	BFCACHE_BLOCKED_BY_NO_STORE: {
 		passes: "The page is not served with Cache-Control: no-store.",
-		fails: "The page is served with Cache-Control: no-store, so Back reloads it instead of restoring it.",
+		fails: "The page is served with Cache-Control: no-store, so Back may reload it instead of restoring it — in Safari and Firefox, and in Chrome when cookies changed meanwhile.",
 		ifPasses:
 			"Browsers can keep the page in the back/forward cache, so a reader who taps Back returns to it instantly instead of waiting for it to load again.",
 		example: {

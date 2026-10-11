@@ -417,7 +417,7 @@ export function SignalsInDepth() {
 						at once.
 					</List.Item>
 				</List>
-				<CheckedHere checks="Structured data that cannot be read, No article structured data, Article markup is missing recommended fields, Author markup is incomplete, Article dates are not in ISO 8601, Article headline does not match the page, Dates contradict each other, No breadcrumb markup, Breadcrumb markup is missing required fields, No site name declared (site)." />
+				<CheckedHere checks="Structured data that cannot be read, No article structured data, Article markup is missing recommended fields, Author markup is incomplete, Article dates are not in the format Google asks for, Article headline does not match the page, Dates contradict each other, No breadcrumb markup, Breadcrumb markup is missing required fields, No site name declared (site)." />
 			</GuideSection>
 		</>
 	);

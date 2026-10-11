@@ -822,10 +822,10 @@ export const CRAWL_CATALOGUE = {
     passLabel: 'Enough content',
     plain: {
       what: 'This page has very little text',
-      why: 'Under 300 words a post is often a stub or teaser that does not fully answer a search, which makes it harder to rank. Google has no minimum word count, so a short page that answers the question fully is fine.',
+      why: "Under 300 words a post is often a stub or teaser that does not fully answer a search. Length itself does not affect ranking — Google says it has no minimum word count — so a short page that answers the question fully is fine; one that doesn't is less useful than the pages beside it in results.",
       fix: 'The writer can reread the page and add what a searcher still needs, or the editor can merge it into a fuller related post.',
     },
-    hint: 'Posts under 300 words rarely answer a query well enough to rank.',
+    hint: 'Posts under 300 words are often stubs or teasers; check this one fully answers its question.',
     explanation:
       "Google says plainly that it has no preferred word count, and a short page that fully answers its question is fine. The 300-word line is an audit heuristic, not a Google rule: below it a blog post is more often a stub, a teaser for another page or a placeholder than a complete answer, and Google's guidance asks whether a page provides substantial, complete value compared with others on the topic. Read the page and decide whether it says everything a searcher needs.",
     sources: [SOURCE.helpfulContent],
@@ -1215,7 +1215,7 @@ export const CRAWL_CATALOGUE = {
     passLabel: 'HTML size is reasonable',
     plain: {
       what: "This page's code is unusually large to download",
-      why: 'Google reads only the first 2 MB of a page and never indexes the rest; this page is past 1 MB, so there is still room to act. The same weight slows the page for visitors on mobile connections.',
+      why: 'Google reads only the first 2 MB of a page and never indexes the rest; this page is past 1 MB — the finding says whether it is already past 2 MB. The same weight slows the page for visitors on mobile connections.',
       fix: "Ask your developer to move large embedded data, images or graphics out of the page's code, so the text comes first and the page downloads faster.",
     },
     hint: 'HTML over 1 MB is slow to download and parse; Googlebot reads only the first 2 MB.',
@@ -1274,13 +1274,13 @@ export const CRAWL_CATALOGUE = {
       'Cache-Control: no-store keeps the page out of the back/forward cache',
     passLabel: 'Page can use the back/forward cache',
     plain: {
-      what: 'Going back to this page likely reloads it instead of showing it instantly',
-      why: "A server setting meant for private data likely stops browsers from keeping the page ready for the Back button, so it reloads from scratch. This is read from the server's answer, not measured; on phones, Back is one of the most common moves.",
+      what: 'Going back to this page may reload it instead of showing it instantly',
+      why: "A server setting meant for private data can stop browsers from keeping the page ready for the Back button, so it reloads from scratch. Chrome now keeps such pages unless cookies change; Safari and Firefox may not. This is read from the server's answer, not measured; on phones, Back is one of the most common moves.",
       fix: 'Ask your developer or hosting provider to drop the "no-store" caching setting for public pages and keep it only for pages with personal data.',
     },
     hint: 'Serve public pages without no-store; keep it for responses that carry personal data.',
     explanation:
-      'The page is served with Cache-Control: no-store. Browsers have historically refused to keep such pages in the back/forward cache, so pressing Back reloads the page from the network instead of restoring it instantly — and on mobile, Back is one of the most common navigations. no-store is meant for responses with sensitive data; a public blog post has none.',
+      'The page is served with Cache-Control: no-store. Browsers have historically refused to keep such pages in the back/forward cache, so pressing Back reloads the page from the network instead of restoring it instantly — and on mobile, Back is one of the most common navigations. Since spring 2025 Chrome restores no-store pages too, unless cookies or other sign-in state changed while the reader was away; other browsers may still refuse them. no-store is meant for responses with sensitive data; a public blog post has none.',
     sources: [SOURCE.bfcache],
   },
   DOM_SIZE_LARGE: {
@@ -1467,8 +1467,8 @@ export const CRAWL_CATALOGUE = {
   },
   ARTICLE_DATE_FORMAT_INVALID: {
     severity: 'notice',
-    label: 'Article dates are not in ISO 8601',
-    passLabel: 'Article dates are in ISO 8601',
+    label: 'Article dates are not in the format Google asks for',
+    passLabel: 'Article dates are in the format Google asks for',
     plain: {
       what: 'The publish or update date in the article details is in a format Google may misread',
       why: 'Google reads these dates to show when a post was published. A date written like October 3, 2026, or a time without its time zone, can be misread or shifted by hours, so results may show the wrong day.',
@@ -1476,7 +1476,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Write datePublished and dateModified in ISO 8601, with a time zone wherever a time is given.',
     explanation:
-      "Google's Article guidance asks for datePublished and dateModified in ISO 8601 format with timezone information, and notes that without a time zone it reads the time in Googlebot's own. The check reads the dates the page declares — in its article markup, JSON-LD or Microdata, or its article:published_time and article:modified_time — and reports one that is not ISO 8601 at all — 03/10/2026, October 3, 2026 — and one that gives a time of day without an offset or Z. A date with no time (2026-10-03) passes: Google's byline guidance says the date is required and the time is not.",
+      "Google's Article guidance asks for datePublished and dateModified in ISO 8601 format with timezone information, and notes that without a time zone it reads the time in Googlebot's own. The check reads the dates the page declares — in its article markup, JSON-LD or Microdata, or its article:published_time and article:modified_time — and reports one that is not ISO 8601 at all — 03/10/2026, October 3, 2026 — and one that gives a time of day without an offset or Z, which is valid ISO 8601 but which Google then reads in Googlebot's own time zone, so the day it shows can shift. A date with no time (2026-10-03) passes: Google's byline guidance says the date is required and the time is not.",
     sources: [SOURCE.articleMarkup, SOURCE.bylineDates],
     skipReason: 'The page declares no publication or modification date.',
   },
