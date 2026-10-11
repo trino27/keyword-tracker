@@ -98,6 +98,10 @@ export function GuideNav({
 										GUIDE_SECTIONS.lighthouseOverview.id,
 										GUIDE_SECTIONS.lighthouseOverview.label,
 									),
+									link(
+										GUIDE_SECTIONS.accessibilitySeo.id,
+										GUIDE_SECTIONS.accessibilitySeo.label,
+									),
 								]
 							: []),
 						...lighthouse.map((topic) => topicLink(topic)),

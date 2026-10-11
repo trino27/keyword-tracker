@@ -34,6 +34,7 @@ export const GUIDE_SECTIONS = {
 	cls: { id: "cls", label: "CLS — visual stability" },
 	speedHere: { id: "speed-measurement", label: "How speed is measured here" },
 	lighthouseOverview: { id: "lighthouse-overview", label: "Lighthouse and our crawl" },
+	accessibilitySeo: { id: "accessibility-seo", label: "Does accessibility affect SEO?" },
 	keywordResearch: { id: "keyword-research", label: "Keyword research and intent" },
 	links: { id: "backlinks", label: "Backlinks and authority" },
 	eeat: { id: "eeat", label: "E-E-A-T and trust" },

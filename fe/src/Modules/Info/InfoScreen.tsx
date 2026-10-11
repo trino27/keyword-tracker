@@ -6,6 +6,7 @@ import { useEffect, useEffectEvent, useMemo } from "react";
 import { EmptyState } from "@Modules/_Shared/EmptyState/EmptyState";
 import { PageHeader } from "@Modules/_Shared/PageHeader/PageHeader";
 import { guideViewOf } from "@ViewModels/InfoGuideViewModel/Services/GuideViewOf/guideViewOf";
+import { AccessibilityAndSeo } from "./Articles/AccessibilityAndSeo";
 import { BeyondTracker } from "./Articles/BeyondTracker";
 import { CoreWebVitalsGuide } from "./Articles/CoreWebVitalsGuide";
 import { HowPagesAreJudged } from "./Articles/HowPagesAreJudged";
@@ -82,6 +83,7 @@ export function InfoScreen() {
 								lead="Google Lighthouse's own SEO and accessibility audits, grouped by what they examine — and, where we check the same thing, how the two readings differ."
 							>
 								<LighthouseOverview />
+								<AccessibilityAndSeo />
 								<CheckReference topics={view.lighthouse} expanded={false} />
 							</GuidePart>
 							<BeyondTracker />
