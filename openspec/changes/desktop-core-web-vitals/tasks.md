@@ -358,8 +358,11 @@ switches in group 4.
 
 ## 6. Change acceptance
 
-- [ ] 6.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db && docker compose up
+- [x] 6.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db && docker compose up
   -d --build && curl -fsS http://localhost:8080/api/health`.
+  Done: the full run at 2a5a6ac (lint, typecheck, contracts 789, be 1329, fe 444, db/e2e 225),
+  the last code change of this change. After it, `docker compose up -d --build` and
+  `/api/health` answered ok.
 - [ ] 6.2 Archive and deposit belong to plan phase 6. Fold the MODIFIED blocks
   (SPEED-001/002/005/007/014, PAGES-014, SEED-006, PAGEDETAIL-011) by hand. Deposit SPEED-020
   into `PAGE_SPEED_MODULE.md`, and update the deposit lines of the modified ids whose pinning
