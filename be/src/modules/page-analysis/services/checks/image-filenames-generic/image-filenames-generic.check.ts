@@ -6,9 +6,13 @@ import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
  * Names a camera, a phone or a screenshot tool gives a file by default: IMG_1234,
  * DSC01234, DSCN, DSCF, PXL_20260101_…, MVIMG, GOPR, DJI_, a WhatsApp image, a
  * screenshot with its date. A name only a person could have chosen never matches.
+ *
+ * The screenshot tail is a run of parts — a number, at, в, am, pm, a "(2)" — each after
+ * its separator, and every part starts with its own character, so a name that does not
+ * match fails in linear time: a crawled site chooses its file names.
  */
 const DEVICE_DEFAULT =
-  /^(?:img|dsc[nf]?|pxl|mvimg|gopr|dji|sam)[-_ ]?\d{3,}(?:[-_ ]\d+)*(?:[-_ ]?(?:\(\d+\)|copy|edited|scaled))*$|^(?:whatsapp[-_ ]image|screenshot|screen[-_ ]?shot|снимок[-_ ]экрана)(?:[-_ ][\d.-]+)*(?:[-_ ]?(?:at|в)?[-_ ][\d.-]+)*(?:[-_ ]?(?:am|pm))?(?:[-_ ]?\(\d+\))?$/i;
+  /^(?:img|dsc[nf]?|pxl|mvimg|gopr|dji|sam)[-_ ]?\d{3,}(?:[-_ ]\d+)*(?:[-_ ]?(?:\(\d+\)|copy|edited|scaled))*$|^(?:whatsapp[-_ ]image|screenshot|screen[-_ ]?shot|снимок[-_ ]экрана)(?:[-_ ]+(?:\d[\d.]*|at|в|am|pm)|[-_ ]*\(\d+\))*$/i;
 
 /**
  * Placeholders: image1, photo, untitled-3, download (50). A bare number is not one, for

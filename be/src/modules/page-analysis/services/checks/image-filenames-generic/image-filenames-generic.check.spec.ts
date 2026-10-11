@@ -48,6 +48,21 @@ describe('IMAGE_FILENAMES_GENERIC', () => {
     expect(verdict(src)).toEqual(failsWith({ count: 1, total: 1 }));
   });
 
+  it.each([
+    'Screenshot 2026-10-11 at 9.54.58 PM.png',
+    'screenshot_2026-10-11 (2).png',
+    'WhatsApp-Image-2026-01-05-at-10.15.32.jpeg',
+  ])('fails the screenshot %s', (src) => {
+    expect(verdict(src)).toEqual(failsWith({ count: 1, total: 1 }));
+  });
+
+  it('refuses a long name that is not a screenshot in linear time', () => {
+    // Nested repeats over a class holding '-' once took ~25 s for 26 segments.
+    const started = Date.now();
+    expect(verdict(`screenshot${'-1'.repeat(5000)}x.png`)).toEqual(PASSES);
+    expect(Date.now() - started).toBeLessThan(200);
+  });
+
   it('quotes the image and its file name', () => {
     expect(evidenceOf(verdict('/u/IMG_1234.jpg', 'kitten.jpg'))).toEqual([
       '<img src="/u/IMG_1234.jpg"> — IMG_1234.jpg',
