@@ -1,6 +1,6 @@
 import { MantineProvider } from "@mantine/core";
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createAppRouter } from "@App/Router/router";
 import { ClientGateway } from "@Gateways/ClientGateway/ClientGateway";
@@ -138,16 +138,48 @@ describe("IssuesScreen", () => {
 		expect(await screen.findByText(/Google rejected the PageSpeed key/)).toBeInTheDocument();
 	});
 
-	it("opens the first client when none is in the URL", async () => {
-		const get = vi
-			.spyOn(IssueReportGateway.prototype, "get")
-			.mockResolvedValue({ kind: "report", report: REPORT });
+	it("with no client chosen, shows every client under its own name, by name", async () => {
+		vi.spyOn(ClientGateway.prototype, "list").mockResolvedValue([
+			CLIENT,
+			{ id: 8, name: "Ahrefs" } as TClient,
+		]);
+		const get = vi.spyOn(IssueReportGateway.prototype, "get").mockImplementation((clientId) =>
+			Promise.resolve(
+				clientId === 7
+					? { kind: "report", report: REPORT }
+					: {
+							kind: "report",
+							report: { ...REPORT, client: { id: 8, name: "Ahrefs" }, issues: [] },
+						},
+			),
+		);
 
 		const router = await renderAt("/issues");
 
-		await screen.findByText("This page has no title for search results");
+		const yoast = await screen.findByRole("region", { name: "Yoast" });
+		await within(yoast).findByText("This page has no title for search results");
+		const ahrefs = screen.getByRole("region", { name: "Ahrefs" });
+		expect(within(ahrefs).getByText("No issues on the latest crawl.")).toBeInTheDocument();
+		// Sections follow the clients' names.
+		expect(
+			screen.getAllByRole("region").map((section) => section.getAttribute("aria-label")),
+		).toEqual(["Ahrefs", "Yoast"]);
 		expect(get).toHaveBeenCalledWith(7);
-		expect(router.state.location.search).toMatchObject({ clientId: 7 });
+		expect(get).toHaveBeenCalledWith(8);
+		expect(router.state.location.search.clientId).toBeUndefined();
+	});
+
+	it("a client's name narrows the report to that client", async () => {
+		vi.spyOn(IssueReportGateway.prototype, "get").mockResolvedValue({
+			kind: "report",
+			report: REPORT,
+		});
+		const router = await renderAt("/issues");
+
+		fireEvent.click(await screen.findByRole("button", { name: "Yoast" }));
+
+		await waitFor(() => expect(router.state.location.search).toMatchObject({ clientId: 7 }));
+		expect(screen.queryByRole("region", { name: "Yoast" })).not.toBeInTheDocument();
 	});
 
 	it("says another user's or a deleted client was not found", async () => {

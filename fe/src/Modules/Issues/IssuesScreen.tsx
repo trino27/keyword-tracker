@@ -1,36 +1,32 @@
-import { Alert, Button, Group, Select, Skeleton, Stack, Text } from "@mantine/core";
+import { Alert, Select, Skeleton, Stack, Text } from "@mantine/core";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import {
-	IconBuildingStore,
-	IconCircleCheck,
-	IconFilterOff,
-	IconHourglass,
-	IconInfoCircle,
-} from "@tabler/icons-react";
+import { IconBuildingStore, IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useMemo } from "react";
-import type { TIssuesSearch } from "@App/Router/SearchSchemas/IssuesSearchSchema/issuesSearchSchema";
+import {
+	DEFAULT_LEVELS,
+	type TIssuesSearch,
+} from "@App/Router/SearchSchemas/IssuesSearchSchema/issuesSearchSchema";
 import { pageSpeedAvailabilityCopy } from "@Core/Constants/pageSpeedAvailabilityCopy";
-import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
 import { EmptyState } from "@Modules/_Shared/EmptyState/EmptyState";
-import { NotFound } from "@Modules/_Shared/NotFound/NotFound";
 import { PageHeader } from "@Modules/_Shared/PageHeader/PageHeader";
 import { ButtonLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import { useClientsViewModel } from "@ViewModels/ClientsViewModel/ClientsViewModel";
-import { useIssueReportViewModel } from "@ViewModels/IssueReportViewModel/IssueReportViewModel";
+import {
+	PENDING_REPORT,
+	useIssueReportViewModel,
+} from "@ViewModels/IssueReportViewModel/IssueReportViewModel";
 import { useScreenFiltersViewModel } from "@ViewModels/ScreenFiltersViewModel/ScreenFiltersViewModel";
-import { filterReport } from "@ViewModels/IssueReportViewModel/Services/FilterReport/filterReport";
-import { reportViewOf } from "@ViewModels/IssueReportViewModel/Services/ReportViewOf/reportViewOf";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
+import { ClientIssues } from "./ClientIssues/ClientIssues";
 import { IssueFilters } from "./IssueFilters/IssueFilters";
-import { IssuesByIssue } from "./IssuesByIssue/IssuesByIssue";
-import { IssuesByPage } from "./IssuesByPage/IssuesByPage";
 import { SeverityRubric } from "./SeverityRubric/SeverityRubric";
 
 /**
- * Every problem the tracker knows about one client's site, on one screen: what is wrong,
- * why it costs traffic, what to do and whom to ask — worst first, by problem or by page.
- * One read per client; every filter and grouping works on it in memory.
+ * Every problem the tracker knows about a client's site — or every client's, one section
+ * each — on one screen: what is wrong, why it costs traffic, what to do and whom to ask,
+ * worst first, by problem or by page. One read per client; every filter and grouping
+ * works on it in memory.
  */
 export function IssuesScreen() {
 	const search = useSearch({ from: "/app/issues" });
@@ -42,102 +38,89 @@ export function IssuesScreen() {
 	const clientsError = useClientsViewModel((state) => state.error);
 	const fetchClients = useClientsViewModel((state) => state.fetchClients);
 
-	const vm = useIssueReportViewModel();
-	const { fetchReport } = vm;
+	const byClient = useIssueReportViewModel((state) => state.byClient);
+	const fetchReport = useIssueReportViewModel((state) => state.fetchReport);
+	const fetchReports = useIssueReportViewModel((state) => state.fetchReports);
 
 	const update = (change: Partial<TIssuesSearch>) =>
 		void navigate({ search: (previous) => ({ ...previous, ...change }), replace: true });
+	const clearFilters = () =>
+		update({ levels: DEFAULT_LEVELS, type: "all", q: undefined, pageId: undefined });
 
 	useEffect(() => {
 		if (clientsStatus === "idle") void fetchClients();
 	}, [clientsStatus, fetchClients]);
 
-	// No client in the URL: the first by name, written into the URL so it can be shared.
-	const firstClientId = useMemo(
-		() => [...clients].sort((a, b) => a.name.localeCompare(b.name))[0]?.id,
+	// "All clients" (no client in the URL) is one section per client, by name.
+	const sortedClients = useMemo(
+		() => [...clients].sort((a, b) => a.name.localeCompare(b.name)),
 		[clients],
 	);
-	useEffect(() => {
-		if (search.clientId === undefined && firstClientId !== undefined)
-			void navigate({
-				search: (previous) => ({ ...previous, clientId: firstClientId }),
-				replace: true,
-			});
-	}, [search.clientId, firstClientId, navigate]);
+	const clientIdsKey = sortedClients.map((client) => client.id).join(",");
 
 	useEffect(() => {
 		if (search.clientId !== undefined) void fetchReport(search.clientId);
-	}, [search.clientId, fetchReport]);
+		else if (clientsStatus === "ready" && clientIdsKey !== "")
+			void fetchReports(clientIdsKey.split(",").map(Number));
+	}, [search.clientId, clientsStatus, clientIdsKey, fetchReport, fetchReports]);
 
-	// Remembered once a client is chosen, so the navigation reopens the report as it was.
+	// Remembered, so the navigation reopens the report as it was.
 	const rememberIssues = useScreenFiltersViewModel((state) => state.rememberIssues);
-	useEffect(() => {
-		if (search.clientId !== undefined) rememberIssues(search);
-	}, [search, rememberIssues]);
+	useEffect(() => rememberIssues(search), [search, rememberIssues]);
 
-	const report = vm.clientId === search.clientId ? vm.report : null;
-	const filtered = useMemo(
-		() =>
-			report
-				? filterReport(report.issues, {
-						levels: search.levels,
-						type: search.type,
-						pageId: search.pageId,
-						query: search.q,
-					})
-				: [],
-		[report, search.levels, search.type, search.pageId, search.q],
-	);
-	const view = reportViewOf({
-		clientsStatus,
-		clientCount: clients.length,
-		clientsError,
-		status: vm.clientId === search.clientId ? vm.status : "loading",
-		error: vm.error,
-		report,
-		filtered,
-	});
+	const { clientId } = search;
+	const single = clientId === undefined ? null : (byClient[clientId] ?? PENDING_REPORT);
 
 	const pageTitle = useMemo(() => {
-		for (const row of report?.issues ?? [])
+		for (const row of single?.report?.issues ?? [])
 			if (row.location.kind === "page" && row.location.page.id === search.pageId)
 				return row.location.page.title ?? row.location.page.url;
 		return null;
-	}, [report, search.pageId]);
+	}, [single?.report, search.pageId]);
 
-	const speedNotice = report
-		? pageSpeedAvailabilityCopy[report.pageSpeedAvailability.state]
+	// The key is the deployment's, so any one report says what state speed is in.
+	const anyReport = single
+		? single.report
+		: (sortedClients.map((client) => byClient[client.id]?.report).find(Boolean) ?? null);
+	const speedNotice = anyReport
+		? pageSpeedAvailabilityCopy[anyReport.pageSpeedAvailability.state]
 		: null;
+
+	const clientsView =
+		clientsStatus === "error"
+			? "error"
+			: clientsStatus === "ready"
+				? clients.length === 0
+					? "noClients"
+					: "ready"
+				: "loading";
 
 	return (
 		<Stack gap="md">
 			<PageHeader
 				title="Issues"
-				description="Every problem found on a client's site, worst first, with why it matters and what to do."
+				description="Every problem found on your clients' sites, worst first, with why it matters and what to do."
 				actions={
 					<Select
 						aria-label="Client"
-						placeholder="Choose a client"
-						data={clients.map((client) => ({
+						placeholder="All clients"
+						data={sortedClients.map((client) => ({
 							value: String(client.id),
 							label: client.name,
 						}))}
 						value={search.clientId === undefined ? null : String(search.clientId)}
 						onChange={(value) =>
-							value !== null &&
-							update({ clientId: Number(value), pageId: undefined, q: undefined })
+							update({
+								clientId: value === null ? undefined : Number(value),
+								pageId: undefined,
+								q: undefined,
+							})
 						}
-						allowDeselect={false}
+						clearable
 						w={240}
 					/>
 				}
 			/>
-			{report?.generatedFrom && (
-				<Text size="sm" c="dimmed">
-					From the crawl that finished{" "}
-					{formatInZone(report.generatedFrom.finishedAt, timeZone, "dateTime")}.
-				</Text>
-			)}
 			<SeverityRubric />
 			{speedNotice ? (
 				<Alert
@@ -148,7 +131,7 @@ export function IssuesScreen() {
 					{speedNotice.notice}
 				</Alert>
 			) : (
-				report && (
+				anyReport && (
 					<Text size="xs" c="dimmed">
 						Speed figures are Google's mobile measurements; pages are re-measured at
 						most once a day.
@@ -156,24 +139,13 @@ export function IssuesScreen() {
 				)
 			)}
 			<IssueFilters search={search} pageTitle={pageTitle} onChange={update} />
-			{view.kind === "loading" && (
-				<Stack gap="sm" aria-busy="true" aria-label="Loading issues">
-					{[0, 1, 2].map((row) => (
-						<Skeleton key={row} height={120} radius="md" />
-					))}
-				</Stack>
-			)}
-			{view.kind === "error" && (
+			{clientsView === "error" && (
 				<SectionError
-					message={view.message}
-					onRetry={() =>
-						clientsStatus === "error"
-							? void fetchClients()
-							: search.clientId !== undefined && void fetchReport(search.clientId)
-					}
+					message={clientsError ?? "Could not load the clients."}
+					onRetry={() => void fetchClients()}
 				/>
 			)}
-			{view.kind === "noClients" && (
+			{clientsView === "noClients" && (
 				<EmptyState
 					icon={<IconBuildingStore size={22} />}
 					title="Add a client to see its issues"
@@ -184,61 +156,43 @@ export function IssuesScreen() {
 					}
 				/>
 			)}
-			{view.kind === "notFound" && <NotFound what="This client" />}
-			{view.kind === "noRun" && (
-				<EmptyState
-					icon={<IconHourglass size={22} />}
-					title="No crawl of this client has finished yet"
-					description="Issues appear here once its first crawl is done."
-				/>
+			{clientsView === "loading" && (
+				<Stack gap="sm" aria-busy="true" aria-label="Loading issues">
+					{[0, 1, 2].map((row) => (
+						<Skeleton key={row} height={120} radius="md" />
+					))}
+				</Stack>
 			)}
-			{view.kind === "empty" && (
-				<EmptyState
-					icon={<IconCircleCheck size={22} />}
-					title="No issues on the latest crawl"
-				/>
-			)}
-			{view.kind === "filteredEmpty" && (
-				<EmptyState
-					icon={<IconFilterOff size={22} />}
-					title="No issues match these filters"
-					action={
-						<Button
-							variant="light"
-							onClick={() =>
-								update({
-									levels: ["error", "warning", "notice"],
-									type: "all",
-									q: undefined,
-									pageId: undefined,
-								})
-							}
-						>
-							Clear filters
-						</Button>
-					}
-				/>
-			)}
-			{view.kind === "ready" && (
-				<>
-					{search.pageId !== undefined && pageTitle === null && (
-						<Group>
-							<Text size="sm" c="dimmed">
-								That page has no issues of its own here; the site-wide ones below
-								still apply to it.
-							</Text>
-						</Group>
-					)}
-					{search.group === "issue" ? (
-						<IssuesByIssue
-							issues={view.issues}
-							currentPages={view.report.currentPages}
-						/>
-					) : (
-						<IssuesByPage issues={view.issues} />
-					)}
-				</>
-			)}
+			{clientsView === "ready" &&
+				(clientId !== undefined && single ? (
+					<ClientIssues
+						entry={single}
+						search={search}
+						timeZone={timeZone}
+						pageTitle={pageTitle}
+						onRetry={() => void fetchReport(clientId)}
+						onClearFilters={clearFilters}
+					/>
+				) : (
+					<Stack gap="xl">
+						{sortedClients.map((client) => (
+							<ClientIssues
+								key={client.id}
+								section={{
+									name: client.name,
+									site: client.siteKey,
+									onShowOnly: () => update({ clientId: client.id }),
+								}}
+								entry={byClient[client.id] ?? PENDING_REPORT}
+								search={search}
+								timeZone={timeZone}
+								pageTitle={null}
+								onRetry={() => void fetchReport(client.id)}
+								onClearFilters={clearFilters}
+							/>
+						))}
+					</Stack>
+				))}
 		</Stack>
 	);
 }
