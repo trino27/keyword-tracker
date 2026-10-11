@@ -479,6 +479,28 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   BreadcrumbList lives in the Next.js payload, written by React in the browser where Google
   reads it (`scriptedSchemaTypes`; the check is not applicable to it). The same payload
   carries vercel.com's Article markup, which `STRUCTURED_DATA_MISSING` does not yet consult.
+- **Four checks that ask other pages, through the crawl's `outbound` stage (2026-10-11).**
+  The crawl asks the content links, the canonical target and the hreflang alternates for their
+  answer before analysis runs (`IOutboundFacts`), so the checks stay pure:
+  `BROKEN_LINKS` and `LINKS_TO_REDIRECTS` judge the links in the text,
+  `CANONICAL_TARGET_BROKEN` a canonical whose target redirects, answers an error, is noindexed
+  or is itself canonicalised elsewhere, and `HREFLANG_NOT_RECIPROCAL` an alternate that does not
+  name this page back. What a link's answer means is one function, `linkVerdictOf`. Inside the
+  site, any 4xx or 5xx is broken, except 401/402/403/429, which refuse the crawler rather than
+  describe the page. A redirect is its own finding. Outside the site only 404, 410 or a domain
+  that does not exist is broken (`EXTERNAL_BROKEN_STATUSES`): 401, 403, 429, LinkedIn's 999,
+  any 5xx and a timeout are what bot walls send crawlers and never readers, and a redirect is
+  the other site's arrangement. An answer reached through a third host — a consent wall, a
+  geo gate — is unknown, and Cloudflare's `/cdn-cgi/` addresses are no pages. Whatever the
+  crawl could not ask (its budget, robots.txt, the deadline) is said to be unchecked with the
+  reason, never counted as fine. One fact, one finding:
+  - `CANONICAL_MISMATCH` steps aside for a broken target (one predicate,
+    `canonicalTargetProblemOf`);
+  - `LINKS_TO_REDIRECTS` skips what `INTERNAL_LINK_VARIANTS` reports, and that check leaves a
+    dead link to `BROKEN_LINKS`;
+  - every link check skips a development host, which `DEVELOPMENT_HOST_REFERENCES` reports;
+  - `HREFLANG_NOT_RECIPROCAL` skips the codes `HREFLANG_INVALID` reports (one validator,
+    `_shared/hreflang-code.ts`) and is not applicable when the canonical names another page.
 - **Field audit of the outbound checks (2026-10-11).** The first pass ran 32 live sites
   (blog.cloudflare.com, kinsta.com, semrush.com, moz.com, blog.hubspot.com, ahrefs.com,
   smashingmagazine.com, backlinko.com, css-tricks.com, yoast.com, gazeta.uz, kun.uz, habr.com,
@@ -547,7 +569,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 
 <!-- invariant: ANALYSIS-002 -->
 
-**The seventy checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+**The seventy-four crawl checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the thirteen speed codes have no check and are pinned by `cwv-issues-of.spec.ts` and `speed-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 
