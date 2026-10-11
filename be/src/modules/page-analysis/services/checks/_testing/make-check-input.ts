@@ -64,6 +64,7 @@ export function makeCheckInput(
         'og:image': 'https://a.example/i.png',
         'og:image:width': '1200',
       },
+      shareImage: 'https://a.example/i.png',
       articleTags: [],
       jsonLd: {
         types: ['Article', 'VideoObject'],
@@ -151,6 +152,7 @@ export function makeCheckInput(
         loading: null,
         markup: '<img src="https://a.example/i.png" fetchpriority="high">',
       },
+      shareImageAsBackground: false,
       ...parsed,
     },
   };

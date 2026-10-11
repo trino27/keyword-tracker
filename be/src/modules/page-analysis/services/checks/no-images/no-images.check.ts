@@ -9,6 +9,9 @@ import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
  * CodePen demo or a video player shows the reader more than a picture would; on
  * css-tricks a post with five live demos and no `<img>` was reported as imageless.
  *
+ * A share image shown only as a CSS background still fails — Google does not index CSS
+ * images — and the evidence says that is where it is, rather than that it is not shown.
+ *
  * Not applicable to a short post, which can stand without a picture.
  */
 export const NO_IMAGES_CHECK = defineCheck('NO_IMAGES', ({ parsed }) => {
@@ -19,14 +22,18 @@ export const NO_IMAGES_CHECK = defineCheck('NO_IMAGES', ({ parsed }) => {
     parsed.featuredImage !== null
   )
     return PASS;
-  const ogImage = parsed.openGraph['og:image'];
+  const shareImage = parsed.shareImage;
   return fails({
     words: parsed.wordCount,
     evidence: evidence([
       `${parsed.wordCount} words in the main content, and no <img> among them`,
-      ogImage
-        ? `<meta property="og:image" content="${attribute(ogImage)}"> — not shown on the page`
-        : 'No featured image either: the page declares no og:image',
+      shareImage === null
+        ? 'No featured image either: the page declares no og:image'
+        : `<meta property="og:image" content="${attribute(shareImage)}"> — ${
+            parsed.shareImageAsBackground
+              ? 'shown only as a CSS background-image, which Google does not index'
+              : 'not shown on the page'
+          }`,
     ]),
   });
 });

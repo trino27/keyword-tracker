@@ -169,6 +169,7 @@ describe('evaluateChecks', () => {
               scriptedSchemaTypes: ['BreadcrumbList'],
               videos: [],
               openGraph: {},
+              shareImage: null,
             },
             // No image of its own was measured.
             previewImage: null,

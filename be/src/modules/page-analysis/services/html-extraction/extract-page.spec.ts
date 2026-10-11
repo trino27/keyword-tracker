@@ -344,6 +344,32 @@ describe('extractPage', () => {
     });
   });
 
+  /** The protocol: "og:image:url – Identical to og:image" (vercel.com writes only that). */
+  it('takes og:image:url as the share image, leaving the tags as written', () => {
+    const parsed = page(
+      '',
+      '<meta content="https://a.example/og.png" property="og:image:url">',
+    );
+
+    expect(parsed.shareImage).toBe('https://a.example/og.png');
+    expect(parsed.openGraph).toEqual({
+      'og:image:url': 'https://a.example/og.png',
+    });
+  });
+
+  /** troyhunt.com shows the post's image as a header background, which Google does not index. */
+  it('notices the share image shown as a CSS background', () => {
+    const parsed = page(
+      '<div class="post_header" style="background-image:url(\'/content/02ce55ab.png\')"></div><main><p>Text.</p></main>',
+      '<meta property="og:image" content="https://a.example/content/02ce55ab.png">',
+    );
+
+    expect(parsed.shareImageAsBackground).toBe(true);
+    expect(page('<main><p>Text.</p></main>').shareImageAsBackground).toBe(
+      false,
+    );
+  });
+
   it('separates adjacent blocks so their words never fuse', () => {
     expect(page('<main><h1>Title</h1><p>One</p></main>').wordCount).toBe(2);
   });

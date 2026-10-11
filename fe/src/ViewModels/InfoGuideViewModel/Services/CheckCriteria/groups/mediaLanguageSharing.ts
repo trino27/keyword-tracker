@@ -35,7 +35,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 			bad: "<article>\n  <h1>Local SEO checklist</h1>\n  <p>…1,200 words of text and no image, video or embed…</p>\n</article>",
 			lang: "html",
 		},
-		howChecked: `Only posts whose main content has at least ${C.THIN_CONTENT.min} words are judged. The post passes if its main content holds an <img>, or a frame, video or plugin object (a YouTube player, a CodePen demo), or if the page shows a featured image at the top. Images drawn by CSS or inline SVG are not seen.`,
+		howChecked: `Only posts whose main content has at least ${C.THIN_CONTENT.min} words are judged. The post passes if its main content holds an <img>, or a frame, video or plugin object (a YouTube player, a CodePen demo), or if the page shows a featured image at the top — including one in the post's own header inside <main> or <article>. Images drawn by CSS or inline SVG are not seen: Google does not index CSS images, so a share image shown only as a CSS background still fails, and the finding says that is where it is.`,
 		manualCheck: [
 			"Open the post and scroll through it: is there any image, chart, video or embed in the article itself?",
 			'In DevTools → Console run: document.querySelectorAll("article img, article iframe, article video").length',
@@ -69,7 +69,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"The check takes the file name of each image's URL, drops the extension and WordPress size suffixes such as -1024x768, and matches it against two patterns: names cameras, phones and tools give by default (IMG_1234, DSC…, PXL…, GOPR…, WhatsApp Image…, Screenshot…) and placeholders (image, img1, photo, untitled, unnamed, download, file). Hashed names a CDN generates are not reported. A page with no named images is not judged.",
+			"The check takes the file name of each image's URL — for an image optimizer's address such as /_next/image?url=…, the file named in its url parameter — drops the extension and WordPress size suffixes such as -1024x768, and matches it against two patterns: names cameras, phones and tools give by default (IMG_1234, DSC…, PXL…, GOPR…, WhatsApp Image…, Screenshot…) and placeholders (image, img1, photo, untitled, unnamed, download, file). Hashed names a CDN generates are not reported. A page with no named images is not judged.",
 		manualCheck: [
 			"Press Ctrl+U and search for <img; read the file name at the end of each src.",
 			'In DevTools → Console run: [...document.images].map(i => i.src.split("/").pop())',
@@ -210,7 +210,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"The check reads the page's Open Graph properties and fails when any of og:title, og:description or og:image is absent, naming the missing ones.",
+			'The check reads the page\'s Open Graph properties and fails when any of og:title, og:description or og:image is absent, naming the missing ones. og:image:url and og:image:secure_url count as og:image — the protocol calls them identical. An og:image that is not a full http(s) address with a host, such as content="https:", counts as missing, because share crawlers fetch it as written.',
 		manualCheck: [
 			"Paste the URL into the Facebook Sharing Debugger (https://developers.facebook.com/tools/debug/) and look at the preview and the warnings.",
 			"Or press Ctrl+U and search for og:title, og:description and og:image.",

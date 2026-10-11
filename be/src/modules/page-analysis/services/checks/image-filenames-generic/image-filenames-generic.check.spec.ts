@@ -25,6 +25,9 @@ describe('IMAGE_FILENAMES_GENERIC', () => {
     // A bare number is a platform id: moz.com's /user/photo/10.jpg (2026-10).
     'https://moz.com/images/user/photo/10.jpg?w=160',
     'imagination-1024x768.png',
+    // An image optimizer names the file in its url parameter (vercel.com, backlinko.com).
+    '/_next/image?url=https%3A%2F%2Fx.public.blob.vercel-storage.com%2Fflags-tab-light.png&w=3840&q=75',
+    'https://backlinko.com/_next/image?url=%2Fapp%2Fuploads%2Fchapters-1-the-voice-search-revolution-1.png&w=1080',
   ])('passes %s', (src) => {
     expect(verdict(src)).toEqual(PASSES);
   });
@@ -40,6 +43,7 @@ describe('IMAGE_FILENAMES_GENERIC', () => {
     'PXL_20260101_101010123.jpg',
     'untitled.png',
     'Снимок экрана 2026-10-11 в 12.00.00.png',
+    '/_next/image?url=%2Fuploads%2FIMG_1234.jpg&w=640&q=75',
   ])('fails %s', (src) => {
     expect(verdict(src)).toEqual(failsWith({ count: 1, total: 1 }));
   });

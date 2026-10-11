@@ -4,10 +4,16 @@ import type { IPageImage } from '../../../interfaces/parsed-page.interface';
  * The file an image address names, decoded, without its directory, query or fragment —
  * `IMG_1234.JPG` from `https://a.example/wp-content/uploads/IMG_1234.JPG?w=800`. Null
  * for a `data:` URI or an address with no file name in it.
+ *
+ * An image optimizer serves the file from an endpoint with no extension and names it in
+ * a `url` parameter — Next.js's `/_next/image?url=%2Fuploads%2Fhero.png&w=1080`, on
+ * vercel.com and backlinko.com — so there the file is the parameter's, not "image".
  */
 export function fileNameOf(url: string): string | null {
   if (/^\s*data:/i.test(url)) return null;
-  const path = url.split(/[?#]/)[0];
+  const [path, query = ''] = url.split('#')[0].split('?');
+  const proxied = new URLSearchParams(query).get('url');
+  if (!/\.[a-z0-9]{2,5}$/i.test(path) && proxied) return fileNameOf(proxied);
   const last = path.split('/').pop() ?? '';
   let name: string;
   try {

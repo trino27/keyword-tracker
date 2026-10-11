@@ -36,6 +36,7 @@ import type {
   ISelectedItem,
 } from '../../interfaces/crawled-page.interface';
 import type { RobotsPolicy } from '../robots-policy/robots-policy';
+import { isShareImageAddress } from '@modules/page-analysis/services/checks/_shared/share-image';
 import { SiteHttpClient } from '../site-http-client/site-http-client';
 
 export interface IPostSelectionInput {
@@ -240,8 +241,12 @@ export class PostSelectionService {
     pageUrl: string,
     input: IPostSelectionInput,
   ): Promise<IPreviewImage | null> {
+    // An og:image naming no fetchable address (`content="https:"`) would resolve to the
+    // page itself; the article markup's image is the page's next choice.
     const named =
-      parsed.openGraph['og:image'] ?? parsed.articleMarkup?.images[0]?.url;
+      (parsed.shareImage !== null && isShareImageAddress(parsed.shareImage)
+        ? parsed.shareImage
+        : null) ?? parsed.articleMarkup?.images[0]?.url;
     let url: string;
     try {
       url = new URL(named ?? '', pageUrl).href;

@@ -319,6 +319,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   });
 
   const canonicals = canonicalsOf($, 'head', baseUrl);
+  const openGraph = openGraphOf($);
   const structured = structuredDataOf($, baseUrl);
   const scriptedSchemaTypes = scriptedSchemaTypesOf($);
   const { jsonLd, jsonLdErrors, authors, dates } = structured;
@@ -341,7 +342,8 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .filter((href) => href && !HAS_SCHEME.test(href)),
     alternates: alternatesOf($, 'head', baseUrl),
     alternatesOutsideHead: alternatesOf($, 'body', baseUrl),
-    openGraph: openGraphOf($),
+    openGraph,
+    shareImage: shareImageOf(openGraph),
     articleTags: $('meta[property="article:tag"]')
       .map((_, element) => collapse($(element).attr('content') ?? ''))
       .get()
@@ -406,6 +408,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .get(),
     elementCount,
     featuredImage: featuredImageOf($, baseUrl),
+    shareImageAsBackground: shownAsBackground($, shareImageOf(openGraph)),
   };
 }
 
@@ -818,6 +821,21 @@ const imageStem = (url: string) =>
     .replace(/-\d+x\d+$/, '')
     .toLowerCase();
 
+/** Whether an inline `background-image` shows the share image, matched by file stem. */
+function shownAsBackground($: CheerioAPI, shareImage: string | null): boolean {
+  const stem = shareImage ? imageStem(shareImage) : '';
+  if (!stem) return false;
+  return $('[style*="url(" i]')
+    .toArray()
+    .some((element) =>
+      [
+        ...($(element).attr('style') ?? '').matchAll(
+          /url\(\s*['"]?([^'")]+)/gi,
+        ),
+      ].some(([, url]) => imageStem(url) === stem),
+    );
+}
+
 /** The `<img>` whose src or srcset shows the og:image, by file stem. */
 /**
  * Words of paragraph text between the headline and a featured image at the top of the
@@ -872,7 +890,7 @@ function featuredImageOf(
   $: CheerioAPI,
   baseUrl: string,
 ): IParsedPage['featuredImage'] {
-  const og = absolute(metaContent($, 'property', 'og:image'), baseUrl);
+  const og = absolute(shareImageOf(openGraphOf($)) ?? undefined, baseUrl);
   const stem = og ? imageStem(og) : '';
   // The first of the images showing it that is not a thumbnail: neilpatel.com prints
   // the featured image twice, a 175-pixel lazy thumbnail first and the 700-pixel hero
@@ -1053,6 +1071,20 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
     if (content && !(name in properties)) properties[name] = content;
   });
   return properties;
+}
+
+/**
+ * The image the page names for sharing, as written: og:image, or else og:image:url or
+ * og:image:secure_url — the protocol: "og:image:url – Identical to og:image". vercel.com's
+ * docs declare only that spelling, and Facebook reads it as the share image.
+ */
+function shareImageOf(openGraph: Record<string, string>): string | null {
+  return (
+    openGraph['og:image'] ??
+    openGraph['og:image:url'] ??
+    openGraph['og:image:secure_url'] ??
+    null
+  );
 }
 
 /**

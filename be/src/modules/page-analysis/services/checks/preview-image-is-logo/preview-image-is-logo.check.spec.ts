@@ -16,6 +16,7 @@ const verdict = (
     makeCheckInput({
       parsed: {
         openGraph: ogImage ? { 'og:image': ogImage } : {},
+        shareImage: ogImage,
         logos,
         articleMarkup: markupImage
           ? {

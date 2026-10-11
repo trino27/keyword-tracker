@@ -149,6 +149,11 @@ export interface IParsedPage {
   alternatesOutsideHead: IAlternateLink[];
   /** `og:*` properties by name, e.g. `og:title`. */
   openGraph: Record<string, string>;
+  /**
+   * The image the page names for sharing, as written: og:image, or else og:image:url or
+   * og:image:secure_url, which the protocol calls identical to it. Null when none.
+   */
+  shareImage: string | null;
   articleTags: string[];
   /**
    * `articleFields` are the property names carried by the nodes typed as an article —
@@ -289,4 +294,9 @@ export interface IParsedPage {
    * the top of a post, and so the likeliest Largest Contentful Paint.
    */
   featuredImage: { loading: string | null; markup: string } | null;
+  /**
+   * The share image is shown by an inline CSS `background-image` (troyhunt.com's post
+   * header). A reader sees it; Google does not index CSS images.
+   */
+  shareImageAsBackground: boolean;
 }

@@ -54,7 +54,12 @@ describe('NO_IMAGES', () => {
 
   it('says so when the page declares no og:image either', () => {
     const verdict = NO_IMAGES_CHECK.evaluate(
-      imageless({ parsed: { openGraph: { 'og:title': 'Link building' } } }),
+      imageless({
+        parsed: {
+          openGraph: { 'og:title': 'Link building' },
+          shareImage: null,
+        },
+      }),
     );
 
     expect(evidenceOf(verdict)).toContain(

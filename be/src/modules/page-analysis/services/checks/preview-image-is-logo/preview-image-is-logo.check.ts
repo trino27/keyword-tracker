@@ -10,8 +10,8 @@ export const PREVIEW_IMAGE_IS_LOGO_CHECK = defineCheck(
   'PREVIEW_IMAGE_IS_LOGO',
   ({ parsed, finalUrl }) => {
     const named = [
-      ...(parsed.openGraph['og:image']
-        ? [{ url: parsed.openGraph['og:image'], from: 'og:image' }]
+      ...(parsed.shareImage
+        ? [{ url: parsed.shareImage, from: 'og:image' }]
         : []),
       ...(parsed.articleMarkup?.images ?? []).map(({ url }) => ({
         url,
