@@ -18,8 +18,8 @@ import { GUIDE_SOURCES as SRC } from "../guideSources";
 const RUN_STATUS_MEANING = {
 	queued: "Waiting for the crawler to pick the run up.",
 	running: "Finding the sitemap and reading posts right now.",
-	succeeded: "Every step finished; the pages and issues on screen are from this run.",
-	partial: "Some posts could not be read. The rest are analysed; the run log says which and why.",
+	succeeded: `All ${CRAWL_POST_LIMIT} posts were read; the pages and issues on screen are from this run.`,
+	partial: `Fewer than ${CRAWL_POST_LIMIT} posts could be read — the blog has fewer, or some entries failed. What was read is analysed; the run log says which entries failed and why.`,
 	failed: "Nothing could be analysed — the banner and the run log say why (site blocked, no blog sitemap, robots.txt forbids it…).",
 } as const;
 

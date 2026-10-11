@@ -88,7 +88,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"Within one crawl of a client's site, the tracker compares every page's full title after normalising it: lower case, punctuation and symbols turned into spaces, spaces collapsed. A page fails when another page has the same normalised title, unless the two are language versions of one post — either links to the other with hreflang, or their <html lang> values differ. A page without a title, or a crawl of a single page, is skipped.",
+			"Within one crawl of a client's site, the tracker compares every page's full title after normalising it: lower case, an apostrophe's ending ('s, 't, l') dropped, other punctuation and symbols turned into spaces, spaces collapsed. A page fails when another page has the same normalised title, unless the two are language versions of one post — either links to the other with hreflang, or their <html lang> values differ. A page without a title, or a crawl of a single page, is skipped.",
 		manualCheck: [
 			"Copy the page's title from View source (Ctrl+U, then Ctrl+F for <title).",
 			'Search Google for site:example.com "the title in quotes", using the client\'s domain.',
@@ -159,7 +159,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"Within one crawl of a client's site, the tracker compares every page's meta description after normalising it: lower case, punctuation and symbols turned into spaces, spaces collapsed. A page fails when another page has the same normalised description, unless the two are language versions of one post — either links to the other with hreflang, or their <html lang> values differ. A page without a description, or a crawl of a single page, is skipped.",
+			"Within one crawl of a client's site, the tracker compares every page's meta description after normalising it: lower case, an apostrophe's ending ('s, 't, l') dropped, other punctuation and symbols turned into spaces, spaces collapsed. A page fails when another page has the same normalised description, unless the two are language versions of one post — either links to the other with hreflang, or their <html lang> values differ. A page without a description, or a crawl of a single page, is skipped.",
 		manualCheck: [
 			'Copy the description from View source (Ctrl+U, then Ctrl+F for name="description").',
 			"Open a few other posts of the same site and compare their descriptions the same way.",

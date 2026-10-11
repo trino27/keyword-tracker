@@ -29,7 +29,7 @@ function lighthouseCriteria(code: TScoredLighthouseCode, spec: ILighthouseSpec):
 		fails: spec.fails,
 		ifPasses: spec.ifPasses,
 		example: { good: spec.good, bad: spec.bad, lang: "html" },
-		howChecked: `After each crawl (at most once every 24 hours) Google PageSpeed Insights loads the page as a phone and runs Lighthouse on it; the tracker reads the result of Lighthouse's own "${audit}" audit from that answer and does not judge it again. A failed audit becomes this issue and a passed one counts as passed; an audit Lighthouse reports as not applicable is left out, and one that errored is not recorded at all. Lighthouse scores it in its ${inCategories} category; in this tracker's score it counts at its own level.`,
+		howChecked: `After each crawl (at most once every 24 hours) Google PageSpeed Insights loads the page as a phone and runs Lighthouse on it; the tracker reads the result of Lighthouse's own "${audit}" audit from that answer and does not judge it again. A failed audit becomes this issue and a passed one counts as passed; an audit Lighthouse reports as not applicable is left out, and one that errored is not recorded at all. Lighthouse scores it in its ${inCategories} ${categories.length > 1 ? "categories" : "category"}; in this tracker's score it counts at its own level.`,
 		manualCheck: [
 			"Open PageSpeed Insights (https://pagespeed.web.dev), enter the page URL and choose Mobile.",
 			`In the ${inCategories} section, find the audit — failed ones are listed first, passed ones under “Passed audits”. Expand it to see the elements that fail.`,

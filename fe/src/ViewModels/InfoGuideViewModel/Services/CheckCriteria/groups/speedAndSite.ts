@@ -1,4 +1,4 @@
-import { CWV_THRESHOLDS } from "@app/contracts";
+import { CRAWL_CANDIDATE_LIMIT, CWV_THRESHOLDS } from "@app/contracts";
 import { type TGuideCode } from "@Core/Constants/checkTopics";
 import { seconds, type ICheckCriteria } from "../criteriaShape";
 
@@ -76,7 +76,7 @@ export const SPEED_AND_SITE_CRITERIA = {
 	CWV_INP_POOR: {
 		passes: `INP is ${inp.poor} ms or less.`,
 		fails: `INP is above ${inp.poor} ms.`,
-		ifPasses: "Visitors who tap do not wait half a second or more for anything to happen.",
+		ifPasses: "Visitors who tap do not wait more than half a second for anything to happen.",
 		example: {
 			good: '<script src="https://chat.example/widget.js" defer></script>\n<!-- third-party scripts loaded late, after the content -->',
 			bad: '<script src="https://chat.example/widget.js"></script>\n<script src="https://ads.example/tag.js"></script>\n<!-- heavy scripts competing for the main thread while readers tap -->',
@@ -186,8 +186,7 @@ export const SPEED_AND_SITE_CRITERIA = {
 			bad: "<url><loc>https://example.com/blog/old-post/</loc></url>\n<!-- 301 → /blog/new-post/ -->",
 			lang: "xml",
 		},
-		howChecked:
-			"The sitemap entries this crawl fetched (up to 30 considered per run) are judged: an entry fails when robots.txt disallows it, it is a soft 404, redirects (on or off the site), answers 4xx/5xx, is set to noindex, or names another URL as canonical. Entries the site refused to the crawler (401, 403, 429, a bot challenge) are left out. It is a sample of the sitemap, not all of it.",
+		howChecked: `The sitemap entries this crawl fetched (up to ${CRAWL_CANDIDATE_LIMIT} considered per run) are judged: an entry fails when robots.txt disallows it, it is a soft 404, redirects (on or off the site), answers 4xx/5xx, is set to noindex, or names another URL as canonical. Entries the site refused to the crawler (401, 402, 403, 429, a bot challenge) are left out. It is a sample of the sitemap, not all of it.`,
 		manualCheck: [
 			"Open the sitemap in the browser and pick a few URLs.",
 			"For each, run curl -sI -L https://… to see redirects and the final status; then check the page source for noindex and its canonical.",

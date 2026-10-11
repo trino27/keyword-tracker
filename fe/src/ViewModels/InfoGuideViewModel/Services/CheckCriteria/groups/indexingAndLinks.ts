@@ -195,7 +195,7 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker looks at the internal links in the main content (same site, not the page itself) and fails the page if any of them has "nofollow" among its rel values. Links whose first path segment is an affiliate-style redirect folder (/go/, /out/, /refer/, /recommends/, /visit/, /goto/, /aff/, /affiliate/) and links to print versions (a path segment containing "print") are left out. The check is not applicable when the content has no internal links.',
+			'The tracker looks at the internal links in the main content (same site, not the page itself) and fails the page if any of them has "nofollow" among its rel values. Links whose first path segment is an affiliate-style redirect folder (/go/, /out/, /refer/, /recommends/, /visit/, /goto/, /aff/, /affiliate/) and links to print versions (a path segment that is "print" or has it as a hyphen- or underscore-separated part, such as /print-version/ — not /blueprint/) are left out. The check is not applicable when the content has no internal links.',
 		manualCheck: [
 			"In the Chrome DevTools Console, run document.querySelectorAll('article a[rel~=\"nofollow\"]') on the post.",
 			"For each result, check whether its href points to the site's own domain; links to other sites may keep nofollow.",

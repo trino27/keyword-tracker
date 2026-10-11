@@ -42,7 +42,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	IMAGES_NOT_INDEXABLE: {
-		passes: "Every <img> has a src (a srcset beside it is fine).",
+		passes: "Every <img> with a srcset also has a src to fall back on.",
 		fails: "An <img> has a srcset and no src, so crawlers may not find the image.",
 		ifPasses:
 			"Google finds the image in the src attribute, as its image guidance asks, so the image can appear in image search; browsers that ignore srcset still show it.",
@@ -112,7 +112,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	HREFLANG_INVALID: {
-		passes: "Every hreflang in <head> is a valid ISO 639-1 language code, optionally with an ISO 3166-1 region, with a full https:// address, and the page names itself as canonical.",
+		passes: "Every hreflang in <head> is a valid ISO 639-1 language code, optionally with an ISO 3166-1 region, with a full (absolute) address, and the page names no other URL as its canonical.",
 		fails: 'An hreflang value is malformed or unsupported — "ua" for Ukrainian, "jp" for Japanese, "en-UK" for Britain, "es-419" for Latin America — an address is relative, an hreflang sits outside <head>, or a page with hreflang names another URL as its canonical.',
 		ifPasses:
 			"Google can use the annotations to show readers the language or regional version meant for them.",

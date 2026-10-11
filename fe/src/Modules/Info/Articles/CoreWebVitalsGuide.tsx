@@ -299,8 +299,9 @@ export function CoreWebVitalsGuide() {
 					)}
 				</List>
 				<Text size="sm" c="dimmed">
-					Not measured here: desktop, Time to First Byte and First Contentful Paint as
-					separate numbers, and the site-wide Core Web Vitals report in Search Console.
+					Not measured here: First Contentful Paint as a separate number, and the
+					site-wide Core Web Vitals report in Search Console. Desktop is measured beside
+					mobile, and Time to First Byte is shown on the page's Speed block.
 				</Text>
 			</GuideSection>
 		</GuidePart>

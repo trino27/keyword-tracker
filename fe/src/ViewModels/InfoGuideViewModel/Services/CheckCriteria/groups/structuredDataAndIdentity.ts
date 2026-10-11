@@ -119,7 +119,7 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 	},
 	AUTHOR_MARKUP_INCOMPLETE: {
 		passes: "Each author is a Person or Organization with a name only and a url or sameAs to a page about them.",
-		fails: 'An author is a bare string, has no or the wrong @type, no url, a url to the home page, or a name like "By Jane, Editor".',
+		fails: "An author is a bare string, has no or the wrong @type, no url, only this site's home page as a Person's url, or a name like \"By Jane, Editor\".",
 		ifPasses:
 			"Google can tell who wrote the post and connect the byline to the right person or organization, so it can credit the author correctly.",
 		example: {
