@@ -160,13 +160,43 @@ describe('classifyPsiResponse', () => {
     });
   });
 
-  it('any other Lighthouse error is Google refusing the address', () => {
+  it('a page that is no HTML is Google refusing the address, whatever the status', () => {
     expect(
       classify(
         raw(
           500,
           JSON.stringify({
             error: { message: 'Lighthouse returned error: NOT_HTML. …' },
+          }),
+        ),
+      ),
+    ).toEqual({ kind: 'permanent', error: 'PSI_REJECTED' });
+  });
+
+  it("Lighthouse's own trouble on a 5xx is retried, not the page's failure", () => {
+    expect(
+      classify(
+        raw(
+          500,
+          JSON.stringify({
+            error: {
+              message: 'Lighthouse returned error: PROTOCOL_TIMEOUT. …',
+            },
+          }),
+        ),
+      ),
+    ).toEqual({ kind: 'transient', error: 'PSI_UNAVAILABLE' });
+  });
+
+  it('any other Lighthouse error on a 4xx is Google refusing the address', () => {
+    expect(
+      classify(
+        raw(
+          400,
+          JSON.stringify({
+            error: {
+              message: 'Lighthouse returned error: PROTOCOL_TIMEOUT. …',
+            },
           }),
         ),
       ),

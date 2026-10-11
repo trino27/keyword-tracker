@@ -86,11 +86,19 @@ const KEY_REASONS = new Set([
   'keyInvalid',
 ]);
 
+/**
+ * The Lighthouse errors that are the page's: trying again before the next crawl would ask
+ * the same question of the same page. Any other code — PROTOCOL_TIMEOUT, TARGET_CRASHED,
+ * NO_NAVSTART — is Lighthouse's own trouble: on a 5xx it is retried like any outage, and
+ * only on a 4xx is it Google refusing the address.
+ */
 const LIGHTHOUSE_ERRORS: Record<string, TPsiOutcome & { kind: 'permanent' }> = {
   FAILED_DOCUMENT_REQUEST: { kind: 'permanent', error: 'PAGE_LOAD_FAILED' },
+  DNS_FAILURE: { kind: 'permanent', error: 'PAGE_LOAD_FAILED' },
   ERRORED_DOCUMENT_REQUEST: { kind: 'permanent', error: 'PAGE_ERRORED' },
   // What Google answers, live, for an empty error page — not ERRORED_DOCUMENT_REQUEST.
   NO_FCP: { kind: 'permanent', error: 'PAGE_ERRORED' },
+  NOT_HTML: { kind: 'permanent', error: 'PSI_REJECTED' },
 };
 
 const googleErrorSchema = z.object({
@@ -193,13 +201,8 @@ export function classifyPsiResponse(
     return { kind: 'permanent', error: 'NO_MEASUREMENT' };
   }
 
-  if (lighthouseCode)
-    return (
-      LIGHTHOUSE_ERRORS[lighthouseCode] ?? {
-        kind: 'permanent',
-        error: 'PSI_REJECTED',
-      }
-    );
+  if (lighthouseCode && LIGHTHOUSE_ERRORS[lighthouseCode])
+    return LIGHTHOUSE_ERRORS[lighthouseCode];
   if (status >= 500) return { kind: 'transient', error: 'PSI_UNAVAILABLE' };
   return { kind: 'permanent', error: 'PSI_REJECTED' };
 }

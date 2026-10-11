@@ -193,7 +193,8 @@ deleted every speed code would erase the other device's findings on every measur
 ### Requirement [SPEED-008]: a passing failure is retried with backoff; a lasting one fails with a plain reason
 
 A timeout, a network error or a 5xx MUST return the row to the queue no sooner than 1, 4, 16 and
-64 minutes after its 1st–4th failure, and MUST fail it `PSI_UNAVAILABLE` at the 5th. Google being
+64 minutes after its 1st–4th failure, and MUST fail it `PSI_UNAVAILABLE` at the 5th — a 5xx naming
+a Lighthouse error that is not the page's (`PROTOCOL_TIMEOUT`, `TARGET_CRASHED`) included. Google being
 unable to load the page MUST fail the row at once with `PAGE_LOAD_FAILED` or `PAGE_ERRORED`; any
 other refusal of the address with `PSI_REJECTED`; an answer with no usable LCP or CLS with
 `NO_MEASUREMENT`. Every stored reason MUST be a key of `PAGE_SPEED_ERRORS`, and every key except
@@ -204,6 +205,10 @@ inside the call.
 - **WHEN** attempts 1 and 2 time out and attempt 3 succeeds
 - **THEN** attempt 2 is not made before 1 minute after attempt 1, attempt 3 not before 4 minutes
   after attempt 2, and the row ends `done`
+
+#### Scenario: Lighthouse itself fails on Google's side
+- **WHEN** PageSpeed answers 500 with "Lighthouse returned error: PROTOCOL_TIMEOUT"
+- **THEN** the row returns to the queue for a later attempt, not `failed`
 
 #### Scenario: Google cannot load the page
 - **WHEN** PageSpeed answers that the document request failed
