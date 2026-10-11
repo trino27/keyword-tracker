@@ -308,6 +308,40 @@ describe('sitemap checks', () => {
     ]);
   });
 
+  // D34 leaves a broken target to CANONICAL_TARGET_BROKEN alone; the entry still
+  // contradicts the sitemap, so the sitemap check reads that finding too (D37).
+  it('names an entry whose canonical target is broken', () => {
+    expect(
+      evidenceOf(
+        'SITEMAP_LISTS_NON_INDEXABLE',
+        healthySite({
+          fetched: [
+            {
+              url: `${SERVED}/copy/`,
+              status: 'crawled',
+              httpStatus: 200,
+              reason: null,
+              clientRendered: false,
+              page: {
+                finalUrl: `${SERVED}/copy/`,
+                dateModified: null,
+                issues: [
+                  {
+                    code: 'CANONICAL_TARGET_BROKEN',
+                    details: { canonical: `${SERVED}/gone/` },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    ).toEqual([
+      '1 of the 1 sitemap entries this crawl fetched:',
+      `${SERVED}/copy/ — names ${SERVED}/gone/ as canonical`,
+    ]);
+  });
+
   it('reports sitemap URLs on another scheme or host variant', () => {
     expect(
       evidenceOf(

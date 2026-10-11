@@ -12,6 +12,7 @@ import { BREADCRUMB_INVALID_CHECK } from './breadcrumb-invalid/breadcrumb-invali
 import { BREADCRUMB_MISSING_CHECK } from './breadcrumb-missing/breadcrumb-missing.check';
 import { BROKEN_LINKS_CHECK } from './broken-links/broken-links.check';
 import { LINKS_TO_REDIRECTS_CHECK } from './links-to-redirects/links-to-redirects.check';
+import { CANONICAL_TARGET_BROKEN_CHECK } from './canonical-target-broken/canonical-target-broken.check';
 import { CANONICAL_TO_HTTP_CHECK } from './canonical-to-http/canonical-to-http.check';
 import { META_DESCRIPTION_REPEATS_TITLE_CHECK } from './meta-description-repeats-title/meta-description-repeats-title.check';
 import { OG_URL_MISMATCH_CHECK } from './og-url-mismatch/og-url-mismatch.check';
@@ -110,6 +111,7 @@ export const CHECKS: TCheckRegistry = {
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
   CANONICAL_TO_HTTP: CANONICAL_TO_HTTP_CHECK,
+  CANONICAL_TARGET_BROKEN: CANONICAL_TARGET_BROKEN_CHECK,
   CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
   DEVELOPMENT_HOST_REFERENCES: DEVELOPMENT_HOST_REFERENCES_CHECK,
   CANONICAL_RELATIVE: CANONICAL_RELATIVE_CHECK,

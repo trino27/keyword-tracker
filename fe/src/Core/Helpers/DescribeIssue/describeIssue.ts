@@ -75,6 +75,17 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	CANONICAL_MISMATCH: (d) =>
 		`The ${text(d, "source") === "header" ? "Link header" : "canonical link"} names ${text(d, "canonical")}, not this page.`,
 	CANONICAL_TO_HTTP: (d) => `The canonical names ${text(d, "canonical")}, the insecure address.`,
+	CANONICAL_TARGET_BROKEN: (d) => {
+		const canonical = text(d, "canonical");
+		const problem = text(d, "problem");
+		if (problem === "status")
+			return `The canonical ${canonical} answers HTTP ${num(d, "status")}.`;
+		if (problem === "noindex") return `The canonical ${canonical} is set to noindex.`;
+		if (problem === "chain")
+			return `The canonical ${canonical} names ${text(d, "next")} as its own.`;
+		if (problem === "redirects") return `The canonical ${canonical} redirects.`;
+		return `The canonical ${canonical} cannot be reached.`;
+	},
 	CANONICAL_CONFLICT: (d) =>
 		`The page declares ${urls(d, "canonicals").length} different canonical URLs.`,
 	NOINDEX: (d) =>

@@ -307,6 +307,27 @@ describe('evaluateChecks', () => {
         },
         robots: blocked,
         linkStatuses: {
+          // On `b` the canonical's target was read and is gone (CANONICAL_TARGET_BROKEN);
+          // on `c` it was not read, so CANONICAL_MISMATCH judges it as before.
+          documents: new Map(
+            path === 'b'
+              ? [
+                  [
+                    'https://a.example/x/',
+                    {
+                      url: 'https://a.example/x/',
+                      outcome: {
+                        kind: 'answered',
+                        status: 404,
+                        redirects: [],
+                        finalUrl: 'https://a.example/x/',
+                      },
+                      page: null,
+                    },
+                  ],
+                ]
+              : [],
+          ),
           links: new Map([
             [
               'https://a.example/moved/',
@@ -327,7 +348,6 @@ describe('evaluateChecks', () => {
               },
             ],
           ]),
-          documents: new Map(),
         },
         headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
         htmlBytes: 2_000_000,
@@ -445,8 +465,13 @@ describe('evaluateChecks', () => {
 
     const evaluations = evaluateChecks(
       makeRunInput(
-        [broken('a'), broken('b'), opposite],
-        [keywordsOf('same'), keywordsOf('same'), keywordsOf('other')],
+        [broken('a'), broken('b'), broken('c'), opposite],
+        [
+          keywordsOf('same'),
+          keywordsOf('same'),
+          keywordsOf('same'),
+          keywordsOf('other'),
+        ],
       ),
     );
     const issues = evaluations.flatMap((evaluation) => evaluation.issues);

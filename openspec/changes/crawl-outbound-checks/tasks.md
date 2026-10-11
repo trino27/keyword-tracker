@@ -183,7 +183,7 @@ it green.
 
 ## 4. `CANONICAL_TARGET_BROKEN` (3d) — ANALYSIS-026
 
-- [ ] 4.1 Write first `canonical-target-broken/canonical-target-broken.check.spec.ts`, one case per
+- [x] 4.1 Write first `canonical-target-broken/canonical-target-broken.check.spec.ts`, one case per
   outcome of plan §10.5, each from an `IDocumentFacts`:
   - "is not applicable without a canonical elsewhere";
   - "is not applicable for an unread target";
@@ -201,11 +201,11 @@ it green.
   It fails: no module. The rules live in `_shared/canonical-target.ts`
   (`canonicalTargetProblemOf`) with its own spec. Verify: `pnpm --filter be test:ci --
   canonical-target` fails.
-- [ ] 4.2 Add the check, registered; the catalogue entry (warning, Google canonicalization
+- [x] 4.2 Add the check, registered; the catalogue entry (warning, Google canonicalization
   source); `DESCRIBE`; and the e2e case in `crawl.e2e-spec.ts`, "a canonical naming a recorded 301
   stores CANONICAL_TARGET_BROKEN and not CANONICAL_MISMATCH". Verify: `pnpm --filter be test:ci
   -- canonical-target-broken canonical-conflict && pnpm --filter be test:db -- crawl`.
-- [ ] 4.3 `CANONICAL_MISMATCH` steps aside for a broken target (plan D34) — ANALYSIS-026.
+- [x] 4.3 `CANONICAL_MISMATCH` steps aside for a broken target (plan D34) — ANALYSIS-026.
   - Write first in `canonical-mismatch.check.spec.ts`:
     - "is not applicable when the target is broken — that is CANONICAL_TARGET_BROKEN's". It
       fails: CANONICAL_MISMATCH fails today.
@@ -216,14 +216,22 @@ it green.
 
   Verify: `pnpm --filter be test:ci -- canonical-mismatch canonical-target checks.registry`. The
   corpus test runs with empty facts, where every target is unread, so it must be unchanged.
-- [ ] 4.4 The sitemap keeps the entry (plan D37, derived, not yet confirmed by the user) —
+- [x] 4.4 The sitemap keeps the entry (plan D37, derived, not yet confirmed by the user) —
   ANALYSIS-026. Write first `site-checks.registry.spec.ts` → "names an entry whose canonical
   target is broken" (the page carries `CANONICAL_TARGET_BROKEN` and no `CANONICAL_MISMATCH`). It
   fails after 4.3. Then `contradictionOf` (`sitemap-checks.ts`) reads the
   `CANONICAL_TARGET_BROKEN` finding's canonical. Verify: `pnpm --filter be test:ci -- site-checks`.
-- [ ] 4.5 Commits: `feat(page-analysis): a canonical whose target redirects, is broken, noindexed
+- [x] 4.5 Commits: `feat(page-analysis): a canonical whose target redirects, is broken, noindexed
   or canonicalised again` · `feat(page-analysis): a canonical mismatch steps aside for a broken
   target`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+
+  AMENDED during implementation: the shared rule is `canonicalTargetOf` (verdict
+  notApplicable / pass / problem). A canonical naming the page itself PASSES rather than being
+  not applicable — the target is the page the crawl just read — so a clean page applies every
+  check, as `checks.registry.spec.ts` requires; the registry's failing run gains a third broken
+  page, so CANONICAL_TARGET_BROKEN fails on `b` while CANONICAL_MISMATCH still fails on `c`,
+  whose target was not read. Two commits became one: the step-aside and the check share the
+  rule and the registry spec.
 
 ## 5. `HREFLANG_NOT_RECIPROCAL` (3e) — ANALYSIS-027
 

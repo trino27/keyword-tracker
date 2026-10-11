@@ -238,6 +238,47 @@ describe('crawl (e2e, recorded sites)', () => {
     );
   });
 
+  // Plan §10.5, D34: the target was read and redirects, so the broken target is the one
+  // finding — CANONICAL_MISMATCH steps aside for it.
+  it('a canonical naming a recorded 301 stores CANONICAL_TARGET_BROKEN and not CANONICAL_MISMATCH', async () => {
+    const site = 'https://root-blog-no-feed.example';
+    const post = `${site}/post-number-2/`;
+    const paragraph =
+      'Widget pricing depends on volume. Widget pricing tiers explained. '.repeat(
+        40,
+      );
+    transport.override(post, {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+      body: `<html lang="en"><head><title>Widget pricing explained, tier by tier</title><link rel="canonical" href="${site}/old-pricing/"></head><body><main><h1>Widget pricing</h1><p>${paragraph}</p></main></body></html>`,
+    });
+    transport.override(`${site}/old-pricing/`, {
+      status: 301,
+      headers: { location: `${site}/pricing/` },
+    });
+    transport.override(`${site}/pricing/`, {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+      body: '<html><head><title>Pricing</title></head><body></body></html>',
+    });
+    await addClient('root-blog-no-feed.example');
+
+    await app.get(CrawlWorker).runOnce();
+
+    const [page] = await testDb.db
+      .select({ id: pages.id })
+      .from(pages)
+      .where(eq(pages.url, post));
+    const codes = (
+      await testDb.db
+        .select({ code: seoIssues.code })
+        .from(seoIssues)
+        .where(eq(seoIssues.pageId, page.id))
+    ).map(({ code }) => code);
+    expect(codes).toContain('CANONICAL_TARGET_BROKEN');
+    expect(codes).not.toContain('CANONICAL_MISMATCH');
+  });
+
   it('a re-crawl keeps a post the sitemap no longer lists, at its old run', async () => {
     const client = await addClient('yoast.com');
     await app.get(CrawlWorker).runOnce();

@@ -85,6 +85,23 @@ describe("describeIssue", () => {
 		);
 	});
 
+	it("says what is wrong with the page the canonical names", () => {
+		expect(
+			describeIssue("CANONICAL_TARGET_BROKEN", {
+				canonical: "https://a.example/x/",
+				problem: "status",
+				status: 404,
+			}),
+		).toBe("The canonical https://a.example/x/ answers HTTP 404.");
+		expect(
+			describeIssue("CANONICAL_TARGET_BROKEN", {
+				canonical: "https://a.example/x/",
+				problem: "chain",
+				next: "https://a.example/y/",
+			}),
+		).toBe("The canonical https://a.example/x/ names https://a.example/y/ as its own.");
+	});
+
 	it("names the links that are broken or redirect", () => {
 		expect(describeIssue("BROKEN_LINKS", { count: 1, links: ["https://b.example/x"] })).toBe(
 			"1 link leads nowhere: https://b.example/x.",

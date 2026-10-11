@@ -601,10 +601,10 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'The page names another URL as canonical, so this one may not be indexed.',
     explanation:
-      'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal. A canonical that is this very page over http:// is reported as CANONICAL_TO_HTTP instead.',
+      'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal. A canonical that is this very page over http:// is reported as CANONICAL_TO_HTTP instead, and one whose target the crawl read and found broken as CANONICAL_TARGET_BROKEN.',
     sources: [SOURCE.canonical, SOURCE.sitemaps],
     skipReason:
-      'No canonical to disagree with, or it is the page over http:// (CANONICAL_TO_HTTP).',
+      'No canonical to disagree with, or it is the page over http:// (CANONICAL_TO_HTTP), or its target is broken (CANONICAL_TARGET_BROKEN).',
   },
   CANONICAL_TO_HTTP: {
     // A warning: the page asks Google to prefer the insecure copy of itself, against
@@ -623,6 +623,24 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.canonical, SOURCE.httpsSignal],
     skipReason:
       'No canonical declared, the page is not served over HTTPS, or the http:// canonical names another page (CANONICAL_MISMATCH).',
+  },
+  CANONICAL_TARGET_BROKEN: {
+    // A warning, as CANONICAL_CONFLICT is: the canonical names a page Google cannot settle
+    // on, so the signal is spent — the page may be indexed under neither address.
+    owner: 'crawl',
+    severity: 'warning',
+    label: 'Canonical points to a broken page',
+    plain: {
+      what: 'This page names a main version that redirects, is missing or is hidden from Google',
+      why: 'Google is told to index another address instead of this one, and that address is no page it can index. It may ignore the hint, pick an address you did not choose, or keep neither in results.',
+      fix: 'Ask your developer, or check the canonical setting in your SEO plugin, so the main-version address is a live page that is indexable and names itself.',
+    },
+    hint: 'Point the canonical at a live, indexable page that names itself as canonical.',
+    explanation:
+      "The page declares another URL as its canonical, and the crawl read that URL: it redirects, answers an error, cannot be reached, is set to noindex, or names yet another URL as its own canonical. Google's guidance asks for a canonical that is the page to index; a canonical pointing at a redirect, an error, a noindexed page or a chain gives conflicting signals, and Google may choose another URL or ignore the hint. When the target could not be read within the crawl's budget, robots.txt or deadline, the page is judged by CANONICAL_MISMATCH alone, as it would have been; when it is read and broken, this finding replaces CANONICAL_MISMATCH's, since it says the same and more.",
+    sources: [SOURCE.canonical, SOURCE.redirects],
+    skipReason:
+      "No canonical naming another page, or the page it names could not be read within the crawl's budget.",
   },
   CANONICAL_CONFLICT: {
     // A warning: conflicting canonicals leave the page where CANONICAL_MISSING would — a
