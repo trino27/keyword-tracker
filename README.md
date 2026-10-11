@@ -67,14 +67,19 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   tokenized into every window it contains, so a phrase the prose never repeats is damped and a
   bare common word is not selected at all — otherwise a page is filed under `nlds thriller` or
   `exercises` while its subject sits one line below.
-- **The checks are not invented here:** 70 page checks and 13 site checks, one unit per catalogued code, from Google's
+- **The checks are not invented here:** 74 page checks and 13 site checks, one unit per catalogued code, from Google's
   SEO Starter Guide, Search Central's crawling and indexing guides and the set Lighthouse audits.
   Every check explains itself at length and links the documentation behind it, and every finding
-  quotes the markup, header or robots.txt rule that proves it. Forty-six judge a page by
+  quotes the markup, header or robots.txt rule that proves it. Seventy judge a page by
   itself and four compare it with the rest of the crawl; which of the two a check is follows
   from its catalogue entry, so the wrong shape does not compile. Each answers pass, fail or *not
-  applicable*; a page's score is the share of the checks that could apply to it, equally weighted
-  — weighting by severity would invent a ranking model nobody can justify.
+  applicable*. A page's score is the share of the applicable checks' points it kept, each check
+  weighing its severity — Critical 10, Important 3, Improvement 1 — so a broken canonical costs
+  more than three missing alt texts, and a page that passes everything that applied still scores
+  100. The weights are a product decision in one constant, not a model of ranking.
+  The links in a post's text are asked for their status during the crawl — 300 per crawl, each
+  external host's robots.txt honoured, refusals and bot walls read as unknown — and a link the
+  crawl could not ask is said to be unchecked, never fine.
 - **Positions are computed at read time** (`LATERAL … LIMIT 1` on the snapshot primary key),
   never stored as columns that must then be kept true to the history. A snapshot hangs off a
   page-and-keyword pair by a composite key, so it cannot exist for a keyword the page lacks.
@@ -101,13 +106,16 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   explained to the person acting on it. A poor Core Web Vital is Important, not Critical —
   Google shows the most relevant page even when its experience is sub-par, so a slow site
   must not drown out a page that has fallen out of search.
-- **PageSpeed Insights — the one call to Google, automatic, cached, mobile.** Rank positions
+- **PageSpeed Insights — the one call to Google, automatic, cached, mobile and desktop.** Rank positions
   are still simulated; PageSpeed is a real request. A finished crawl queues its pages in its own
   transaction and a worker in the API process measures them in the background — no button, and
   opening a screen never calls Google: the last good measurement is stored per page and
-  re-measured at most once a day (Chrome's field data changes daily at most). **Mobile only:**
-  Google indexes and ranks with the mobile version (mobile-first indexing), and one strategy
-  halves the requests and keeps a row to three badges. Each metric takes the page's own
+  re-measured at most once a day (Chrome's field data changes daily at most). **Both devices,
+  mobile first:** every page is measured on mobile and on desktop — two calls per page, double
+  the quota of one. The list's badges and the score stay mobile, because Google indexes and ranks
+  with the mobile version (mobile-first indexing) and a row stays three badges; the page's Speed
+  block switches between the two, and desktop findings count among the issues. Lighthouse's
+  verdicts come from the mobile answer alone; desktop asks for performance only. Each metric takes the page's own
   real-visitor data, else the whole site's, else Lighthouse's lab run — INP never from the lab,
   which loads the page but never uses it — and says which on screen. When Google fails:
   timeouts and 5xx retry after 1, 4, 16, 64 minutes, then the page shows *Couldn't measure*; a
@@ -118,8 +126,9 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   the 75th percentile (LCP 2.5 s / 4 s, INP 200 / 500 ms, CLS 0.1 / 0.25); grey is no data; the
   tooltip says whose experience the value is. Speed never moves the SEO score — the way
   Lighthouse keeps SEO and Performance apart — but every non-green badge is an issue. The same
-  PageSpeed call brings Lighthouse's SEO and accessibility audits: those ARE checks, listed
-  beside ours on the page and counted in its score.
+  mobile PageSpeed call brings Lighthouse's SEO audits: those ARE checks, listed beside ours on
+  the page and counted in its score. Its accessibility category is shown as a score only, and
+  its image-delivery audit becomes a speed finding when the images could lose 100 KiB or more.
 - **Isolation:** every query is scoped by the session's user in the query itself, and a foreign id
   answers exactly like a missing one — an e2e matrix proves it per route. Sessions are server-side
   opaque cookies, passwords scrypt; outbound HTTP refuses private and loopback addresses.
@@ -157,31 +166,27 @@ Every weight and threshold, and what each was measured against: [`docs/decisions
   believing it: a decorative alt is noise at whatever weight it is given.
 - **Tuning the hyperparameters**, set by hand against two sites, on a labelled corpus against a
   measurable outcome.
-- **The site-level checks still missing** — orphan pages and a sitemap that disagrees with what
-  the crawl found. Both need a crawler that FOLLOWS LINKS; this one visits the URLs a sitemap
-  lists, so "nothing links here" is a conclusion from evidence it never gathered. Outgoing
+- **The site-level check still missing** — orphan pages. It needs a crawler that FOLLOWS LINKS;
+  this one visits the URLs a sitemap lists, so "nothing links here" is a conclusion from
+  evidence it never gathered. (A sitemap that disagrees with the crawl ships as
+  `SITEMAP_LISTS_NON_INDEXABLE`, and the links in the text are checked; see above.) Outgoing
   internal links ship as `NO_INTERNAL_LINKS`, which one page can answer about itself; duplicate
   titles, duplicate descriptions and cannibalisation ship as the three run-scoped codes. Then
   more crawl parallelism, which `SKIP LOCKED` already leaves as only a second worker process
   away.
-- **Desktop Core Web Vitals,** if a client asks — a strategy column and a second request per
-  page; mobile is what Google ranks with. **A shared 429 pause** for more than one API process,
-  in the database rather than in memory.
+- **A shared 429 pause** for more than one API process, in the database rather than in memory.
 - **Keyword stuffing, the one spam rule the catalogue is missing — measured, not guessed.**
   Google's spam policies name it and publish no number. The comparative form was built (three
   times the site's median density of its top keyword) and fired on four ordinary posts on the
   recorded corpus, "google analytics" at 3.5% in a post about Google Analytics among them; per
   paragraph, a yoast product paragraph is denser than Google's own example. No line separates
   those without inventing one. `PAGE_ANALYSIS_MODULE.md` keeps the numbers.
-- **A ranked impact weight per check.** Today every check counts the same in the score, and
-  deliberately so: weighting by severity would invent a ranking model nobody can justify. The
-  honest version of that weight is measured, not asserted — the checks regressed against
-  observed position movement, or impact data published by a source that has it. It costs more
-  than a constant: weights break the comparability the equal denominator gives (100 out of 27
-  applicable checks and 100 out of 50 are already different claims), the stored
-  `checks_applicable = cardinality(checks_judged)` would have to become a weight sum, and a
-  score whose weights moved is not the score crawled last month. Until the evidence exists,
-  equal weight is the claim the data supports.
+- **A measured impact weight per check.** The score weighs a check by its severity, a product
+  decision in one constant. The honest version of that weight is measured, not asserted — the
+  checks regressed against observed position movement, or impact data published by a source
+  that has it. The points are weighed at read time, so a measured weight would change every
+  score without a migration; a score whose weights moved is still not the score crawled last
+  month, which is why the change would be stated where the score is explained.
 
 ## AI tools used
 
