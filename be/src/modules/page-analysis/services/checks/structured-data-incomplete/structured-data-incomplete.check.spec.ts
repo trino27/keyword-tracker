@@ -26,7 +26,7 @@ describe('STRUCTURED_DATA_INCOMPLETE', () => {
       STRUCTURED_DATA_INCOMPLETE_CHECK.evaluate(
         article(['headline', 'image', 'datePublished']),
       ),
-    ).toEqual(failsWith({ missing: ['dateModified', 'author', 'publisher'] }));
+    ).toEqual(failsWith({ missing: ['dateModified', 'author'] }));
   });
 
   // The page with no article markup is already failing STRUCTURED_DATA_MISSING; telling
@@ -85,7 +85,7 @@ describe('STRUCTURED_DATA_INCOMPLETE', () => {
       ),
     ).toEqual(
       failsWith({
-        missing: ['image', 'dateModified', 'author', 'publisher'],
+        missing: ['image', 'dateModified', 'author'],
       }),
     );
   });

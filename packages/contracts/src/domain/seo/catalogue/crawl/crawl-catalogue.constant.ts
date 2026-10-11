@@ -476,12 +476,12 @@ export const CRAWL_CATALOGUE = {
     passLabel: 'One H1',
     plain: {
       what: 'This page has more than one main heading',
-      why: 'Screen-reader users are told the page is about several things at once. Google says it copes with any heading structure, so this is about clarity for readers, not rankings.',
+      why: 'Screen-reader users moving by headings meet several main topics. Google says it copes with any heading structure, so this is about clarity for readers, not rankings.',
       fix: 'The editor can keep one top-level heading and turn the others into subheadings in the CMS; if the extra one comes from the theme, ask your developer to change it.',
     },
     hint: 'Several main headings blur what the page is about; keep one.',
     explanation:
-      'The HTML standard no longer allows several <h1> elements to describe one document, and MDN advises one per page: a page with several main headings tells screen-reader users that it is about several things. Google says it copes with any heading structure, so the cost is clarity for readers and assistive technology rather than a ranking penalty.',
+      'The HTML standard allows several top-level headings, but MDN advises one <h1> per page: screen-reader users jump between headings, and several main headings make it unclear which one is the page\x27s subject. Copies of one heading with the same words — a title written once for phones and once for wider screens — count once. Google says it copes with any heading structure, so the cost is clarity for readers and assistive technology rather than a ranking penalty.',
     sources: [SOURCE.mdnHeadings, SOURCE.starterGuide],
   },
 
@@ -1252,7 +1252,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Add defer (or async, for scripts nothing depends on) to external scripts in <head>.',
     explanation:
-      "External scripts in <head> without async or defer stop the HTML parser: nothing below them is parsed, and nothing is painted, until each is downloaded and run. Every one of them delays the first paint and the Largest Contentful Paint. defer keeps their order and runs them after parsing; async runs them as soon as they arrive; a module defers by itself. This is read from the HTML — whether the delay is large depends on the scripts' size and the reader's network, which only field data measures.",
+      "External scripts in <head> without async or defer stop the HTML parser: nothing below them is parsed, and nothing is painted, until each is downloaded and run. Every one of them delays the first paint and the Largest Contentful Paint. defer keeps their order and runs them after parsing; async runs them as soon as they arrive; a module defers by itself, and a nomodule script is never downloaded by a browser that runs modules. This is read from the HTML — whether the delay is large depends on the scripts' size and the reader's network, which only field data measures.",
     sources: [SOURCE.mdnScript, SOURCE.optimizeLcp],
   },
   FONT_PRELOAD_WITHOUT_CROSSORIGIN: {

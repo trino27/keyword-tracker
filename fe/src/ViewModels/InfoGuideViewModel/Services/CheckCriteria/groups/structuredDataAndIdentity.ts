@@ -82,7 +82,7 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	STRUCTURED_DATA_INCOMPLETE: {
-		passes: "The article markup has headline, image, datePublished, dateModified, author and publisher.",
+		passes: "The article markup has headline, image, datePublished, dateModified and author.",
 		fails: "One or more of those recommended properties is missing.",
 		ifPasses:
 			"Google gets every fact it can show for an article from the page itself, so the right image, date and author can appear with the result instead of ones Google inferred.",
@@ -95,8 +95,7 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 				'  "image": "https://example.com/images/calendar.jpg",',
 				'  "datePublished": "2026-03-12T09:00:00+01:00",',
 				'  "dateModified": "2026-05-02T14:30:00+01:00",',
-				'  "author": {"@type": "Person", "name": "Jane Doe", "url": "https://example.com/author/jane-doe/"},',
-				'  "publisher": {"@type": "Organization", "name": "Example Blog"}',
+				'  "author": {"@type": "Person", "name": "Jane Doe", "url": "https://example.com/author/jane-doe/"}',
 				"}",
 			].join("\n"),
 			bad: [
@@ -112,10 +111,10 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 			lang: "json",
 		},
 		howChecked:
-			"The tracker reads the properties of the page's JSON-LD article nodes, or of its first Microdata article item when there is no JSON-LD one, and lists which of headline, image, datePublished, dateModified, author and publisher are absent. A property counts only when it holds something: an empty string or an empty list, as a half-filled CMS template writes them, counts as missing. A page with no article markup is not judged here — that is STRUCTURED_DATA_MISSING's finding.",
+			"The tracker reads the properties of the page's JSON-LD article nodes, or of its first Microdata article item when there is no JSON-LD one, and lists which of headline, image, datePublished, dateModified and author — the properties Google's Article documentation recommends — are absent. publisher is not among them: Google no longer lists it. A property counts only when it holds something: an empty string or an empty list, as a half-filled CMS template writes them, counts as missing. A page with no article markup is not judged here — that is STRUCTURED_DATA_MISSING's finding.",
 		manualCheck: [
 			"Paste the URL into the Rich Results Test (https://search.google.com/test/rich-results) and open the Article item; it lists the properties found and warns about missing optional ones.",
-			'Or open View source (Ctrl+U), find (Ctrl+F) "ld+json", and check each of the six properties in the article block has a real value, not "" or [].',
+			'Or open View source (Ctrl+U), find (Ctrl+F) "ld+json", and check each of the five properties in the article block has a real value, not "" or [].',
 		],
 	},
 	AUTHOR_MARKUP_INCOMPLETE: {

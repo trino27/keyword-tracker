@@ -7,6 +7,9 @@ describe('H1_MULTIPLE', () => {
     [[], PASSES],
     [['One'], PASSES],
     [['One', 'Two'], failsWith({ count: 2 })],
+    // moz.com: one title as two <h1>s, CSS showing one per screen width.
+    [['One title', 'One Title'], PASSES],
+    [['One', 'Two', 'One'], failsWith({ count: 2 })],
   ])('h1s %j', (h1s, expected) => {
     expect(
       H1_MULTIPLE_CHECK.evaluate(makeCheckInput({ parsed: { h1s } })),

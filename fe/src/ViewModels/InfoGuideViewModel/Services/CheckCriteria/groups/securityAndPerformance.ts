@@ -126,7 +126,7 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker reads every <script src> the HTML parser places in <head> and counts it as blocking when it is classic JavaScript — no type, or text/javascript, application/javascript, text/ecmascript or application/ecmascript — with neither async nor defer. type="module" scripts, which defer by themselves, and data types such as JSON pass. Inline scripts and scripts in <body> are not judged. Any blocking script fails the check, and the finding quotes each one.',
+			'The tracker reads every <script src> the HTML parser places in <head> and counts it as blocking when it is classic JavaScript — no type, or one of the JavaScript MIME types HTML lists, such as text/javascript, application/javascript or the legacy application/x-javascript — with neither async nor defer. type="module" scripts, which defer by themselves, nomodule scripts, which no browser that runs modules downloads, and data types such as JSON pass. Inline scripts and scripts in <body> are not judged. Any blocking script fails the check, and the finding quotes each one.',
 		manualCheck: [
 			"In Chrome DevTools' Console, run document.querySelectorAll('head script[src]:not([async]):not([defer]):not([type=module])') — an empty list passes.",
 			'Or open View source (Ctrl+U) and look at each <script src> before </head> for async, defer or type="module".',

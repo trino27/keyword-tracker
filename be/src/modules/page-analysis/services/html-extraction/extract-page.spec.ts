@@ -296,6 +296,26 @@ describe('extractPage', () => {
     expect(parsed.blocks).toEqual(['Visible copy.']);
   });
 
+  /**
+   * A header inside <main> or <article> is that section's own (HTML-AAM): css-tricks.com
+   * puts the post's h1 in one, yoast.com its hero image. The site's banner, outside
+   * them, is still furniture.
+   */
+  it("keeps the post's own header, with its h1 and hero, and drops the site's", () => {
+    const parsed = page(
+      '<header><h1>Site</h1><img src="/logo.png" alt="Site"></header>' +
+        '<main><header class="mega-header"><h1>Use initial-scale=1</h1>' +
+        '<img src="/hero.png" alt="A phone"></header>' +
+        '<h3>I already do this</h3><p>Copy.</p></main>',
+    );
+
+    expect(parsed.headings).toEqual([
+      { level: 1, text: 'Use initial-scale=1' },
+      { level: 3, text: 'I already do this' },
+    ]);
+    expect(parsed.images.map(({ src }) => src)).toEqual(['/hero.png']);
+  });
+
   it('separates adjacent blocks so their words never fuse', () => {
     expect(page('<main><h1>Title</h1><p>One</p></main>').wordCount).toBe(2);
   });
@@ -351,6 +371,23 @@ describe('extractPage', () => {
     ]);
     expect(parsed.fontPreloadsWithoutCrossorigin).toEqual([
       '<link rel="preload" as="font" href="/f.woff2" type="font/woff2">',
+    ]);
+  });
+
+  /**
+   * HTML's "prepare the script element" returns early for a classic `nomodule` script, so
+   * no browser that runs modules fetches it (vercel.com's legacy chunk); the legacy
+   * JavaScript MIME types are still classic JavaScript the parser waits for.
+   */
+  it('passes over a nomodule script, and blocks on a legacy JavaScript type', () => {
+    const parsed = page(
+      '',
+      '<script src="/legacy.js" noModule=""></script>' +
+        '<script type="application/x-javascript" src="/old.js"></script>',
+    );
+
+    expect(parsed.renderBlockingScripts).toEqual([
+      '<script type="application/x-javascript" src="/old.js"></script>',
     ]);
   });
 

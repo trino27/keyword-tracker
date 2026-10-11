@@ -185,8 +185,8 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	H1_MULTIPLE: {
-		passes: "The page has no more than one <h1>.",
-		fails: "The page has two or more <h1> elements.",
+		passes: "The page has no more than one main heading: one <h1>, or copies of one <h1> with the same words.",
+		fails: "The page has two or more <h1> elements with different words.",
 		ifPasses:
 			"Screen-reader users hear one main topic for the page. The gain is clarity for readers and assistive technology, not rankings — Google copes with several <h1> elements.",
 		example: {
@@ -195,7 +195,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"The tracker counts every <h1> with text anywhere in <body> of the HTML the server returns — a logo or site name marked up as <h1> in the header counts too. Hidden and screen-reader-only elements are removed first, as for H1_MISSING. The check fails at two or more; a page with none passes here, because H1_MISSING reports that.",
+			"The tracker counts every <h1> with text anywhere in <body> of the HTML the server returns — a logo or site name marked up as <h1> in the header counts too. Hidden and screen-reader-only elements are removed first, as for H1_MISSING. <h1>s with the same words, ignoring case, count once: some themes write the title twice, one copy for phones and one for wider screens, and CSS shows one at a time. The check fails at two or more different ones; a page with none passes here, because H1_MISSING reports that.",
 		manualCheck: [
 			"Open the page in Chrome and open DevTools (F12), then the Console.",
 			"Run document.querySelectorAll('body h1') and look at each element it lists.",
@@ -213,7 +213,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"The tracker reads the headings with text of the post's main content only — the <article> holding the <h1>, or <main>, with navigation, headers, footers, sidebars, related-post and comment blocks removed — in page order. Walking pair by pair, it fails at the first heading more than one level deeper than the heading before it; going back up any number of levels is fine. Fewer than two headings is no outline to judge, and the check is skipped.",
+			"The tracker reads the headings with text of the post's main content only — the <article> holding the <h1>, or <main>, with navigation, the site header, footers, sidebars, related-post and comment blocks removed — in page order. The post's own <header> inside <main> or <article>, which holds its <h1>, is kept, so the outline starts at the post's title. Walking pair by pair, it fails at the first heading more than one level deeper than the heading before it; going back up any number of levels is fine. Fewer than two headings is no outline to judge, and the check is skipped.",
 		manualCheck: [
 			"Open the page in Chrome and open DevTools (F12), then the Console.",
 			"Run document.querySelectorAll('article h1, article h2, article h3, article h4, article h5, article h6') (use main instead of article if the post has no <article>).",
@@ -230,7 +230,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			bad: "<article>\n  <h1>How to Build Backlinks That Last</h1>\n  <p>Most links a small site earns come from three places…</p>\n  <!-- 1,200 more words of <p> paragraphs and no <h2>–<h6> -->\n</article>",
 			lang: "html",
 		},
-		howChecked: `The tracker counts the words of the post's main content — navigation, headers, footers, sidebars and comments removed — and skips the check below ${C.THIN_CONTENT.min} words, where a short post reads fine as one block. At ${C.THIN_CONTENT.min} words or more it passes as soon as the main content holds any <h2>–<h6> with text, in any order; it fails when the only headings are <h1> or there are none.`,
+		howChecked: `The tracker counts the words of the post's main content — navigation, the site header, footers, sidebars and comments removed — and skips the check below ${C.THIN_CONTENT.min} words, where a short post reads fine as one block. At ${C.THIN_CONTENT.min} words or more it passes as soon as the main content holds any <h2>–<h6> with text, in any order; it fails when the only headings are <h1> or there are none.`,
 		manualCheck: [
 			"Open the page in Chrome and open DevTools (F12), then the Console.",
 			"Run document.querySelectorAll('article h2, article h3, article h4, article h5, article h6').length (use main instead of article if the post has no <article>).",

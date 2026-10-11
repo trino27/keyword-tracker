@@ -582,14 +582,28 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
   main.find('iframe').replaceWith(`<${FRAME_MARKER}></${FRAME_MARKER}>`);
   main.find(NEVER_CONTENT).remove();
   const total = wordsIn($, main);
+  const scoped = candidate.is('main, article');
   // Document order, so a wrapper is judged before what it wraps: keeping a wrapper
   // still lets the furniture inside it be removed on its own terms.
   main.find(NON_CONTENT).each((_, element) => {
     const node = $(element);
     if (total > 0 && wordsIn($, node) > total * FURNITURE_MAX_SHARE) return;
+    if (scoped && isPostHeader(node)) return;
     node.remove();
   });
   return main;
+}
+
+/**
+ * The post's own header: a `<header>` holding the post's `<h1>`, inside the `<main>` or
+ * `<article>` the content was read from. HTML-AAM maps a header to the site banner only
+ * when it is not inside an article, aside, main, nav or section; inside one it is that
+ * section's own header — the post's title, byline, date and hero image. Removing it as
+ * furniture dropped the h1 from the outline (css-tricks.com: h1 then h3 read as h3, h3)
+ * and the hero from the images (yoast.com: "no images" under a full-width picture).
+ */
+function isPostHeader(node: ReturnType<CheerioAPI>): boolean {
+  return node.is('header') && node.find('h1').length > 0;
 }
 
 /** The share of the content's words an <article> needs to be the post on its own. */
@@ -717,23 +731,42 @@ function accessibleNameOf($: CheerioAPI, anchor: TSelection): string {
   return collapse(anchor.attr('title') ?? '');
 }
 
-/** Script types a browser runs as classic JavaScript; anything else is data or a module. */
+/**
+ * Script types a browser runs as classic JavaScript — HTML's JavaScript MIME type
+ * essence matches, legacy ones included; anything else is data or a module.
+ */
 const CLASSIC_SCRIPT_TYPES = new Set([
   '',
-  'text/javascript',
-  'application/javascript',
-  'text/ecmascript',
   'application/ecmascript',
+  'application/javascript',
+  'application/x-ecmascript',
+  'application/x-javascript',
+  'text/ecmascript',
+  'text/javascript',
+  'text/javascript1.0',
+  'text/javascript1.1',
+  'text/javascript1.2',
+  'text/javascript1.3',
+  'text/javascript1.4',
+  'text/javascript1.5',
+  'text/jscript',
+  'text/livescript',
+  'text/x-ecmascript',
+  'text/x-javascript',
 ]);
 
 /**
  * An external script the parser must stop for: classic JavaScript with neither `async`
- * nor `defer`. A module defers by default; JSON and templates never run.
+ * nor `defer`. A module defers by default; JSON and templates never run; and a classic
+ * `nomodule` script is never fetched by a browser that runs modules — HTML's "prepare the
+ * script element" returns before fetching it — so it blocks nothing in any browser that
+ * renders the page today.
  */
 function isParserBlocking(script: TSelection): boolean {
   const type = (script.attr('type') ?? '').trim().toLowerCase();
   return (
     CLASSIC_SCRIPT_TYPES.has(type) &&
+    script.attr('nomodule') === undefined &&
     script.attr('async') === undefined &&
     script.attr('defer') === undefined
   );

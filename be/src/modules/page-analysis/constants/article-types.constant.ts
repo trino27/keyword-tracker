@@ -32,5 +32,4 @@ export const RECOMMENDED_ARTICLE_FIELDS = [
   'datePublished',
   'dateModified',
   'author',
-  'publisher',
 ] as const;
