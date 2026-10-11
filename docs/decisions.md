@@ -209,7 +209,7 @@ appears, from one record — and within a level the report sorts by pages affect
 computed priority (weights × pages × position, resting on simulated positions) and a new
 four-level scale (a migration of every stored finding and a re-audit of a curated catalogue).
 
-**Closing the gap to Ahrefs' checks without losing precision (plan `ahrefs-gap-checks`,
+**Closing the gap to Ahrefs' checks without losing precision (the Ahrefs-gap plan,
 2026-10-11).** Ahrefs' blog was read as a checklist of what an SEO tool tells a site owner to
 fix, and every candidate check had to clear the same bar as the old ones.
 

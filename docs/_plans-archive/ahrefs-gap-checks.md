@@ -1,3 +1,52 @@
+<!-- ARCHIVED. Present tense below describes what this plan intended, not what is true. -->
+
+# ARCHIVE HEADER
+
+**Status:** archived 2026-10-11. **Branch:** `feat/issue-report-and-pagespeed`, the branch the
+user kept for the whole work. Phases 1, 3, 4, 5 and 6 executed; phase 2 dropped by D33. The
+four changes are archived under `openspec/changes/archive/2026-10-11-*`. The body below was not
+edited, apart from the decisions appended while the work ran (D38–D51), so it still reads as
+the plan that was executed.
+
+**Built, and where it is pinned.** Every phase was implemented test-first, in sub-phase order.
+The final full run (at 4664d77, the last code commit) was lint and typecheck clean, with 794
+contracts, 1380 backend, 446 frontend and 226 database/e2e tests. The stack was rebuilt and
+migrated through `0018`, and every new check passed a live field audit at 0 wrong:
+- markup checks: 56 sites, 256 posts;
+- link checks: 32 sites, 99 firings;
+- the image finding: 32 firings, each confirmed by a fresh PageSpeed answer.
+
+Desktop field values matched Google's live answer exactly.
+
+**Harvested into:**
+
+| fact | now lives in |
+| --- | --- |
+| the inclusion bar, the rejected candidates with their reasons, `CANONICAL_CHANGED`'s drop, the step-asides, the markup audit tally | `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` |
+| the four outbound checks, the link verdict rule (D3, D38), their audit tally, the image-delivery tally | the same document |
+| the `outbound` stage, its budgets, robots per host, why no queue, its measured cost | `be/src/modules/crawl/CRAWL_MODULE.md` |
+| a row per page and device, the three-step migration and its one hand edit, Lighthouse mobile-only, the claim order, desktop's measured cost, image delivery and why it is a pageSpeed code | `be/src/modules/page-speed/PAGE_SPEED_MODULE.md` |
+| every join names its device; the detail carries both | `be/src/modules/pages/PAGES_MODULE.md` |
+| only Core Web Vitals findings fold into a whole-site row | `be/src/modules/issue-report/ISSUE_REPORT_MODULE.md` |
+| the decisions condensed, with their measurements | `docs/decisions.md` ("Closing the gap to Ahrefs' checks") |
+| both devices, links checked, the score weighed by severity | `README.md` |
+| ANALYSIS-014…021, 023…027, CRAWL-011…013, REMOTE-005, SPEED-015, SPEED-020 (new); SPEED-001/002/005/007/014, PAGES-014, SEED-006, PAGEDETAIL-011 (modified) | `openspec/specs/**`, deposited beside each owning document's invariants (REMOTE-005 in `practices/be/remote-api-core/SKILL.md`, PAGEDETAIL-011 in `fe/skills/AGENTS.md`) |
+
+**Left open, for a person:**
+
+1. **D37 was never confirmed by the user.** It was implemented in phase 1, with a spec, and is
+   pinned. SITEMAP_LISTS_NON_INDEXABLE also reads CANONICAL_TO_HTTP and CANONICAL_TARGET_BROKEN
+   findings, so the step-asides lose no sitemap entry.
+2. **O1, O6 and O7 stay open with their defaults.** O1: TITLE_YEAR_OUTDATED never fired in the
+   audit, so its patterns were never contradicted. O6: react.dev reached the outbound deadline
+   with one link unchecked; whether its external robots.txt fetches caused it was not
+   separated. O7: RDFa breadcrumbs.
+3. **`lighthouse-checks`**, another plan's change, is merged here but not archived by this plan.
+4. ANALYSIS-022 and PAGES-015 were allocated to the dropped `CANONICAL_CHANGED` work and are
+   never to be reused.
+
+---
+
 # Closing the gap to Ahrefs' checks without losing precision
 
 Our check catalogue now covers what Ahrefs' blog tells a site owner to fix, and every new finding
@@ -14,7 +63,7 @@ Improvement, and every new check stays only if each firing in a live field audit
 No new check reports a fact an existing check already reports: where two meet on one fact, the
 more specific one keeps it and the other steps aside (D32–D36).
 
-**Status:** active — branch `feat/issue-report-and-pagespeed` (the user's instruction: the work
+**Status:** archived — see the header above — branch `feat/issue-report-and-pagespeed` (the user's instruction: the work
 stays on the current branch; no new branch). Phases 1 and 3 are closed: at `adc8887` every task of
 `markup-gap-checks` and `crawl-outbound-checks` is ticked except 7.2 in each, which is the
 archive-and-deposit step and belongs to phase 6. Phases 4 and 5 have not started. They were

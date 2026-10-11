@@ -435,7 +435,7 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   Soft 404s, HTTP→HTTPS and www normalisation are properties of the SITE, not of a page: they
   are site checks (`SOFT_404`, `HOST_VARIANT_SERVES_CONTENT`, `HOST_REDIRECT_CHAIN`) in
   `SITE_CHECK_CATALOGUE`, judged once per crawl from requests of their own.
-  From the comparison with Ahrefs' recommendations (plan `ahrefs-gap-checks`, D2, D33):
+  From the comparison with Ahrefs' recommendations (the Ahrefs-gap plan, D2, D33):
   an empty `alt=""` is correct markup for a decorative image (WCAG), not a miss; "not
   updated for N months" would push authors to bump dates, the very thing
   `DATE_BUMPED_WITHOUT_CHANGES` flags; three to five links per post, "no outbound links" as
@@ -449,8 +449,8 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   `CANONICAL_CHANGED` was planned and dropped: the canonical's current state is already
   reported — self to other by `CANONICAL_MISMATCH`, removal by `CANONICAL_MISSING` — so
   without repeating them it could fire only on other to self, which is a fix.
-- **Seven checks from Ahrefs' recommendations, one fact one finding (2026-10-11).** Plan
-  `ahrefs-gap-checks` compared the catalogue with Ahrefs' audit, on-page, technical and
+- **Seven checks from Ahrefs' recommendations, one fact one finding (2026-10-11).** The
+  Ahrefs-gap plan compared the catalogue with Ahrefs' audit, on-page, technical and
   canonical guidance and admitted what clears D1's bar: a first-party source at any
   severity, an industry one (`INDUSTRY_SOURCE_HOSTS`) only as a notice — a contracts test
   holds that half. `CANONICAL_TO_HTTP` (the page's own http:// twin as its canonical),
