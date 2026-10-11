@@ -71,7 +71,6 @@ export function GuideNav({
 		<Stack gap="xs">
 			{/* Remounted when the URL's q changes from outside (e.g. "Show the whole guide"). */}
 			<SearchInput
-				key={query ?? ""}
 				initial={query ?? ""}
 				onCommit={onSearch}
 				label="Search checks"

@@ -65,7 +65,6 @@ export function IssueFilters({ search, pageTitle, onChange }: IIssueFiltersProps
 					data={TYPE_OPTIONS}
 				/>
 				<SearchInput
-					key={search.q ?? ""}
 					initial={search.q ?? ""}
 					onCommit={(q) => onChange({ q })}
 					label="Search issues by page"

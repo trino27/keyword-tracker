@@ -16,11 +16,7 @@ export function PagesFilterBar({ search, clients, onChange }: IPagesFilterBarPro
 	return (
 		<Group gap="sm" align="flex-end" wrap="wrap">
 			{/* Remounted when the URL's q changes from outside (e.g. "Clear filters"). */}
-			<SearchInput
-				key={search.q ?? ""}
-				initial={search.q ?? ""}
-				onCommit={(q) => onChange({ q })}
-			/>
+			<SearchInput initial={search.q ?? ""} onCommit={(q) => onChange({ q })} />
 			<Select
 				aria-label="Client"
 				placeholder="All clients"
