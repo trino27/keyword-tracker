@@ -440,7 +440,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 7. The page detail — PAGEDETAIL-009, PAGEDETAIL-012, PAGEDETAIL-013
 
-- [ ] 7.1 Gateways: in `fe/src/Gateways/PageGateway/Validation/PageSchemas.ts`:
+- [x] 7.1 Gateways: in `fe/src/Gateways/PageGateway/Validation/PageSchemas.ts`:
   - `checksByOwner` replaces `checks`, and `pageCheckSchema` takes the owner's codes;
   - the score's `byOwner`;
   - the new summary fields, with the breakdown via the contracts zod schema;
@@ -450,7 +450,16 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   a Core Web Vitals code as a check". Add `describeIssue` sentences for the Lighthouse codes
   (`DESCRIBE` is a `Record`, so a missing one fails to compile). Verify: `pnpm --filter fe
   test:ci -- PageSchemas describeIssue && pnpm --filter fe typecheck`.
-- [ ] 7.2 Write first in `fe/src/ViewModels/PageDetailViewModel/Services/SummariseChecks/summariseChecks.test.ts`:
+
+  AMENDED during implementation:
+  - **Order of work.** The Lighthouse issue variants and the `describeIssue` sentence landed
+    with group 3, because the catalogue could not compile on the frontend without them.
+  - **Lighthouse findings have one sentence.** It names the audit (`Lighthouse's
+    color-contrast audit failed…`). `DESCRIBE` is typed over every code but Lighthouse's:
+    a Lighthouse finding carries no details to read a per-page sentence from.
+  - **One schema, one rule.** `checksByOwnerSchema` refuses a code of the wrong owner in a
+    list.
+- [x] 7.2 Write first in `fe/src/ViewModels/PageDetailViewModel/Services/SummariseChecks/summariseChecks.test.ts`:
   - "one row per counterpart group, each cell its owner's codes";
   - "crawl rows in catalogue order, then Lighthouse SEO, then accessibility, failures first";
   - "marks a row whose owners disagree";
@@ -459,7 +468,18 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
   Then `summariseChecks(checksByOwner, availability)`. Verify: `pnpm --filter fe test:ci --
   summariseChecks`.
-- [ ] 7.3 Write first in `ChecksSection.test.tsx`, one test per PAGEDETAIL-009 scenario. Then
+
+  AMENDED during implementation:
+  - **New signature.** `summariseChecks(checksByOwner, { crawledAt, lighthouseMeasuredAt,
+    pageSpeedState })` returns columns (title, date, subtitle or the empty line), sections
+    and the total failed.
+  - **Row order.** A group stands where its first crawl code would, so the five canonical
+    codes and ROBOTS_BLOCKS_GOOGLEBOT read on the row of their group's first code, not in
+    strict catalogue order. My first test expected strict order and was corrected.
+  - **Lighthouse wording.** Lighthouse's not-applicable reason is "Lighthouse found nothing
+    on the page for this audit."; its unrecorded one is "Lighthouse did not report this
+    audit in its last run.", counted as "not recorded" in its subtitle.
+- [x] 7.3 Write first in `ChecksSection.test.tsx`, one test per PAGEDETAIL-009 scenario. Then
   rebuild `ChecksSection.tsx`:
   - two columns, each header with its date in the user's zone;
   - section headings;
@@ -468,17 +488,36 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
   Read `fe/skills/folder-structure/SKILL.md` before adding a sub-component folder. Verify:
   `pnpm --filter fe test:ci -- ChecksSection`.
-- [ ] 7.4 Write first in `explainScore.test.ts` the three PAGEDETAIL-012 scenarios. Then
+
+  Done: two columns via `SimpleGrid` that stack below `sm`, each cell labelled there. The
+  marker reads "Sources disagree", with the tooltip. The column dates use `formatInZone`.
+  Seven tests cover the PAGEDETAIL-009 scenarios.
+- [x] 7.4 Write first in `explainScore.test.ts` the three PAGEDETAIL-012 scenarios. Then
   `explainScore(score, lighthouseState)`: the per-owner arithmetic, and "not in the number yet"
   with its reason. Verify: `pnpm --filter fe test:ci -- explainScore`.
-- [ ] 7.5 Write first in `SpeedSection.test.tsx` the three PAGEDETAIL-013 scenarios. Then:
+
+  Done: a sixth paragraph. It gives our checks and Lighthouse's with the measurement date,
+  or the reason Lighthouse is not in the number. The arithmetic says "crawled and measured"
+  when Lighthouse is in it.
+- [x] 7.5 Write first in `SpeedSection.test.tsx` the three PAGEDETAIL-013 scenarios. Then:
   - the TTFB line;
   - a share bar per field metric, with its tooltip;
   - the LCP breakdown with its lab label;
   - the two category captions.
 
   Verify: `pnpm --filter fe test:ci -- SpeedSection`.
-- [ ] 7.6 Commit: `feat(fe): checks in two columns, our checks and Lighthouse, and the speed
+
+  Done:
+  - a share bar under each field metric, its tooltip and aria-label from
+    `visitShareSentence`;
+  - the TTFB line, formatted as ms under a second and seconds above;
+  - the LCP breakdown drawn as shares with its phase names, the element selector, and a
+    line saying the times do not add up to the LCP shown (per the 1.2 amendment);
+  - SEO and accessibility captions.
+
+  Results: the frontend runs 391 tests, the contracts 740, the backend 1215. Lint and
+  typecheck are clean.
+- [x] 7.6 Commit: `feat(fe): checks in two columns, our checks and Lighthouse, and the speed
   diagnostics`. Verify: `pnpm lint && pnpm typecheck && pnpm test`.
 
 ## 8. End to end

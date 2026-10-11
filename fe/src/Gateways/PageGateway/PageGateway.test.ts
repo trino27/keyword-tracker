@@ -21,7 +21,12 @@ const ITEM = {
 		term: "remove www",
 		capturedAt: "2026-10-03T12:00:00.000Z",
 	},
-	score: { value: 94, applicable: 18, failed: 1 },
+	score: {
+		value: 94,
+		applicable: 18,
+		failed: 1,
+		byOwner: { crawl: { applicable: 18, failed: 1 }, lighthouse: null },
+	},
 	issues: { total: 1, error: 0, warning: 1, notice: 0, siteWide: 0 },
 	pageSpeed: null,
 	lastCapturedAt: "2026-10-03T12:00:00.000Z",

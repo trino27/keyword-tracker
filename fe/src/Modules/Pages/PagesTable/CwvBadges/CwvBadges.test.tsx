@@ -10,10 +10,14 @@ const MEASURED: IPageSpeedSummary = {
 	lastError: null,
 	measurement: {
 		measuredAt: "2026-10-09T12:00:00.000Z",
-		lcp: { value: 3100, band: "needsImprovement", source: "url" },
+		lcp: { value: 3100, band: "needsImprovement", source: "url", share: null },
 		inp: null,
-		cls: { value: 0.3, band: "poor", source: "lab" },
+		cls: { value: 0.3, band: "poor", source: "lab", share: null },
 		performanceScore: 55,
+		ttfb: null,
+		lcpBreakdown: null,
+		seoScore: null,
+		accessibilityScore: null,
 	},
 };
 

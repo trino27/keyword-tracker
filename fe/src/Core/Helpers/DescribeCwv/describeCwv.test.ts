@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { cwvReadingSentence, cwvSourceLabel, cwvSourcePhrase, formatCwvValue } from "./describeCwv";
+import {
+	cwvReadingSentence,
+	cwvSourceLabel,
+	cwvSourcePhrase,
+	formatCwvValue,
+	formatTtfb,
+	lcpPhaseShares,
+	visitShareSentence,
+} from "./describeCwv";
 
 describe("formatCwvValue", () => {
 	it.each([
@@ -44,10 +52,42 @@ describe("cwvReadingSentence", () => {
 		expect(
 			cwvReadingSentence(
 				"lcp",
-				{ value: 3100, band: "needsImprovement", source: "url" },
+				{ value: 3100, band: "needsImprovement", source: "url", share: null },
 				"2026-10-09T12:00:00.000Z",
 				"America/Toronto",
 			),
 		).toBe("LCP 3.1 s — needs improvement. Real visitors to this page, measured Oct 9.");
+	});
+});
+
+describe("visitShareSentence", () => {
+	it("splits the visits into three shares that add up to 100", () => {
+		expect(visitShareSentence({ good: 0.68, poor: 0.11 })).toBe(
+			"68% of visits good, 21% need improvement, 11% poor",
+		);
+	});
+});
+
+describe("formatTtfb", () => {
+	it("reads milliseconds under a second and seconds above", () => {
+		expect(formatTtfb(620)).toBe("620 ms");
+		expect(formatTtfb(1485)).toBe("1.5 s");
+	});
+});
+
+describe("lcpPhaseShares", () => {
+	/** PAGEDETAIL-013 "an image LCP". */
+	it("gives each phase its share of the breakdown's own total", () => {
+		expect(
+			lcpPhaseShares({
+				element: null,
+				phases: [
+					{ phase: "timeToFirstByte", ms: 6 },
+					{ phase: "resourceLoadDelay", ms: 736 },
+					{ phase: "resourceLoadDuration", ms: 43 },
+					{ phase: "elementRenderDelay", ms: 1529 },
+				],
+			}).map(({ percent }) => percent),
+		).toEqual([0, 32, 2, 66]);
 	});
 });

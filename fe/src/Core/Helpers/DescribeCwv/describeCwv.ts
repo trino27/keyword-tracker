@@ -1,4 +1,12 @@
-import { CWV_THRESHOLDS, type ICwvReading, type TCwvMetric, type TCwvSource } from "@app/contracts";
+import {
+	CWV_THRESHOLDS,
+	type ICwvReading,
+	type ILcpBreakdown,
+	type IVisitShare,
+	type TCwvMetric,
+	type TCwvSource,
+	type TLcpPhase,
+} from "@app/contracts";
 import { cwvBandLabel } from "../../Constants/cwvBandColor";
 import { formatInZone } from "../FormatInZone/formatInZone";
 
@@ -61,4 +69,42 @@ export function cwvReadingSentence(
 	timeZone: string,
 ): string {
 	return `${CWV_METRIC_NAME[metric]} ${formatCwvValue(metric, reading.value)} — ${cwvBandLabel[reading.band]}. ${cwvSourceLabel(reading.source)}, measured ${formatInZone(measuredAt, timeZone, "shortDate")}.`;
+}
+
+/** "620 ms", or "1.5 s" from a second up: TTFB as people read it. */
+export function formatTtfb(value: number): string {
+	return value < 1000 ? `${Math.round(value)} ms` : `${Number((value / 1000).toFixed(1))} s`;
+}
+
+/**
+ * "68% of visits good, 21% need improvement, 11% poor". The middle share is what the other
+ * two leave, so the three always add up to 100 on screen.
+ */
+export function visitShareSentence(share: IVisitShare): string {
+	const good = Math.round(share.good * 100);
+	const poor = Math.round(share.poor * 100);
+	return `${good}% of visits good, ${Math.max(0, 100 - good - poor)}% need improvement, ${poor}% poor`;
+}
+
+export const LCP_PHASE_NAME: Record<TLcpPhase, string> = {
+	timeToFirstByte: "Time to first byte",
+	resourceLoadDelay: "Resource load delay",
+	resourceLoadDuration: "Resource load duration",
+	elementRenderDelay: "Element render delay",
+};
+
+/**
+ * Each phase's share of the breakdown's own total, in whole percent. Shares, not
+ * milliseconds: the phases come from Lighthouse's unthrottled trace and add up to no LCP
+ * the page shows (lighthouse-checks, PAGEDETAIL-013).
+ */
+export function lcpPhaseShares(
+	breakdown: ILcpBreakdown,
+): { phase: TLcpPhase; name: string; percent: number }[] {
+	const total = breakdown.phases.reduce((sum, { ms }) => sum + ms, 0);
+	return breakdown.phases.map(({ phase, ms }) => ({
+		phase,
+		name: LCP_PHASE_NAME[phase],
+		percent: total > 0 ? Math.round((100 * ms) / total) : 0,
+	}));
 }

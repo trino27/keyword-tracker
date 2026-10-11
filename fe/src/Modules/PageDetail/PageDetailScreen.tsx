@@ -114,8 +114,23 @@ export function PageDetailScreen() {
 			/>
 			{/* Above the issues, because they answer "what was examined" and "what does the
 			    number mean"; the issues answer "what do I fix", which reads last. */}
-			<ChecksSection checks={vm.detail.checks} />
-			<ScoreExplainer score={vm.detail.score} />
+			<ChecksSection
+				checksByOwner={vm.detail.checksByOwner}
+				context={{
+					crawledAt: vm.detail.page.crawledAt,
+					lighthouseMeasuredAt: vm.detail.pageSpeed?.measurement?.measuredAt ?? null,
+					pageSpeedState: vm.detail.pageSpeedAvailability.state,
+				}}
+				timeZone={timeZone}
+			/>
+			<ScoreExplainer
+				score={vm.detail.score}
+				lighthouse={{
+					state: vm.detail.pageSpeedAvailability.state,
+					measuredAt: vm.detail.pageSpeed?.measurement?.measuredAt ?? null,
+					timeZone,
+				}}
+			/>
 			<IssuesSection issues={vm.detail.issues} currentPages={vm.detail.client.currentPages} />
 		</Stack>
 	);

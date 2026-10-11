@@ -1,4 +1,13 @@
-import { SCORE_BANDS, type IPageScore } from "@app/contracts";
+import { SCORE_BANDS, type IPageScore, type TPageSpeedAvailabilityState } from "@app/contracts";
+import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
+
+/** What the explanation needs to say whose checks the number holds. */
+export interface ILighthouseScoreContext {
+	state: TPageSpeedAvailabilityState;
+	/** When Lighthouse last measured the page; null when it never has. */
+	measuredAt: string | null;
+	timeZone: string;
+}
 
 /**
  * Two decimals, not one. At one decimal, 1 of 16 passed prints "6.3" and the clause
@@ -8,12 +17,12 @@ import { SCORE_BANDS, type IPageScore } from "@app/contracts";
  */
 const QUOTIENT_DECIMALS = 2;
 
-/** The five paragraphs of the score explainer, the first on this page's own numbers. */
-export function explainScore(score: IPageScore): string[] {
-	return [arithmetic(score), EQUAL_WEIGHT, DENOMINATOR, bands(), SPEED];
+/** The six paragraphs of the score explainer, the first on this page's own numbers. */
+export function explainScore(score: IPageScore, lighthouse: ILighthouseScoreContext): string[] {
+	return [arithmetic(score), EQUAL_WEIGHT, DENOMINATOR, bands(), SPEED, whose(score, lighthouse)];
 }
 
-function arithmetic({ value, applicable, failed }: IPageScore): string {
+function arithmetic({ value, applicable, failed, byOwner }: IPageScore): string {
 	const passed = applicable - failed;
 	const raw = (100 * passed) / applicable;
 	const shown = stripTrailingZeros(raw.toFixed(QUOTIENT_DECIMALS));
@@ -24,7 +33,7 @@ function arithmetic({ value, applicable, failed }: IPageScore): string {
 
 	return (
 		`${passed} of the ${applicable} checks that applied to this page when it was ` +
-		`crawled passed. ` +
+		`${byOwner.lighthouse ? "crawled and measured" : "crawled"} passed. ` +
 		`100 × ${passed} ÷ ${applicable} ${sign} ${shown}${rounding}`
 	);
 }
@@ -64,3 +73,33 @@ const SPEED =
 	"Speed is scored separately. Core Web Vitals are shown in the Speed block and count as " +
 	"issues below, but they do not change this score — the way Lighthouse keeps SEO and " +
 	"Performance apart.";
+
+const NOT_IN_THE_NUMBER: Record<TPageSpeedAvailabilityState, string> = {
+	active:
+		"Lighthouse's checks are not in this number yet: Lighthouse has not measured this page. " +
+		"The score will move when they are measured.",
+	notConfigured:
+		"Lighthouse's checks are not in this number: PageSpeed is not configured. With a key, " +
+		"they join it after the page's next measurement, and the score will move.",
+	keyRejected:
+		"Lighthouse's checks are not in this number: Google rejected the PageSpeed key. They join " +
+		"it once the key is fixed and the page is measured, and the score will move.",
+};
+
+/**
+ * Whose checks the number holds (PAGEDETAIL-012). Said outright, because Lighthouse joins the
+ * score hours after a crawl: without this a page's score moving with no change to the page
+ * would be unexplained.
+ */
+function whose({ applicable, byOwner }: IPageScore, lighthouse: ILighthouseScoreContext): string {
+	const theirs = byOwner.lighthouse;
+	if (theirs === null) return NOT_IN_THE_NUMBER[lighthouse.state];
+	const ours = byOwner.crawl?.applicable ?? 0;
+	const when = lighthouse.measuredAt
+		? ` from its run on ${formatInZone(lighthouse.measuredAt, lighthouse.timeZone)}`
+		: "";
+	return (
+		`Of these ${applicable} checks, ${ours} are ours, from the crawl, and ${theirs.applicable} ` +
+		`are Lighthouse's${when}. Where both of us judge the same thing, each verdict counts.`
+	);
+}

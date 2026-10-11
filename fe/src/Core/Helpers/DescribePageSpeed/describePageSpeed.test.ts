@@ -4,10 +4,14 @@ import { pageSpeedViewOf } from "./describePageSpeed";
 
 const MEASUREMENT: IPageSpeedMeasurement = {
 	measuredAt: "2026-10-08T12:00:00.000Z",
-	lcp: { value: 3100, band: "needsImprovement", source: "url" },
+	lcp: { value: 3100, band: "needsImprovement", source: "url", share: null },
 	inp: null,
-	cls: { value: 0.02, band: "good", source: "lab" },
+	cls: { value: 0.02, band: "good", source: "lab", share: null },
 	performanceScore: 70,
+	ttfb: null,
+	lcpBreakdown: null,
+	seoScore: null,
+	accessibilityScore: null,
 };
 
 const summary = (overrides: Partial<IPageSpeedSummary>): IPageSpeedSummary => ({

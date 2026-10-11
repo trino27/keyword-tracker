@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CRAWL_ISSUE_CODES, PAGE_SPEED_ISSUE_CODES } from "@app/contracts";
 import {
+	checksByOwnerSchema,
 	pageCheckSchema,
 	pageSpeedAvailabilitySchema,
 	pageSpeedSummarySchema,
@@ -93,10 +94,14 @@ describe("the PageSpeed summary", () => {
 		lastError: null,
 		measurement: {
 			measuredAt: "2026-10-09T12:00:00.000Z",
-			lcp: { value: 3100, band: "needsImprovement", source: "url" },
+			lcp: { value: 3100, band: "needsImprovement", source: "url", share: null },
 			inp: null,
-			cls: { value: 0.02, band: "good", source: "lab" },
+			cls: { value: 0.02, band: "good", source: "lab", share: null },
 			performanceScore: 72,
+			ttfb: null,
+			lcpBreakdown: null,
+			seoScore: null,
+			accessibilityScore: null,
 		},
 	};
 
@@ -111,7 +116,7 @@ describe("the PageSpeed summary", () => {
 				...SUMMARY,
 				measurement: {
 					...SUMMARY.measurement,
-					lcp: { value: 3100, band: "meh", source: "url" },
+					lcp: { value: 3100, band: "meh", source: "url", share: null },
 				},
 			}).success,
 		).toBe(false);
@@ -154,5 +159,32 @@ describe("pageCheckSchema", () => {
 		expect(pageCheckSchema.safeParse({ code: "MADE_UP", status: "passed" }).success).toBe(
 			false,
 		);
+	});
+});
+
+describe("the checks per owner", () => {
+	/** PAGEDETAIL-009, lighthouse-checks D12: each owner's null is its own. */
+	it("accepts a detail whose Lighthouse list is null while ours is not", () => {
+		expect(
+			checksByOwnerSchema.parse({
+				crawl: [{ code: "TITLE_MISSING", status: "passed" }],
+				lighthouse: null,
+			}).lighthouse,
+		).toBeNull();
+	});
+
+	it("refuses a Core Web Vitals code as a check, and a crawl code in Lighthouse's list", () => {
+		expect(
+			checksByOwnerSchema.safeParse({
+				crawl: [{ code: "CWV_LCP_POOR", status: "failed" }],
+				lighthouse: null,
+			}).success,
+		).toBe(false);
+		expect(
+			checksByOwnerSchema.safeParse({
+				crawl: null,
+				lighthouse: [{ code: "TITLE_MISSING", status: "passed" }],
+			}).success,
+		).toBe(false);
 	});
 });

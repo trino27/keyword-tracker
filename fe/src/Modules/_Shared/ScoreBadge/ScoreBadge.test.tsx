@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProviders";
 import { ScoreBadge } from "./ScoreBadge";
 
-const render = (score: { value: number; applicable: number; failed: number }) =>
-	renderWithProviders(() => <ScoreBadge score={score} />);
+const render = (counts: { value: number; applicable: number; failed: number }) =>
+	renderWithProviders(() => (
+		<ScoreBadge score={{ ...counts, byOwner: { crawl: counts, lighthouse: null } }} />
+	));
 
 describe("ScoreBadge", () => {
 	it.each([
@@ -29,7 +31,15 @@ describe("ScoreBadge", () => {
 	// Two pages with different denominators must not silently compare as equals.
 	it("names the denominator it was computed from", async () => {
 		renderWithProviders(() => (
-			<ScoreBadge score={{ value: 88, applicable: 16, failed: 2 }} withNote />
+			<ScoreBadge
+				score={{
+					value: 88,
+					applicable: 16,
+					failed: 2,
+					byOwner: { crawl: { applicable: 16, failed: 2 }, lighthouse: null },
+				}}
+				withNote
+			/>
 		));
 
 		expect(await screen.findByText("14/16 checks")).toBeInTheDocument();

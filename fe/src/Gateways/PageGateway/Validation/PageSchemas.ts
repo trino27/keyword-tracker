@@ -4,6 +4,7 @@ import {
 	CRAWL_ISSUE_CODES,
 	CWV_BANDS,
 	CWV_SOURCES,
+	LCP_PHASES,
 	LIGHTHOUSE_ISSUE_CODES,
 	PAGE_SPEED_AVAILABILITY_STATES,
 	PAGE_SPEED_ERROR_CODES,
@@ -14,6 +15,7 @@ import {
 	type IBestPosition,
 	type IKeywordPosition,
 	type IPageCheck,
+	type TChecksByOwner,
 	type IPageDetail,
 	type IPageListItem,
 	type IPageListResponse,
@@ -47,28 +49,59 @@ export const bestPositionSchema = z.object({
 	capturedAt: z.string(),
 }) satisfies z.ZodType<IBestPosition>;
 
-/** A score and the denominator it came from; the denominator is never zero. */
+const ownerCountsSchema = z.object({
+	applicable: z.number().int().min(0),
+	failed: z.number().int().min(0),
+});
+
+/** A score, the denominator it came from (never zero), and whose checks made it. */
 export const pageScoreSchema = z.object({
 	value: z.number().int().min(0).max(100),
 	applicable: z.number().int().positive(),
 	failed: z.number().int().min(0),
+	byOwner: z.object({
+		crawl: ownerCountsSchema.nullable(),
+		lighthouse: ownerCountsSchema.nullable(),
+	}),
 }) satisfies z.ZodType<IPageScore>;
 
 /**
- * One catalogue check and what the last crawl concluded. An unknown status is contract
- * drift — a parse error, not a row rendered with no marker — the same stance the issue
- * union takes on an unknown code.
+ * One check of one owner and what that owner last concluded. An unknown status — or a
+ * code of another owner — is contract drift, a parse error, not a row rendered with no
+ * marker: the same stance the issue union takes on an unknown code.
  */
-export const pageCheckSchema = z.object({
-	code: z.enum([...CRAWL_ISSUE_CODES] as [TCrawlIssueCode, ...TCrawlIssueCode[]]),
-	status: z.enum(CHECK_STATUSES),
-}) satisfies z.ZodType<IPageCheck>;
+const pageCheckSchemaOf = <C extends string>(codes: readonly C[]) =>
+	z.object({
+		code: z.enum([...codes] as [C, ...C[]]),
+		status: z.enum(CHECK_STATUSES),
+	});
+
+export const pageCheckSchema = pageCheckSchemaOf(CRAWL_ISSUE_CODES) satisfies z.ZodType<
+	IPageCheck<"crawl">
+>;
+
+/** Each scored owner's checks, each with its own null (lighthouse-checks D12). */
+export const checksByOwnerSchema = z.object({
+	crawl: z.array(pageCheckSchema).nullable(),
+	lighthouse: z.array(pageCheckSchemaOf(LIGHTHOUSE_ISSUE_CODES)).nullable(),
+}) satisfies z.ZodType<TChecksByOwner>;
+
+const visitShareSchema = z.object({
+	good: z.number().min(0).max(1),
+	poor: z.number().min(0).max(1),
+});
 
 /** One Core Web Vital: an unknown band or source is contract drift, not a grey badge. */
 const cwvReadingSchema = z.object({
 	value: z.number().min(0),
 	band: z.enum(CWV_BANDS),
 	source: z.enum(CWV_SOURCES),
+	share: visitShareSchema.nullable(),
+});
+
+const lcpBreakdownSchema = z.object({
+	element: z.object({ selector: z.string(), snippet: z.string() }).nullable(),
+	phases: z.array(z.object({ phase: z.enum(LCP_PHASES), ms: z.number().min(0) })),
 });
 
 export const pageSpeedSummarySchema = z.object({
@@ -80,6 +113,10 @@ export const pageSpeedSummarySchema = z.object({
 			inp: cwvReadingSchema.nullable(),
 			cls: cwvReadingSchema,
 			performanceScore: z.number().int().min(0).max(100),
+			ttfb: cwvReadingSchema.nullable(),
+			lcpBreakdown: lcpBreakdownSchema.nullable(),
+			seoScore: z.number().int().min(0).max(100).nullable(),
+			accessibilityScore: z.number().int().min(0).max(100).nullable(),
 		})
 		.nullable(),
 	lastError: z
@@ -246,8 +283,7 @@ export const pageDetailSchema = z.object({
 	keywords: z.array(keywordPositionSchema),
 	bestPosition: bestPositionSchema.nullable(),
 	score: pageScoreSchema,
-	/** Null while this page's last crawl predates per-check recording. */
-	checks: z.array(pageCheckSchema).nullable(),
+	checksByOwner: checksByOwnerSchema,
 	issues: z.array(detailIssueSchema),
 	lastCrawl: crawlRunSummarySchema.nullable(),
 	pageSpeed: pageSpeedSummarySchema.nullable(),

@@ -20,7 +20,7 @@ const ROW: TPageListItem = {
 		},
 	],
 	bestPosition: null,
-	score: { value: 83, applicable: 18, failed: 3 },
+	score: pageScoreOf({ crawl: { applicable: 18, failed: 3 }, lighthouse: null }),
 	issues: { total: 0, error: 0, warning: 0, notice: 0, siteWide: 0 },
 	pageSpeed: null,
 	lastCapturedAt: null,
@@ -32,7 +32,7 @@ const withScore = (applicable: number, failed: number): TPageListItem => ({
 	...ROW,
 	id: applicable * 100 + failed,
 	url: `https://yoast.com/post-${applicable}-${failed}/`,
-	score: pageScoreOf(applicable, failed),
+	score: pageScoreOf({ crawl: { applicable, failed }, lighthouse: null }),
 });
 
 const renderTable = (props: Partial<Parameters<typeof PagesTable>[0]>) =>
@@ -157,10 +157,14 @@ describe("PagesTable", () => {
 						lastError: null,
 						measurement: {
 							measuredAt: "2026-10-09T12:00:00.000Z",
-							lcp: { value: 1800, band: "good", source: "url" },
-							inp: { value: 150, band: "good", source: "url" },
-							cls: { value: 0.01, band: "good", source: "url" },
+							lcp: { value: 1800, band: "good", source: "url", share: null },
+							inp: { value: 150, band: "good", source: "url", share: null },
+							cls: { value: 0.01, band: "good", source: "url", share: null },
 							performanceScore: 90,
+							ttfb: null,
+							lcpBreakdown: null,
+							seoScore: null,
+							accessibilityScore: null,
 						},
 					},
 				},

@@ -4,7 +4,17 @@ import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProvide
 import { ScoreExplainer } from "./ScoreExplainer";
 
 const render = (applicable: number, failed: number, value: number) =>
-	renderWithProviders(() => <ScoreExplainer score={{ value, applicable, failed }} />);
+	renderWithProviders(() => (
+		<ScoreExplainer
+			score={{
+				value,
+				applicable,
+				failed,
+				byOwner: { crawl: { applicable, failed }, lighthouse: null },
+			}}
+			lighthouse={{ state: "active", measuredAt: null, timeZone: "America/Toronto" }}
+		/>
+	));
 
 describe("ScoreExplainer", () => {
 	it("does the arithmetic on this page's own numbers", async () => {
