@@ -601,8 +601,60 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 
 <!-- invariant: ANALYSIS-012 -->
 
-**Every catalogue code names the one writer that owns it — the crawl or the PageSpeed worker; the two code sets are derived from that, disjoint and complete, and each writer replaces only its own codes.** Pinned by `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "partitions the catalogue by owner: every code in exactly one writer's set", "gives the PageSpeed worker exactly the six Core Web Vitals codes", "each CWV code's max is its metric's threshold for its band" and "makes a poor metric a warning and one that needs improvement a notice"; `be/src/modules/pages/repositories/seo-issues/seo-issues.repository.int-spec.ts` -> "a crawl's replace leaves the page's speed findings" and "a speed replace leaves the page's crawl findings". An entry without an owner is `pnpm typecheck` (the field is required), not a test.
+**Every catalogue code names the one writer that owns it — the crawl or the PageSpeed worker; the two code sets are derived from that, disjoint and complete, and each writer replaces only its own codes.** Pinned by `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "partitions the catalogue by owner: every code in exactly one writer's set", "gives the PageSpeed worker exactly the twelve Core Web Vitals codes, six per strategy, and image delivery", "splits the speed codes by strategy: six CWV codes each, and image delivery is mobile's", "each CWV code's max is its metric's threshold for its band, on both strategies" and "makes a poor metric a warning and one that needs improvement a notice"; `be/src/modules/pages/repositories/seo-issues/seo-issues.repository.int-spec.ts` -> "a crawl's replace leaves the page's speed findings" and "a speed replace leaves the page's crawl findings". An entry without an owner is `pnpm typecheck` (the field is required), not a test.
 
 <!-- invariant: ANALYSIS-013 -->
 
 **Every page, speed and site entry explains itself in a plain what / why / fix, without markup, within its bounds, the fix naming who acts — beside the curated fields, never in place of them.** Pinned by `packages/contracts/src/domain/seo/issue-plain-copy.test.ts` -> "covers every page, speed and site entry", "%s carries what, why and fix", "%s has no < or > in its plain copy", "%s stays within its bounds" and "%s says in its fix who does it" (bounds and audience words in `plain-copy.interface.ts`). That the curated label, hint and explanation were not rewritten is NOT pinned by a test — it was checked once, by diff, when the copy landed. The tone is not testable at all.
+
+<!-- invariant: ANALYSIS-014 -->
+
+**A check whose every source is an industry vendor's, with no first-party one, is at most an Improvement; the industry hosts are listed once and the rule is tested over both catalogues.** Pinned by `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "holds the inclusion bar: no industry-only check above notice"; `packages/contracts/src/domain/seo/inclusion-bar/inclusion-bar.util.test.ts` -> "flags an entry above notice whose every source is industry", "passes one with a first-party source beside the industry one" and "passes an industry-only notice".
+
+<!-- invariant: ANALYSIS-015 -->
+
+**A canonical naming the page's own http:// twin is reported once, as `CANONICAL_TO_HTTP`; `CANONICAL_MISMATCH` steps aside for it.** Pinned by `services/checks/canonical-to-http/canonical-to-http.check.spec.ts` -> "fails an https page whose canonical is http://", "reads a canonical declared only in the Link header", "is not applicable to an http canonical naming another page — CANONICAL_MISMATCH's" and "passes an https canonical"; the step-aside by `canonical-mismatch.check.spec.ts` -> "is not applicable to the page's http twin — CANONICAL_TO_HTTP's".
+
+<!-- invariant: ANALYSIS-016 -->
+
+**og:url naming another URL than the page's canonical, or than the served address when none is declared, is reported; it is not judged while the canonical itself names another page, nor for a development host.** Pinned by `services/checks/og-url-mismatch/og-url-mismatch.check.spec.ts` -> "fails og:url naming another page", "is not applicable while the canonical names another page — the canonical checks say what to fix", "compares with a canonical that names the page itself" and "compares with the served address when no canonical is declared".
+
+<!-- invariant: ANALYSIS-017 -->
+
+**A meta description that only repeats the title, with or without its brand suffix, is reported.** Pinned by `services/checks/meta-description-repeats-title/meta-description-repeats-title.check.spec.ts` -> "fails a description equal to the title without its brand suffix", "fails a description equal to the whole title", "passes a description that adds words" and "is not applicable without a description".
+
+<!-- invariant: ANALYSIS-018 -->
+
+**A post declaring no BreadcrumbList in JSON-LD, Microdata or RDFa is reported; one inserted by an inline script is not judged.** Pinned by `services/checks/breadcrumb-missing/breadcrumb-missing.check.spec.ts` -> "fails a page declaring none", "passes a BreadcrumbList inside @graph", "passes a Microdata BreadcrumbList" and "is not applicable to a BreadcrumbList an inline script inserts".
+
+<!-- invariant: ANALYSIS-019 -->
+
+**A title that names a past year as current is reported, judged in the owner's zone.** Pinned by `services/checks/title-year-outdated/title-year-outdated.check.spec.ts` -> "fails a title still selling last year", "fails a past year that ends the title", "reads a Russian preposition" and "passes the current year".
+
+<!-- invariant: ANALYSIS-020 -->
+
+**An hreflang set that never names its own page is reported once, as `HREFLANG_NO_SELF_REFERENCE`; not judged when the canonical names another URL.** Pinned by `services/checks/hreflang-no-self-reference/hreflang-no-self-reference.check.spec.ts` -> "fails a set that never names this page", "accepts a self-reference written without the trailing slash", "is not applicable when the canonical names another URL — that is HREFLANG_INVALID's" and "is not applicable without alternates".
+
+<!-- invariant: ANALYSIS-021 -->
+
+**A site whose posts show their text only after JavaScript runs says so once, counting the structured `clientRendered` flag of skipped posts, never their reason text.** Pinned by `services/site-checks/site-checks.registry.spec.ts` -> "reports N of M posts that render with JavaScript, naming them"; the flag by `be/src/modules/crawl/services/post-selection/post-selection.service.spec.ts`.
+
+<!-- invariant: ANALYSIS-023 -->
+
+**A sitemap entry whose page names another canonical is a sitemap contradiction, whichever check carries the canonical's fact — `CANONICAL_MISMATCH`, `CANONICAL_TO_HTTP` or `CANONICAL_TARGET_BROKEN`.** Pinned by `services/site-checks/site-checks.registry.spec.ts` -> "names an entry whose page names another canonical, the http twin included" and "names an entry whose canonical target is broken".
+
+<!-- invariant: ANALYSIS-024 -->
+
+**A broken link in the text is reported: inside the site any 4xx or 5xx but a refusal (401/402/403/429); outside it only 404, 410 or a domain that does not exist; never an answer reached through a third host, a `/cdn-cgi/` address or a development host; and what was not checked says so.** Pinned by `services/checks/broken-links/broken-links.check.spec.ts` -> "fails an internal 500", "fails an external 410", "passes an external 403", "an unchecked link is neither broken nor fine, and the evidence says checked N of M" and "skips Cloudflare's /cdn-cgi/ addresses, which are no pages"; `services/checks/_shared/link-verdict.spec.ts` -> "an internal %d refuses the crawler; it is unknown, not broken", "a 404 reached through another host on the way is unknown" and "the BROKEN_LINKS explanation names every external broken status and says 403, 429 and 5xx are never reported".
+
+<!-- invariant: ANALYSIS-025 -->
+
+**A link to this site that redirects permanently is reported, except affiliate redirects, cart actions and what `INTERNAL_LINK_VARIANTS` reports.** Pinned by `services/checks/links-to-redirects/links-to-redirects.check.spec.ts` -> "fails an internal link that redirects", "passes a temporary redirect, and fails a permanent 308", "leaves out affiliate redirects and cart actions, which redirect by design" and "skips a link INTERNAL_LINK_VARIANTS reports".
+
+<!-- invariant: ANALYSIS-026 -->
+
+**A canonical whose target redirects, answers an error, is noindexed or is canonicalised again is reported, and `CANONICAL_MISMATCH` steps aside for it through one predicate.** Pinned by `services/checks/canonical-target-broken/canonical-target-broken.check.spec.ts` -> "passes a canonical naming the page itself; is not applicable without one", "is not applicable for an unread target", "fails a redirecting target, quoting the hops" and "fails a 404 target".
+
+<!-- invariant: ANALYSIS-027 -->
+
+**An hreflang alternate that answers and does not name this page back is reported; a redirected alternate, `x-default` and the codes `HREFLANG_INVALID` reports are not judged.** Pinned by `services/checks/hreflang-not-reciprocal/hreflang-not-reciprocal.check.spec.ts` -> "fails an alternate that answers 200 and does not name this page", "passes an alternate that names this page with a trailing-slash difference", "does not judge a redirected alternate" and "skips x-default".

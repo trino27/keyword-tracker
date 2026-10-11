@@ -136,3 +136,15 @@ named, the requirement lives in `openspec/specs/be/src/modules/crawl/spec.md`.
 <!-- invariant: SEED-002 -->
 
 **The seed enqueues a `trigger=seed` run executed by the same worker as a UI run, waits for it, and fails loudly naming the error code. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "a failed crawl makes the seed fail with its error code"; `seed-runner.service.spec.ts` -> "enqueues a seed crawl and polls until it ends" and "waits for a run already in flight instead of enqueueing another". The non-zero process exit is NOT pinned — no test runs the CLI.
+
+<!-- invariant: CRAWL-011 -->
+
+**A crawl's outbound requests run in their own stage, after fetch and before analysis, outside the transaction, within fixed bounds — 300 link URLs, 30 documents, 8 in flight, 2 per host, each URL asked once — and a stage that fails or times out never fails the run. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `services/outbound-checks/outbound-checks.service.spec.ts` -> "checks at most 300 link URLs and marks the rest unchecked: budget", "reads at most 30 documents, canonical targets first", "never has more than 8 in flight, nor more than 2 for one host", "asks each URL once, without retry, however many posts link to it", "orders by sitemap position, then document order" and "a host refusing every connection leaves outcomes, not an error"; `services/crawl-run-executor/crawl-run-executor.service.spec.ts` -> "runs the outbound stage after fetch and before analysis, outside the transaction" and "an outbound stage that times out leaves the run succeeded".
+
+<!-- invariant: CRAWL-012 -->
+
+**robots.txt is honoured for every host a crawl asks: the run's own from discovery, each other fetched once; a 4xx allows, a 5xx, a 429, a challenge or no answer disallows. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `services/outbound-checks/host-robots-cache.spec.ts` -> "answers the run's own origin from the run's robots.txt, without a request", "fetches each external host's robots.txt once, however many ask at once", "a 4xx robots.txt allows the host; a 5xx, a 429 or no answer disallows it" and "a bot challenge on robots.txt disallows the host"; `outbound-checks.service.spec.ts` -> "never requests a disallowed URL" and "treats an unreachable robots.txt as disallowing the host".
+
+<!-- invariant: CRAWL-013 -->
+
+**What a crawl did not check — its budget, robots.txt, the deadline — is marked unchecked with the reason, never presented as checked. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `outbound-checks.service.spec.ts` -> "checks at most 300 link URLs and marks the rest unchecked: budget" and "stops at the deadline and marks the rest unchecked: deadline"; `be/src/modules/page-analysis/services/checks/broken-links/broken-links.check.spec.ts` -> "an unchecked link is neither broken nor fine, and the evidence says checked N of M".
