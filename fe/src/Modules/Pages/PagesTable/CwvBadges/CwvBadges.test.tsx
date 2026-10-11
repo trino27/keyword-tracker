@@ -56,6 +56,20 @@ describe("CwvBadges", () => {
 		).toBeInTheDocument();
 	});
 
+	it("names each badge by its reading, and opens its tooltip from the keyboard", async () => {
+		renderBadges(MEASURED);
+
+		const lcp = await screen.findByRole("img", {
+			name: "LCP 3.1 s — needs improvement. Real visitors to this page, measured Oct 9.",
+		});
+		await userEvent.tab();
+
+		expect(lcp).toHaveFocus();
+		expect(await screen.findByRole("tooltip")).toHaveTextContent(
+			"LCP 3.1 s — needs improvement",
+		);
+	});
+
 	it("reads In queue while waiting its turn", async () => {
 		renderBadges({ status: "queued", measurement: null, lastError: null });
 

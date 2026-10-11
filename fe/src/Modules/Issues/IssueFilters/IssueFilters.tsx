@@ -78,7 +78,7 @@ export function IssueFilters({ search, pageTitle, onChange }: IIssueFiltersProps
 						size="xs"
 						rightSection={<IconX size={14} />}
 						onClick={() => onChange({ pageId: undefined })}
-						aria-label="Show every page"
+						aria-label={`Page: ${pageTitle ?? `#${search.pageId}`} — show every page`}
 					>
 						Page: {pageTitle ?? `#${search.pageId}`}
 					</Button>

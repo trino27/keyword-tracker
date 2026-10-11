@@ -24,7 +24,7 @@ export function CwvBadges({ pageSpeed, availability, timeZone }: ICwvBadgesProps
 	switch (view.kind) {
 		case "notConfigured":
 			return (
-				<Text size="sm" c="dimmed" aria-label="PageSpeed not configured">
+				<Text size="sm" c="dimmed" role="img" aria-label="PageSpeed not configured">
 					—
 				</Text>
 			);
@@ -66,28 +66,28 @@ export function CwvBadges({ pageSpeed, availability, timeZone }: ICwvBadgesProps
 				<Group gap={4} wrap="nowrap">
 					{CWV_METRICS.map((metric) => {
 						const reading = measurement[metric];
+						const sentence = reading
+							? cwvReadingSentence(metric, reading, measurement.measuredAt, timeZone)
+							: NO_INP;
 						return (
 							<Tooltip
 								key={metric}
-								label={
-									reading
-										? cwvReadingSentence(
-												metric,
-												reading,
-												measurement.measuredAt,
-												timeZone,
-											)
-										: NO_INP
-								}
+								label={sentence}
+								events={{ hover: true, focus: true, touch: true }}
 								withArrow
 								multiline
 								maw={300}
 							>
+								{/* The band is a colour on screen; its reading is the badge's name, and
+								    the badge takes the focus, so the keyboard opens the tooltip too. */}
 								<Badge
 									size="sm"
 									variant="light"
 									color={cwvBandColor[reading?.band ?? "noData"]}
 									data-band={reading?.band ?? "noData"}
+									role="img"
+									aria-label={sentence}
+									tabIndex={0}
 								>
 									{CWV_METRIC_NAME[metric]}
 								</Badge>
@@ -103,6 +103,7 @@ export function CwvBadges({ pageSpeed, availability, timeZone }: ICwvBadgesProps
 						>
 							<IconAlertTriangle
 								size={14}
+								role="img"
 								aria-label="Couldn't refresh"
 								color="var(--mantine-color-yellow-7)"
 							/>
