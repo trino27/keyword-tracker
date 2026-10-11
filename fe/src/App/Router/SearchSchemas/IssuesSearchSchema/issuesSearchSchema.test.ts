@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { issuesSearchSchema } from "./issuesSearchSchema";
 
 describe("issuesSearchSchema", () => {
-	it("defaults to grouping by issue, Critical and Important only, every type", () => {
+	it("defaults to grouping by issue, every level, every type", () => {
 		expect(issuesSearchSchema.parse({})).toEqual({
 			group: "issue",
-			levels: ["error", "warning"],
+			levels: ["error", "warning", "notice"],
 			type: "all",
 		});
 	});
@@ -25,12 +25,10 @@ describe("issuesSearchSchema", () => {
 				levels: ["fatal"],
 				type: "everything",
 			}),
-		).toEqual({ group: "issue", levels: ["error", "warning"], type: "all" });
+		).toEqual({ group: "issue", levels: ["error", "warning", "notice"], type: "all" });
 	});
 
-	it("lets the reader show Improvements too", () => {
-		expect(issuesSearchSchema.parse({ levels: ["error", "warning", "notice"] }).levels).toEqual(
-			["error", "warning", "notice"],
-		);
+	it("lets the reader narrow the levels", () => {
+		expect(issuesSearchSchema.parse({ levels: ["error"] }).levels).toEqual(["error"]);
 	});
 });

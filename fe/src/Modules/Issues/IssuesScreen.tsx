@@ -18,6 +18,7 @@ import { ButtonLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import { useClientsViewModel } from "@ViewModels/ClientsViewModel/ClientsViewModel";
 import { useIssueReportViewModel } from "@ViewModels/IssueReportViewModel/IssueReportViewModel";
+import { useScreenFiltersViewModel } from "@ViewModels/ScreenFiltersViewModel/ScreenFiltersViewModel";
 import { filterReport } from "@ViewModels/IssueReportViewModel/Services/FilterReport/filterReport";
 import { reportViewOf } from "@ViewModels/IssueReportViewModel/Services/ReportViewOf/reportViewOf";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
@@ -67,6 +68,12 @@ export function IssuesScreen() {
 	useEffect(() => {
 		if (search.clientId !== undefined) void fetchReport(search.clientId);
 	}, [search.clientId, fetchReport]);
+
+	// Remembered once a client is chosen, so the navigation reopens the report as it was.
+	const rememberIssues = useScreenFiltersViewModel((state) => state.rememberIssues);
+	useEffect(() => {
+		if (search.clientId !== undefined) rememberIssues(search);
+	}, [search, rememberIssues]);
 
 	const report = vm.clientId === search.clientId ? vm.report : null;
 	const filtered = useMemo(

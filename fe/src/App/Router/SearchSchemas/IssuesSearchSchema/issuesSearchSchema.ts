@@ -2,8 +2,11 @@ import { z } from "zod";
 import { SEO_ISSUE_SEVERITIES, type TSeoIssueSeverity } from "@app/contracts";
 import { ISSUE_TYPES } from "@ViewModels/IssueReportViewModel/Services/FilterReport/filterReport";
 
-/** Critical and Important by default: Improvements are many, and they come last (D9). */
-export const DEFAULT_LEVELS: TSeoIssueSeverity[] = ["error", "warning"];
+/**
+ * Every level by default: the report opens on everything found, and the reader narrows it.
+ * (Planned as Critical and Important only, D9; the user asked for all — plan D30.)
+ */
+export const DEFAULT_LEVELS: TSeoIssueSeverity[] = ["error", "warning", "notice"];
 
 /**
  * The report's state lives in the URL — the client, the page filter, the grouping and
