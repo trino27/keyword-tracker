@@ -63,6 +63,12 @@ describe("seoIssueSchema", () => {
 		expect(parsed.details).toEqual({ types: ["Organization"] });
 	});
 
+	it("parses a Lighthouse finding", () => {
+		expect(
+			seoIssueSchema.parse({ code: "LH_IMAGE_ALT", severity: "warning", details: {} }).code,
+		).toBe("LH_IMAGE_ALT");
+	});
+
 	it("parses a speed finding with its source; refuses one without", () => {
 		const finding = {
 			code: "CWV_LCP_POOR",

@@ -4,6 +4,7 @@ import {
 	CRAWL_ISSUE_CODES,
 	CWV_BANDS,
 	CWV_SOURCES,
+	LIGHTHOUSE_ISSUE_CODES,
 	PAGE_SPEED_AVAILABILITY_STATES,
 	PAGE_SPEED_ERROR_CODES,
 	PAGE_SPEED_STATUSES,
@@ -23,6 +24,7 @@ import {
 	isIsoDay,
 	type TIsoDay,
 	type TCrawlIssueCode,
+	type TLighthouseIssueCode,
 	type TPageSpeedErrorCode,
 	type TMeasuredIssueCode,
 	type TPageSpeedSeoIssue as TContractPageSpeedSeoIssue,
@@ -171,6 +173,23 @@ const plainVariants = CRAWL_ISSUE_CODES.filter(
 	(code): code is TPlainIssueCode => !isMeasured(code),
 ).map((code) => plainVariantOf(code)) as TPlainVariant[];
 
+/** A Lighthouse finding: the verdict is the finding, so it carries no details of its own. */
+const lighthouseVariantOf = <K extends TLighthouseIssueCode>(code: K) =>
+	z.object({
+		code: z.literal(code),
+		severity: z.enum(SEO_ISSUE_SEVERITIES),
+		details: plainDetailsSchema,
+	});
+
+/** One schema type per code, for the reason `TPlainVariant` gives. */
+type TLighthouseVariant = {
+	[K in TLighthouseIssueCode]: ReturnType<typeof lighthouseVariantOf<K>>;
+}[TLighthouseIssueCode];
+
+const lighthouseVariants = LIGHTHOUSE_ISSUE_CODES.map((code) =>
+	lighthouseVariantOf(code),
+) as TLighthouseVariant[];
+
 /**
  * One variant per catalogued code, the measured ones parsed as a measurement and the
  * speed ones as a measurement with its source. Built by mapping the catalogue, so a code
@@ -181,12 +200,14 @@ const plainVariants = CRAWL_ISSUE_CODES.filter(
 type TIssueVariant =
 	| (typeof measuredVariants)[number]
 	| (typeof speedVariants)[number]
-	| (typeof plainVariants)[number];
+	| (typeof plainVariants)[number]
+	| (typeof lighthouseVariants)[number];
 
 export const seoIssueSchema = z.discriminatedUnion("code", [
 	...measuredVariants,
 	...speedVariants,
 	...plainVariants,
+	...lighthouseVariants,
 ] as [TIssueVariant, ...TIssueVariant[]]) satisfies z.ZodType<TContractSeoIssue>;
 
 /** A speed finding alone — what a report's whole-site row is. */

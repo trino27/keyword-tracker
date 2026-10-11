@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { describeIssue } from "./describeIssue";
 
 describe("describeIssue", () => {
+	it("names a Lighthouse finding's audit and where its verdict came from", () => {
+		expect(describeIssue("LH_COLOR_CONTRAST", {})).toBe(
+			"Lighthouse's color-contrast audit failed in its lab run of this page on a phone.",
+		);
+	});
+
 	it("reads a measured sentence from the bounds the crawl stored", () => {
 		expect(describeIssue("TITLE_LENGTH", { value: 72, min: 30, max: 60 })).toBe(
 			"The title is 72 characters; aim for 30–60.",

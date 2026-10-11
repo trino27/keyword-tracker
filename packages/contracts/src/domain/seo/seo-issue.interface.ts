@@ -1,5 +1,6 @@
 import type {
   TCrawlIssueCode,
+  TLighthouseIssueCode,
   TPageSpeedIssueCode,
   TSeoIssueCode,
 } from './catalogue/issue-catalogues.constant.js';
@@ -38,3 +39,6 @@ export type TCrawlSeoIssue = TIssueOver<TCrawlIssueCode>;
 
 /** A finding the PageSpeed worker writes, and the only kind its replace may delete. */
 export type TPageSpeedSeoIssue = TIssueOver<TPageSpeedIssueCode>;
+
+/** A finding Lighthouse reported in the PageSpeed answer, and the only kind its replace deletes. */
+export type TLighthouseSeoIssue = TIssueOver<TLighthouseIssueCode>;

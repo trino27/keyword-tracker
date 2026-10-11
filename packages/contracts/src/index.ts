@@ -41,6 +41,8 @@ export * from './domain/page-speed/page-speed-summary.interface.js';
 export * from './domain/page-speed/lcp-breakdown.interface.js';
 export * from './domain/seo/catalogue/issue-catalogues.constant.js';
 export * from './domain/seo/catalogue/issue-definition.interface.js';
+export * from './domain/seo/catalogue/issue-counterparts.constant.js';
+export * from './domain/seo/catalogue/lighthouse/lighthouse-severity.util.js';
 export * from './domain/seo/catalogue/crawl/crawl-catalogue.constant.js';
 export * from './domain/seo/catalogue/page-speed/page-speed-catalogue.constant.js';
 export * from './domain/seo/catalogue/lighthouse/lighthouse-catalogue.constant.js';

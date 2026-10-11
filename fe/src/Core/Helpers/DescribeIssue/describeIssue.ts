@@ -1,4 +1,10 @@
-import type { TCwvMetric, TSeoIssueCode } from "@app/contracts";
+import {
+	LIGHTHOUSE_CATALOGUE,
+	LIGHTHOUSE_ISSUE_CODES,
+	type TCwvMetric,
+	type TLighthouseIssueCode,
+	type TSeoIssueCode,
+} from "@app/contracts";
 import { CWV_METRIC_NAME, cwvSourcePhrase, formatCwvValue } from "../DescribeCwv/describeCwv";
 
 type TDetails = Record<string, unknown>;
@@ -41,7 +47,10 @@ const speed = (metric: TCwvMetric, band: "needsImprovement" | "poor", d: TDetail
  * explaining it never disagree. A speed finding reads its bound the same way, and its
  * source says whose experience the value is.
  */
-const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
+const DESCRIBE: Record<
+	Exclude<TSeoIssueCode, TLighthouseIssueCode>,
+	(details: TDetails) => string
+> = {
 	// These three name the pages themselves, which are rendered as links from
 	// `relatedUrls`; the sentence says how many and leaves the list to them.
 	KEYWORD_CANNIBALISATION: (d) => `${others(d, "lead")} with "${text(d, "term")}".`,
@@ -229,7 +238,18 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	CWV_CLS_POOR: (d) => speed("cls", "poor", d),
 };
 
+const isLighthouse = (code: TSeoIssueCode): code is TLighthouseIssueCode =>
+	(LIGHTHOUSE_ISSUE_CODES as readonly TSeoIssueCode[]).includes(code);
+
+/**
+ * A Lighthouse finding is the audit's verdict and nothing more — the answer's per-node
+ * details are not stored — so its sentence names the audit, which is what a developer
+ * looks up, and says where the verdict came from.
+ */
+const lighthouseSentence = (code: TLighthouseIssueCode) =>
+	`Lighthouse's ${LIGHTHOUSE_CATALOGUE[code].audit} audit failed in its lab run of this page on a phone.`;
+
 /** What a page's issue says about the page, in one sentence read from its own details. */
 export function describeIssue(code: TSeoIssueCode, details: TDetails): string {
-	return DESCRIBE[code](details);
+	return isLighthouse(code) ? lighthouseSentence(code) : DESCRIBE[code](details);
 }

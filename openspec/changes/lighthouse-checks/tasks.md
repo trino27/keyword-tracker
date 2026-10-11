@@ -153,7 +153,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 3. Lighthouse codes and counterpart groups — ANALYSIS-028, ANALYSIS-029
 
-- [ ] 3.1 Write first in `packages/contracts/src/domain/seo/catalogue/lighthouse/lighthouse-catalogue.test.ts`:
+- [x] 3.1 Write first in `packages/contracts/src/domain/seo/catalogue/lighthouse/lighthouse-catalogue.test.ts`:
   - "one code per verdict-giving SEO and accessibility audit in the recorded answer";
   - "no code reads a manual or informative audit";
   - "each declared weight is the audit's weight in the recorded answer";
@@ -162,7 +162,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   The tests read the fixture from 1.1 through a path the contracts tests can reach. If that
   breaks the package's boundaries, copy the audit list into a `lighthouse-audits.fixture.json`
   inside contracts with a note pointing at the recorder. They fail: the catalogue is empty.
-- [ ] 3.2 Write the Lighthouse entries (`LH_<AUDIT_ID>`, D23) with `audit`, `category`, `weight`
+- [x] 3.2 Write the Lighthouse entries (`LH_<AUDIT_ID>`, D23) with `audit`, `category`, `weight`
   and `severity` from the rule. Write them in two commits:
   1. SEO;
   2. accessibility.
@@ -170,7 +170,22 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   Each entry gets `label`, `plain`, `hint`, `explanation` and `sources` (D15), written from what
   the audit checks in the recorded answer. `issue-plain-copy.test.ts` covers them automatically.
   Verify: `pnpm --filter @app/contracts test:ci`.
-- [ ] 3.3 Write first in `packages/contracts/src/domain/seo/catalogue/issue-counterparts.test.ts`:
+
+  AMENDED during implementation:
+  - **Where the facts came from.** The 66 entries were written in three batches: SEO,
+    accessibility A and accessibility B. Each was written against Lighthouse's own doc page
+    (developer.chrome.com for SEO, Deque's axe 4.13 rules for accessibility) and, for SEO,
+    against Lighthouse's audit source. The answer alone was not enough: it says only pass or
+    fail. One source per audit, `LH_SOURCE`, sits in the Lighthouse catalogue beside the
+    shared `ISSUE_SOURCES`.
+  - **Ranking claims.** Every pure accessibility entry says Google does not use it as a
+    ranking signal. The language audits cite Google saying it ignores `lang`.
+  - **One commit.** Both categories landed in one commit, not two, because the catalogue test
+    'one code per scored audit' cannot pass with half of them.
+  - **Test before code.** The test file and `lighthouseSeverityOf` were written before the
+    entries. The test was seen failing on the empty catalogue.
+  - **Result.** Contracts: 732 tests passed, lint clean.
+- [x] 3.3 Write first in `packages/contracts/src/domain/seo/catalogue/issue-counterparts.test.ts`:
   - "a code is in at most one group";
   - "a group spans at least two owners";
   - "the canonical group holds the five canonical codes and `LH_CANONICAL`";
@@ -181,14 +196,24 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   groups drawn from the 1.2 list. At least these: title, meta description, canonical,
   crawlable/noindex/robots, link text, crawlable anchors, image alt, hreflang, `html-has-lang`,
   viewport. Verify: `pnpm --filter @app/contracts test:ci`.
-- [ ] 3.4 Update `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`:
+
+  AMENDED during implementation: there are 11 groups, not the ten subjects listed.
+  - **Viewport.** Our VIEWPORT_MISSING (no viewport at all) and Lighthouse's `meta-viewport`
+    (zoom blocked) fail on different things, so they are NOT a group.
+  - **Link text.** LINKS_WITHOUT_TEXT pairs with Lighthouse's `link-name`, not `link-text`:
+    `link-text` is generic wording such as "click here", which we do not check.
+  - **Two more groups.** HEADING_SKIP with `heading-order`, and META_REFRESH with
+    `meta-refresh`.
+  - **What is left over.** 55 Lighthouse codes stand alone, listed explicitly in the test.
+  - **Order.** The constant was written before its test here, not after.
+- [x] 3.4 Update `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`:
   - the opening ("only crawl-owned codes are checks") becomes "crawl and Lighthouse codes are
     checks, Core Web Vitals are not";
   - the "newer one steps aside" rule is scoped to one owner (D11);
   - the entry count in the plain-copy line is recounted from the test, not copied.
 
   Verify: every number in the edited lines matches `issue-plain-copy.test.ts`'s count.
-- [ ] 3.5 Commit: `feat(contracts): Lighthouse SEO and accessibility codes, and counterpart groups`.
+- [x] 3.5 Commit: `feat(contracts): Lighthouse SEO and accessibility codes, and counterpart groups`.
 
 ## 4. Storage — SPEED-017, SPEED-018, SPEED-019
 

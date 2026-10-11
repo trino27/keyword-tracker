@@ -2,12 +2,17 @@
 
 Pure business opinions about a run's pages — no I/O, no clock — behind `PageAnalysisService`.
 
-**Only crawl-owned codes are checks.** Every catalogue entry names its `owner`; the check
-registry is typed over `TCrawlIssueCode`, so a check for a speed code — or a crawl code without
-one — does not compile. The six `CWV_*` codes are written by the PageSpeed worker from Google's
-measurement and are never in `checks_judged`, the score or the checks list. Each entry also
-carries `plain` — what / why / fix for a marketer — beside the technical label, hint and
-explanation; `issue-plain-copy.test.ts` holds all 82 entries (page, speed and site) to it.
+**Only crawl-owned codes are this module's checks.** The catalogue is a registry of owners
+(`ISSUE_CATALOGUES` in `@app/contracts`: crawl, pageSpeed, lighthouse), and an entry's owner is
+the key its catalogue sits under; the check registry is typed over `TCrawlIssueCode`, so a
+check for another owner's code — or a crawl code without one — does not compile. The six
+`CWV_*` codes are written by the PageSpeed worker from Google's measurement and are never in
+`checks_judged`, the score or the checks list. The 66 `LH_*` codes are Lighthouse's SEO and
+accessibility audits, written by the same worker from the same answer: they ARE checks and
+count in the score, but they are recorded on `page_speed`, never here (lighthouse-checks). Each
+entry also carries `plain` — what / why / fix for a marketer — beside the technical label, hint
+and explanation; `issue-plain-copy.test.ts` holds all 154 entries (page, speed, Lighthouse and
+site) to it.
 The speed codes therefore have no `<code>.check.spec.ts`: they are pinned where they are written,
 by `be/src/modules/page-speed/services/cwv-issues/cwv-issues-of.spec.ts`. The five HTML Core Web
 Vitals risk checks below stay crawl checks at notice — measured speed did not replace them — and
@@ -353,6 +358,9 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   meta, Microdata); a page naming no author at all is AUTHOR_MISSING's alone (habr's
   nameless Person); a logo used as the page image is PREVIEW_IMAGE_IS_LOGO's alone, never
   also too small. STRUCTURED_DATA_MISSING and STRUCTURED_DATA_INCOMPLETE read Microdata too.
+  "Steps aside" holds between checks of ONE owner. A Lighthouse audit that judges the same
+  thing as one of ours is not a repeat to remove: both are recorded and both count, and
+  `ISSUE_COUNTERPARTS` only puts them on one row of the screen (lighthouse-checks D11).
   Not built, for want of HTML that answers it or a line Google draws: CSS background images,
   keyword stuffing in titles and alt text (see the keyword-stuffing note above), meta
   descriptions written as keyword lists, title against h1, content hidden in tabs, interstitials,
