@@ -50,6 +50,9 @@ describe("InfoScreen", { timeout: 15_000 }, () => {
 			"Titles",
 			"Site: robots.txt",
 			"Backlinks and authority",
+			"Lighthouse and our crawl",
+			"Accessibility: ARIA roles and attributes",
+			"SEO: crawling and indexing",
 		])
 			expect(
 				within(nav).getByRole("link", { name: new RegExp(chapter) }),

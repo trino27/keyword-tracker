@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	ACTIVE_ISSUE_CODES,
+	ISSUE_COUNTERPARTS,
 	LIGHTHOUSE_ISSUE_CODES,
 	PAGE_SPEED_ISSUE_CODES,
 	SEO_ISSUE_CATALOGUE,
@@ -87,14 +88,26 @@ describe("buildCheckGuide", () => {
 		expect(entryOf("TITLE_MISSING").sources.every((source) => !source.industry)).toBe(true);
 	});
 
-	it("names the other owner's check that reads the same thing", () => {
-		expect(entryOf("IMAGES_MISSING_ALT").counterparts.map((other) => other.code)).toEqual([
-			"LH_IMAGE_ALT",
+	it("compares a Lighthouse audit with our check of the same thing, on both cards", () => {
+		const lighthouse = entryOf("LH_IMAGE_ALT").comparisons;
+		expect(lighthouse.flatMap((c) => c.with.map((other) => other.code))).toEqual([
+			"IMAGES_MISSING_ALT",
 		]);
-		expect(entryOf("LH_CANONICAL").counterparts.map((other) => other.code)).toContain(
-			"CANONICAL_MISSING",
-		);
-		expect(entryOf("THIN_CONTENT").counterparts).toEqual([]);
+		const ours = entryOf("IMAGES_MISSING_ALT").comparisons;
+		expect(ours.flatMap((c) => c.with.map((other) => other.code))).toEqual(["LH_IMAGE_ALT"]);
+		expect(ours[0].text).toBe(lighthouse[0].text);
+		expect(
+			entryOf("LINKS_WITHOUT_TEXT").comparisons.flatMap((c) =>
+				c.with.map((other) => other.code),
+			),
+		).toEqual(expect.arrayContaining(["LH_LINK_TEXT", "LH_LINK_NAME"]));
+		expect(entryOf("THIN_CONTENT").comparisons).toEqual([]);
+	});
+
+	it("compares every Lighthouse audit that shares a row with one of ours", () => {
+		for (const group of ISSUE_COUNTERPARTS)
+			for (const audit of group.lighthouse ?? [])
+				expect(entryOf(audit).comparisons.length, audit).toBeGreaterThan(0);
 	});
 
 	it("lists a chapter worst level first", () => {

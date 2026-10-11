@@ -1,4 +1,5 @@
 import { SEO_ISSUE_CATALOGUE, type TLighthouseIssueCode } from "@app/contracts";
+import type { TGuideCode } from "@Core/Constants/checkTopics";
 import type { ICheckCriteria } from "../criteriaShape";
 
 /** What is particular to one Lighthouse audit; how it is checked is the same for all. */
@@ -79,15 +80,15 @@ const SPECS: Record<TLighthouseIssueCode, ILighthouseSpec> = {
 		bad: 'For the checklist, <a href="/local-seo-checklist/">click here</a>.',
 	},
 	LH_CRAWLABLE_ANCHORS: {
-		passes: "Every link has an href that resolves to a real web address.",
-		fails: "A link has no href, an empty one, or a javascript: one, so a crawler cannot follow it.",
+		passes: "Every link has an href that resolves to a real web address. Links with a role, email links and in-page targets are left alone.",
+		fails: "A link has an empty href, javascript:void(0), a file: address, an address that cannot be read as a URL, or no href at all and works only through a click script.",
 		ifPasses: "Google can follow every link to discover the pages behind it.",
 		good: '<a href="/pricing/">Pricing</a>',
 		bad: '<a onclick="goTo(\'pricing\')">Pricing</a>\n<a href="javascript:void(0)">Pricing</a>',
 	},
 	LH_ROBOTS_TXT: {
 		passes: "robots.txt can be fetched and every line is valid.",
-		fails: "robots.txt answers a server error, cannot be fetched, or has lines Lighthouse cannot parse.",
+		fails: "robots.txt answers a server error or 429, cannot be fetched, or has a line that breaks the format — an unknown directive, a rule before any user-agent, a pattern not starting with / or *, a sitemap line without a full URL. A missing file (404) is not a failure.",
 		ifPasses: "Crawlers read the rules the way you wrote them.",
 		good: "User-agent: *\nDisallow: /cart/\nSitemap: https://example.com/sitemap.xml",
 		bad: "User-agent *\nDisalow: /cart/\nSitemap: /sitemap.xml",
@@ -101,18 +102,18 @@ const SPECS: Record<TLighthouseIssueCode, ILighthouseSpec> = {
 		bad: '<img src="/img/map-pack.png">',
 	},
 	LH_HREFLANG: {
-		passes: "Every hreflang value is a valid language (and optional region) code with a usable URL.",
-		fails: "An hreflang value is not a known language code, or its href is not a valid URL.",
+		passes: "Every hreflang uses a valid ISO 639-1 language code (or x-default) and a full URL.",
+		fails: "An hreflang uses an invalid language code, or a relative address. Region codes and links back are not checked.",
 		ifPasses: "Google can show each reader the language version meant for them.",
 		good: '<link rel="alternate" hreflang="en-GB" href="https://example.com/en-gb/">',
-		bad: '<link rel="alternate" hreflang="en-UK" href="/en-gb/">',
+		bad: '<link rel="alternate" hreflang="english" href="/en-gb/">',
 	},
 	LH_CANONICAL: {
-		passes: "The canonical is a single valid absolute URL that does not point to another domain or to the home page by mistake.",
-		fails: "Several canonicals that disagree, an invalid or relative URL, one on another domain, or one pointing to the site's root from an inner page.",
+		passes: "The canonical is a single, valid, absolute URL that does not send an inner page to the home page or to another language version.",
+		fails: "The canonical is invalid or relative, the page names more than one, an inner page points to the home page, or it points to one of the page's other language versions. A page with no canonical is not judged.",
 		ifPasses: "Google gets one clear signal about which URL to show for this content.",
 		good: '<link rel="canonical" href="https://example.com/blog/local-seo/">',
-		bad: '<link rel="canonical" href="https://example.com/">  <!-- on an inner page -->',
+		bad: '<link rel="canonical" href="/blog/local-seo/">\n<link rel="canonical" href="https://example.com/">  <!-- on an inner page -->',
 	},
 
 	// ── Accessibility audits ─────────────────────────────────────────────────────────
@@ -523,3 +524,88 @@ export const LIGHTHOUSE_CRITERIA = Object.fromEntries(
 		lighthouseCriteria(code, SPECS[code]),
 	]),
 ) as Record<TLighthouseIssueCode, ICheckCriteria>;
+
+/**
+ * How a Lighthouse audit differs from the tracker's own check of the same thing — or of a
+ * neighbouring thing easy to mistake for the same. Shown on both cards. Each claim rests on
+ * the Lighthouse catalogue entry's explanation and on our check's implementation.
+ */
+export const LIGHTHOUSE_COMPARISONS: Partial<
+	Record<TLighthouseIssueCode, { ours: readonly TGuideCode[]; text: string }>
+> = {
+	LH_IS_CRAWLABLE: {
+		ours: ["NOINDEX", "ROBOTS_BLOCKS_GOOGLEBOT"],
+		text: "Same question, read twice. Lighthouse fails only when every search engine is kept out — a rule aimed at googlebot alone is a warning there. Ours count a googlebot-only noindex as Critical too, since Google is the engine that matters here, and read the robots.txt group addressed to Googlebot specifically. Lighthouse judges the rendered page, so a noindex added by JavaScript counts; ours read the HTML and headers as served.",
+	},
+	LH_HTTP_STATUS_CODE: {
+		ours: ["SITEMAP_LISTS_NON_INDEXABLE"],
+		text: "No page check matches it: a post that answers an error is never analysed by the crawl — it is skipped and named in the run log, and sitemap entries answering errors are reported by the site check. Lighthouse reports the status Google's tester received, which can differ from ours, e.g. when a bot wall answers 403 to one and 200 to the other.",
+	},
+	LH_ROBOTS_TXT: {
+		ours: [
+			"ROBOTS_TXT_TRUNCATED",
+			"ROBOTS_TXT_UNSUPPORTED_RULES",
+			"ROBOTS_GOOGLEBOT_GROUP_DROPS_RULES",
+		],
+		text: "Different questions about the same file. Lighthouse validates its syntax line by line and fails a server error. Our site checks ask whether Google ignores part of it (past 500 KiB), whether it relies on rules Google never supported (noindex:, host:), and whether a Googlebot group silently drops the general rules. A robots.txt answering a server error stops our crawl altogether.",
+	},
+	LH_CANONICAL: {
+		ours: [
+			"CANONICAL_MISSING",
+			"CANONICAL_MISMATCH",
+			"CANONICAL_TO_HTTP",
+			"CANONICAL_CONFLICT",
+			"CANONICAL_RELATIVE",
+			"CANONICAL_TARGET_BROKEN",
+		],
+		text: "Lighthouse puts everything in one audit and does not judge a page with no canonical; ours split it into six. A missing canonical is Important for us. A relative one fails Lighthouse but is only an Improvement for us, since Google accepts it. Any canonical to another URL is noted by us, while Lighthouse objects only to the home page or another language version. Ours also flag an http:// canonical and fetch the target to see whether it is broken.",
+	},
+	LH_HREFLANG: {
+		ours: ["HREFLANG_INVALID", "HREFLANG_NO_SELF_REFERENCE", "HREFLANG_NOT_RECIPROCAL"],
+		text: "Lighthouse checks the language part of each code and that each href is a full URL. Ours also check the region (en-UK fails), name the code that was meant (ua → uk), fail a page whose canonical points elsewhere, and add two checks Lighthouse lacks: the set must include the page itself, and each version must link back.",
+	},
+	LH_DOCUMENT_TITLE: {
+		ours: ["TITLE_MISSING"],
+		text: "The same rule: a title that exists and is not empty. Lighthouse reads the rendered page, so a title set by JavaScript passes there and can fail ours, which reads the HTML as served — what crawlers without JavaScript see. Title length, script, outdated year and duplicates across pages are judged only by our checks.",
+	},
+	LH_META_DESCRIPTION: {
+		ours: ["META_DESCRIPTION_MISSING"],
+		text: "The same rule: present and not empty — an Improvement in Lighthouse, Important in ours. Length, repeating the title and duplicates across pages are judged only by our checks.",
+	},
+	LH_HEADING_ORDER: {
+		ours: ["HEADING_SKIP"],
+		text: "The same rule: no skipped heading levels. Lighthouse reads every heading on the rendered page, sidebar and footer included; ours read only the article's main content, so a theme widget's heading can fail Lighthouse and not ours.",
+	},
+	LH_IMAGE_ALT: {
+		ours: ["IMAGES_MISSING_ALT"],
+		text: "Lighthouse checks every image on the rendered page — logo, theme, lazy-loaded images — and accepts other ways of naming an image or marking it decorative. Ours check only the article's own images in the HTML as served, and look for the alt attribute itself.",
+	},
+	LH_LINK_NAME: {
+		ours: ["LINKS_WITHOUT_TEXT"],
+		text: "The same rule, a different reach: Lighthouse checks every link on the rendered page, menus, footers and icons included; ours check only links in the article text that point to this site.",
+	},
+	LH_LINK_TEXT: {
+		ours: ["LINKS_WITHOUT_TEXT"],
+		text: "Different problems: Lighthouse flags links whose text is generic (“click here”, “learn more”); ours flag links with no text at all. No crawl check judges generic wording.",
+	},
+	LH_CRAWLABLE_ANCHORS: {
+		ours: ["UNCRAWLABLE_LINKS"],
+		text: "They disagree on purpose about one case. Lighthouse flags javascript:void(0) and empty-href controls; ours leave them alone, because there is no page behind them to miss. Ours flag single-page-app routes in the fragment (#/pricing), which Lighthouse treats as in-page targets. Lighthouse checks every link on the rendered page; ours the article text.",
+	},
+	LH_HTML_HAS_LANG: {
+		ours: ["LANG_MISSING"],
+		text: "The same rule. The only difference: Lighthouse sees a lang set by JavaScript, ours sees the HTML as served.",
+	},
+	LH_HTML_LANG_VALID: {
+		ours: ["LANG_MISSING"],
+		text: "Ours check only that a lang exists; this Lighthouse audit also checks that the value is a real language code.",
+	},
+	LH_META_REFRESH: {
+		ours: ["META_REFRESH"],
+		text: "Different triggers. Lighthouse fails a reload or redirect after a delay (under 20 hours) and lets an instant redirect pass. Ours fail any meta refresh that sends the reader elsewhere — instant ones included, since Google prefers a server-side 301 — and let a timed reload of the same page pass.",
+	},
+	LH_META_VIEWPORT: {
+		ours: ["VIEWPORT_MISSING"],
+		text: "Not the same check. Ours fail when there is no viewport tag at all, so the page does not fit phones; Lighthouse fails when the tag blocks zooming. A page can pass one and fail the other.",
+	},
+};

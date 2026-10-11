@@ -1,10 +1,4 @@
-import {
-	LIGHTHOUSE_ISSUE_CODES,
-	SEO_ISSUE_CATALOGUE,
-	type TLighthouseIssueCode,
-	type TSeoIssueCode,
-	type TSiteCheckCode,
-} from "@app/contracts";
+import { type TLighthouseIssueCode, type TSeoIssueCode, type TSiteCheckCode } from "@app/contracts";
 
 /** Every code the guide explains: a page check, a speed finding or a site check. */
 export type TGuideCode = TSeoIssueCode | TSiteCheckCode;
@@ -14,117 +8,184 @@ export type TGuideCode = TSeoIssueCode | TSiteCheckCode;
  * and snippet), then what decides whether the page is in search at all, then the page's
  * body, its build, its speed, and finally the site around it.
  */
+/**
+ * Which part of the guide a chapter belongs to: the tracker's own checks and Google's
+ * measurement (the check reference), or Lighthouse's audits, which get a part of their own.
+ */
+export type TCheckPart = "reference" | "lighthouse";
+
 export const CHECK_TOPICS = [
 	{
 		id: "titles",
+		part: "reference",
 		title: "Titles",
 		intro: "The <title> is the headline of the search result — the first thing a searcher reads and the main reason they click or scroll past. Google reads it to understand the page and usually shows it, but rewrites it when it is missing, vague, too long or in the wrong language.",
 	},
 	{
 		id: "descriptions",
+		part: "reference",
 		title: "Meta descriptions",
 		intro: "The meta description is not a ranking factor. It is the text Google may show under the headline when it describes the page better than any passage of the page itself — the pitch that earns the click. A missing, repeated or empty one leaves Google to pick an excerpt.",
 	},
 	{
 		id: "headings",
+		part: "reference",
 		title: "Headings",
 		intro: "Headings are the page's outline. Readers skim by them, screen-reader users jump between them, and Google reads them to understand what each part of the page is about. Google says heading order does not affect ranking, so most of these are about readability and accessibility.",
 	},
 	{
 		id: "content",
+		part: "reference",
 		title: "Content quality",
 		intro: "Google's ranking systems reward helpful, reliable content written for people. These checks look for the visible symptoms of content that is not: stubs, copies, posts competing with each other, no author, no sources, and dates changed without changes.",
 	},
 	{
 		id: "canonical",
+		part: "reference",
 		title: "Canonical URLs",
 		intro: 'The same post is often reachable at several addresses. Google groups the copies and shows one — the canonical. rel="canonical" is your strongest hint about which one; a missing, wrong or self-contradicting canonical leaves the choice to Google and can split the credit links earn.',
 	},
 	{
 		id: "indexing",
+		part: "reference",
 		title: "Indexing and robots rules",
 		intro: "Before a page can rank, Google must be allowed to crawl it (robots.txt) and to index it (no noindex). These are the checks whose failure takes a page out of search entirely, plus the rules that limit how it may be shown — snippets, image previews, AI search crawlers.",
 	},
 	{
 		id: "links",
+		part: "reference",
 		title: "Links",
 		intro: "Links are how search engines discover pages and how they learn what a page is about: the anchor text of a link describes the page it points to. A post that links nowhere, or links in ways a crawler cannot follow, passes none of that on.",
 	},
 	{
 		id: "media",
+		part: "reference",
 		title: "Images and video",
 		intro: "Images and video can be found in image and video search, make a long text easier to read, and need text alternatives for people who cannot see them. Google needs a real src, alt text and, for video, metadata to understand them.",
 	},
 	{
 		id: "international",
+		part: "reference",
 		title: "Language, mobile and encoding",
 		intro: "Google indexes the page its smartphone crawler sees, decides the language from the text, and uses hreflang to show the right language version. These checks make sure the page is readable on a phone, in the right language, without garbled characters.",
 	},
 	{
 		id: "sharing",
+		part: "reference",
 		title: "Social previews",
 		intro: "Open Graph tags decide how a shared link looks on social networks and in messengers, and Google Discover uses the page's image the same way. They do not affect Google rankings; they decide whether a shared post looks worth opening.",
 	},
 	{
 		id: "security",
+		part: "reference",
 		title: "HTTPS and redirects",
 		intro: 'Every page should be served over HTTPS at its final address. Plain HTTP is labelled "Not secure", insecure resources get blocked, and every redirect is an extra round trip for readers and crawlers.',
 	},
 	{
 		id: "performance",
+		part: "reference",
 		title: "Speed risks in the HTML",
 		intro: "These checks read the page's HTML and headers for patterns known to slow pages down. They are risks, not measurements: whether a page is actually slow is what the Core Web Vitals findings below say. They count in the SEO score at the Improvement level.",
 	},
 	{
 		id: "structuredData",
+		part: "reference",
 		title: "Structured data",
 		intro: "Structured data (JSON-LD) states facts Google would otherwise guess — the headline, author, dates, image, breadcrumb trail — and makes the page eligible for richer results. It is optional, but markup that is broken or contradicts the page is worse than none.",
 	},
 	{
-		id: "lighthouseSeo",
-		title: "Lighthouse: SEO audits",
-		intro: "Google's own Lighthouse runs inside the PageSpeed Insights measurement and scores ten SEO audits on the page as a phone renders it. The tracker records Lighthouse's verdicts as they are — it does not re-judge them — and they count in the score beside the crawl's checks. Several overlap a crawl check on purpose: two independent readings of the same page.",
-	},
-	{
-		id: "accessibility",
-		title: "Lighthouse: accessibility audits",
-		intro: "The accessibility audits Lighthouse scores, run by Deque's axe engine: whether people using screen readers, keyboards, zoom or small screens can use the page. Accessibility is not a ranking factor by itself, but these are real barriers for real visitors, and several (titles, alt text, link names, language) are also how search engines understand the page. They count in the score.",
-	},
-	{
 		id: "speed",
+		part: "reference",
 		title: "Core Web Vitals findings",
 		intro: "Written from Google's PageSpeed Insights measurement, not from the HTML. A metric outside Google's good band produces exactly one finding: Improvement while it needs improvement, Important once it is poor. These findings are listed with the issues but never change the SEO score.",
 	},
 	{
 		id: "siteRobots",
+		part: "reference",
 		title: "Site: robots.txt",
 		intro: "Judged once per crawl for the whole site, not per page, and outside the page score. robots.txt is the first file every crawler reads; these checks find rules Google ignores or reads differently from what the site intended.",
 	},
 	{
 		id: "siteSitemap",
+		part: "reference",
 		title: "Site: sitemap",
 		intro: "The sitemap is the list of URLs a site wants indexed. Google trusts a sitemap that agrees with its pages and learns to ignore one that keeps contradicting them. Judged once per crawl, outside the page score.",
 	},
 	{
 		id: "siteHost",
+		part: "reference",
 		title: "Site: host and server",
 		intro: "How the server answers for the site as a whole: whether one address serves it, how the other addresses redirect, whether a missing page says so, and whether posts arrive as text or as an empty JavaScript shell. Judged once per crawl, outside the page score.",
 	},
 	{
 		id: "siteIdentity",
+		part: "reference",
 		title: "Site: name and icon",
 		intro: "Google shows a site name and an icon beside every result from the site. Both are read from the home page; when they are missing or inconsistent, Google substitutes its own guess or a generic icon. Judged once per crawl, outside the page score.",
 	},
-] as const satisfies readonly { id: string; title: string; intro: string }[];
+	{
+		id: "lhIndexing",
+		part: "lighthouse",
+		title: "SEO: crawling and indexing",
+		intro: "Whether search engines may crawl and index the page at all, and whether its address signals — status code, robots.txt, canonical, hreflang — are valid.",
+	},
+	{
+		id: "lhContent",
+		part: "lighthouse",
+		title: "SEO: content and links",
+		intro: "The title, description, link wording and image text search engines read to understand the page.",
+	},
+	{
+		id: "a11yNames",
+		part: "lighthouse",
+		title: "Accessibility: names and text alternatives",
+		intro: "Every button, link, frame, image, icon and custom widget needs a name a screen reader can announce. Without one it is read as “button”, “link” or a file name — or skipped.",
+	},
+	{
+		id: "a11yForms",
+		part: "lighthouse",
+		title: "Accessibility: forms",
+		intro: "Form fields need one clear label each, and autofill hints the browser understands.",
+	},
+	{
+		id: "a11yAria",
+		part: "lighthouse",
+		title: "Accessibility: ARIA roles and attributes",
+		intro: "ARIA tells assistive technology what a custom element is and what state it is in. Wrong, misspelled or contradictory ARIA is worse than none: it makes screen readers announce something that is not there.",
+	},
+	{
+		id: "a11yStructure",
+		part: "lighthouse",
+		title: "Accessibility: structure and navigation",
+		intro: "Landmarks, headings, lists, tables and tab order: how keyboard and screen reader users find their way around the page.",
+	},
+	{
+		id: "a11yLanguage",
+		part: "lighthouse",
+		title: "Accessibility: language",
+		intro: "The page and any passage in another language declare a valid language, so screen readers pronounce them correctly.",
+	},
+	{
+		id: "a11yVisual",
+		part: "lighthouse",
+		title: "Accessibility: visual, touch and zoom",
+		intro: "Text people can read, links they can spot, targets they can tap, and a page they can zoom.",
+	},
+	{
+		id: "a11yMedia",
+		part: "lighthouse",
+		title: "Accessibility: media and timing",
+		intro: "Captions for video, and no page that reloads or moves on before the reader is done.",
+	},
+] as const satisfies readonly { id: string; part: TCheckPart; title: string; intro: string }[];
 
 export type TCheckTopicId = (typeof CHECK_TOPICS)[number]["id"];
 
 /**
  * The chapter every code belongs to — the one grouping the Info guide and the page's checks
- * both use, so the two screens never file a check differently. Every code but Lighthouse's
- * is listed here, typed so that a code added to a catalogue without its chapter does not
- * compile; Lighthouse's follow from the audit itself: SEO when Lighthouse weighs it in its
- * SEO category, accessibility otherwise.
+ * both use, so the two screens never file a check differently. Every code is listed — the
+ * crawl's, PageSpeed's, the site's and Lighthouse's — typed so that a code added to a
+ * catalogue without its chapter does not compile.
  */
 const LISTED_TOPIC_OF = {
 	THIN_CONTENT: "content",
@@ -222,12 +283,75 @@ const LISTED_TOPIC_OF = {
 	NO_SUBHEADINGS: "headings",
 } as const satisfies Record<Exclude<TGuideCode, TLighthouseIssueCode>, TCheckTopicId>;
 
-const LIGHTHOUSE_TOPIC_OF = Object.fromEntries(
-	LIGHTHOUSE_ISSUE_CODES.map((code) => [
-		code,
-		"seo" in SEO_ISSUE_CATALOGUE[code].weights ? "lighthouseSeo" : "accessibility",
-	]),
-) as Record<TLighthouseIssueCode, TCheckTopicId>;
+/** Lighthouse's audits, by what they examine — listed, so the chapters are a decision, not a guess. */
+const LIGHTHOUSE_TOPIC_OF = {
+	LH_IS_CRAWLABLE: "lhIndexing",
+	LH_HTTP_STATUS_CODE: "lhIndexing",
+	LH_ROBOTS_TXT: "lhIndexing",
+	LH_CANONICAL: "lhIndexing",
+	LH_HREFLANG: "lhIndexing",
+	LH_DOCUMENT_TITLE: "lhContent",
+	LH_META_DESCRIPTION: "lhContent",
+	LH_LINK_TEXT: "lhContent",
+	LH_CRAWLABLE_ANCHORS: "lhContent",
+	LH_IMAGE_ALT: "lhContent",
+	LH_BUTTON_NAME: "a11yNames",
+	LH_LINK_NAME: "a11yNames",
+	LH_INPUT_BUTTON_NAME: "a11yNames",
+	LH_INPUT_IMAGE_ALT: "a11yNames",
+	LH_FRAME_TITLE: "a11yNames",
+	LH_OBJECT_ALT: "a11yNames",
+	LH_SVG_IMG_ALT: "a11yNames",
+	LH_ARIA_COMMAND_NAME: "a11yNames",
+	LH_ARIA_DIALOG_NAME: "a11yNames",
+	LH_ARIA_METER_NAME: "a11yNames",
+	LH_ARIA_PROGRESSBAR_NAME: "a11yNames",
+	LH_ARIA_TOOLTIP_NAME: "a11yNames",
+	LH_ARIA_TREEITEM_NAME: "a11yNames",
+	LH_ARIA_TOGGLE_FIELD_NAME: "a11yNames",
+	LH_ARIA_INPUT_FIELD_NAME: "a11yNames",
+	LH_LABEL: "a11yForms",
+	LH_SELECT_NAME: "a11yForms",
+	LH_FORM_FIELD_MULTIPLE_LABELS: "a11yForms",
+	LH_AUTOCOMPLETE_VALID: "a11yForms",
+	LH_ARIA_ALLOWED_ATTR: "a11yAria",
+	LH_ARIA_CONDITIONAL_ATTR: "a11yAria",
+	LH_ARIA_DEPRECATED_ROLE: "a11yAria",
+	LH_ARIA_HIDDEN_BODY: "a11yAria",
+	LH_ARIA_HIDDEN_FOCUS: "a11yAria",
+	LH_ARIA_PROHIBITED_ATTR: "a11yAria",
+	LH_ARIA_REQUIRED_ATTR: "a11yAria",
+	LH_ARIA_REQUIRED_CHILDREN: "a11yAria",
+	LH_ARIA_REQUIRED_PARENT: "a11yAria",
+	LH_ARIA_ROLES: "a11yAria",
+	LH_ARIA_TEXT: "a11yAria",
+	LH_ARIA_VALID_ATTR_VALUE: "a11yAria",
+	LH_ARIA_VALID_ATTR: "a11yAria",
+	LH_DUPLICATE_ID_ARIA: "a11yAria",
+	LH_PRESENTATION_ROLE_CONFLICT: "a11yAria",
+	LH_BYPASS: "a11yStructure",
+	LH_SKIP_LINK: "a11yStructure",
+	LH_LANDMARK_ONE_MAIN: "a11yStructure",
+	LH_HEADING_ORDER: "a11yStructure",
+	LH_TABINDEX: "a11yStructure",
+	LH_ACCESSKEYS: "a11yStructure",
+	LH_LIST: "a11yStructure",
+	LH_LISTITEM: "a11yStructure",
+	LH_DEFINITION_LIST: "a11yStructure",
+	LH_DLITEM: "a11yStructure",
+	LH_TD_HEADERS_ATTR: "a11yStructure",
+	LH_TH_HAS_DATA_CELLS: "a11yStructure",
+	LH_HTML_HAS_LANG: "a11yLanguage",
+	LH_HTML_LANG_VALID: "a11yLanguage",
+	LH_HTML_XML_LANG_MISMATCH: "a11yLanguage",
+	LH_VALID_LANG: "a11yLanguage",
+	LH_COLOR_CONTRAST: "a11yVisual",
+	LH_LINK_IN_TEXT_BLOCK: "a11yVisual",
+	LH_TARGET_SIZE: "a11yVisual",
+	LH_META_VIEWPORT: "a11yVisual",
+	LH_VIDEO_CAPTION: "a11yMedia",
+	LH_META_REFRESH: "a11yMedia",
+} as const satisfies Record<TLighthouseIssueCode, TCheckTopicId>;
 
 export const CHECK_TOPIC_OF: Record<TGuideCode, TCheckTopicId> = {
 	...LISTED_TOPIC_OF,

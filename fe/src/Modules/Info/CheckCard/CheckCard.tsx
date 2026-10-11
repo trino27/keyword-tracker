@@ -106,15 +106,17 @@ export function CheckCard({ entry }: { entry: ICheckGuideEntry }) {
 						</Verdict>
 					</SimpleGrid>
 
-					{entry.counterparts.length > 0 && (
-						<Text size="xs" c="dimmed">
-							Also read by:{" "}
-							{entry.counterparts
-								.map((other) => `${other.label} (${other.code})`)
-								.join(", ")}{" "}
-							— the same property checked independently, each counted on its own side.
-						</Text>
-					)}
+					{entry.comparisons.map((comparison) => (
+						<Block
+							key={comparison.with.map((other) => other.code).join()}
+							title={`Compared with ${comparison.with.map((other) => other.label).join(", ")}`}
+						>
+							<Text size="sm">{comparison.text}</Text>
+							<Text size="xs" c="dimmed">
+								{comparison.with.map((other) => other.code).join(", ")}
+							</Text>
+						</Block>
+					))}
 
 					<Block title="What it should look like">
 						<Example label="Correct" color="teal" code={entry.example.good} />

@@ -1,6 +1,5 @@
 import {
 	ACTIVE_ISSUE_CODES,
-	counterpartGroupOf,
 	LIGHTHOUSE_ISSUE_CODES,
 	INDUSTRY_SOURCE_HOSTS,
 	PAGE_SPEED_ISSUE_CODES,
@@ -14,12 +13,15 @@ import {
 	type IPlainCopy,
 	type ISeoIssueSource,
 	type TSeoIssueSeverity,
+	type TLighthouseIssueCode,
 	type TSiteCheckCode,
 } from "@app/contracts";
 import { CHECK_CRITERIA } from "../CheckCriteria/checkCriteria";
+import { LIGHTHOUSE_COMPARISONS } from "../CheckCriteria/groups/lighthouse";
 import {
 	CHECK_TOPIC_OF,
 	CHECK_TOPICS,
+	type TCheckPart,
 	type TCheckTopicId,
 	type TGuideCode,
 } from "@Core/Constants/checkTopics";
@@ -61,6 +63,12 @@ export interface IGuideSource extends ISeoIssueSource {
 	industry: boolean;
 }
 
+export interface ICheckComparison {
+	/** The checks on the other side of the comparison. */
+	with: { code: TGuideCode; label: string }[];
+	text: string;
+}
+
 export interface ICheckGuideEntry {
 	code: TGuideCode;
 	scope: TCheckScope;
@@ -76,8 +84,8 @@ export interface ICheckGuideEntry {
 	fails: string;
 	/** Why the check can be skipped — null for a check that always applies. */
 	skipped: string | null;
-	/** The other owner's checks that look at the same thing — Lighthouse's beside the crawl's. */
-	counterparts: { code: TGuideCode; label: string }[];
+	/** How the check differs from the other owner's check of the same thing, where there is one. */
+	comparisons: ICheckComparison[];
 	/** What a page gains when the check passes. What failing costs is `plain.why`. */
 	ifPasses: string;
 	example: ICheckExample;
@@ -89,6 +97,8 @@ export interface ICheckGuideEntry {
 
 export interface ICheckGuideTopic {
 	id: TCheckTopicId;
+	/** The tracker's own checks and Google's measurement, or Lighthouse's audits. */
+	part: TCheckPart;
 	title: string;
 	intro: string;
 	entries: ICheckGuideEntry[];
@@ -128,17 +138,32 @@ function skippedOf(code: TGuideCode, scope: TCheckScope): string | null {
 	return skipReasonOf(code);
 }
 
-/** The codes of other owners that read the same property of the page. */
-function counterpartsOf(code: TGuideCode): { code: TGuideCode; label: string }[] {
-	if (isSiteCode(code)) return [];
-	const group = counterpartGroupOf(code);
-	if (!group) return [];
-	return Object.values(group)
-		.flatMap((codes) => (codes ?? []) as readonly TGuideCode[])
-		.filter((other) => other !== code)
-		.map((other) => ({
-			code: other,
-			label: SEO_ISSUE_CATALOGUE[other as keyof typeof SEO_ISSUE_CATALOGUE].label,
+const labelOf = (code: TGuideCode) =>
+	isSiteCode(code) ? SITE_CHECK_CATALOGUE[code].label : SEO_ISSUE_CATALOGUE[code].label;
+
+/**
+ * How this check compares with the other owner's check of the same thing: on a Lighthouse
+ * card, the comparison with ours; on one of ours, every Lighthouse audit compared with it.
+ */
+function comparisonsOf(code: TGuideCode): ICheckComparison[] {
+	const own = LIGHTHOUSE_COMPARISONS[code as TLighthouseIssueCode];
+	if (own)
+		return [
+			{
+				with: own.ours.map((other) => ({ code: other, label: labelOf(other) })),
+				text: own.text,
+			},
+		];
+	return (
+		Object.entries(LIGHTHOUSE_COMPARISONS) as [
+			TLighthouseIssueCode,
+			{ ours: readonly TGuideCode[]; text: string },
+		][]
+	)
+		.filter(([, comparison]) => comparison.ours.includes(code))
+		.map(([audit, comparison]) => ({
+			with: [{ code: audit, label: labelOf(audit) }],
+			text: comparison.text,
 		}));
 }
 
@@ -160,7 +185,7 @@ function entryOf(code: TGuideCode): ICheckGuideEntry {
 		passes: criteria.passes,
 		fails: criteria.fails,
 		skipped: skippedOf(code, scope),
-		counterparts: counterpartsOf(code),
+		comparisons: comparisonsOf(code),
 		ifPasses: criteria.ifPasses,
 		example: criteria.example,
 		howChecked: criteria.howChecked,
@@ -226,4 +251,24 @@ export function scoreFactsOf(): IScoreFacts {
 		speedFindings: PAGE_SPEED_ISSUE_CODES.length,
 		siteChecks: SITE_CHECK_CODES.length,
 	};
+}
+
+export interface IComparisonRow {
+	audit: { code: TLighthouseIssueCode; label: string };
+	ours: { code: TGuideCode; label: string }[];
+	text: string;
+}
+
+/** Every Lighthouse audit that has a counterpart, or a near one, among the tracker's checks. */
+export function lighthouseComparisonRows(): IComparisonRow[] {
+	return (
+		Object.entries(LIGHTHOUSE_COMPARISONS) as [
+			TLighthouseIssueCode,
+			{ ours: readonly TGuideCode[]; text: string },
+		][]
+	).map(([audit, comparison]) => ({
+		audit: { code: audit, label: labelOf(audit) },
+		ours: comparison.ours.map((code) => ({ code, label: labelOf(code) })),
+		text: comparison.text,
+	}));
 }

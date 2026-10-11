@@ -6,13 +6,17 @@ import {
 	CHECK_REFERENCE_TITLE,
 	GUIDE_PARTS_AFTER_CHECKS,
 	GUIDE_PARTS_BEFORE_CHECKS,
+	GUIDE_SECTIONS,
+	LIGHTHOUSE_TITLE,
 	topicAnchor,
 } from "../guideOutline";
 import styles from "../InfoScreen.module.scss";
 
 interface IGuideNavProps {
-	/** The check chapters on screen, with how many checks each holds. */
-	topics: ICheckGuideTopic[];
+	/** The check reference's chapters on screen, with how many checks each holds. */
+	reference: ICheckGuideTopic[];
+	/** Lighthouse's chapters on screen. */
+	lighthouse: ICheckGuideTopic[];
 	/** False while a search shows only checks: the prose chapters are not on screen to jump to. */
 	withChapters: boolean;
 	activeId: string | null;
@@ -23,7 +27,8 @@ interface IGuideNavProps {
 
 /** The guide's table of contents: always in view, following the reader, one click to any chapter. */
 export function GuideNav({
-	topics,
+	reference,
+	lighthouse,
 	withChapters,
 	activeId,
 	onJump,
@@ -45,6 +50,14 @@ export function GuideNav({
 			}}
 		/>
 	);
+	const topicLink = (topic: ICheckGuideTopic) =>
+		link(
+			topicAnchor(topic.id),
+			topic.title,
+			<Badge size="xs" variant="light" color="gray">
+				{topic.entries.length}
+			</Badge>,
+		);
 	const part = (title: string, children: ReactNode) => (
 		<Stack key={title} gap={0}>
 			<Text size="xs" fw={700} c="dimmed" tt="uppercase" px="sm" pt="sm" pb={4}>
@@ -72,18 +85,23 @@ export function GuideNav({
 							p.sections.map((section) => link(section.id, section.label)),
 						),
 					)}
-				{part(
-					CHECK_REFERENCE_TITLE,
-					topics.map((topic) =>
-						link(
-							topicAnchor(topic.id),
-							topic.title,
-							<Badge size="xs" variant="light" color="gray">
-								{topic.entries.length}
-							</Badge>,
-						),
-					),
-				)}
+				{reference.length > 0 &&
+					part(
+						CHECK_REFERENCE_TITLE,
+						reference.map((topic) => topicLink(topic)),
+					)}
+				{(lighthouse.length > 0 || withChapters) &&
+					part(LIGHTHOUSE_TITLE, [
+						...(withChapters
+							? [
+									link(
+										GUIDE_SECTIONS.lighthouseOverview.id,
+										GUIDE_SECTIONS.lighthouseOverview.label,
+									),
+								]
+							: []),
+						...lighthouse.map((topic) => topicLink(topic)),
+					])}
 				{withChapters &&
 					GUIDE_PARTS_AFTER_CHECKS.map((p) =>
 						part(

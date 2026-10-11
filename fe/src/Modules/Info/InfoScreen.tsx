@@ -9,12 +9,13 @@ import { guideViewOf } from "@ViewModels/InfoGuideViewModel/Services/GuideViewOf
 import { BeyondTracker } from "./Articles/BeyondTracker";
 import { CoreWebVitalsGuide } from "./Articles/CoreWebVitalsGuide";
 import { HowPagesAreJudged } from "./Articles/HowPagesAreJudged";
+import { LighthouseOverview } from "./Articles/LighthouseOverview";
 import { SeoFundamentals } from "./Articles/SeoFundamentals";
 import { UsingTracker } from "./Articles/UsingTracker";
 import { CheckReference } from "./CheckReference/CheckReference";
 import { GuideNav } from "./GuideNav/GuideNav";
 import { GuidePart } from "./GuidePart/GuidePart";
-import { ANCHOR_ATTRIBUTE, CHECK_REFERENCE_TITLE } from "./guideOutline";
+import { ANCHOR_ATTRIBUTE, CHECK_REFERENCE_TITLE, LIGHTHOUSE_TITLE } from "./guideOutline";
 import styles from "./InfoScreen.module.scss";
 
 /** Where the active heading is judged from: just under the fixed header. */
@@ -53,7 +54,8 @@ export function InfoScreen() {
 			<div className={styles.layout}>
 				<aside className={styles.aside} aria-label="Guide navigation">
 					<GuideNav
-						topics={view.kind === "noResults" ? [] : view.topics}
+						reference={view.kind === "noResults" ? [] : view.reference}
+						lighthouse={view.kind === "noResults" ? [] : view.lighthouse}
 						withChapters={view.kind === "all"}
 						activeId={activeId}
 						onJump={jump}
@@ -73,7 +75,14 @@ export function InfoScreen() {
 								title={CHECK_REFERENCE_TITLE}
 								lead="Every check the tracker runs, chapter by chapter. Open one to see when it passes, fails or is skipped, what passing gains and failing costs, an example of the right markup, how the tracker checks it and how to check it yourself, how to fix it, and the sources behind it."
 							>
-								<CheckReference topics={view.topics} expanded={false} />
+								<CheckReference topics={view.reference} expanded={false} />
+							</GuidePart>
+							<GuidePart
+								title={LIGHTHOUSE_TITLE}
+								lead="Google Lighthouse's own SEO and accessibility audits, grouped by what they examine — and, where we check the same thing, how the two readings differ."
+							>
+								<LighthouseOverview />
+								<CheckReference topics={view.lighthouse} expanded={false} />
 							</GuidePart>
 							<BeyondTracker />
 						</>
@@ -83,7 +92,11 @@ export function InfoScreen() {
 							title={`${view.matched} ${view.matched === 1 ? "check matches" : "checks match"} “${q}”`}
 						>
 							{/* Keyed by the search: the cards open on mount, so each new search opens its own. */}
-							<CheckReference key={q} topics={view.topics} expanded />
+							<CheckReference
+								key={q}
+								topics={[...view.reference, ...view.lighthouse]}
+								expanded
+							/>
 						</GuidePart>
 					)}
 					{view.kind === "noResults" && (

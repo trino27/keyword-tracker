@@ -24,6 +24,7 @@ export const GUIDE_SECTIONS = {
 	inp: { id: "inp", label: "INP — responsiveness" },
 	cls: { id: "cls", label: "CLS — visual stability" },
 	speedHere: { id: "speed-measurement", label: "How speed is measured here" },
+	lighthouseOverview: { id: "lighthouse-overview", label: "Lighthouse and our crawl" },
 	keywordResearch: { id: "keyword-research", label: "Keyword research and intent" },
 	links: { id: "backlinks", label: "Backlinks and authority" },
 	eeat: { id: "eeat", label: "E-E-A-T and trust" },
@@ -76,6 +77,7 @@ export const GUIDE_PARTS_AFTER_CHECKS: { title: string; sections: TSection[] }[]
 ];
 
 export const CHECK_REFERENCE_TITLE = "Check reference";
+export const LIGHTHOUSE_TITLE = "Lighthouse audits";
 
 /** Where a chapter of the check reference, and one check in it, can be linked to. */
 export const topicAnchor = (topicId: string) => `checks-${topicId}`;
