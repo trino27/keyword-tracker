@@ -32,6 +32,33 @@ describe('MIXED_CONTENT', () => {
     );
   });
 
+  /** MDN: upgrade-insecure-requests "upgrades all requests to HTTPS, including blockable mixed content". */
+  it('passes a page whose policy upgrades insecure requests, by header or meta tag', () => {
+    const insecure = { resourceUrls: ['http://cdn.example/app.js'] };
+
+    expect(
+      MIXED_CONTENT_CHECK.evaluate(
+        makeCheckInput({
+          headers: {
+            'content-security-policy':
+              'default-src https:; upgrade-insecure-requests',
+          },
+          parsed: insecure,
+        }),
+      ),
+    ).toEqual(PASSES);
+    expect(
+      MIXED_CONTENT_CHECK.evaluate(
+        makeCheckInput({
+          parsed: {
+            ...insecure,
+            metaContentSecurityPolicy: 'upgrade-insecure-requests',
+          },
+        }),
+      ),
+    ).toEqual(PASSES);
+  });
+
   it('cannot be judged on a page that is not served over HTTPS', () => {
     expect(
       MIXED_CONTENT_CHECK.evaluate(

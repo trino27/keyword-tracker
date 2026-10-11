@@ -165,9 +165,12 @@ const NAME_ATTRIBUTE = 'data-seo-accessible-name';
 /** Which entry of the links' markup-as-written a link is, for the same reason. */
 const INDEX_ATTRIBUTE = 'data-seo-link-index';
 
-/** A meta element that declares the encoding, in either of its two forms. */
-const CHARSET_DECLARATION =
-  /<meta\b[^>]*?(?:\bcharset\s*=|http-equiv\s*=\s*["']?content-type)[^>]*>/i;
+/**
+ * A meta element that declares the encoding, in either of its two forms — `<meta
+ * charset>` or an http-equiv Content-Type whose content names a charset. Both carry
+ * `charset=`; an http-equiv that names no charset declares no encoding.
+ */
+const CHARSET_DECLARATION = /<meta\b[^>]*?\bcharset\s*=[^>]*>/i;
 
 /** A selection, as cheerio returns one. */
 type TSelection = ReturnType<CheerioAPI>;
@@ -217,7 +220,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   // links the author meant.
   const baseUrl = baseOf($, pageUrl);
   const clientRendered = looksClientRendered($);
-  const elementCount = $('*').length;
+  const elementCount = $('body *').length;
   // Before anything is read, and on the whole document, because h1s are read outside the
   // main content: strip what no reader sees, and the controls sitting inside headings.
   // A link's name may be text only a screen reader sees ("Read more<span
@@ -282,7 +285,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     // and nothing is hidden behind it.
     if (
       (/^\s*javascript:/i.test(raw) && !DO_NOTHING_SCRIPT.test(raw)) ||
-      (/#[!/]/.test(raw) &&
+      (/#[!/][^\s]/.test(raw) &&
         !WIDGET_FRAGMENT.test(raw) &&
         sameHostAs(absolute(raw, baseUrl), pageUrl))
     ) {
@@ -333,6 +336,9 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     metaRobots: metaContents($, 'robots'),
     metaGooglebot: metaContents($, 'googlebot'),
     metaRefresh: orNull(httpEquivContent($, 'refresh')),
+    metaContentSecurityPolicy: orNull(
+      httpEquivContent($, 'content-security-policy'),
+    ),
     viewport: orNull(metaContent($, 'name', 'viewport')),
     canonicals,
     canonicalsOutsideHead: canonicalsOf($, 'body', baseUrl),

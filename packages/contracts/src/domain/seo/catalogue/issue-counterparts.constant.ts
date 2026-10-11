@@ -64,11 +64,11 @@ export const WHY_COUNTERPARTS_DIFFER = {
   LH_CANONICAL:
     'The two judge different faults of the same tag. We report a missing canonical, one naming another URL, an http:// one, conflicting ones and a relative one; Lighthouse does not judge a missing canonical, fails one that is invalid, relative, repeated or points at the home page or another language version, and reads the tag after scripts have run.',
   LH_IS_CRAWLABLE:
-    'We report a noindex addressed to Google and a robots.txt rule that closes the page to Googlebot. Lighthouse fails only a rule that keeps every search engine out — one aimed at Googlebot alone is just a warning to it — and also fails an unavailable_after date that has passed.',
+    'We report a noindex addressed to Google and a robots.txt rule that closes the page to Googlebot. Lighthouse fails only a rule that keeps every search engine out — one aimed at Googlebot alone is just a warning to it; both fail an unavailable_after date that has passed.',
   LH_IMAGE_ALT:
-    'We check the images in the article; Lighthouse checks every image on the rendered page — logos, icons, banners and images that scripts add — so an image outside the article can fail its check while ours passes, and a page whose article has no images is ours to skip.',
+    'We check the images in the article; Lighthouse checks every image on the rendered page — logos, icons, banners and images that scripts add — so an image outside the article can fail its check while ours passes, and a page whose article has no images is ours to skip. Lighthouse also passes an image the page hides at a phone’s width, which its desktop run then fails, and accepts a title or aria-label in place of alt; Google reads the alt attribute for images, so we accept only that.',
   LH_CRAWLABLE_ANCHORS:
-    'We check the links in the article for javascript: addresses and click-only links; Lighthouse checks every link on the rendered page and also fails empty links and file: links, which we do not report.',
+    'We check the links in the article for javascript: addresses that do something and for links without an address whose onclick opens a page. Lighthouse checks every link on the rendered page, hidden ones and ones scripts add included: it fails a link without an address that any script listens to (a menu toggle, a popup’s Close), javascript:void(0), which leads nowhere and which we pass, an empty address and file: links. It passes a javascript: address that navigates, which we fail, as Google cannot follow it.',
   LH_HREFLANG:
     'We judge hreflang only when the page declares some, and also fail a set whose page names another URL as canonical; Lighthouse passes a page with none, fails a relative address, and does not look at the canonical.',
 } as const satisfies Record<TCounterpartKey, string>;

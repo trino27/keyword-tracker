@@ -316,7 +316,7 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker looks at every <a> in the main content of the HTML as fetched. It flags an <a> without href whose onclick names a destination (location, href, window.open, navigate or a quoted path or URL), an href that is a javascript: call, and an href with a "#/" or "#!" route on this site. Controls are left alone: role="button", javascript:void(0) and similar do-nothing scripts, <a name> anchors, and Ghost\'s #/portal links.',
+			'The tracker looks at every <a> in the main content of the HTML as fetched. It flags an <a> without href whose onclick names a destination (location, href, window.open, navigate or a quoted path or URL), an href that is a javascript: call, and an href with a "#/" or "#!" route on this site, such as #/pricing. Controls are left alone: role="button", javascript:void(0) and similar do-nothing scripts, a bare "#!" or "#/" that names no route, <a name> anchors, and Ghost\'s #/portal links.',
 		manualCheck: [
 			'Open View source (Ctrl+U) and use Ctrl+F to search for "javascript:", "onclick", "#/" and "#!" inside the article.',
 			'Or in the Chrome DevTools Console run document.querySelectorAll(\'article a:not([href]), article a[href^="javascript:"], article a[href^="#/"], article a[href^="#!"]\').',

@@ -36,7 +36,7 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"Only a page whose final address is https: is judged; on an http page the check is not applicable. The tracker collects the addresses in <img> src, srcset and data-src, <source> srcset and src, <script src>, stylesheet <link>s, <iframe>, <frame> and <embed> src, <video>, <audio> and <track> src, and <object> data, resolving relative ones against the page (or its <base href>). Any that resolves to an http: address fails the check, and the finding lists them. Files that scripts or stylesheets load later are not seen, and ordinary <a> links do not count.",
+			"Only a page whose final address is https: is judged; on an http page the check is not applicable. The tracker collects the addresses in <img> src, srcset and data-src, <source> srcset and src, <script src>, stylesheet <link>s, <iframe>, <frame> and <embed> src, <video>, <audio> and <track> src, and <object> data, resolving relative ones against the page (or its <base href>). Any that resolves to an http: address fails the check, and the finding lists them — unless the page sends a Content-Security-Policy with upgrade-insecure-requests, as a header or a <meta http-equiv> tag, which has the browser fetch every one of them over https: instead, so the page passes. Files that scripts or stylesheets load later are not seen, and ordinary <a> links do not count.",
 		manualCheck: [
 			'Open the post over https, open Chrome DevTools\' Console and look for "Mixed Content" warnings.',
 			'In the Console, run document.querySelectorAll(\'[src^="http:"], [srcset*="http:"], link[rel=stylesheet][href^="http:"], object[data^="http:"]\') — an empty list passes.',
@@ -178,7 +178,7 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 			bad: `> document.querySelectorAll("*").length\n2487   (more than ${thousands(C.DOM_SIZE_LARGE.max)} fails)`,
 			lang: "text",
 		},
-		howChecked: `The tracker parses the HTML as the server sent it and counts every element in it, <html>, <head> and everything in it included. More than ${thousands(C.DOM_SIZE_LARGE.max)} fails — Lighthouse's line for an excessive DOM. Elements that scripts add after the page loads are not counted.`,
+		howChecked: `The tracker parses the HTML as the server sent it and counts the elements inside <body>, as web.dev and Lighthouse count DOM size — <html>, <head> and the tags in it are not counted. More than ${thousands(C.DOM_SIZE_LARGE.max)} fails — web.dev's line for an excessive DOM. Elements that scripts add after the page loads are not counted.`,
 		manualCheck: [
 			"Open the post, open Chrome DevTools' Console and run document.querySelectorAll('*').length — this counts what scripts added as well, so it may read higher than the tracker.",
 			"Run Lighthouse in Chrome DevTools, or PageSpeed Insights (https://pagespeed.web.dev), and read its DOM size diagnostic for the total, the deepest nesting and the element with the most children.",

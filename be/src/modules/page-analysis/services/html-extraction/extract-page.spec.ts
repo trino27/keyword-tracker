@@ -690,6 +690,8 @@ describe('extractPage', () => {
         // cossa.ru and scripting.com: controls whose script names no destination.
         '<a href="javascript:void(0);">Login</a><a onclick="chatToggleConnect ();"></a>' +
         '<a href="https://a.example/resources/#/portal/signup">Subscribe</a>' +
+        // A bare #! or #/ names no route: a menu toggle or a "top" link, no page behind it.
+        '<a href="#!">Menu</a><a href="#/">Top</a>' +
         '</p></main>',
     );
 
@@ -700,6 +702,9 @@ describe('extractPage', () => {
       'https://forum.b.example/#!topic/1',
       // A widget's fragment: to Google, a link to the page before the #.
       'https://a.example/resources/#/portal/signup',
+      // A bare fragment is a link back into this page, as any #section is.
+      'https://a.example/post/#!',
+      'https://a.example/post/#/',
     ]);
     expect(parsed.nofollowLinks).toEqual(['https://a.example/two/']);
     expect(parsed.uncrawlableLinks).toEqual([
@@ -1137,5 +1142,16 @@ describe('extractPage', () => {
     ).toBeLessThan(200);
     expect(late.charsetDeclarationEnd).toBeGreaterThan(1024);
     expect(page('<p>x</p>').charsetDeclarationEnd).toBeNull();
+    expect(
+      page(
+        '<p>x</p>',
+        '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">',
+      ).charsetDeclarationEnd,
+    ).toBeLessThan(200);
+    // An http-equiv that names no charset declares no encoding.
+    expect(
+      page('<p>x</p>', '<meta http-equiv="Content-Type" content="text/html">')
+        .charsetDeclarationEnd,
+    ).toBeNull();
   });
 });

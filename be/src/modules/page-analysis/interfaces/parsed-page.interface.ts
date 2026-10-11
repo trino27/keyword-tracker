@@ -125,6 +125,8 @@ export interface IParsedPage {
   metaGooglebot: readonly string[];
   /** `<meta http-equiv="refresh">` content, as written; null when there is none. */
   metaRefresh: string | null;
+  /** `<meta http-equiv="Content-Security-Policy">` content, as written; null when none. */
+  metaContentSecurityPolicy: string | null;
   /** `<meta name="viewport">` content, as written; null when the tag is absent. */
   viewport: string | null;
   /**
@@ -286,7 +288,11 @@ export interface IParsedPage {
   renderBlockingScripts: string[];
   /** `<link rel="preload" as="font">` without `crossorigin`, each as its markup. */
   fontPreloadsWithoutCrossorigin: string[];
-  /** Elements in the document as served, before anything is removed. */
+  /**
+   * Elements inside `<body>` as served, before anything is removed — what web.dev and
+   * Lighthouse count for DOM size; `<html>`, `<head>` and its tags are not the page's DOM
+   * a reader interacts with.
+   */
   elementCount: number;
   /**
    * The `<img>` showing the page's featured image — the one `og:image` names — wherever

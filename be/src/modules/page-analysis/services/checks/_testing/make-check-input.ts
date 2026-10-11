@@ -44,6 +44,7 @@ export function makeCheckInput(
       metaRobots: ['max-image-preview:large'],
       metaGooglebot: [],
       metaRefresh: null,
+      metaContentSecurityPolicy: null,
       viewport: 'width=device-width, initial-scale=1',
       canonicals: ['https://a.example/post/'],
       canonicalsOutsideHead: [],

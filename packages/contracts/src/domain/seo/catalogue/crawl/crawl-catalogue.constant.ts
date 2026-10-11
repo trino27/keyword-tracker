@@ -1294,7 +1294,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Trim wrappers, render long lists and below-the-fold sections lazily, or split the page.',
     explanation:
-      'The HTML holds more elements than Lighthouse considers excessive (1,400). Every style recalculation and layout has to walk them, so a large DOM makes each interaction slower to paint — the delay Interaction to Next Paint measures — and costs memory on every phone that opens it. The count is of the HTML as served; scripts may add more.',
+      "The page's <body> holds more elements than web.dev calls excessive (1,400 — the line Lighthouse's DOM-size audit used). Every style recalculation and layout has to walk them, so a large DOM makes each interaction slower to paint — the delay Interaction to Next Paint measures — and costs memory on every phone that opens it. The count is of the <body> of the HTML as served, as web.dev and Lighthouse count it; scripts may add more.",
     sources: [SOURCE.domSize],
     max: 1_400,
   },

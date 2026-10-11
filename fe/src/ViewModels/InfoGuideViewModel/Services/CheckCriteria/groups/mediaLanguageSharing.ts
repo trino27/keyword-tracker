@@ -191,7 +191,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 			lang: "http",
 		},
 		howChecked:
-			"The check passes when the Content-Type response header carries a charset parameter, or when a <meta charset> declaration ends within the first 1,024 bytes of the HTML, as the HTML standard requires. Otherwise it fails and reports where the declaration ends, if anywhere.",
+			'The check passes when the Content-Type response header carries a charset parameter, or when a <meta charset> — or a <meta http-equiv="Content-Type"> whose content names a charset — ends within the first 1,024 bytes of the HTML, as the HTML standard requires. Otherwise it fails and reports where the declaration ends, if anywhere.',
 		manualCheck: [
 			"Run curl -I https://example.com/post/ and look for charset= in Content-Type.",
 			"Otherwise press Ctrl+U: <meta charset> should be among the very first lines of <head>, before any large inline script or style.",
