@@ -313,10 +313,16 @@ switches in group 4.
   Done: the eleven existing cases kept their meaning, with the mobile summary passed under
   `pageSpeedByStrategy`; the seven new ones failed with no switch. On desktop the Lighthouse
   caption says "computer" instead of "phone".
-- [ ] 4.3 On the stack: `docker compose up -d --build`, sign in with `curl -c c.txt`, then
+- [x] 4.3 On the stack: `docker compose up -d --build`, sign in with `curl -c c.txt`, then
   `curl -s -b c.txt http://localhost:8080/api/pages/<id> | grep -o
   '"pageSpeedByStrategy":{"mobile"'` prints the match. In a browser, open a page detail and switch
   devices; no console error. Verify: the walk is done and the result written here.
+  Done 2026-10-11 on the rebuilt stack. `/api/pages/15` (semrush.com) has no `pageSpeed` key, and
+  `pageSpeedByStrategy` holds mobile (LCP 2483 good, SEO 100, accessibility 82) and desktop (LCP
+  3056 needs improvement, SEO and accessibility null), with the desktop findings
+  CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP and CWV_INP_NEEDS_IMPROVEMENT_DESKTOP. In headless Chromium
+  the block opened on Mobile. Desktop showed its own cards, its TTFB line, its LCP breakdown and
+  the Performance card alone, captioned "on a computer". The console logged no error.
 - [x] 4.4 Commit: `feat(fe): the Speed block switches between mobile and desktop`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
   Done: lint and typecheck clean; contracts 789, be 1329, fe 444, db/e2e 225 tests green.
