@@ -98,10 +98,11 @@ will ever be of how the catalogue looked at that crawl.
 are conditional — a page with no images is not judged on alt text, a page with no description is
 not judged on its length — so the denominator is counted at crawl time, while the parsed page is
 still in hand, and shown beside the number: 100 out of 28 and 100 out of 64 are not the same
-claim. Every check weighs the same; weighting by severity would invent a model of ranking nobody
-can justify, and Lighthouse does the same and says so — "each SEO audit is weighted equally in
-the Lighthouse SEO Score"
-([Lighthouse SEO audits](https://developer.chrome.com/docs/lighthouse/seo/)). The formula lives
+claim. Each check weighs its severity — Critical 10, Important 3, Improvement 1, one constant
+(`SEVERITY_WEIGHT`) — in the numerator and the denominator alike, so a page that passes
+everything that applied still scores 100, and a broken canonical costs more than three missing
+alt texts, which equal weights let outscore it. The weights are a product decision, not a model
+of ranking; they are applied at read time, so changing one needs no migration. The formula lives
 in the shared package and is computed identically on both sides. What the number may mean: this
 page has no obvious technical defects. Not a traffic prediction, not a judgement of the writing.
 
@@ -146,9 +147,9 @@ time (no DNS-rebinding window), with size caps, timeouts and bounded retries.
 
 **Core Web Vitals come from Google PageSpeed Insights, measured in the background.** A finished
 crawl queues its pages in the same transaction that makes them current, and a worker in the API
-process measures them later — mobile only, because Google indexes mobile-first and both
-strategies would double the calls and duplicate every finding. One `page_speed` row per page is
-both the queue and the cache of the last good measurement: nobody reads a speed history, so none
+process measures them later, on mobile and on desktop (see the Ahrefs-gap decisions below for
+why the list stays mobile). One `page_speed` row per page and device is both the queue and the
+cache of the last good measurement: nobody reads a speed history, so none
 is kept. A page is re-measured at most once a day, and only when a crawl finds it again — no
 schedule, no "measure now" button. Rejected: measuring inside the crawl (PageSpeed takes tens of
 seconds, which breaks the crawl's lease, and a Google outage would fail crawls) and a periodic
@@ -208,6 +209,57 @@ appears, from one record — and within a level the report sorts by pages affect
 computed priority (weights × pages × position, resting on simulated positions) and a new
 four-level scale (a migration of every stored finding and a re-audit of a curated catalogue).
 
+**Closing the gap to Ahrefs' checks without losing precision (plan `ahrefs-gap-checks`,
+2026-10-11).** Ahrefs' blog was read as a checklist of what an SEO tool tells a site owner to
+fix, and every candidate check had to clear the same bar as the old ones.
+
+- *The inclusion bar.* A first-party source (Google, the W3C) admits a check at any severity;
+  an industry source alone (`INDUSTRY_SOURCE_HOSTS`: ahrefs.com, vercel.com) admits it only as
+  an Improvement. A contracts test holds the second half. Rejected candidates, with their
+  reasons, are in `PAGE_ANALYSIS_MODULE.md` ("What was considered and rejected").
+- *One fact, one finding.* No new check may report a fact an older one already reports; where
+  two meet, the more specific keeps it and the other steps aside, through one shared predicate,
+  never a copy of the rule. `CANONICAL_TO_HTTP` takes the http twin from `CANONICAL_MISMATCH`,
+  `CANONICAL_TARGET_BROKEN` takes a broken target, and `HREFLANG_NO_SELF_REFERENCE` is the arm
+  that moved out of `HREFLANG_INVALID`. `CANONICAL_CHANGED` was dropped, because every state it
+  could report was already reported.
+- *Links are checked inside the crawl, not in a queue.* A new `outbound` stage asks the content
+  links, canonical targets and hreflang alternates before analysis, under a budget: 300 link
+  URLs and 30 documents per run, 8 requests in flight, 2 per host, 5 s each, 60 s for the
+  stage. Each external host's robots.txt is honoured. A queue like PageSpeed's was rejected:
+  link checks have neither Google's quota nor its minute-long answers, and a queue would change
+  a page's issues after its crawl. Measured on 29 live sites: median 9.6 s, slowest 60 s; a
+  full 15-post crawl of semrush.com spent 19.5 s in it.
+- *What a broken link is.* Inside the site, any 4xx or 5xx except 401/402/403/429 (those refuse
+  a crawler). Outside it, only 404, 410 or a domain that does not exist, because walls answer
+  crawlers 403, 429, 999 or 5xx and readers never. The field audit added the rest: an answer
+  reached through a third host (youtube.com's consent page) is unknown, and Cloudflare's
+  `/cdn-cgi/` links are no pages.
+- *Every new check is kept only at 100% correct live firings.* Each firing was read against
+  the live page. The markup checks went through two passes over 56 sites, 256 posts, 0 wrong
+  after two fixes. The link checks went through two passes over 32 sites: 99 firings, 0 wrong
+  after four fixes. The image finding was compared with PageSpeed Insights' own report. The
+  tallies are in `PAGE_ANALYSIS_MODULE.md`.
+- *Desktop Core Web Vitals, mobile first.* Every page is measured on both devices: one
+  `page_speed` row per page and device, keyed `(page_id, strategy)`. The list's badges, the
+  score and Lighthouse's checks stay mobile, the device Google indexes with; the page's Speed
+  block switches. Lighthouse's verdicts come from the mobile answer alone, and the desktop
+  request asks for performance only. A database CHECK refuses Lighthouse data on a desktop row,
+  because otherwise every desktop answer would erase the page's Lighthouse findings and move
+  its score. Within a client's turn in the queue, mobile rows go first. The cost, measured: two
+  calls per page, 4–5 measurements a minute, so a 15-post crawl now measures in 6–7 minutes
+  instead of 3–4. The stored desktop field values matched a live PageSpeed answer exactly.
+- *A migration drizzle-kit could not write.* The key change was generated in three steps
+  (`0016`–`0018`). The middle one carries the one hand edit the repository allows, by the
+  user's decision: uncommenting drizzle-kit's own `DROP CONSTRAINT "page_speed_pkey"`, a name
+  it cannot read itself.
+- *Images that could be lighter.* Lighthouse's `image-delivery-insight` audit becomes
+  `IMAGE_DELIVERY_INEFFICIENT` when it fails with at least 100 KiB to save
+  (`details.debugData.wastedBytes`), on mobile only. It is a speed finding, not a check: never
+  in the score, never folded into a whole-site row, since it is a lab estimate about one page.
+  It belongs to the pageSpeed owner, not the scored Lighthouse one. An answer without the audit
+  is still a measurement.
+
 ## Not done, and next
 
 - External signals instead of the system's own guesses: Google Search Console (real impressions,
@@ -254,12 +306,10 @@ four-level scale (a migration of every stored finding and a re-audit of a curate
   numeric. A larger corpus would move this; real impressions per keyword would settle it.
 - More checks and metrics. Duplicate titles, duplicate descriptions and cannibalisation now ship
   as the three run-scoped codes, outgoing internal links as `NO_INTERNAL_LINKS`, and Core Web
-  Vitals as PageSpeed measurements. What is left is broken links, content freshness, and orphan
-  pages — which need a crawler that follows links, where this one visits the URLs a sitemap
+  Vitals as PageSpeed measurements, broken links and redirecting links as checks of the crawl's
+  outbound stage. What is left is content freshness and orphan pages — the latter needs a
+  crawler that follows links, where this one visits the URLs a sitemap
   lists, so "nothing links here" is a conclusion from evidence it never gathered.
-- PageSpeed's real cost. Calls per crawl and the typical latency of a measurement were never
-  measured — the work was built without a key, against answers synthesized from Google's
-  documented format. They come from the first crawl run with a real key.
 - More parallelism in the crawl. Three fetches at a time in fixed windows, two runs per worker:
   a slow page holds its window, and a big client waits behind another. A per-host sliding window
   and more worker slots would cut a run to a fraction of its time, and the queue already
