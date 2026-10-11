@@ -28,6 +28,8 @@ const setup = (rowCount: number) => {
     // most checks and each later row fails fewer.
     checksApplicable: 18,
     checksFailed: Math.min(18, Math.max(0, rowCount - 1 - i)),
+    pointsPossible: 60,
+    pointsLost: 3 * Math.min(18, Math.max(0, rowCount - 1 - i)),
   }));
   const list = {
     listSlice: (_scope: IUserScope, filter: IPageListFilter) => {
@@ -185,6 +187,8 @@ const detailSetup = (
     responseMs: 120,
     checksApplicable: overrides.checksApplicable ?? ACTIVE_ISSUE_CODES.length,
     checksFailed: overrides.checksFailed ?? issueCodes.length,
+    pointsPossible: 100,
+    pointsLost: 11,
     checksJudged:
       overrides.checksJudged === undefined
         ? [...ACTIVE_ISSUE_CODES]

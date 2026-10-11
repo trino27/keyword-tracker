@@ -45,11 +45,13 @@ export const bestPositionSchema = z.object({
 	capturedAt: z.string(),
 }) satisfies z.ZodType<IBestPosition>;
 
-/** A score and the denominator it came from; the denominator is never zero. */
+/** A score and the counts and points it came from; neither denominator is ever zero. */
 export const pageScoreSchema = z.object({
 	value: z.number().int().min(0).max(100),
 	applicable: z.number().int().positive(),
 	failed: z.number().int().min(0),
+	pointsPossible: z.number().int().positive(),
+	pointsLost: z.number().int().min(0),
 }) satisfies z.ZodType<IPageScore>;
 
 /**

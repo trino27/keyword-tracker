@@ -122,7 +122,12 @@ export class PageReadService {
           client: { id: row.clientId, name: row.clientName },
           keywords,
           bestPosition: pickBestPosition(keywords),
-          score: pageScoreOf(row.checksApplicable, row.checksFailed),
+          score: pageScoreOf({
+            applicable: row.checksApplicable,
+            failed: row.checksFailed,
+            pointsPossible: row.pointsPossible,
+            pointsLost: row.pointsLost,
+          }),
           // A page nobody shares a finding with says zero, not nothing.
           issues: issuesByPage.get(row.id) ?? {
             total: 0,
@@ -176,7 +181,12 @@ export class PageReadService {
       },
       keywords,
       bestPosition: pickBestPosition(keywords),
-      score: pageScoreOf(page.checksApplicable, page.checksFailed),
+      score: pageScoreOf({
+        applicable: page.checksApplicable,
+        failed: page.checksFailed,
+        pointsPossible: page.pointsPossible,
+        pointsLost: page.pointsLost,
+      }),
       checks: composePageChecks(
         page.checksJudged,
         page.checksNotApplicable,

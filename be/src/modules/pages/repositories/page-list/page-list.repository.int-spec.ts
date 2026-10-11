@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import type { TCrawlRunStatus } from '@app/contracts';
+import { CHECK_WEIGHTS, type TCrawlRunStatus } from '@app/contracts';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
 import { keywords } from '@persistence/schema/tables/keywords/keywords.schema';
@@ -58,8 +58,15 @@ async function addPage(
   runId: number,
   url: string,
   sitemapPosition: number,
-  /** The page's score. Default: 15 of 18 passed, i.e. 83. */
-  counters: { checksApplicable: number; checksFailed: number } = {
+  /**
+   * The page's score. Default: 15 of 18 passed, i.e. 83. Without `checksJudged` the row
+   * is one crawled before per-check recording, and every check weighs 1.
+   */
+  counters: {
+    checksApplicable: number;
+    checksFailed: number;
+    checksJudged?: string[];
+  } = {
     checksApplicable: 18,
     checksFailed: 3,
   },
@@ -78,6 +85,8 @@ async function addPage(
       sitemapPosition,
       checksApplicable: counters.checksApplicable,
       checksFailed: counters.checksFailed,
+      checksJudged: counters.checksJudged ?? null,
+      checksNotApplicable: counters.checksJudged ? [] : null,
       lastSeenRunId: runId,
       crawledAt: new Date(),
     })
@@ -230,6 +239,60 @@ describe('PageListRepository (postgres)', () => {
     expect((await slice(user.id)).map((row) => row.url)).toEqual([
       'https://site.example/four/',
       'https://site.example/two/',
+    ]);
+  });
+
+  it('weighs a Critical failure above an Improvement, and a speed finding not at all', async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    // The same two checks applied to both pages and each failed one. Counted alike they
+    // tie at 50 and the sitemap order would put the Improvement page first.
+    const judged = ['TITLE_MISSING', 'LANG_MISSING'];
+    const counters = {
+      checksApplicable: 2,
+      checksFailed: 1,
+      checksJudged: judged,
+    };
+    const minor = await addPage(
+      client.id,
+      run.id,
+      'https://site.example/minor/',
+      0,
+      counters,
+    );
+    const critical = await addPage(
+      client.id,
+      run.id,
+      'https://site.example/critical/',
+      1,
+      counters,
+    );
+    await testDb.db.execute(sql`
+      insert into seo_issues (page_id, code, severity, details_json) values
+      (${minor.id}, 'LANG_MISSING', 'notice', '{}'),
+      (${minor.id}, 'CWV_LCP_POOR', 'warning', '{}'),
+      (${critical.id}, 'TITLE_MISSING', 'error', '{}')
+    `);
+
+    const possible = CHECK_WEIGHTS.TITLE_MISSING + CHECK_WEIGHTS.LANG_MISSING;
+    expect(
+      (await slice(user.id)).map(({ url, pointsPossible, pointsLost }) => ({
+        url,
+        pointsPossible,
+        pointsLost,
+      })),
+    ).toEqual([
+      {
+        url: 'https://site.example/critical/',
+        pointsPossible: possible,
+        pointsLost: CHECK_WEIGHTS.TITLE_MISSING,
+      },
+      {
+        url: 'https://site.example/minor/',
+        pointsPossible: possible,
+        pointsLost: CHECK_WEIGHTS.LANG_MISSING,
+      },
     ]);
   });
 

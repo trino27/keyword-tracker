@@ -17,6 +17,7 @@ import {
   type IPageSpeedColumns,
   type IPageSpeedRow,
 } from '../page-speed/page-speed-read';
+import { SCORE_POINTS_LATERAL } from '../page-score/score-points';
 
 export interface ICurrentPageRecord {
   id: number;
@@ -31,6 +32,9 @@ export interface ICurrentPageRecord {
   responseMs: number;
   checksApplicable: number;
   checksFailed: number;
+  /** The score's weighed denominator and what the failed checks cost. */
+  pointsPossible: number;
+  pointsLost: number;
   /** Null together when the page's last crawl predates per-check recording. */
   checksJudged: TSeoIssueCode[] | null;
   checksNotApplicable: TSeoIssueCode[] | null;
@@ -71,6 +75,8 @@ interface IPageRow extends Record<string, unknown>, IPageSpeedColumns {
   response_ms: number;
   checks_applicable: number;
   checks_failed: number;
+  points_possible: string;
+  points_lost: string;
   checks_judged: string[] | null;
   checks_not_applicable: string[] | null;
   crawled_at: string | Date;
@@ -103,6 +109,7 @@ export class PageDetailRepository {
       select p.id, p.url, p.final_url, p.title, p.meta_description, p.h1, p.lang,
              p.word_count, p.http_status, p.response_ms,
              p.checks_applicable, p.checks_failed,
+             pts.points_possible, pts.points_lost,
              p.checks_judged, p.checks_not_applicable, p.crawled_at,
              c.id as client_id, c.name as client_name, c.website_url as client_website_url,
              (select count(*) from pages sib
@@ -111,6 +118,7 @@ export class PageDetailRepository {
              ${PAGE_SPEED_COLUMNS}
       from pages p
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
+      cross join lateral (${SCORE_POINTS_LATERAL}) pts
       left join page_speed ps on ps.page_id = p.id
       where p.id = ${pageId}
         and p.last_seen_run_id = (
@@ -135,6 +143,8 @@ export class PageDetailRepository {
       responseMs: Number(row.response_ms),
       checksApplicable: Number(row.checks_applicable),
       checksFailed: Number(row.checks_failed),
+      pointsPossible: Number(row.points_possible),
+      pointsLost: Number(row.points_lost),
       // Cast, like `details_json` below: the driver hands back plain strings, and this
       // is the one place a stored code becomes a catalogue code.
       checksJudged: (row.checks_judged ?? null) as TSeoIssueCode[] | null,

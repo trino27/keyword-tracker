@@ -20,7 +20,7 @@ const ROW: TPageListItem = {
 		},
 	],
 	bestPosition: null,
-	score: { value: 83, applicable: 18, failed: 3 },
+	score: { value: 83, applicable: 18, failed: 3, pointsPossible: 18, pointsLost: 3 },
 	issues: { total: 0, error: 0, warning: 0, notice: 0, siteWide: 0 },
 	pageSpeed: null,
 	lastCapturedAt: null,
@@ -32,7 +32,7 @@ const withScore = (applicable: number, failed: number): TPageListItem => ({
 	...ROW,
 	id: applicable * 100 + failed,
 	url: `https://yoast.com/post-${applicable}-${failed}/`,
-	score: pageScoreOf(applicable, failed),
+	score: pageScoreOf({ applicable, failed, pointsPossible: applicable, pointsLost: failed }),
 });
 
 const renderTable = (props: Partial<Parameters<typeof PagesTable>[0]>) =>

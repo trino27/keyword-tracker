@@ -1,6 +1,12 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { sql } from 'drizzle-orm';
 import request from 'supertest';
+import {
+  ACTIVE_ISSUE_CODES,
+  CHECK_WEIGHTS,
+  pageScoreOf,
+  type TSeoIssueCode,
+} from '@app/contracts';
 import { rankSnapshots } from '../../src/persistence/schema/tables/rank-snapshots/rank-snapshots.schema';
 import { createTestApp } from '../support/create-test-app';
 import { seedCurrentPage } from '../support/seed-page';
@@ -101,6 +107,12 @@ describe('page detail and position history (e2e)', () => {
 
   it('the detail carries keywords, issues in catalogue order and the last crawl', async () => {
     const response = await get(`/api/pages/${page.pageId}`).expect(200);
+    // The seeded page judged the catalogue's first 18 checks; each weighs its severity,
+    // and only a finding among them costs points.
+    const judged: TSeoIssueCode[] = ACTIVE_ISSUE_CODES.slice(0, 18);
+    const weightOf = (codes: TSeoIssueCode[]) =>
+      codes.reduce((sum, code) => sum + CHECK_WEIGHTS[code], 0);
+    const failedCodes: TSeoIssueCode[] = ['H1_MISSING', 'LANG_MISSING'];
 
     expect(response.body).toMatchObject({
       page: {
@@ -110,8 +122,15 @@ describe('page detail and position history (e2e)', () => {
         responseMs: 120,
       },
       client: { id: page.clientId },
-      // 15 of the seeded page's 18 applicable checks passed.
-      score: { value: 83, applicable: 18, failed: 3 },
+      // 15 of the seeded page's 18 applicable checks passed, by the stored counters.
+      score: pageScoreOf({
+        applicable: 18,
+        failed: 3,
+        pointsPossible: weightOf(judged),
+        pointsLost: weightOf(
+          failedCodes.filter((code) => judged.includes(code)),
+        ),
+      }),
       bestPosition: { position: 15, term: 'seo audit' },
       lastCrawl: { id: page.runId, status: 'succeeded' },
     });
