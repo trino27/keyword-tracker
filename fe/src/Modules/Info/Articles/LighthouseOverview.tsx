@@ -1,4 +1,5 @@
 import { Code, Stack, Table, Text } from "@mantine/core";
+import { SCORED_LIGHTHOUSE_CODES } from "@Core/Constants/checkTopics";
 import { lighthouseComparisonRows } from "@ViewModels/InfoGuideViewModel/Services/BuildCheckGuide/buildCheckGuide";
 import { GuideSection } from "../GuideSection/GuideSection";
 import { GUIDE_SECTIONS as S } from "../guideOutline";
@@ -32,8 +33,7 @@ const SIDE_BY_SIDE = [
 	{
 		aspect: "Who decides",
 		crawl: "The tracker's own rules, with the thresholds and sources in its catalogue.",
-		lighthouse:
-			"Lighthouse's own audits (Deque's axe engine for accessibility); the tracker records the verdict as it is.",
+		lighthouse: "Lighthouse's own SEO audits; the tracker records the verdict as it is.",
 	},
 	{
 		aspect: "In the score",
@@ -52,10 +52,12 @@ export function LighthouseOverview() {
 		>
 			<Text>
 				Lighthouse is Google's open-source page auditor, the engine behind PageSpeed
-				Insights and the Lighthouse panel in Chrome DevTools. Besides speed, it scores an
-				SEO category and an accessibility category. The tracker runs it through PageSpeed
-				Insights and records every audit Lighthouse scores in those two categories — 66
-				today — as checks of its own.
+				Insights and the Lighthouse panel in Chrome DevTools. Besides speed, it scores SEO,
+				accessibility and best-practice categories. The tracker runs it through PageSpeed
+				Insights and records the audits Lighthouse scores in its SEO category —{" "}
+				{SCORED_LIGHTHOUSE_CODES.length} today — as checks of its own. Accessibility is
+				shown only as Lighthouse's overall score in a page's Speed block: its audits are not
+				checks here (see the next chapter for why).
 			</Text>
 			<Text fw={600}>Lighthouse and our crawl, side by side</Text>
 			<Table withTableBorder withColumnBorders verticalSpacing={6} fz="sm">
@@ -116,10 +118,6 @@ export function LighthouseOverview() {
 					))}
 				</Table.Tbody>
 			</Table>
-			<Text size="sm" c="dimmed">
-				The other Lighthouse audits — most of the accessibility ones — have no counterpart
-				among our checks: the crawl does not judge ARIA, contrast, forms or tap targets.
-			</Text>
 		</GuideSection>
 	);
 }

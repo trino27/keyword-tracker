@@ -80,7 +80,7 @@ export function InfoScreen() {
 							</GuidePart>
 							<GuidePart
 								title={LIGHTHOUSE_TITLE}
-								lead="Google Lighthouse's own SEO and accessibility audits, grouped by what they examine — and, where we check the same thing, how the two readings differ."
+								lead="Google Lighthouse's own SEO audits, grouped by what they examine — and, where we check the same thing, how the two readings differ."
 							>
 								<LighthouseOverview />
 								<AccessibilityAndSeo />

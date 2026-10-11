@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
 	ACTIVE_ISSUE_CODES,
 	ISSUE_COUNTERPARTS,
-	LIGHTHOUSE_ISSUE_CODES,
 	PAGE_SPEED_ISSUE_CODES,
 	SEO_ISSUE_CATALOGUE,
 	SEO_ISSUE_SEVERITIES,
 	SEVERITY_WEIGHT,
 	SITE_CHECK_CODES,
 } from "@app/contracts";
+import { SCORED_LIGHTHOUSE_CODES } from "@Core/Constants/checkTopics";
 import { buildCheckGuide, scoreFactsOf } from "./buildCheckGuide";
 
 const entries = () => buildCheckGuide().flatMap((topic) => topic.entries);
@@ -20,7 +20,7 @@ describe("buildCheckGuide", () => {
 		expect([...codes].sort()).toEqual(
 			[
 				...ACTIVE_ISSUE_CODES,
-				...LIGHTHOUSE_ISSUE_CODES,
+				...SCORED_LIGHTHOUSE_CODES,
 				...PAGE_SPEED_ISSUE_CODES,
 				...SITE_CHECK_CODES,
 			].sort(),
@@ -70,7 +70,7 @@ describe("buildCheckGuide", () => {
 		expect(entryOf("SOFT_404")).toMatchObject({ scope: "site", points: null });
 		expect(entryOf("LH_IMAGE_ALT")).toMatchObject({
 			scope: "lighthouse",
-			points: SEVERITY_WEIGHT.warning,
+			points: SEVERITY_WEIGHT[entryOf("LH_IMAGE_ALT").severity],
 		});
 	});
 
@@ -100,13 +100,15 @@ describe("buildCheckGuide", () => {
 			entryOf("LINKS_WITHOUT_TEXT").comparisons.flatMap((c) =>
 				c.with.map((other) => other.code),
 			),
-		).toEqual(expect.arrayContaining(["LH_LINK_TEXT", "LH_LINK_NAME"]));
+		).toEqual(["LH_LINK_TEXT"]);
 		expect(entryOf("THIN_CONTENT").comparisons).toEqual([]);
 	});
 
-	it("compares every Lighthouse audit that shares a row with one of ours", () => {
+	it("compares every scored Lighthouse audit that shares a row with one of ours", () => {
 		for (const group of ISSUE_COUNTERPARTS)
-			for (const audit of group.lighthouse ?? [])
+			for (const audit of (group.lighthouse ?? []).filter((code) =>
+				(SCORED_LIGHTHOUSE_CODES as readonly string[]).includes(code),
+			))
 				expect(entryOf(audit).comparisons.length, audit).toBeGreaterThan(0);
 	});
 
@@ -125,7 +127,7 @@ describe("scoreFactsOf", () => {
 		const facts = scoreFactsOf();
 		const { error, warning, notice } = facts.bySeverity;
 		expect(facts.crawlChecks).toBe(ACTIVE_ISSUE_CODES.length);
-		expect(facts.lighthouseChecks).toBe(LIGHTHOUSE_ISSUE_CODES.length);
+		expect(facts.lighthouseChecks).toBe(SCORED_LIGHTHOUSE_CODES.length);
 		expect(error + warning + notice).toBe(facts.crawlChecks + facts.lighthouseChecks);
 		expect(facts.pointsIfAllApply).toBe(
 			error * SEVERITY_WEIGHT.error +

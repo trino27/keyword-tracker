@@ -94,13 +94,12 @@ export function HowPagesAreJudged() {
 					Checks come from five places. <b>Per page</b> checks judge a page by itself;{" "}
 					<b>across the crawl</b> checks compare it with the other posts of the same crawl
 					(duplicate titles, near-duplicate text); <b>Lighthouse audits</b> are Google
-					Lighthouse's own SEO and accessibility verdicts from the PageSpeed measurement.
-					All three count in the page's score — the crawl's and Lighthouse's points are
-					added together, each check weighed by its level, and a page measured by
-					Lighthouse is judged out of more points than one that is not yet.{" "}
-					<b>Google measurement</b> findings (Core Web Vitals) and <b>whole site</b>{" "}
-					checks (robots.txt, sitemap, host) appear as issues but never change a page's
-					score.
+					Lighthouse's own SEO verdicts from the PageSpeed measurement. All three count in
+					the page's score — the crawl's and Lighthouse's points are added together, each
+					check weighed by its level, and a page measured by Lighthouse is judged out of
+					more points than one that is not yet. <b>Google measurement</b> findings (Core
+					Web Vitals) and <b>whole site</b> checks (robots.txt, sitemap, host) appear as
+					issues but never change a page's score.
 				</Text>
 				<Text>
 					Today a crawl runs {FACTS.crawlChecks} checks on every page, Lighthouse scores

@@ -1,7 +1,23 @@
-import { type TLighthouseIssueCode, type TSeoIssueCode, type TSiteCheckCode } from "@app/contracts";
+import {
+	ACTIVE_LIGHTHOUSE_CODES,
+	type TActiveLighthouseIssueCode,
+	type TLighthouseIssueCode,
+	type TSeoIssueCode,
+	type TSiteCheckCode,
+} from "@app/contracts";
 
 /** Every code the guide explains: a page check, a speed finding or a site check. */
-export type TGuideCode = TSeoIssueCode | TSiteCheckCode;
+/**
+ * The Lighthouse audits the tracker scores — its SEO audits. The accessibility ones stay in
+ * the catalogue, retired, so findings stored before still render, but no screen lists,
+ * scores or explains them. Aliases of the contracts' own set, so there is one source.
+ */
+export type TScoredLighthouseCode = TActiveLighthouseIssueCode;
+export const SCORED_LIGHTHOUSE_CODES: readonly TScoredLighthouseCode[] = ACTIVE_LIGHTHOUSE_CODES;
+
+/** Every code a screen explains or lists as a check: everything but the retired audits. */
+export type TGuideCode =
+	Exclude<TSeoIssueCode, TLighthouseIssueCode> | TScoredLighthouseCode | TSiteCheckCode;
 
 /**
  * The guide's chapters of checks, in reading order: what a searcher sees first (the title
@@ -135,48 +151,6 @@ export const CHECK_TOPICS = [
 		title: "SEO: content and links",
 		intro: "The title, description, link wording and image text search engines read to understand the page.",
 	},
-	{
-		id: "a11yNames",
-		part: "lighthouse",
-		title: "Accessibility: names and text alternatives",
-		intro: "Every button, link, frame, image, icon and custom widget needs a name a screen reader can announce. Without one it is read as “button”, “link” or a file name — or skipped.",
-	},
-	{
-		id: "a11yForms",
-		part: "lighthouse",
-		title: "Accessibility: forms",
-		intro: "Form fields need one clear label each, and autofill hints the browser understands.",
-	},
-	{
-		id: "a11yAria",
-		part: "lighthouse",
-		title: "Accessibility: ARIA roles and attributes",
-		intro: "ARIA tells assistive technology what a custom element is and what state it is in. Wrong, misspelled or contradictory ARIA is worse than none: it makes screen readers announce something that is not there.",
-	},
-	{
-		id: "a11yStructure",
-		part: "lighthouse",
-		title: "Accessibility: structure and navigation",
-		intro: "Landmarks, headings, lists, tables and tab order: how keyboard and screen reader users find their way around the page.",
-	},
-	{
-		id: "a11yLanguage",
-		part: "lighthouse",
-		title: "Accessibility: language",
-		intro: "The page and any passage in another language declare a valid language, so screen readers pronounce them correctly.",
-	},
-	{
-		id: "a11yVisual",
-		part: "lighthouse",
-		title: "Accessibility: visual, touch and zoom",
-		intro: "Text people can read, links they can spot, targets they can tap, and a page they can zoom.",
-	},
-	{
-		id: "a11yMedia",
-		part: "lighthouse",
-		title: "Accessibility: media and timing",
-		intro: "Captions for video, and no page that reloads or moves on before the reader is done.",
-	},
 ] as const satisfies readonly { id: string; part: TCheckPart; title: string; intro: string }[];
 
 export type TCheckTopicId = (typeof CHECK_TOPICS)[number]["id"];
@@ -301,63 +275,7 @@ const LIGHTHOUSE_TOPIC_OF = {
 	LH_LINK_TEXT: "lhContent",
 	LH_CRAWLABLE_ANCHORS: "lhContent",
 	LH_IMAGE_ALT: "lhContent",
-	LH_BUTTON_NAME: "a11yNames",
-	LH_LINK_NAME: "a11yNames",
-	LH_INPUT_BUTTON_NAME: "a11yNames",
-	LH_INPUT_IMAGE_ALT: "a11yNames",
-	LH_FRAME_TITLE: "a11yNames",
-	LH_OBJECT_ALT: "a11yNames",
-	LH_SVG_IMG_ALT: "a11yNames",
-	LH_ARIA_COMMAND_NAME: "a11yNames",
-	LH_ARIA_DIALOG_NAME: "a11yNames",
-	LH_ARIA_METER_NAME: "a11yNames",
-	LH_ARIA_PROGRESSBAR_NAME: "a11yNames",
-	LH_ARIA_TOOLTIP_NAME: "a11yNames",
-	LH_ARIA_TREEITEM_NAME: "a11yNames",
-	LH_ARIA_TOGGLE_FIELD_NAME: "a11yNames",
-	LH_ARIA_INPUT_FIELD_NAME: "a11yNames",
-	LH_LABEL: "a11yForms",
-	LH_SELECT_NAME: "a11yForms",
-	LH_FORM_FIELD_MULTIPLE_LABELS: "a11yForms",
-	LH_AUTOCOMPLETE_VALID: "a11yForms",
-	LH_ARIA_ALLOWED_ATTR: "a11yAria",
-	LH_ARIA_CONDITIONAL_ATTR: "a11yAria",
-	LH_ARIA_DEPRECATED_ROLE: "a11yAria",
-	LH_ARIA_HIDDEN_BODY: "a11yAria",
-	LH_ARIA_HIDDEN_FOCUS: "a11yAria",
-	LH_ARIA_PROHIBITED_ATTR: "a11yAria",
-	LH_ARIA_REQUIRED_ATTR: "a11yAria",
-	LH_ARIA_REQUIRED_CHILDREN: "a11yAria",
-	LH_ARIA_REQUIRED_PARENT: "a11yAria",
-	LH_ARIA_ROLES: "a11yAria",
-	LH_ARIA_TEXT: "a11yAria",
-	LH_ARIA_VALID_ATTR_VALUE: "a11yAria",
-	LH_ARIA_VALID_ATTR: "a11yAria",
-	LH_DUPLICATE_ID_ARIA: "a11yAria",
-	LH_PRESENTATION_ROLE_CONFLICT: "a11yAria",
-	LH_BYPASS: "a11yStructure",
-	LH_SKIP_LINK: "a11yStructure",
-	LH_LANDMARK_ONE_MAIN: "a11yStructure",
-	LH_HEADING_ORDER: "a11yStructure",
-	LH_TABINDEX: "a11yStructure",
-	LH_ACCESSKEYS: "a11yStructure",
-	LH_LIST: "a11yStructure",
-	LH_LISTITEM: "a11yStructure",
-	LH_DEFINITION_LIST: "a11yStructure",
-	LH_DLITEM: "a11yStructure",
-	LH_TD_HEADERS_ATTR: "a11yStructure",
-	LH_TH_HAS_DATA_CELLS: "a11yStructure",
-	LH_HTML_HAS_LANG: "a11yLanguage",
-	LH_HTML_LANG_VALID: "a11yLanguage",
-	LH_HTML_XML_LANG_MISMATCH: "a11yLanguage",
-	LH_VALID_LANG: "a11yLanguage",
-	LH_COLOR_CONTRAST: "a11yVisual",
-	LH_LINK_IN_TEXT_BLOCK: "a11yVisual",
-	LH_TARGET_SIZE: "a11yVisual",
-	LH_META_VIEWPORT: "a11yVisual",
-	LH_VIDEO_CAPTION: "a11yMedia",
-	LH_META_REFRESH: "a11yMedia",
-} as const satisfies Record<TLighthouseIssueCode, TCheckTopicId>;
+} as const satisfies Record<TScoredLighthouseCode, TCheckTopicId>;
 
 export const CHECK_TOPIC_OF: Record<TGuideCode, TCheckTopicId> = {
 	...LISTED_TOPIC_OF,

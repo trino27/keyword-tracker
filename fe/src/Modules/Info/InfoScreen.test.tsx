@@ -54,7 +54,7 @@ describe("InfoScreen", { timeout: 30_000 }, () => {
 			"Site: robots.txt",
 			"Backlinks and authority",
 			"Lighthouse and our crawl",
-			"Accessibility: ARIA roles and attributes",
+			"Does accessibility affect SEO?",
 			"SEO: crawling and indexing",
 		])
 			expect(

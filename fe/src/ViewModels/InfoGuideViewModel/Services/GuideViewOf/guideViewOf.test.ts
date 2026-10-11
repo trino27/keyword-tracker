@@ -21,7 +21,7 @@ describe("guideViewOf", () => {
 		const view = guideViewOf(undefined);
 		if (view.kind !== "all") throw new Error(view.kind);
 		expect(view.reference.every((topic) => topic.part === "reference")).toBe(true);
-		expect(view.lighthouse.map((topic) => topic.id)).toContain("a11yAria");
+		expect(view.lighthouse.map((topic) => topic.id)).toContain("lhContent");
 		expect(
 			view.lighthouse.flatMap((t) => t.entries).every((e) => e.code.startsWith("LH_")),
 		).toBe(true);

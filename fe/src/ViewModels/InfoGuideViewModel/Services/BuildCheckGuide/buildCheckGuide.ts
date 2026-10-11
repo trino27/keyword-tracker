@@ -13,13 +13,14 @@ import {
 	type IPlainCopy,
 	type ISeoIssueSource,
 	type TSeoIssueSeverity,
-	type TLighthouseIssueCode,
 	type TSiteCheckCode,
 } from "@app/contracts";
 import { CHECK_CRITERIA } from "../CheckCriteria/checkCriteria";
 import { LIGHTHOUSE_COMPARISONS } from "../CheckCriteria/groups/lighthouse";
 import {
 	CHECK_TOPIC_OF,
+	SCORED_LIGHTHOUSE_CODES,
+	type TScoredLighthouseCode,
 	CHECK_TOPICS,
 	type TCheckPart,
 	type TCheckTopicId,
@@ -146,7 +147,7 @@ const labelOf = (code: TGuideCode) =>
  * card, the comparison with ours; on one of ours, every Lighthouse audit compared with it.
  */
 function comparisonsOf(code: TGuideCode): ICheckComparison[] {
-	const own = LIGHTHOUSE_COMPARISONS[code as TLighthouseIssueCode];
+	const own = LIGHTHOUSE_COMPARISONS[code as TScoredLighthouseCode];
 	if (own)
 		return [
 			{
@@ -156,7 +157,7 @@ function comparisonsOf(code: TGuideCode): ICheckComparison[] {
 		];
 	return (
 		Object.entries(LIGHTHOUSE_COMPARISONS) as [
-			TLighthouseIssueCode,
+			TScoredLighthouseCode,
 			{ ours: readonly TGuideCode[]; text: string },
 		][]
 	)
@@ -201,7 +202,7 @@ function entryOf(code: TGuideCode): ICheckGuideEntry {
 export function buildCheckGuide(): ICheckGuideTopic[] {
 	const codes: TGuideCode[] = [
 		...ACTIVE_ISSUE_CODES,
-		...LIGHTHOUSE_ISSUE_CODES,
+		...SCORED_LIGHTHOUSE_CODES,
 		...PAGE_SPEED_ISSUE_CODES,
 		...SITE_CHECK_CODES,
 	];
@@ -233,7 +234,7 @@ export interface IScoreFacts {
 
 /** The numbers behind the score's explanation, counted from the catalogues as they are today. */
 export function scoreFactsOf(): IScoreFacts {
-	const scored: TGuideCode[] = [...ACTIVE_ISSUE_CODES, ...LIGHTHOUSE_ISSUE_CODES];
+	const scored: TGuideCode[] = [...ACTIVE_ISSUE_CODES, ...SCORED_LIGHTHOUSE_CODES];
 	const bySeverity = Object.fromEntries(
 		SEO_ISSUE_SEVERITIES.map((severity) => [
 			severity,
@@ -242,7 +243,7 @@ export function scoreFactsOf(): IScoreFacts {
 	) as Record<TSeoIssueSeverity, number>;
 	return {
 		crawlChecks: ACTIVE_ISSUE_CODES.length,
-		lighthouseChecks: LIGHTHOUSE_ISSUE_CODES.length,
+		lighthouseChecks: SCORED_LIGHTHOUSE_CODES.length,
 		bySeverity,
 		pointsIfAllApply: SEO_ISSUE_SEVERITIES.reduce(
 			(sum, severity) => sum + bySeverity[severity] * SEVERITY_WEIGHT[severity],
@@ -254,7 +255,7 @@ export function scoreFactsOf(): IScoreFacts {
 }
 
 export interface IComparisonRow {
-	audit: { code: TLighthouseIssueCode; label: string };
+	audit: { code: TScoredLighthouseCode; label: string };
 	ours: { code: TGuideCode; label: string }[];
 	text: string;
 }
@@ -263,7 +264,7 @@ export interface IComparisonRow {
 export function lighthouseComparisonRows(): IComparisonRow[] {
 	return (
 		Object.entries(LIGHTHOUSE_COMPARISONS) as [
-			TLighthouseIssueCode,
+			TScoredLighthouseCode,
 			{ ours: readonly TGuideCode[]; text: string },
 		][]
 	).map(([audit, comparison]) => ({

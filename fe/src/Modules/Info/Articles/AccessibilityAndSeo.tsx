@@ -64,8 +64,10 @@ export function AccessibilityAndSeo() {
 				<b>And some of it is not SEO at all.</b> Colour contrast, ARIA, form labels,
 				tap-target size and keyboard order matter to the people who use the site, not to
 				Google's ranking. Google even says it ignores the lang attribute and decides the
-				language from the text. These count in this tracker's score because the score asks
-				“is this page free of defects”, not “will it rank”.
+				language from the text. That is why this tracker does not score Lighthouse's
+				accessibility audits: the SEO ones count as checks, and accessibility is shown only
+				as Lighthouse's overall score in a page's Speed block — worth improving for
+				visitors, not a ranking lever.
 			</Text>
 			<Text size="sm" c="dimmed">
 				Indirectly, a page people cannot use loses readers, links and recommendations — and
