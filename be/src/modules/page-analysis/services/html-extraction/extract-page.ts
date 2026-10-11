@@ -12,6 +12,7 @@ import type {
 } from '../../interfaces/parsed-page.interface';
 import { parseJsonLd } from './parse-json-ld';
 import { readMicrodata } from './read-microdata';
+import { srcsetUrls } from '../text/srcset-urls/srcset-urls';
 import {
   authorsOf,
   breadcrumbItemsOf,
@@ -932,11 +933,9 @@ function featuredImageOf(
             (candidate) =>
               !isThumbnail(candidate) &&
               [
-                candidate.attr('src'),
-                ...(candidate.attr('srcset') ?? '').split(','),
-              ]
-                .map((value) => (value ?? '').trim().split(/\s+/)[0])
-                .some((value) => value && imageStem(value) === stem),
+                candidate.attr('src')?.trim().split(/\s+/)[0],
+                ...srcsetUrls(candidate.attr('srcset')),
+              ].some((value) => value && imageStem(value) === stem),
           );
   const atTop = (image: TSelection) =>
     proseBefore($, image) <= FEATURED_IMAGE_MAX_PROSE_BEFORE;
@@ -1062,9 +1061,8 @@ function alternatesOf(
 }
 
 /**
- * Every subresource URL the given selectors name, de-duplicated. A `srcset` is a
- * comma-separated list of candidates with descriptors ("a.png 1x, b.png 2x"), so each
- * candidate's first token is the URL.
+ * Every subresource URL the given selectors name, de-duplicated. A `srcset` is a list of
+ * candidates with descriptors ("a.png 1x, b.png 2x"), read by `srcsetUrls`.
  */
 function urlsOf(
   $: CheerioAPI,
@@ -1083,8 +1081,7 @@ function urlsOf(
         add(value);
         return;
       }
-      for (const candidate of (value ?? '').split(','))
-        add(candidate.trim().split(/\s+/)[0]);
+      for (const candidate of srcsetUrls(value)) add(candidate);
     });
   }
   return [...urls];

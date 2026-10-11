@@ -85,6 +85,23 @@ describe('IMAGE_FILENAMES_GENERIC', () => {
     expect(result).toEqual(failsWith({ count: 1 }));
   });
 
+  it('reads a srcset whose address holds commas', () => {
+    const result = IMAGE_FILENAMES_GENERIC_CHECK.evaluate(
+      makeCheckInput({
+        parsed: {
+          images: [
+            makeImage({
+              src: null,
+              srcset:
+                'https://res.cloudinary.com/x/upload/w_400,h_300/IMG_1234.jpg 400w',
+            }),
+          ],
+        },
+      }),
+    );
+    expect(result).toEqual(failsWith({ count: 1 }));
+  });
+
   it('cannot be judged without a named image', () => {
     expect(verdict()).toEqual(NOT_APPLICABLE);
     expect(verdict('data:image/png;base64,iVBOR')).toEqual(NOT_APPLICABLE);

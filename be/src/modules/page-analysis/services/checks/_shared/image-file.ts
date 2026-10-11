@@ -1,4 +1,5 @@
 import type { IPageImage } from '../../../interfaces/parsed-page.interface';
+import { srcsetUrls } from '../../text/srcset-urls/srcset-urls';
 
 /**
  * The file an image address names, decoded, without its directory, query or fragment —
@@ -44,6 +45,6 @@ export const stemOf = (fileName: string) =>
 export function shownUrlOf(image: IPageImage): string | null {
   const src = image.src?.trim();
   if (src && !/^data:/i.test(src)) return src;
-  const candidate = image.srcset?.split(',')[0]?.trim().split(/\s+/)[0];
+  const [candidate] = srcsetUrls(image.srcset);
   return candidate || src || null;
 }
