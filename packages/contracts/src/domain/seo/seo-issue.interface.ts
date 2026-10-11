@@ -2,7 +2,7 @@ import type {
   TCrawlIssueCode,
   TPageSpeedIssueCode,
   TSeoIssueCode,
-} from './seo-issue-catalogue.constant.js';
+} from './catalogue/issue-catalogues.constant.js';
 import type { TMeasuredIssueCode } from './measured-issue-codes.constant.js';
 import type { ISeoMeasurement } from './seo-measurement.interface.js';
 import type { TSeoIssueSeverity } from './seo-issue-severity.enum.js';

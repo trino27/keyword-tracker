@@ -3,7 +3,7 @@ import {
   CONDITIONAL_ISSUE_CODES,
   skipReasonOf,
 } from './conditional-issue-codes.constant';
-import { SEO_ISSUE_CATALOGUE } from './seo-issue-catalogue.constant';
+import { SEO_ISSUE_CATALOGUE } from './catalogue/issue-catalogues.constant';
 
 describe('CONDITIONAL_ISSUE_CODES', () => {
   /**

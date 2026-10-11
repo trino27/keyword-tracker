@@ -1,7 +1,5 @@
-import {
-  ISSUE_SOURCES as SOURCE,
-  type ISeoIssueSource,
-} from '../seo/seo-issue-catalogue.constant.js';
+import { ISSUE_SOURCES as SOURCE } from '../seo/catalogue/crawl/crawl-catalogue.constant.js';
+import type { ISeoIssueSource } from '../seo/catalogue/issue-definition.interface.js';
 import type { IPlainCopy } from '../seo/plain-copy.interface.js';
 import type { TSeoIssueSeverity } from '../seo/seo-issue-severity.enum.js';
 

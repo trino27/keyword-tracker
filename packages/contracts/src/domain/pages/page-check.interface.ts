@@ -1,4 +1,4 @@
-import type { TCrawlIssueCode } from '../seo/seo-issue-catalogue.constant.js';
+import type { TCrawlIssueCode } from '../seo/catalogue/issue-catalogues.constant.js';
 
 /**
  * What one catalogue check concluded about one page.

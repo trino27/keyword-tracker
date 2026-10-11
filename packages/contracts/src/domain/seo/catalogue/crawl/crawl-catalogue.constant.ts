@@ -1,64 +1,7 @@
-import type { TSeoIssueSeverity } from './seo-issue-severity.enum.js';
-import type { TIssueOwner } from './issue-owner.enum.js';
-import type { IPlainCopy } from './plain-copy.interface.js';
-import { CWV_THRESHOLDS } from '../page-speed/cwv-thresholds.constant.js';
-
-/** A page that backs a check's claim, named for the reader as its publisher names it. */
-export interface ISeoIssueSource {
-  title: string;
-  url: string;
-}
-
-export interface ISeoIssueDefinition {
-  /**
-   * The one process that writes findings under this code, and the only one whose replace
-   * may delete them. Required, so an entry cannot be added without saying who clears it.
-   */
-  owner: TIssueOwner;
-  severity: TSeoIssueSeverity;
-  /** Short, shown as the issue's name. */
-  label: string;
-  /**
-   * The finding in a marketer's words — what is wrong, what it costs, who fixes it. Required,
-   * so an entry cannot be added without the version its reader acts on.
-   */
-  plain: IPlainCopy;
-  /** One sentence on what to do. */
-  hint: string;
-  /**
-   * What the check looks at, why it matters and to whom, and what fixes it — including,
-   * where it is true, that Google does NOT use the signal. Several sentences, because a
-   * finding a reader cannot weigh is a finding they cannot act on, and a catalogue that
-   * overstates its case manufactures urgency.
-   */
-  explanation: string;
-  /** Where the explanation's claims come from: at least one, first-party wherever one exists. */
-  sources: readonly ISeoIssueSource[];
-  /** Inclusive bounds of the acceptable value, where the rule has one. */
-  min?: number;
-  max?: number;
-  /**
-   * Why this check can be skipped, for the codes whose rule can answer `notApplicable`.
-   * A property of the RULE, not of a page — `IMAGES_MISSING_ALT` is skipped for one
-   * reason every time — so it is a constant here rather than a fact stored per page.
-   * Its presence is what `CONDITIONAL_ISSUE_CODES` reads.
-   */
-  skipReason?: string;
-  /**
-   * `false` takes the check out of circulation without removing its code. Removing the
-   * code is not an option: a page crawled while the check ran keeps it in
-   * `checks_judged` and may hold a finding under it, and both are read back through
-   * this catalogue — a missing entry would fail the gateway's own validation of data it
-   * stored itself. Absent means the ordinary thing: the check runs.
-   */
-  enabled?: false;
-  /**
-   * `run` marks a check that cannot be answered from one page — it compares the page
-   * with the others crawled in the same run. Absent means the ordinary thing: the
-   * page judges itself.
-   */
-  scope?: 'run';
-}
+import type {
+  ICrawlIssueDefinition,
+  ISeoIssueSource,
+} from '../issue-definition.interface.js';
 
 /**
  * Where the catalogue's claims come from. First-party documentation wherever it exists —
@@ -372,14 +315,14 @@ const SOURCE = ISSUE_SOURCES;
 const LONG_TEXT_WORDS = 300;
 
 /**
- * Every SEO issue the tracker can report — the crawl's checks are typed by the
- * crawl-owned keys, so a code without a check does not compile; the PageSpeed worker
- * writes the speed-owned ones; and the frontend renders labels and hints from here.
- * Thresholds live here too: the check and the screen quote one number.
+ * Every check the crawl runs on a page's HTML, keyed by the code its findings carry. The
+ * crawl owns these: the check registry is typed by these keys, so a code without a check
+ * does not compile, and the crawl replaces only these codes. The frontend renders labels
+ * and hints from here, and thresholds live here too: the check and the screen quote one
+ * number.
  */
-export const SEO_ISSUE_CATALOGUE = {
+export const CRAWL_CATALOGUE = {
   TITLE_MISSING: {
-    owner: 'crawl',
     severity: 'error',
     label: 'Title is missing',
     plain: {
@@ -395,7 +338,6 @@ export const SEO_ISSUE_CATALOGUE = {
   TITLE_LENGTH: {
     // A notice, not a warning: exceeding the bounds costs space in a result, it does not
     // break the page (plan D4). The numbers are unchanged; industry consensus confirms them.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Title length',
     plain: {
@@ -415,7 +357,6 @@ export const SEO_ISSUE_CATALOGUE = {
     // A notice: Google rewrites the title link, it does not demote the page. Only a title
     // with NO letter of the page's script is reported, because a Russian post titled
     // "Google Analytics: полное руководство" mixes scripts on purpose and rightly.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Title is in another script than the page',
     plain: {
@@ -432,7 +373,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   TITLE_YEAR_OUTDATED: {
     // A notice: Ahrefs names freshness in titles; Google draws no line on it (plan D2).
-    owner: 'crawl',
     severity: 'notice',
     label: 'Title names a past year',
     plain: {
@@ -447,7 +387,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'No title to read.',
   },
   META_DESCRIPTION_MISSING: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Meta description is missing',
     plain: {
@@ -461,7 +400,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.snippets],
   },
   META_DESCRIPTION_LENGTH: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Meta description length',
     plain: {
@@ -480,7 +418,6 @@ export const SEO_ISSUE_CATALOGUE = {
   META_DESCRIPTION_REPEATS_TITLE: {
     // A notice: Ahrefs names the rule; Google asks only that a description summarise
     // its page, which a copy of the title rarely does (plan D2).
-    owner: 'crawl',
     severity: 'notice',
     label: 'Description repeats the title',
     plain: {
@@ -498,7 +435,6 @@ export const SEO_ISSUE_CATALOGUE = {
     // A warning, not an error, by the line ranking-signals.md draws: an error is for what
     // keeps a page out of the running, and Google states heading structure does not
     // matter to Search. A page without an h1 is indexed and ranked.
-    owner: 'crawl',
     severity: 'warning',
     label: 'H1 is missing',
     plain: {
@@ -514,7 +450,6 @@ export const SEO_ISSUE_CATALOGUE = {
   H1_MULTIPLE: {
     // A notice: Google has said repeatedly that several h1 elements are no problem for
     // Search, so the cost is to readers and assistive technology alone.
-    owner: 'crawl',
     severity: 'notice',
     label: 'More than one H1',
     plain: {
@@ -529,7 +464,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
 
   HEADING_SKIP: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Heading level skipped',
     plain: {
@@ -546,7 +480,6 @@ export const SEO_ISSUE_CATALOGUE = {
   NO_SUBHEADINGS: {
     // A notice: Google says there is no ideal number of headings. The cost is to readers
     // who scan a long post, and to screen-reader users who move through it by headings.
-    owner: 'crawl',
     severity: 'notice',
     label: 'No subheadings',
     plain: {
@@ -564,7 +497,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: `The text is under ${LONG_TEXT_WORDS} words, short enough to read without sections.`,
   },
   CANONICAL_MISSING: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Canonical URL is missing',
     plain: {
@@ -578,7 +510,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.canonical, SOURCE.canonicalRfc],
   },
   CANONICAL_MISMATCH: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Canonical points elsewhere',
     plain: {
@@ -596,7 +527,6 @@ export const SEO_ISSUE_CATALOGUE = {
   CANONICAL_TO_HTTP: {
     // A warning: the page asks Google to prefer the insecure copy of itself, against
     // Google's own default, and the request can win (plan D2).
-    owner: 'crawl',
     severity: 'warning',
     label: 'Canonical points to HTTP',
     plain: {
@@ -614,7 +544,6 @@ export const SEO_ISSUE_CATALOGUE = {
   CANONICAL_CONFLICT: {
     // A warning: conflicting canonicals leave the page where CANONICAL_MISSING would — a
     // warning — however confident each tag looks on its own.
-    owner: 'crawl',
     severity: 'warning',
     label: 'Conflicting canonical URLs',
     plain: {
@@ -632,7 +561,6 @@ export const SEO_ISSUE_CATALOGUE = {
     // A warning: a canonical or hreflang naming a staging host hands the page's signals to
     // a copy nobody should find, and a resource loaded from localhost is missing for
     // every reader.
-    owner: 'crawl',
     severity: 'warning',
     label: 'Points at a development or staging host',
     plain: {
@@ -646,7 +574,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.canonical, SOURCE.controlSharing],
   },
   CANONICAL_RELATIVE: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Canonical URL is relative',
     plain: {
@@ -661,7 +588,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'No canonical to judge.',
   },
   NOINDEX: {
-    owner: 'crawl',
     severity: 'error',
     label: 'Page is set to noindex',
     plain: {
@@ -675,7 +601,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.blockIndexing, SOURCE.robotsMeta],
   },
   SNIPPET_RESTRICTED: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Search snippet is restricted',
     plain: {
@@ -691,7 +616,6 @@ export const SEO_ISSUE_CATALOGUE = {
   IMAGE_PREVIEW_NOT_LARGE: {
     // A notice: it decides how large the image beside the page may be, not whether the
     // page ranks.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Large image previews not allowed',
     plain: {
@@ -707,7 +631,6 @@ export const SEO_ISSUE_CATALOGUE = {
   ROBOTS_BLOCKS_GOOGLEBOT: {
     // An error by the line ranking-signals.md draws: a page Googlebot may not fetch is out
     // of the running, exactly like a noindexed one.
-    owner: 'crawl',
     severity: 'error',
     label: 'robots.txt blocks Googlebot',
     plain: {
@@ -722,7 +645,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: "The site's robots.txt does not govern this page's host.",
   },
   ROBOTS_BLOCKS_RESOURCES: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'robots.txt blocks scripts or styles',
     plain: {
@@ -738,7 +660,6 @@ export const SEO_ISSUE_CATALOGUE = {
       "The page loads no scripts or stylesheets from a host the site's robots.txt governs.",
   },
   ROBOTS_BLOCKS_AI_SEARCH: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'robots.txt blocks AI search crawlers',
     plain: {
@@ -758,7 +679,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: "The site's robots.txt does not govern this page's host.",
   },
   IMAGES_MISSING_ALT: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Images without alt text',
     plain: {
@@ -775,7 +695,6 @@ export const SEO_ISSUE_CATALOGUE = {
   NO_IMAGES: {
     // A notice: no search engine asks for a number of images. Google's starter guide asks
     // for images near relevant text; the AI-search figure is industry data.
-    owner: 'crawl',
     severity: 'notice',
     label: 'No images in the content',
     plain: {
@@ -793,7 +712,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: `The text is under ${LONG_TEXT_WORDS} words, short enough to stand without an image.`,
   },
   IMAGES_NOT_INDEXABLE: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Images without a src fallback',
     plain: {
@@ -809,7 +727,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   IMAGE_FILENAMES_GENERIC: {
     // A notice: a file name is a light hint, and Google says so.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Images with camera or placeholder file names',
     plain: {
@@ -825,7 +742,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   VIDEO_WITHOUT_METADATA: {
     // A notice: eligibility for video features, never a defect of the page.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Video without video metadata',
     plain: {
@@ -842,7 +758,6 @@ export const SEO_ISSUE_CATALOGUE = {
   THIN_CONTENT: {
     // A notice: Google says it has no preferred word count, so a short page is a prompt
     // to reread it, not a defect on the page.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Thin content',
     plain: {
@@ -857,7 +772,6 @@ export const SEO_ISSUE_CATALOGUE = {
     min: LONG_TEXT_WORDS,
   },
   AUTHOR_MISSING: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'No author named',
     plain: {
@@ -871,7 +785,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.helpfulContent, SOURCE.articleMarkup],
   },
   DATE_BUMPED_WITHOUT_CHANGES: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Date changed, content did not',
     plain: {
@@ -890,7 +803,6 @@ export const SEO_ISSUE_CATALOGUE = {
     // The content's own links, not the template's: the extractor has already removed the
     // nav, the related-posts rail and the share bar, so what is left is what the author
     // wrote. A page the theme links from every sidebar still fails this, correctly.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Content links nowhere on the site',
     plain: {
@@ -906,7 +818,6 @@ export const SEO_ISSUE_CATALOGUE = {
   NO_EXTERNAL_SOURCES: {
     // A notice: Google asks for clear sourcing as a mark of trust, but a post built on the
     // company's own data or the author's own experience may rightly cite nothing.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Cites no outside sources',
     plain: {
@@ -924,7 +835,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: `The text is under ${LONG_TEXT_WORDS} words, short enough to need no sources.`,
   },
   INTERNAL_LINKS_NOFOLLOW: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Internal links marked nofollow',
     plain: {
@@ -939,7 +849,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The content links nowhere on the site.',
   },
   INTERNAL_LINK_VARIANTS: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Internal links to non-canonical URLs',
     plain: {
@@ -954,7 +863,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The content links nowhere on the site.',
   },
   LINKS_WITHOUT_TEXT: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Links with no text',
     plain: {
@@ -968,7 +876,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.crawlableLinks, SOURCE.wcagLinkPurpose],
   },
   UNCRAWLABLE_LINKS: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Links Google cannot follow',
     plain: {
@@ -982,7 +889,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.crawlableLinks, SOURCE.javascriptSeo],
   },
   LANG_MISSING: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Language is not declared',
     plain: {
@@ -1002,7 +908,6 @@ export const SEO_ISSUE_CATALOGUE = {
     // requirement and is deliberately not checked: it needs the other document, which
     // is usually on another site and never in this crawl. What is checked is what one
     // page can answer about itself.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Hreflang is malformed',
     plain: {
@@ -1017,7 +922,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The page declares no hreflang.',
   },
   HREFLANG_NO_SELF_REFERENCE: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Hreflang omits this page',
     plain: {
@@ -1035,7 +939,6 @@ export const SEO_ISSUE_CATALOGUE = {
     // A warning and not an error, by the line ranking-signals.md draws: an error is for
     // what keeps a page out of the running — unreachable, noindexed, canonicalised away.
     // A page without a viewport is indexed; it is just indexed as rendered on a phone.
-    owner: 'crawl',
     severity: 'warning',
     label: 'No mobile viewport',
     plain: {
@@ -1049,7 +952,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.mobileFirst, SOURCE.mdnViewport],
   },
   OG_TAGS_MISSING: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Open Graph tags missing',
     plain: {
@@ -1063,7 +965,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.openGraph],
   },
   OG_URL_MISMATCH: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'og:url differs from the canonical',
     plain: {
@@ -1079,7 +980,6 @@ export const SEO_ISSUE_CATALOGUE = {
       'The page declares no og:url, or it names a development host (DEVELOPMENT_HOST_REFERENCES).',
   },
   PREVIEW_IMAGE_TOO_SMALL: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Preview image is narrower than 1200 px',
     plain: {
@@ -1096,7 +996,6 @@ export const SEO_ISSUE_CATALOGUE = {
       'The page names no image of its own, its file could not be read, or it is the site logo.',
   },
   PREVIEW_IMAGE_IS_LOGO: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Preview image is the site logo',
     plain: {
@@ -1111,7 +1010,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The page names no image for itself.',
   },
   CHARSET_MISSING_OR_LATE: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Character encoding declared late or not at all',
     plain: {
@@ -1125,7 +1023,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.htmlCharset, SOURCE.mdnMeta],
   },
   NOT_HTTPS: {
-    owner: 'crawl',
     severity: 'error',
     label: 'Not served over HTTPS',
     plain: {
@@ -1141,7 +1038,6 @@ export const SEO_ISSUE_CATALOGUE = {
   MIXED_CONTENT: {
     // Skipped rather than passed on an http page: there is no mixing, and passing would
     // reward the page for the very thing NOT_HTTPS is failing it for.
-    owner: 'crawl',
     severity: 'warning',
     label: 'Insecure resources on a secure page',
     plain: {
@@ -1156,7 +1052,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The page is not served over HTTPS, so nothing is mixed.',
   },
   REDIRECTED: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Sitemap URL redirects',
     plain: {
@@ -1170,7 +1065,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.sitemaps, SOURCE.redirects],
   },
   META_REFRESH: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Redirects with a meta refresh',
     plain: {
@@ -1184,7 +1078,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.redirects],
   },
   LARGE_PAGE: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Large HTML',
     plain: {
@@ -1199,7 +1092,6 @@ export const SEO_ISSUE_CATALOGUE = {
     max: 1_048_576,
   },
   LCP_IMAGE_LAZY_LOADED: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Featured image is lazy-loaded',
     plain: {
@@ -1215,7 +1107,6 @@ export const SEO_ISSUE_CATALOGUE = {
       'The page shows no featured image at the top of the post to judge.',
   },
   RENDER_BLOCKING_SCRIPTS: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Scripts in <head> block rendering',
     plain: {
@@ -1229,7 +1120,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.mdnScript, SOURCE.optimizeLcp],
   },
   FONT_PRELOAD_WITHOUT_CROSSORIGIN: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Font preload without crossorigin',
     plain: {
@@ -1243,7 +1133,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.mdnPreload],
   },
   BFCACHE_BLOCKED_BY_NO_STORE: {
-    owner: 'crawl',
     severity: 'notice',
     label:
       'Cache-Control: no-store keeps the page out of the back/forward cache',
@@ -1258,7 +1147,6 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.bfcache],
   },
   DOM_SIZE_LARGE: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Large DOM',
     plain: {
@@ -1273,7 +1161,6 @@ export const SEO_ISSUE_CATALOGUE = {
     max: 1_400,
   },
   HTML_NOT_COMPRESSED: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'HTML is not compressed',
     plain: {
@@ -1288,7 +1175,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   KEYWORD_CANNIBALISATION: {
     scope: 'run',
-    owner: 'crawl',
     severity: 'warning',
     label: 'Two pages lead with the same keyword',
     plain: {
@@ -1305,7 +1191,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   TITLE_DUPLICATE: {
     scope: 'run',
-    owner: 'crawl',
     severity: 'warning',
     label: 'Title is used by another page',
     plain: {
@@ -1322,7 +1207,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   META_DESCRIPTION_DUPLICATE: {
     scope: 'run',
-    owner: 'crawl',
     severity: 'notice',
     label: 'Meta description is used by another page',
     plain: {
@@ -1339,7 +1223,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   NEAR_DUPLICATE_CONTENT: {
     scope: 'run',
-    owner: 'crawl',
     severity: 'warning',
     label: 'Nearly the same text as another page',
     plain: {
@@ -1355,7 +1238,6 @@ export const SEO_ISSUE_CATALOGUE = {
       'Nothing to compare — the run holds one page, or this page has too little text to compare.',
   },
   STRUCTURED_DATA_INVALID: {
-    owner: 'crawl',
     severity: 'warning',
     label: 'Structured data that cannot be read',
     plain: {
@@ -1370,7 +1252,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The page has no JSON-LD block.',
   },
   DATES_INCONSISTENT: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Dates contradict each other',
     plain: {
@@ -1388,7 +1269,6 @@ export const SEO_ISSUE_CATALOGUE = {
   STRUCTURED_DATA_MISSING: {
     // The hint speaks about eligibility, never about a violation: Google requires no
     // structured data, and a hint implying otherwise manufactures urgency.
-    owner: 'crawl',
     severity: 'notice',
     label: 'No article structured data',
     plain: {
@@ -1407,7 +1287,6 @@ export const SEO_ISSUE_CATALOGUE = {
     // follow STRUCTURED_DATA_MISSING: a missing recommended field costs eligibility for
     // part of the rich result, and nothing else. Skipped where there is no article node,
     // because that page is already failing the check above and would be told twice.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Article markup is missing recommended fields',
     plain: {
@@ -1424,7 +1303,6 @@ export const SEO_ISSUE_CATALOGUE = {
   AUTHOR_MARKUP_INCOMPLETE: {
     // A notice, like the two article checks above: Google requires no author markup, so a
     // departure from its best practices costs attribution, never eligibility to rank.
-    owner: 'crawl',
     severity: 'notice',
     label: 'Author markup is incomplete',
     plain: {
@@ -1440,7 +1318,6 @@ export const SEO_ISSUE_CATALOGUE = {
       'The article markup names no author, or nothing on the page does (AUTHOR_MISSING reports that).',
   },
   ARTICLE_DATE_FORMAT_INVALID: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Article dates are not in ISO 8601',
     plain: {
@@ -1455,7 +1332,6 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason: 'The page declares no publication or modification date.',
   },
   ARTICLE_HEADLINE_MISMATCH: {
-    owner: 'crawl',
     severity: 'notice',
     label: 'Article headline does not match the page',
     plain: {
@@ -1473,7 +1349,6 @@ export const SEO_ISSUE_CATALOGUE = {
   BREADCRUMB_MISSING: {
     // A notice: Google documents the feature, but a page without it loses a display
     // option, not its place in results (plan D2).
-    owner: 'crawl',
     severity: 'notice',
     label: 'No breadcrumb markup',
     plain: {
@@ -1488,7 +1363,6 @@ export const SEO_ISSUE_CATALOGUE = {
   },
   BREADCRUMB_INVALID: {
     // A warning, as a broken JSON-LD block is: the markup is there and Google ignores it.
-    owner: 'crawl',
     severity: 'warning',
     label: 'Breadcrumb markup is missing required fields',
     plain: {
@@ -1502,171 +1376,4 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.breadcrumbMarkup, SOURCE.structuredDataPolicies],
     skipReason: 'The page declares no BreadcrumbList.',
   },
-  CWV_LCP_NEEDS_IMPROVEMENT: {
-    owner: 'pageSpeed',
-    severity: 'notice',
-    label: 'Largest Contentful Paint needs improvement',
-    plain: {
-      what: 'The main content is a bit slow to appear on phones',
-      why: "On phones the page's main content takes over 2.5 seconds to appear, by Google's measurement. Speed is a small ranking signal; the bigger cost is visitors who leave before the page appears.",
-      fix: 'Ask your developer to make the largest image or text block at the top the first thing the page loads, for example by compressing the image and loading it early.',
-    },
-    hint: 'The main image or text block takes longer than 2.5 s to appear; make it the first thing the page loads.',
-    explanation:
-      'Largest Contentful Paint (LCP) is how long the largest image or text block in the viewport takes to appear — the moment a visitor sees that the page has loaded. Google calls 2.5 s or less good and more than 4 s poor, judged at the 75th percentile of mobile visits. The value comes from PageSpeed Insights: real Chrome visitors to this page over the last 28 days where Google has enough of them, otherwise visitors to the whole site, otherwise one lab test. Google says it shows the most relevant content even when page experience is sub-par, so this is a small ranking signal; the larger cost is visitors who leave before the page appears.',
-    sources: [SOURCE.lcp, SOURCE.pageSpeedInsights, SOURCE.pageExperience],
-    max: CWV_THRESHOLDS.lcp.good,
-  },
-  CWV_LCP_POOR: {
-    owner: 'pageSpeed',
-    severity: 'warning',
-    label: 'Largest Contentful Paint is poor',
-    plain: {
-      what: 'The main content takes too long to appear on phones',
-      why: "On phones the main content takes over 4 seconds to appear, by Google's measurement, and many visitors leave before it does. Google counts it as a small ranking signal; the bigger loss is visitors.",
-      fix: 'Ask your developer to shrink and preload the largest image or text block at the top, and to remove scripts that hold back the first paint.',
-    },
-    hint: 'The main image or text block takes longer than 4 s to appear; shrink it, serve it sooner, and drop what blocks it.',
-    explanation:
-      "Largest Contentful Paint (LCP) is how long the largest image or text block in the viewport takes to appear. More than 4 s at the 75th percentile of mobile visits is Google's poor band: a quarter of visitors wait at least that long to see the page. The value comes from PageSpeed Insights — real visitors to this page, to the whole site when the page has too few, or one lab test. The usual causes are an oversized hero image, a slow server response, and scripts or stylesheets that hold back the first paint. Google shows the most relevant content even when page experience is sub-par, so the cost is mostly in visitors who give up.",
-    sources: [SOURCE.lcp, SOURCE.optimizeLcp, SOURCE.pageExperience],
-    max: CWV_THRESHOLDS.lcp.poor,
-  },
-  CWV_INP_NEEDS_IMPROVEMENT: {
-    owner: 'pageSpeed',
-    severity: 'notice',
-    label: 'Interaction to Next Paint needs improvement',
-    plain: {
-      what: 'The page is a little slow to respond to taps and clicks',
-      why: 'Data from real Chrome visitors shows at least a quarter of mobile visits wait over 0.2 seconds for the page to react to a tap or click. It is a small ranking signal; to visitors, a lagging page feels less reliable.',
-      fix: 'Ask your developer to find and break up the long-running scripts that run while visitors use the page, including third-party ones.',
-    },
-    hint: 'Taps and clicks take longer than 200 ms to show a response; break up long scripts that run while the page is in use.',
-    explanation:
-      "Interaction to Next Paint (INP) is how long the page takes to respond visibly to a tap, click or key press, taken across the visit. Google calls 200 ms or less good and more than 500 ms poor, at the 75th percentile of mobile visits. Only real visitors measure it — a lab test loads the page but never uses it — so this value is Chrome's field data for this page, or for the whole site when the page has too few visits. It is a small ranking signal; to a visitor, a page that lags after a tap feels broken.",
-    sources: [SOURCE.inp, SOURCE.pageSpeedInsights, SOURCE.pageExperience],
-    max: CWV_THRESHOLDS.inp.good,
-  },
-  CWV_INP_POOR: {
-    owner: 'pageSpeed',
-    severity: 'warning',
-    label: 'Interaction to Next Paint is poor',
-    plain: {
-      what: 'The page responds sluggishly to taps and clicks',
-      why: 'Data from real Chrome visitors shows at least a quarter of mobile visits wait over half a second for a response. Page experience is a small ranking signal; the bigger loss is visitors who tap, see nothing happen, and leave.',
-      fix: 'Ask your developer to find the scripts that block the page after it loads, often heavy third-party tools, and remove, delay or split them.',
-    },
-    hint: 'Taps and clicks take longer than 500 ms to show a response; find the scripts that block the page after it loads.',
-    explanation:
-      "Interaction to Next Paint (INP) is how long the page takes to respond visibly to a tap, click or key press. More than 500 ms at the 75th percentile of mobile visits is Google's poor band. The value is Chrome's field data for this page, or for the whole site when the page has too few visits — a lab test cannot measure it, because it never interacts with the page. Heavy third-party scripts, large pages and long tasks on the main thread are the usual causes. Page experience is a small ranking signal next to relevance; the bigger cost is visitors who tap, see nothing happen, and leave.",
-    sources: [SOURCE.inp, SOURCE.domSize, SOURCE.pageExperience],
-    max: CWV_THRESHOLDS.inp.poor,
-  },
-  CWV_CLS_NEEDS_IMPROVEMENT: {
-    owner: 'pageSpeed',
-    severity: 'notice',
-    label: 'Cumulative Layout Shift needs improvement',
-    plain: {
-      what: 'Content shifts around somewhat while the page loads',
-      why: 'Text that moves as images or ads load above it makes some readers lose their place or tap the wrong thing. Google treats it as a small ranking signal; it is mainly a reading-experience problem.',
-      fix: 'Ask your developer to reserve space in the theme for images, embeds and ads, so the content stays put while they load.',
-    },
-    hint: 'Content moves while the page loads; reserve space for images, embeds and ads before they arrive.',
-    explanation:
-      'Cumulative Layout Shift (CLS) scores how much visible content jumps around while the page is open — the text you were reading sliding down as an image or an ad loads above it. It is a unitless score: Google calls 0.1 or less good and more than 0.25 poor, at the 75th percentile of mobile visits. The value comes from PageSpeed Insights — real visitors to this page, to the whole site when the page has too few, or one lab test, which only sees shifts during loading. It is a small ranking signal; to a reader, it is mis-taps and a lost place.',
-    sources: [SOURCE.cls, SOURCE.pageSpeedInsights, SOURCE.pageExperience],
-    max: CWV_THRESHOLDS.cls.good,
-  },
-  CWV_CLS_POOR: {
-    owner: 'pageSpeed',
-    severity: 'warning',
-    label: 'Cumulative Layout Shift is poor',
-    plain: {
-      what: 'The layout jumps a lot while visitors are reading',
-      why: "By Google's measurement, content on phones jumps enough that people tap the wrong thing or lose their place. Google weighs page experience after relevance, so the main cost is frustrated readers, not rankings.",
-      fix: 'Ask your developer to give images and embeds fixed sizes, stop banners and ads from pushing content down, and check web fonts that reflow the text.',
-    },
-    hint: 'Content jumps a lot while the page loads; give images and embeds fixed dimensions and stop inserting content above what is being read.',
-    explanation:
-      "Cumulative Layout Shift (CLS) scores how much visible content jumps around while the page is open. More than 0.25 at the 75th percentile of mobile visits is Google's poor band. The usual causes are images and embeds without width and height, ads and banners injected above the content, and web fonts that reflow the text. The value comes from PageSpeed Insights — real visitors to this page, to the whole site, or one lab test. Google weighs page experience after relevance, so the main cost is readers who tap the wrong thing or lose their place.",
-    sources: [SOURCE.cls, SOURCE.pageSpeedInsights, SOURCE.pageExperience],
-    max: CWV_THRESHOLDS.cls.poor,
-  },
-} as const satisfies Record<string, ISeoIssueDefinition>;
-
-export type TSeoIssueCode = keyof typeof SEO_ISSUE_CATALOGUE;
-
-export const SEO_ISSUE_CODES = Object.keys(
-  SEO_ISSUE_CATALOGUE,
-) as TSeoIssueCode[];
-
-/**
- * The catalogue split by owner. Derived from the entries, so a code is in exactly one set
- * and neither can drift from the catalogue. Each writer's replace deletes only its own
- * set: the crawl cannot erase a measurement's findings, nor the worker a crawl's.
- */
-export type TPageSpeedIssueCode = {
-  [K in TSeoIssueCode]: (typeof SEO_ISSUE_CATALOGUE)[K] extends {
-    owner: 'pageSpeed';
-  }
-    ? K
-    : never;
-}[TSeoIssueCode];
-
-export type TCrawlIssueCode = Exclude<TSeoIssueCode, TPageSpeedIssueCode>;
-
-export const PAGE_SPEED_ISSUE_CODES = SEO_ISSUE_CODES.filter(
-  (code) => SEO_ISSUE_CATALOGUE[code].owner === 'pageSpeed',
-) as TPageSpeedIssueCode[];
-
-export const CRAWL_ISSUE_CODES = SEO_ISSUE_CODES.filter(
-  (code) => SEO_ISSUE_CATALOGUE[code].owner === 'crawl',
-) as TCrawlIssueCode[];
-
-/**
- * The crawl's codes split by what a check can see. Derived from the entries, so a code is
- * in exactly one of them and neither list can drift from the catalogue.
- *
- * The split is what decides a check's SHAPE from its code rather than from the check:
- * a run code's unit takes the whole crawl and answers once per page, every other code's
- * takes one page. So the wrong shape under a code is a compile error, not a check that
- * runs and never fires — which is what it would be, since "is another page using this
- * title" cannot be answered from one page at all.
- */
-export type TRunIssueCode = {
-  [K in TCrawlIssueCode]: (typeof SEO_ISSUE_CATALOGUE)[K] extends {
-    scope: 'run';
-  }
-    ? K
-    : never;
-}[TCrawlIssueCode];
-
-export type TPageIssueCode = Exclude<TCrawlIssueCode, TRunIssueCode>;
-
-export const RUN_ISSUE_CODES = CRAWL_ISSUE_CODES.filter(
-  (code) => 'scope' in SEO_ISSUE_CATALOGUE[code],
-) as TRunIssueCode[];
-
-export const PAGE_ISSUE_CODES = CRAWL_ISSUE_CODES.filter(
-  (code) => !('scope' in SEO_ISSUE_CATALOGUE[code]),
-) as TPageIssueCode[];
-
-/**
- * The codes a crawl runs and a screen lists as checks — the crawl's codes minus what
- * `enabled: false` has retired. The speed codes are never here: no crawl runs them, and
- * they count in neither a page's checks nor its score.
- *
- * Both sides iterate THIS, never `SEO_ISSUE_CODES`: the analysis so a retired check
- * produces no verdict, and `composePageChecks` so it produces no row. Lookups by code
- * keep using the catalogue itself, which is the point of retiring rather than deleting —
- * a finding stored under a retired code still has a label, a hint and a severity to be
- * rendered with.
- *
- * A page crawled before a check was retired keeps it in its stored denominator, so its
- * score counts a check the list no longer shows. That is the same arrangement a page
- * already has with a check added after it was crawled, and it is why the score is
- * explained as what applied WHEN THE PAGE WAS CRAWLED; the next crawl settles it.
- */
-export const ACTIVE_ISSUE_CODES = CRAWL_ISSUE_CODES.filter(
-  (code) => !('enabled' in SEO_ISSUE_CATALOGUE[code]),
-);
+} as const satisfies Record<string, ICrawlIssueDefinition>;

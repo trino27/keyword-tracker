@@ -1,5 +1,5 @@
 import type { TSeoIssueSeverity } from '../seo-issue-severity.enum.js';
-import type { ISeoIssueSource } from '../seo-issue-catalogue.constant.js';
+import type { ISeoIssueSource } from '../catalogue/issue-definition.interface.js';
 import { INDUSTRY_SOURCE_HOSTS } from '../industry-source-hosts.constant.js';
 
 interface IGradedEntry {

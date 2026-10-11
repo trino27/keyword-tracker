@@ -1,6 +1,6 @@
 import type { TCwvBand } from './cwv-band.enum.js';
 import type { TCwvMetric } from './cwv-metric.enum.js';
-import type { TPageSpeedIssueCode } from '../seo/seo-issue-catalogue.constant.js';
+import type { TPageSpeedIssueCode } from '../seo/catalogue/issue-catalogues.constant.js';
 
 /**
  * The one finding a metric outside the good band produces. Two codes per metric rather

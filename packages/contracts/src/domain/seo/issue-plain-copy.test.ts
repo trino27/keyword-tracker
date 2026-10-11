@@ -5,7 +5,7 @@ import {
   PLAIN_COPY_LIMITS,
   type IPlainCopy,
 } from './plain-copy.interface';
-import { SEO_ISSUE_CATALOGUE } from './seo-issue-catalogue.constant';
+import { SEO_ISSUE_CATALOGUE } from './catalogue/issue-catalogues.constant';
 
 /** The entries shown without "What to do", each by decision (plan D33). */
 const WITHOUT_FIX = new Set(['SITEMAP_LISTS_NON_INDEXABLE']);

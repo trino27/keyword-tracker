@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SEO_ISSUE_CATALOGUE } from './seo-issue-catalogue.constant';
+import { SEO_ISSUE_CATALOGUE } from './catalogue/issue-catalogues.constant';
 import { MEASURED_ISSUE_CODES } from './measured-issue-codes.constant';
 
 describe('MEASURED_ISSUE_CODES', () => {

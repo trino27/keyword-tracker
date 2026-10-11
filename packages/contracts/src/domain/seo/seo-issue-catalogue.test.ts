@@ -2,17 +2,63 @@ import { describe, expect, it } from 'vitest';
 import {
   ACTIVE_ISSUE_CODES,
   CRAWL_ISSUE_CODES,
+  ISSUE_CATALOGUES,
+  ISSUE_OWNERS,
+  LIGHTHOUSE_ISSUE_CODES,
+  SCORED_ISSUE_OWNERS,
+  issueCodesOf,
   PAGE_ISSUE_CODES,
   PAGE_SPEED_ISSUE_CODES,
   RUN_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
   SEO_ISSUE_CODES,
-} from './seo-issue-catalogue.constant';
+} from './catalogue/issue-catalogues.constant';
 import { CWV_ISSUE_CODES } from '../page-speed/cwv-issue-codes.constant';
 import { CWV_THRESHOLDS } from '../page-speed/cwv-thresholds.constant';
 import { CWV_METRICS } from '../page-speed/cwv-metric.enum';
 import { SITE_CHECK_CATALOGUE } from '../site/site-check-catalogue.constant';
 import { inclusionBarViolations } from './inclusion-bar/inclusion-bar.util';
+
+describe('the owner registry', () => {
+  it('derives the owners from the registry: crawl, pageSpeed, lighthouse', () => {
+    expect([...ISSUE_OWNERS].sort()).toEqual([
+      'crawl',
+      'lighthouse',
+      'pageSpeed',
+    ]);
+    expect(ISSUE_OWNERS).toEqual(Object.keys(ISSUE_CATALOGUES));
+  });
+
+  /**
+   * The owner is the key an entry sits under, stamped onto the flattened catalogue — so an
+   * entry cannot claim one owner while living in another's catalogue.
+   */
+  it('stamps each entry with the owner whose catalogue holds it', () => {
+    for (const owner of ISSUE_OWNERS)
+      for (const code of issueCodesOf(owner))
+        expect({ code, owner: SEO_ISSUE_CATALOGUE[code].owner }).toEqual({
+          code,
+          owner,
+        });
+  });
+
+  it('no code belongs to two owners', () => {
+    const all = ISSUE_OWNERS.flatMap((owner) => issueCodesOf(owner));
+    expect(new Set(all).size).toBe(all.length);
+    expect([...all].sort()).toEqual([...SEO_ISSUE_CODES].sort());
+  });
+
+  it('the crawl and Lighthouse are scored, the Core Web Vitals are not', () => {
+    expect([...SCORED_ISSUE_OWNERS].sort()).toEqual(['crawl', 'lighthouse']);
+  });
+
+  it("gives the crawl's code list none of Lighthouse's", () => {
+    const crawl = new Set<string>(CRAWL_ISSUE_CODES);
+    expect(LIGHTHOUSE_ISSUE_CODES.filter((code) => crawl.has(code))).toEqual(
+      [],
+    );
+  });
+});
 
 describe('the catalogue split by owner', () => {
   /**
@@ -21,9 +67,13 @@ describe('the catalogue split by owner', () => {
    * be cleared at all.
    */
   it("partitions the catalogue by owner: every code in exactly one writer's set", () => {
-    expect([...CRAWL_ISSUE_CODES, ...PAGE_SPEED_ISSUE_CODES].sort()).toEqual(
-      [...SEO_ISSUE_CODES].sort(),
-    );
+    expect(
+      [
+        ...CRAWL_ISSUE_CODES,
+        ...PAGE_SPEED_ISSUE_CODES,
+        ...LIGHTHOUSE_ISSUE_CODES,
+      ].sort(),
+    ).toEqual([...SEO_ISSUE_CODES].sort());
     const overlap = CRAWL_ISSUE_CODES.filter((code) =>
       (PAGE_SPEED_ISSUE_CODES as string[]).includes(code),
     );

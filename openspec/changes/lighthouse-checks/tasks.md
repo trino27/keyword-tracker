@@ -97,7 +97,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 2. The catalogue becomes a registry of owners — ANALYSIS-012
 
-- [ ] 2.1 Write first in `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts`:
+- [x] 2.1 Write first in `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts`:
   - "derives the owners from the registry: crawl, pageSpeed, lighthouse";
   - "no code belongs to two owners";
   - "the crawl and Lighthouse are scored, the Core Web Vitals are not";
@@ -106,7 +106,18 @@ stated reason, then lands in the same commit as the code that turns it green. Br
     - an owner without a catalogue fails to compile.
 
   They fail: there is no registry. Verify: `pnpm --filter @app/contracts test:ci` fails on them.
-- [ ] 2.2 Move the catalogue into `packages/contracts/src/domain/seo/catalogue/`:
+
+  AMENDED during implementation: no separate type-test file was written.
+  - The disjointness check is a compile-time assertion inside `issue-catalogues.constant.ts`
+    (`OWNERS_ARE_DISJOINT`). It was seen failing (`TS2322`) with `TITLE_MISSING` put in
+    both catalogues, then restored.
+  - "An owner without a catalogue fails" holds by construction: `TIssueOwner` is
+    `keyof ISSUE_CATALOGUES`, and the registry `satisfies` an interface whose `entries` is
+    required.
+  - "`TCrawlIssueCode` excludes Lighthouse codes" is the runtime test "gives the crawl's code
+    list none of Lighthouse's", plus `TCrawlIssueCode = TIssueCodeOf<'crawl'>`, which is no
+    longer an `Exclude`.
+- [x] 2.2 Move the catalogue into `packages/contracts/src/domain/seo/catalogue/`:
   - `crawl/` (split by theme, entries unchanged byte for byte apart from losing `owner`);
   - `page-speed/`;
   - `lighthouse/` (empty catalogue for now);
@@ -120,10 +131,25 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
   Verify: `pnpm --filter @app/contracts test:ci && pnpm typecheck`. Every existing catalogue,
   plain-copy and measured-code test passes unchanged.
-- [ ] 2.3 Confirm no consumer read `.owner` or `ISSUE_OWNERS` outside contracts (scout found
+
+  AMENDED during implementation: the crawl's catalogue is NOT split by theme, and
+  `ISSUE_SOURCES` stays in it.
+  - **Why.** Other agents keep adding crawl entries and sources to the old file on
+    `feat/issue-report-and-pagespeed` while this branch is open. A `git mv` of the whole
+    file (`seo-issue-catalogue.constant.ts` → `catalogue/crawl/crawl-catalogue.constant.ts`)
+    is detected as a rename on merge, so their hunks land in the new path. A split into
+    several files would turn every one of their edits into a modify/delete conflict.
+  - **What was built.**
+    - `catalogue/issue-definition.interface.ts`, holding the base, crawl, pageSpeed and
+      Lighthouse definitions;
+    - `catalogue/crawl/`, `catalogue/page-speed/` and `catalogue/lighthouse/`;
+    - `catalogue/issue-catalogues.constant.ts`, the registry, the flattening and every
+      derived list. Its `IIssueOwnerDefinition` is `{ scored, entries }`.
+  - **Later.** The theme split is a follow-up for after the merge.
+- [x] 2.3 Confirm no consumer read `.owner` or `ISSUE_OWNERS` outside contracts (scout found
   none). Run `git grep -n "ISSUE_OWNERS\|\.owner ===" -- be/src fe/src`. Verify: no hits, and
   `pnpm lint && pnpm typecheck && pnpm test` passes.
-- [ ] 2.4 Commit: `refactor(contracts): issue owners are a registry, one folder each`.
+- [x] 2.4 Commit: `refactor(contracts): issue owners are a registry, one folder each`.
 
 ## 3. Lighthouse codes and counterpart groups — ANALYSIS-028, ANALYSIS-029
 

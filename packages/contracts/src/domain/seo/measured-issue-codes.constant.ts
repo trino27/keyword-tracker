@@ -2,7 +2,7 @@ import {
   CRAWL_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
   type TCrawlIssueCode,
-} from './seo-issue-catalogue.constant.js';
+} from './catalogue/issue-catalogues.constant.js';
 
 /**
  * The crawl codes whose catalogue entry declares a bound, and whose finding is therefore

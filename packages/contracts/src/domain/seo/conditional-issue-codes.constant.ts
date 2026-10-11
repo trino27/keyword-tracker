@@ -2,7 +2,7 @@ import {
   SEO_ISSUE_CATALOGUE,
   SEO_ISSUE_CODES,
   type TSeoIssueCode,
-} from './seo-issue-catalogue.constant.js';
+} from './catalogue/issue-catalogues.constant.js';
 
 /**
  * The codes whose rule can answer `notApplicable`, and which therefore declare why.
