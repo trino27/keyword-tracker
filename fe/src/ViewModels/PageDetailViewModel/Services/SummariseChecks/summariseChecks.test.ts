@@ -64,7 +64,7 @@ describe("summariseChecks", () => {
 
 		expect(sections[0].heading).toBe("Titles");
 		expect(sections[0].rows[0].cells.crawl).toEqual([
-			{ code: "TITLE_MISSING", label: "Title is missing", status: "passed", reason: null },
+			{ code: "TITLE_MISSING", label: "Title is present", status: "passed", reason: null },
 		]);
 		expect(sections.map(({ heading }) => order.indexOf(heading))).toEqual(
 			[...sections.map(({ heading }) => order.indexOf(heading))].sort((a, b) => a - b),
@@ -96,6 +96,17 @@ describe("summariseChecks", () => {
 					CHECK_TOPIC_OF[code] === "headings" && !["LH_HEADING_ORDER"].includes(code),
 			),
 		);
+	});
+
+	/** The problem's name beside a green mark reads as if the problem were the good outcome. */
+	it("reads a passed check as what is right, and a failed one as the problem", () => {
+		const summary = summarise({ crawl: crawl({ TITLE_LENGTH: "failed" }) });
+
+		expect(rowWith(summary, "LANG_MISSING")?.cells.crawl[0].label).toBe("Language is declared");
+		expect(rowWith(summary, "LH_HTML_HAS_LANG")?.cells.lighthouse[0].label).toBe(
+			"Page language is set",
+		);
+		expect(rowWith(summary, "TITLE_LENGTH")?.cells.crawl[0].label).toBe("Title length");
 	});
 
 	it("leads a chapter with its failures, and counts them", () => {

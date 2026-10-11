@@ -338,6 +338,7 @@ export const CRAWL_CATALOGUE = {
   TITLE_MISSING: {
     severity: 'error',
     label: 'Title is missing',
+    passLabel: 'Title is present',
     plain: {
       what: 'This page has no title for search results',
       why: 'Google then writes a headline itself from text on the page, which often describes the page worse and earns fewer clicks.',
@@ -353,6 +354,7 @@ export const CRAWL_CATALOGUE = {
     // break the page (plan D4). The numbers are unchanged; industry consensus confirms them.
     severity: 'notice',
     label: 'Title length',
+    passLabel: 'Title length is in range',
     plain: {
       what: 'The page title is too long or too short for search results',
       why: 'Long titles get cut off mid-phrase in Google, and very short ones often leave out what makes the page worth clicking. Google sets no fixed limit, so treat this as a prompt to reread the title, not a rule.',
@@ -372,6 +374,7 @@ export const CRAWL_CATALOGUE = {
     // "Google Analytics: полное руководство" mixes scripts on purpose and rightly.
     severity: 'notice',
     label: 'Title is in another script than the page',
+    passLabel: 'Title is in the page’s script',
     plain: {
       what: "The page's title is written in a different alphabet from its text",
       why: 'Google asks for titles in the same language and alphabet as the page. When they differ, it often replaces the title in results with text of its own, so the headline searchers see is not the one you chose.',
@@ -388,6 +391,7 @@ export const CRAWL_CATALOGUE = {
     // A notice: Ahrefs names freshness in titles; Google draws no line on it (plan D2).
     severity: 'notice',
     label: 'Title names a past year',
+    passLabel: 'Title names no past year',
     plain: {
       what: 'The page title presents a past year as current',
       why: 'A title such as "Best tools for 2025" read in a later year tells searchers the post is out of date before they open it, and fewer of them click. Refreshing the post and its year is one of the cheapest ways to win those clicks back.',
@@ -402,6 +406,7 @@ export const CRAWL_CATALOGUE = {
   META_DESCRIPTION_MISSING: {
     severity: 'warning',
     label: 'Meta description is missing',
+    passLabel: 'Meta description is present',
     plain: {
       what: 'This page has no summary for search results',
       why: 'Google then picks a passage from the page to show under the headline, which may be out of context. The summary does not affect rankings, but a well-written one can earn more clicks.',
@@ -415,6 +420,7 @@ export const CRAWL_CATALOGUE = {
   META_DESCRIPTION_LENGTH: {
     severity: 'notice',
     label: 'Meta description length',
+    passLabel: 'Meta description length is in range',
     plain: {
       what: 'The summary shown in search results is too long or too short',
       why: 'A long summary gets cut off in results, and a very short one rarely says enough for Google to show it instead of a passage it picks itself. Google sets no fixed limit; the range is a rule of thumb.',
@@ -433,6 +439,7 @@ export const CRAWL_CATALOGUE = {
     // its page, which a copy of the title rarely does (plan D2).
     severity: 'notice',
     label: 'Description repeats the title',
+    passLabel: 'Description adds to the title',
     plain: {
       what: "The page's search description says the same thing as its title",
       why: 'The title and the description sit one above the other in a search result. When they match, the second line tells a searcher nothing new, and Google is more likely to replace it with a passage of its own choosing.',
@@ -450,6 +457,7 @@ export const CRAWL_CATALOGUE = {
     // matter to Search. A page without an h1 is indexed and ranked.
     severity: 'warning',
     label: 'H1 is missing',
+    passLabel: 'H1 is present',
     plain: {
       what: 'This page has no main heading',
       why: 'Visitors and screen-reader users rely on the main heading to confirm they landed on the right page, and Google reads headings to understand it. The page is still indexed; it just loses a clear signal.',
@@ -465,6 +473,7 @@ export const CRAWL_CATALOGUE = {
     // Search, so the cost is to readers and assistive technology alone.
     severity: 'notice',
     label: 'More than one H1',
+    passLabel: 'One H1',
     plain: {
       what: 'This page has more than one main heading',
       why: 'Screen-reader users are told the page is about several things at once. Google says it copes with any heading structure, so this is about clarity for readers, not rankings.',
@@ -479,6 +488,7 @@ export const CRAWL_CATALOGUE = {
   HEADING_SKIP: {
     severity: 'notice',
     label: 'Heading level skipped',
+    passLabel: 'Heading levels follow in order',
     plain: {
       what: "The subheadings skip a level in the page's outline",
       why: 'People using screen readers move through a page by its headings, and a skipped level makes the outline confusing. Google says heading order does not matter for Search, so this is an accessibility fix, not a ranking one.',
@@ -495,6 +505,7 @@ export const CRAWL_CATALOGUE = {
     // who scan a long post, and to screen-reader users who move through it by headings.
     severity: 'notice',
     label: 'No subheadings',
+    passLabel: 'Text has subheadings',
     plain: {
       what: 'This post is one long block of text with no subheadings',
       why: 'Readers scan a long post by its subheadings to find the part they came for, and without them many leave. Google says there is no ideal number of headings, so this is about readers, not a ranking rule.',
@@ -512,6 +523,7 @@ export const CRAWL_CATALOGUE = {
   CANONICAL_MISSING: {
     severity: 'warning',
     label: 'Canonical URL is missing',
+    passLabel: 'Canonical URL is declared',
     plain: {
       what: "The page doesn't say which of its web addresses is the main one",
       why: 'The same post is often reachable at several addresses. Without a stated main one, Google chooses for you, and links pointing at the other copies may be credited to an address you did not pick.',
@@ -525,6 +537,7 @@ export const CRAWL_CATALOGUE = {
   CANONICAL_MISMATCH: {
     severity: 'notice',
     label: 'Canonical points elsewhere',
+    passLabel: 'Canonical points to this page',
     plain: {
       what: 'This page tells Google that another address is its main version',
       why: 'Google will usually index that other address and leave this page out of results. That is right for a genuine copy, but on an original post it is usually a template mistake that hides the page.',
@@ -542,6 +555,7 @@ export const CRAWL_CATALOGUE = {
     // Google's own default, and the request can win (plan D2).
     severity: 'warning',
     label: 'Canonical points to HTTP',
+    passLabel: 'Canonical uses HTTPS',
     plain: {
       what: 'This secure page names the insecure http:// address as its main version',
       why: 'Google prefers secure addresses, and this page asks it to prefer the insecure one. That sends mixed signals about which address to show, and can put the http:// version — the one browsers warn about — in search results.',
@@ -559,6 +573,7 @@ export const CRAWL_CATALOGUE = {
     // on, so the signal is spent — the page may be indexed under neither address.
     severity: 'warning',
     label: 'Canonical points to a broken page',
+    passLabel: 'Canonical target works',
     plain: {
       what: 'This page names a main version that redirects, is missing or is hidden from Google',
       why: 'Google is told to index another address instead of this one, and that address is no page it can index. It may ignore the hint, pick an address you did not choose, or keep neither in results.',
@@ -576,6 +591,7 @@ export const CRAWL_CATALOGUE = {
     // warning — however confident each tag looks on its own.
     severity: 'warning',
     label: 'Conflicting canonical URLs',
+    passLabel: 'Canonical URLs agree',
     plain: {
       what: 'The page names two different addresses as its main version',
       why: 'A signal that contradicts itself cannot be followed, so Google decides on its own which address to show, and it may not be the one you want.',
@@ -593,6 +609,7 @@ export const CRAWL_CATALOGUE = {
     // every reader.
     severity: 'warning',
     label: 'Points at a development or staging host',
+    passLabel: 'No development or staging hosts',
     plain: {
       what: 'The page points to a test or staging copy of the site',
       why: "Where the page's main-version or language links point there, Google is asked to credit a copy that should never be found. Links to it send visitors to a server they cannot reach, and they advertise a site meant to stay private.",
@@ -606,6 +623,7 @@ export const CRAWL_CATALOGUE = {
   CANONICAL_RELATIVE: {
     severity: 'notice',
     label: 'Canonical URL is relative',
+    passLabel: 'Canonical URL is absolute',
     plain: {
       what: "The page's main-version link is written without the domain",
       why: 'Google accepts it but asks for full addresses: written this way, a staging copy or an http or www mirror of the page claims to be the main version itself instead of pointing to the real page.',
@@ -620,6 +638,7 @@ export const CRAWL_CATALOGUE = {
   NOINDEX: {
     severity: 'error',
     label: 'Page is set to noindex',
+    passLabel: 'Page can be indexed',
     plain: {
       what: 'This page is set to stay out of Google',
       why: 'A "noindex" instruction tells Google to drop the page from search results, so it gets no search traffic at all. On a post listed in the sitemap this is almost always a mistake, such as a staging setting left on.',
@@ -633,6 +652,7 @@ export const CRAWL_CATALOGUE = {
   SNIPPET_RESTRICTED: {
     severity: 'notice',
     label: 'Search snippet is restricted',
+    passLabel: 'Search snippet is allowed',
     plain: {
       what: 'This page stops Google from showing any of its text in results',
       why: 'The result appears with no description, which draws fewer clicks, and Google will not quote the page in AI Overviews either. Sometimes that is intended, but rarely on a blog post that wants readers.',
@@ -648,6 +668,7 @@ export const CRAWL_CATALOGUE = {
     // page ranks.
     severity: 'notice',
     label: 'Large image previews not allowed',
+    passLabel: 'Large image previews allowed',
     plain: {
       what: "Google is not allowed to show this page's image in large size",
       why: 'Google Discover shows large images only for pages that allow them, and large-image cards draw more clicks than thumbnails. Without the setting the post can appear with a small image, or none, in Discover and in results.',
@@ -663,6 +684,7 @@ export const CRAWL_CATALOGUE = {
     // of the running, exactly like a noindexed one.
     severity: 'error',
     label: 'robots.txt blocks Googlebot',
+    passLabel: 'robots.txt lets Googlebot in',
     plain: {
       what: "The site's robots.txt stops Google from reading this page",
       why: 'Google cannot read the content, so it cannot rank the page for it. The address may still appear in results, but with no description, known only from what other pages say about it.',
@@ -677,6 +699,7 @@ export const CRAWL_CATALOGUE = {
   ROBOTS_BLOCKS_RESOURCES: {
     severity: 'warning',
     label: 'robots.txt blocks scripts or styles',
+    passLabel: 'robots.txt lets scripts and styles load',
     plain: {
       what: 'Google is blocked from the files that make this page look and work right',
       why: 'Google views a page as a browser would before indexing it. With styling or scripts blocked, the page can look broken or unfit for phones to Google, and content added by scripts may be missed.',
@@ -692,6 +715,7 @@ export const CRAWL_CATALOGUE = {
   ROBOTS_BLOCKS_AI_SEARCH: {
     severity: 'notice',
     label: 'robots.txt blocks AI search crawlers',
+    passLabel: 'robots.txt lets AI search crawlers in',
     plain: {
       what: 'AI search tools such as ChatGPT search are blocked from this page',
       why: 'ChatGPT search, Perplexity, Claude and Copilot (through Bing) cannot show or cite the page in their answers. It does not affect Google Search, and blocking AI training bots is a separate, legitimate choice not judged here.',
@@ -711,6 +735,7 @@ export const CRAWL_CATALOGUE = {
   IMAGES_MISSING_ALT: {
     severity: 'warning',
     label: 'Images without alt text',
+    passLabel: 'Images have alt text',
     plain: {
       what: 'Some images on this page have no text description',
       why: 'Screen readers have nothing to announce for them, and Google relies on this text to understand images for image search. Purely decorative images should be marked as decorative instead.',
@@ -727,6 +752,7 @@ export const CRAWL_CATALOGUE = {
     // for images near relevant text; the AI-search figure is industry data.
     severity: 'notice',
     label: 'No images in the content',
+    passLabel: 'Content has images',
     plain: {
       what: 'This post has no images',
       why: 'Many people search visually, and an image is often how a post is first found in Google Images or shown beside a result. A long post with no chart, screenshot or photo is also harder to read.',
@@ -744,6 +770,7 @@ export const CRAWL_CATALOGUE = {
   IMAGES_NOT_INDEXABLE: {
     severity: 'warning',
     label: 'Images without a src fallback',
+    passLabel: 'Images have a src fallback',
     plain: {
       what: 'Some images give only a set of sizes, with no plain image address',
       why: "Google finds images through an image element's plain address. One given only as a set of sizes has no fallback, so Google Images and browsers that do not read that set may never show it.",
@@ -759,6 +786,7 @@ export const CRAWL_CATALOGUE = {
     // A notice: a file name is a light hint, and Google says so.
     severity: 'notice',
     label: 'Images with camera or placeholder file names',
+    passLabel: 'Image file names describe the image',
     plain: {
       what: 'Some images keep file names like IMG_1234.jpg that say nothing',
       why: "Google uses an image's file name as a small hint about what it shows. A camera default such as IMG_1234 or a placeholder like image1 gives image search nothing, while a few descriptive words help it understand the picture.",
@@ -774,6 +802,7 @@ export const CRAWL_CATALOGUE = {
     // A notice: eligibility for video features, never a defect of the page.
     severity: 'notice',
     label: 'Video without video metadata',
+    passLabel: 'Video has video metadata',
     plain: {
       what: 'The page shows a video but tells Google nothing about it',
       why: "Without video details Google has to guess the video's title, thumbnail and date, and the page is less likely to appear in video results or with a video preview. It does not affect the page's ordinary ranking.",
@@ -790,6 +819,7 @@ export const CRAWL_CATALOGUE = {
     // to reread it, not a defect on the page.
     severity: 'notice',
     label: 'Thin content',
+    passLabel: 'Enough content',
     plain: {
       what: 'This page has very little text',
       why: 'Under 300 words a post is often a stub or teaser that does not fully answer a search, which makes it harder to rank. Google has no minimum word count, so a short page that answers the question fully is fine.',
@@ -804,6 +834,7 @@ export const CRAWL_CATALOGUE = {
   AUTHOR_MISSING: {
     severity: 'notice',
     label: 'No author named',
+    passLabel: 'Author is named',
     plain: {
       what: "The page doesn't say who wrote it",
       why: "Google's guidance suggests a byline so readers can judge the expertise behind a post. It is not a ranking switch, but an anonymous post gives readers one less reason to trust it.",
@@ -817,6 +848,7 @@ export const CRAWL_CATALOGUE = {
   DATE_BUMPED_WITHOUT_CHANGES: {
     severity: 'warning',
     label: 'Date changed, content did not',
+    passLabel: 'Date changed only with the content',
     plain: {
       what: "The page's updated date changed but its content didn't",
       why: 'Google names refreshing dates without real changes as a sign of content made for search engines rather than people. Often it is just a CMS that updates the date on every save, but it can look like faked freshness.',
@@ -835,6 +867,7 @@ export const CRAWL_CATALOGUE = {
     // wrote. A page the theme links from every sidebar still fails this, correctly.
     severity: 'notice',
     label: 'Content links nowhere on the site',
+    passLabel: 'Content links to the site',
     plain: {
       what: "The text of this page doesn't link to any other page on the site",
       why: "Links in the text help Google find your other pages and understand what they are about, and carry readers deeper into the site. Menus, sidebars and footers don't count here, only links the author wrote.",
@@ -850,6 +883,7 @@ export const CRAWL_CATALOGUE = {
     // company's own data or the author's own experience may rightly cite nothing.
     severity: 'notice',
     label: 'Cites no outside sources',
+    passLabel: 'Cites outside sources',
     plain: {
       what: "The text of this post doesn't link to any other website",
       why: 'Google lists clear sourcing among the signs that content can be trusted. A post that states facts or figures without saying where they come from asks readers, and the AI assistants that quote pages, to take them on trust.',
@@ -867,6 +901,7 @@ export const CRAWL_CATALOGUE = {
   INTERNAL_LINKS_NOFOLLOW: {
     severity: 'notice',
     label: 'Internal links marked nofollow',
+    passLabel: 'Internal links are followed',
     plain: {
       what: 'Links to the site\'s own pages are marked "nofollow"',
       why: 'That mark is meant for links you do not vouch for. On links to your own posts it only withholds what those links would tell Google about them. A small effect, usually caused by a plugin or template.',
@@ -881,6 +916,7 @@ export const CRAWL_CATALOGUE = {
   INTERNAL_LINK_VARIANTS: {
     severity: 'notice',
     label: 'Internal links to non-canonical URLs',
+    passLabel: 'Internal links point to canonical URLs',
     plain: {
       what: "Links to the site's own pages use outdated or tracking-tagged addresses",
       why: 'Each such link costs an extra redirect or creates a duplicate address that Google has to crawl and match back to the real page. Google asks sites to link to their preferred addresses.',
@@ -897,6 +933,7 @@ export const CRAWL_CATALOGUE = {
     // on — the reader who follows the link pays, not the ranking (plan D2, D3).
     severity: 'notice',
     label: 'Broken links in the text',
+    passLabel: 'Links in the text work',
     plain: {
       what: 'Links in this post lead to pages that no longer exist',
       why: 'A reader who clicks one lands on an error page, which reads as an outdated, unkept post and sends them away. A dead source also stops backing the claim it was linked for.',
@@ -912,6 +949,7 @@ export const CRAWL_CATALOGUE = {
   LINKS_TO_REDIRECTS: {
     severity: 'notice',
     label: 'Links to this site redirect',
+    passLabel: 'Links to this site go straight there',
     plain: {
       what: "Links in this post point to the site's own pages at old addresses",
       why: 'Each one sends the reader and search engines through a redirect before the page opens: a little slower, and a mixed signal about which address is the real one. It usually means a page moved and the links were not updated.',
@@ -926,6 +964,7 @@ export const CRAWL_CATALOGUE = {
   LINKS_WITHOUT_TEXT: {
     severity: 'notice',
     label: 'Links with no text',
+    passLabel: 'Links have text',
     plain: {
       what: 'Some links on this page have no words to describe them',
       why: 'Google reads link text to learn what the linked page is about, so these links tell it nothing. Screen readers announce them as just "link", which fails accessibility guidelines.',
@@ -939,6 +978,7 @@ export const CRAWL_CATALOGUE = {
   UNCRAWLABLE_LINKS: {
     severity: 'notice',
     label: 'Links Google cannot follow',
+    passLabel: 'Links Google can follow',
     plain: {
       what: 'Some links on this page are dead ends for Google',
       why: 'They work for a visitor clicking with a mouse, but Google cannot follow them, so the pages they lead to are not discovered through them and get no credit from the link.',
@@ -952,6 +992,7 @@ export const CRAWL_CATALOGUE = {
   LANG_MISSING: {
     severity: 'notice',
     label: 'Language is not declared',
+    passLabel: 'Language is declared',
     plain: {
       what: "The page doesn't declare what language it's written in",
       why: 'This does not affect Google rankings: Google detects the language from the text. It matters to visitors, as screen readers use it for pronunciation and browsers for translation, and accessibility standards require it.',
@@ -971,6 +1012,7 @@ export const CRAWL_CATALOGUE = {
     // page can answer about itself.
     severity: 'notice',
     label: 'Hreflang is malformed',
+    passLabel: 'Hreflang is well formed',
     plain: {
       what: "The page's links to its other language versions contain errors",
       why: 'These links tell Google which version to show readers of each language or country. With a wrong code, Google may ignore them and show visitors the wrong language version.',
@@ -985,6 +1027,7 @@ export const CRAWL_CATALOGUE = {
   HREFLANG_NO_SELF_REFERENCE: {
     severity: 'notice',
     label: 'Hreflang omits this page',
+    passLabel: 'Hreflang includes this page',
     plain: {
       what: "The page's list of language versions leaves out the page itself",
       why: 'Google asks every language version to list itself as well as the others. When the page is missing from its own list, Google may ignore the whole list and show readers the wrong language version.',
@@ -1002,6 +1045,7 @@ export const CRAWL_CATALOGUE = {
     // do the one thing it is for (plan D2).
     severity: 'warning',
     label: 'Hreflang is not returned',
+    passLabel: 'Hreflang is returned',
     plain: {
       what: "This page's language versions don't link back to it",
       why: 'Google pairs language versions only when each one links to the other. When a translation does not list this page, Google ignores the pair and may show readers the wrong language version.',
@@ -1020,6 +1064,7 @@ export const CRAWL_CATALOGUE = {
     // A page without a viewport is indexed; it is just indexed as rendered on a phone.
     severity: 'warning',
     label: 'No mobile viewport',
+    passLabel: 'Mobile viewport is set',
     plain: {
       what: "The page isn't set up to display properly on phones",
       why: 'Google ranks the version of a page it sees on a phone. Without this setting, phones show the desktop layout shrunk down, so text is tiny and visitors have to zoom in, a poor first impression on mobile.',
@@ -1033,6 +1078,7 @@ export const CRAWL_CATALOGUE = {
   OG_TAGS_MISSING: {
     severity: 'notice',
     label: 'Open Graph tags missing',
+    passLabel: 'Open Graph tags present',
     plain: {
       what: "Links to this page won't look good when shared on social media",
       why: 'Without sharing details, social networks and messaging apps guess the title, text and image, often showing the logo or no image at all. This does not affect Google rankings, but can cost clicks from shares.',
@@ -1046,6 +1092,7 @@ export const CRAWL_CATALOGUE = {
   OG_URL_MISMATCH: {
     severity: 'notice',
     label: 'og:url differs from the canonical',
+    passLabel: 'og:url matches the canonical',
     plain: {
       what: "The page's sharing address differs from its main address",
       why: 'Social networks count likes and shares under the sharing address, and Google ranks the main one. When they differ, one post has two identities: shares can be counted for the wrong page, and a shared link can open a different address than search shows.',
@@ -1061,6 +1108,7 @@ export const CRAWL_CATALOGUE = {
   PREVIEW_IMAGE_TOO_SMALL: {
     severity: 'notice',
     label: 'Preview image is narrower than 1200 px',
+    passLabel: 'Preview image is wide enough',
     plain: {
       what: 'The image chosen to represent this page is too small for Discover',
       why: 'Google Discover asks for images at least 1,200 pixels wide. A smaller one can only appear as a thumbnail, and large-image cards draw more clicks.',
@@ -1077,6 +1125,7 @@ export const CRAWL_CATALOGUE = {
   PREVIEW_IMAGE_IS_LOGO: {
     severity: 'notice',
     label: 'Preview image is the site logo',
+    passLabel: 'Preview image is not the logo',
     plain: {
       what: "The image chosen to represent this page is the site's logo",
       why: 'Google advises against using a logo as the page image: it says nothing about the post, so in Discover and image results the page looks like every other page of the site and draws fewer clicks.',
@@ -1091,6 +1140,7 @@ export const CRAWL_CATALOGUE = {
   CHARSET_MISSING_OR_LATE: {
     severity: 'warning',
     label: 'Character encoding declared late or not at all',
+    passLabel: 'Character encoding declared early',
     plain: {
       what: 'Accented letters and symbols on this page may show up garbled',
       why: 'The page does not tell browsers early enough how its text is encoded, so a browser may guess wrong and display accented letters, non-Latin scripts and curly quotes as gibberish.',
@@ -1104,6 +1154,7 @@ export const CRAWL_CATALOGUE = {
   NOT_HTTPS: {
     severity: 'error',
     label: 'Not served over HTTPS',
+    passLabel: 'Served over HTTPS',
     plain: {
       what: 'This page is not served over a secure connection',
       why: 'Browsers label it "Not secure", which undermines visitors\' trust, and data sent to it can be read or altered on the way. Google counts security as a ranking signal, but only a very light one.',
@@ -1119,6 +1170,7 @@ export const CRAWL_CATALOGUE = {
     // reward the page for the very thing NOT_HTTPS is failing it for.
     severity: 'warning',
     label: 'Insecure resources on a secure page',
+    passLabel: 'No insecure resources',
     plain: {
       what: 'This secure page loads some files over an insecure connection',
       why: 'Browsers block or flag those files, so images, scripts or styling may be missing for visitors and for Google, and the padlock in the address bar disappears.',
@@ -1133,6 +1185,7 @@ export const CRAWL_CATALOGUE = {
   REDIRECTED: {
     severity: 'notice',
     label: 'Sitemap URL redirects',
+    passLabel: 'Sitemap URL does not redirect',
     plain: {
       what: 'The sitemap lists this page at an address that redirects',
       why: 'The sitemap should list the addresses you want in results. A redirecting entry wastes a request on every crawl, and with a temporary redirect Google keeps showing the old address.',
@@ -1146,6 +1199,7 @@ export const CRAWL_CATALOGUE = {
   META_REFRESH: {
     severity: 'warning',
     label: 'Redirects with a meta refresh',
+    passLabel: 'No meta refresh redirect',
     plain: {
       what: 'This page sends visitors elsewhere with a slow, in-page redirect',
       why: 'Google understands it but reads it less reliably than a proper server redirect; visitors see the old page flash first, and some other search engines may not follow it at all.',
@@ -1159,6 +1213,7 @@ export const CRAWL_CATALOGUE = {
   LARGE_PAGE: {
     severity: 'notice',
     label: 'Large HTML',
+    passLabel: 'HTML size is reasonable',
     plain: {
       what: "This page's code is unusually large to download",
       why: 'Google reads only the first 2 MB of a page and never indexes the rest; this page is past 1 MB, so there is still room to act. The same weight slows the page for visitors on mobile connections.',
@@ -1173,6 +1228,7 @@ export const CRAWL_CATALOGUE = {
   LCP_IMAGE_LAZY_LOADED: {
     severity: 'notice',
     label: 'Featured image is lazy-loaded',
+    passLabel: 'Featured image loads eagerly',
     plain: {
       what: 'The featured image is likely set to load late, slowing the top of the page',
       why: "Something in the page's code tells browsers to wait before fetching the main image, which usually makes the page appear later. This is a risk read from the code, not a speed measurement. Speed is a small ranking signal; the bigger cost is visitors.",
@@ -1188,6 +1244,7 @@ export const CRAWL_CATALOGUE = {
   RENDER_BLOCKING_SCRIPTS: {
     severity: 'notice',
     label: 'Scripts in <head> block rendering',
+    passLabel: 'No render-blocking scripts in <head>',
     plain: {
       what: "Scripts at the top of the page's code likely delay it from appearing",
       why: "Something in the page's code makes browsers download and run these scripts before showing anything. This is a risk read from the code, not a measurement: how long the delay is depends on the scripts and the visitor's connection.",
@@ -1201,6 +1258,7 @@ export const CRAWL_CATALOGUE = {
   FONT_PRELOAD_WITHOUT_CROSSORIGIN: {
     severity: 'notice',
     label: 'Font preload without crossorigin',
+    passLabel: 'Font preloads carry crossorigin',
     plain: {
       what: 'A web font is likely downloaded twice because of a setup slip',
       why: "Something in the page's code requests a font early in a way the browser can't reuse, so it downloads the font again. This is read from the code, not measured: it wastes bandwidth during loading and text waits for the second copy.",
@@ -1215,6 +1273,7 @@ export const CRAWL_CATALOGUE = {
     severity: 'notice',
     label:
       'Cache-Control: no-store keeps the page out of the back/forward cache',
+    passLabel: 'Page can use the back/forward cache',
     plain: {
       what: 'Going back to this page likely reloads it instead of showing it instantly',
       why: "A server setting meant for private data likely stops browsers from keeping the page ready for the Back button, so it reloads from scratch. This is read from the server's answer, not measured; on phones, Back is one of the most common moves.",
@@ -1228,6 +1287,7 @@ export const CRAWL_CATALOGUE = {
   DOM_SIZE_LARGE: {
     severity: 'notice',
     label: 'Large DOM',
+    passLabel: 'DOM size is reasonable',
     plain: {
       what: 'The page is built from so many parts that it likely responds slowly to taps',
       why: "Something in the page's code is likely slowing it down: it has more than 1,400 building blocks, so each tap or click takes longer to show a result and phones use more memory. This is a count from the code, not a measurement.",
@@ -1242,6 +1302,7 @@ export const CRAWL_CATALOGUE = {
   HTML_NOT_COMPRESSED: {
     severity: 'notice',
     label: 'HTML is not compressed',
+    passLabel: 'HTML is compressed',
     plain: {
       what: 'The server sends this page without compression',
       why: 'Compression typically makes a page several times smaller to download, so it reaches visitors faster and takes less of the time Google spends crawling the site.',
@@ -1256,6 +1317,7 @@ export const CRAWL_CATALOGUE = {
     scope: 'run',
     severity: 'warning',
     label: 'Two pages lead with the same keyword',
+    passLabel: 'Lead keyword is this page’s alone',
     plain: {
       what: 'Another page on the site leads with the same keyword as this one',
       why: "If both answer the same question they may compete for one search, with Google switching between them and links split. This is a sign, not proof: only real search data shows it, and this tracker's positions are simulated.",
@@ -1272,6 +1334,7 @@ export const CRAWL_CATALOGUE = {
     scope: 'run',
     severity: 'warning',
     label: 'Title is used by another page',
+    passLabel: 'Title is unique',
     plain: {
       what: 'Another page on the site has exactly the same title',
       why: 'In search results the two pages look the same, so searchers cannot tell which one answers their question. Google asks for a distinct title on every page.',
@@ -1288,6 +1351,7 @@ export const CRAWL_CATALOGUE = {
     scope: 'run',
     severity: 'notice',
     label: 'Meta description is used by another page',
+    passLabel: 'Meta description is unique',
     plain: {
       what: 'Another page on the site has exactly the same search summary',
       why: 'A summary that fits several pages describes each of them poorly, so it is less likely to earn the click. Google asks for a unique summary per page; summaries do not affect rankings.',
@@ -1304,6 +1368,7 @@ export const CRAWL_CATALOGUE = {
     scope: 'run',
     severity: 'warning',
     label: 'Nearly the same text as another page',
+    passLabel: 'Text is distinct from other pages',
     plain: {
       what: 'Most of the text on this page also appears on another page of the site',
       why: 'Google shows only one of near-identical pages, so they compete for the same spot. Pages mass-produced from one template with a word swapped can be treated as spam.',
@@ -1319,6 +1384,7 @@ export const CRAWL_CATALOGUE = {
   STRUCTURED_DATA_INVALID: {
     severity: 'warning',
     label: 'Structured data that cannot be read',
+    passLabel: 'Structured data can be read',
     plain: {
       what: "The page's hidden details for Google are broken and can't be read",
       why: 'Google ignores the whole block, so any article, breadcrumb or organization details in it count as missing. Structured data is optional, but a broken block gives you none of its benefit.',
@@ -1333,6 +1399,7 @@ export const CRAWL_CATALOGUE = {
   DATES_INCONSISTENT: {
     severity: 'notice',
     label: 'Dates contradict each other',
+    passLabel: 'Dates agree',
     plain: {
       what: "The page's publish and update dates contradict each other",
       why: 'Google shows a date beside results and asks for consistent dates. Given dates that cannot all be true, it has to pick one and may show the wrong one, making the post look older or newer than it is.',
@@ -1350,6 +1417,7 @@ export const CRAWL_CATALOGUE = {
     // structured data, and a hint implying otherwise manufactures urgency.
     severity: 'notice',
     label: 'No article structured data',
+    passLabel: 'Article structured data present',
     plain: {
       what: 'The page has no article details marked up for Google',
       why: 'This is optional, and Google requires none. Marking up the headline, author, date and image helps Google show them correctly, for example the date and image beside the result.',
@@ -1368,6 +1436,7 @@ export const CRAWL_CATALOGUE = {
     // because that page is already failing the check above and would be told twice.
     severity: 'notice',
     label: 'Article markup is missing recommended fields',
+    passLabel: 'Article markup has the recommended fields',
     plain: {
       what: "The page's article markup leaves out recommended details",
       why: 'None of these details is required, but each one missing, such as the image, dates or author, is something Google has to guess, like the date it shows or who it credits as the author.',
@@ -1384,6 +1453,7 @@ export const CRAWL_CATALOGUE = {
     // departure from its best practices costs attribution, never eligibility to rank.
     severity: 'notice',
     label: 'Author markup is incomplete',
+    passLabel: 'Author markup is complete',
     plain: {
       what: 'The article details name the author in a way Google cannot fully use',
       why: 'Google uses the author in the markup to know who wrote the post. Without the type of author and a link to a page about them, or with several names or a title squeezed into one, it may credit the post wrongly or not at all.',
@@ -1399,6 +1469,7 @@ export const CRAWL_CATALOGUE = {
   ARTICLE_DATE_FORMAT_INVALID: {
     severity: 'notice',
     label: 'Article dates are not in ISO 8601',
+    passLabel: 'Article dates are in ISO 8601',
     plain: {
       what: 'The publish or update date in the article details is in a format Google may misread',
       why: 'Google reads these dates to show when a post was published. A date written like October 3, 2026, or a time without its time zone, can be misread or shifted by hours, so results may show the wrong day.',
@@ -1413,6 +1484,7 @@ export const CRAWL_CATALOGUE = {
   ARTICLE_HEADLINE_MISMATCH: {
     severity: 'notice',
     label: 'Article headline does not match the page',
+    passLabel: 'Article headline matches the page',
     plain: {
       what: 'The headline in the article details differs from the one on the page',
       why: 'Google asks that the details given to it match what readers see. A headline about something else, often a template filling in the site name, can be ignored, and the post loses the details it was meant to give.',
@@ -1430,6 +1502,7 @@ export const CRAWL_CATALOGUE = {
     // option, not its place in results (plan D2).
     severity: 'notice',
     label: 'No breadcrumb markup',
+    passLabel: 'Breadcrumb markup present',
     plain: {
       what: "The page doesn't tell Google where it sits in the site",
       why: 'Google can show a breadcrumb trail such as Blog › SEO in place of the bare address, which tells a searcher what kind of page they are about to open. Without breadcrumb details on the page, Google shows the plain address instead.',
@@ -1446,6 +1519,7 @@ export const CRAWL_CATALOGUE = {
     // A warning, as a broken JSON-LD block is: the markup is there and Google ignores it.
     severity: 'warning',
     label: 'Breadcrumb markup is missing required fields',
+    passLabel: 'Breadcrumb markup is complete',
     plain: {
       what: "The page's breadcrumb details for Google are incomplete",
       why: 'Google can show a breadcrumb trail in place of the bare address only when every step has its required details. With one missing it ignores the trail, and the result shows the plain address.',

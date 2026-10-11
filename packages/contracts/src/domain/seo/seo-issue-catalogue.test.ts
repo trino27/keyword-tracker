@@ -227,3 +227,23 @@ describe('the catalogue split by whether the check still runs', () => {
     );
   });
 });
+
+describe('what a passed check reads as', () => {
+  /** A list of checks shows this beside a pass; the label beside a pass reads backwards. */
+  it('gives every check a pass label that is not its problem label', () => {
+    for (const code of [...CRAWL_ISSUE_CODES, ...LIGHTHOUSE_ISSUE_CODES]) {
+      const entry = SEO_ISSUE_CATALOGUE[code] as {
+        label: string;
+        passLabel: string;
+      };
+      expect({ code, ok: entry.passLabel.trim().length > 0 }).toEqual({
+        code,
+        ok: true,
+      });
+      expect({ code, same: entry.passLabel === entry.label }).toEqual({
+        code,
+        same: false,
+      });
+    }
+  });
+});

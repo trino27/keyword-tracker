@@ -311,6 +311,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 4.043 },
     severity: 'error',
     label: 'Page is blocked from all search engines',
+    passLabel: 'Page is open to search engines',
     plain: {
       what: 'Search engines are told not to list this page at all',
       why: 'A page every search engine is told to skip earns no search traffic. On a post meant to be found this is almost always a leftover setting, such as a staging switch or a category rule applied too widely.',
@@ -326,6 +327,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1, accessibility: 7 },
     severity: 'warning',
     label: 'Title is missing or empty',
+    passLabel: 'Title is present',
     plain: {
       what: "The page's title is missing or left blank",
       why: 'Google then writes the search headline itself, which often describes the page worse and earns fewer clicks. Screen reader users rely on the title to know which page they are on, and the browser tab shows nothing useful.',
@@ -341,6 +343,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1 },
     severity: 'notice',
     label: 'Meta description is missing or empty',
+    passLabel: 'Meta description is present',
     plain: {
       what: "The page's search summary is missing or left blank",
       why: 'Google then picks a passage from the page to show under the headline, which may be out of context. The summary does not affect rankings, but a clear one can earn more clicks from the same position.',
@@ -356,6 +359,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1 },
     severity: 'notice',
     label: 'Page answers with an error status',
+    passLabel: 'Page answers with a success status',
     plain: {
       what: 'The server tells search engines this page is broken or missing',
       why: 'Search engines may not list a page that answers with an error, even when it shows content to visitors, so a live post sent this way can lose its search traffic.',
@@ -371,6 +375,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1 },
     severity: 'notice',
     label: 'Links with generic text like "click here"',
+    passLabel: 'Link text says where it leads',
     plain: {
       what: 'Some links say only "click here" or "learn more" instead of where they lead',
       why: 'Google reads link text to learn what the linked page is about, so generic words tell it nothing. Visitors scanning the page, and screen reader users moving through its list of links, cannot tell these links apart.',
@@ -390,6 +395,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1 },
     severity: 'notice',
     label: 'Links without a usable web address',
+    passLabel: 'Links have usable web addresses',
     plain: {
       what: 'Some links on this page have no working address a search engine can follow',
       why: 'Search engines find pages by following link addresses. Where one of these links stands for a real page, that page is not discovered through it and gets no credit from the link.',
@@ -405,6 +411,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1 },
     severity: 'notice',
     label: 'robots.txt is invalid or unreachable',
+    passLabel: 'robots.txt is valid',
     plain: {
       what: "The site's robots.txt has mistakes, or the server failed to send it",
       why: 'Search engines may misread rules they cannot parse, crawling parts of the site meant to stay hidden or skipping parts meant to be found. If the file fails with a server error, Google temporarily treats the whole site as blocked.',
@@ -420,6 +427,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1, accessibility: 10 },
     severity: 'warning',
     label: 'Images without alt text',
+    passLabel: 'Images have alt text',
     plain: {
       what: 'Some images have no description for people who cannot see them',
       why: 'Visitors using screen readers hear nothing useful in their place, or just a file name, which is an accessibility failure that exposes the site to complaints. Google also uses this text to understand images for image search.',
@@ -435,6 +443,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1 },
     severity: 'notice',
     label: 'Hreflang has an invalid language code or URL',
+    passLabel: 'Hreflang codes and URLs are valid',
     plain: {
       what: "The page's language-version links use an unknown language or an incomplete address",
       why: 'Google uses these links to show each searcher the version in their language or country. Links it cannot read may be ignored, and visitors may land on a version in the wrong language.',
@@ -450,6 +459,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { seo: 1 },
     severity: 'notice',
     label: 'Canonical URL is invalid or misdirected',
+    passLabel: 'Canonical URL is valid',
     plain: {
       what: "The page's main-version link is broken, contradicts itself or points to the wrong page",
       why: 'This link tells Google which address to list. A broken or self-contradicting one is ignored, and one pointing to the homepage or another language version asks Google to show that page instead of this one.',
@@ -465,6 +475,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Keyboard shortcut keys used twice',
+    passLabel: 'Keyboard shortcut keys are unique',
     plain: {
       what: 'Two or more keyboard shortcuts on this page are set to the same key',
       why: 'Visitors who move around by keyboard, often because they cannot use a mouse or see the screen, press a shortcut and land somewhere unexpected or never reach the second target. Accessibility guidelines count this as a barrier.',
@@ -480,6 +491,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: "Screen reader details that don't fit the element",
+    passLabel: 'Screen reader details fit their elements',
     plain: {
       what: "Some parts of the page carry screen reader details that don't apply to them",
       why: 'Screen readers disregard details that do not belong on that kind of element, so a visitor who listens to the page can miss a state such as selected or expanded that sighted visitors can see.',
@@ -495,6 +507,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Custom links and menu items without a name',
+    passLabel: 'Custom links and menu items have names',
     plain: {
       what: 'Some custom links and menu items give screen reader users no clue where they go',
       why: 'A screen reader announces them only by a generic name, such as "link" or "menu item", so a visitor who cannot see the screen cannot tell where they lead or what they do, and may abandon the menu or the action.',
@@ -510,6 +523,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Checkbox or row states set where not allowed',
+    passLabel: 'Checkbox and row states are set where allowed',
     plain: {
       what: 'Some checkboxes or table rows report their state to screen readers in a way not allowed there',
       why: 'Screen readers handle these clashing signals unpredictably: a visitor may hear the wrong ticked state for a checkbox, or miss that a row opens. People who rely on audio get a confusing, unreliable page.',
@@ -525,6 +539,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 1 },
     severity: 'notice',
     label: 'Retired element types screen readers may not know',
+    passLabel: 'No retired element types',
     plain: {
       what: 'Some parts of the page describe themselves with a retired term screen readers may not know',
       why: 'Screen readers and other assistive tools may not recognise a retired term, so a visitor listening to the page can lose the structure that part was meant to convey. The effect is limited, which is why this is a notice.',
@@ -540,6 +555,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Pop-ups without a title for screen readers',
+    passLabel: 'Pop-ups have a title for screen readers',
     plain: {
       what: 'Pop-ups on this page open without a title that screen readers can announce',
       why: 'When a pop-up such as a sign-up form or cookie notice opens, a visitor using a screen reader hears no title and cannot tell what it is for before deciding how to respond to it.',
@@ -555,6 +571,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Whole page hidden from screen readers',
+    passLabel: 'Page is visible to screen readers',
     plain: {
       what: 'The entire page is marked as invisible to screen readers',
       why: 'Screen readers then behave inconsistently and may skip the content entirely, so visitors who are blind can be shut out of the page. Lighthouse counts this among its most heavily weighted accessibility checks.',
@@ -570,6 +587,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Hidden parts that keyboard users can still reach',
+    passLabel: 'Hidden parts are out of keyboard reach',
     plain: {
       what: 'Keyboard users can land on links or buttons that screen readers are told to ignore',
       why: 'A visitor tabbing through the page stops on something the screen reader says nothing about, such as a link in an off-screen panel, so they cannot tell where they are or what will happen if they press it.',
@@ -585,6 +603,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Custom form fields without a label',
+    passLabel: 'Custom form fields have labels',
     plain: {
       what: 'Some custom form fields, such as search boxes or sliders, have no label for screen readers',
       why: 'A visitor using a screen reader hears only a generic field type, with no name, and cannot tell what to type or pick. Forms they cannot complete mean lost searches, sign-ups and enquiries from those visitors.',
@@ -600,6 +619,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Gauges without a name',
+    passLabel: 'Gauges have names',
     plain: {
       what: 'Gauges such as scores or levels are read aloud without saying what they measure',
       why: 'A visitor using a screen reader hears a value with no context, a number without knowing what it refers to, so the information the gauge shows visually is lost to them.',
@@ -615,6 +635,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Progress bars without a name',
+    passLabel: 'Progress bars have names',
     plain: {
       what: 'Progress bars are announced without saying what is loading or advancing',
       why: 'A visitor using a screen reader hears that something is in progress but not what, so they cannot tell whether to wait for a page section, an upload or a form step.',
@@ -630,6 +651,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Labels placed where screen readers ignore them',
+    passLabel: 'Labels sit where screen readers read them',
     plain: {
       what: 'Some labels are attached to parts of the page where screen readers will not read them',
       why: 'Information meant for visitors who listen to the page, such as a label on an icon or on a plain block of text, never reaches them, and screen readers may try to make up for it in inconsistent, confusing ways.',
@@ -645,6 +667,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: "Custom controls that don't report their state",
+    passLabel: 'Custom controls report their state',
     plain: {
       what: "Some custom controls don't tell screen readers their current state",
       why: 'A visitor using a screen reader cannot hear whether an option is ticked or where a slider sits, so they operate the control without knowing its state and may choose the wrong thing.',
@@ -660,6 +683,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Menus and lists missing their marked items',
+    passLabel: 'Menus and lists contain their items',
     plain: {
       what: "Some custom menus or lists don't mark their entries in a way screen readers recognise",
       why: 'A screen reader announces the menu or list but cannot find the entries inside it, so a visitor listening to the page may not hear how many there are or be able to move between them.',
@@ -675,6 +699,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Menu or list items outside their group',
+    passLabel: 'Menu and list items sit in their group',
     plain: {
       what: 'Some menu entries, tabs or list items sit outside the group they belong to',
       why: 'Screen readers rely on that group to say where an item belongs, such as which menu or tab set it is part of, so visitors listening to the page lose their bearings and the item may not work as intended.',
@@ -690,6 +715,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Unrecognised element types in the code',
+    passLabel: 'Element types are recognised',
     plain: {
       what: "Some parts of the page are labelled with a type screen readers don't recognise",
       why: 'Those parts lose the meaning the developer intended, so a visitor using a screen reader may not learn that something is a button, a menu or a region, and may not be able to use it.',
@@ -705,6 +731,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Silent tab stops inside grouped text',
+    passLabel: 'No silent tab stops in grouped text',
     plain: {
       what: 'A link or button is tucked inside text that screen readers read as one phrase',
       why: 'Keyboard users can still move to that link or button, but the screen reader says nothing about it, leaving an empty stop where an action should be announced. It mainly affects visitors on Apple VoiceOver.',
@@ -720,6 +747,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Checkboxes and switches without a label',
+    passLabel: 'Checkboxes and switches have labels',
     plain: {
       what: 'Screen reader users cannot tell what some checkboxes, options or on/off switches are for',
       why: 'They hear only "checkbox" or "switch" with no name, so a visitor who listens to the page cannot tell what they are agreeing to or turning on, and may skip a form or choose the wrong setting.',
@@ -735,6 +763,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Tooltips with no text for screen readers',
+    passLabel: 'Tooltips have text for screen readers',
     plain: {
       what: 'Some tooltips give screen readers nothing to read out',
       why: 'When a tooltip explains an icon or a field, a visitor using a screen reader hears no explanation and misses help that sighted visitors get by hovering.',
@@ -750,6 +779,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Unnamed entries in expandable tree menus',
+    passLabel: 'Tree menu entries have names',
     plain: {
       what: 'Entries in folder-style, expandable menus are unnamed for screen reader users',
       why: 'A visitor using a screen reader hears unnamed entries as they move through the menu, so they cannot tell one category or section from another and may not find what they came for.',
@@ -765,6 +795,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Screen reader instructions with invalid values',
+    passLabel: 'Screen reader instructions have valid values',
     plain: {
       what: 'Some instructions meant for screen readers contain values that are not allowed',
       why: 'Screen readers cannot interpret a value they do not recognise, for example an open-or-closed setting given "yes" instead of true, so visitors listening to the page miss what that part is doing.',
@@ -780,6 +811,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Misspelled screen reader instructions',
+    passLabel: 'Screen reader instructions are spelled right',
     plain: {
       what: 'Some instructions meant for screen readers are misspelled or made up',
       why: 'Screen readers ignore an instruction whose name they do not recognise, so the label, state or description intended for visitors who listen to the page never reaches them.',
@@ -795,6 +827,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Buttons without a name',
+    passLabel: 'Buttons have names',
     plain: {
       what: 'Some buttons are announced to screen reader users as just "button"',
       why: 'A visitor who cannot see the screen cannot tell whether a button opens a menu, submits a form or closes a pop-up, so they may avoid it, and actions such as sign-ups and searches go unused.',
@@ -810,6 +843,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'No way to skip to the main content',
+    passLabel: 'There is a way to skip to the main content',
     plain: {
       what: "Keyboard users can't jump past the header and menu straight to the article",
       why: 'Visitors who navigate by keyboard must tab through every header and menu link on each page before they reach the content. That is slow and tiring, and for people with motor impairments it can take minutes.',
@@ -825,6 +859,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Text with too little contrast',
+    passLabel: 'Text has enough contrast',
     plain: {
       what: 'Some text is too faint against its background to read easily',
       why: 'Visitors with low vision, and many others, find low-contrast text hard or impossible to read, so they skip it or leave. It also falls short of the contrast minimum in the accessibility guidelines a site is measured against.',
@@ -840,6 +875,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Term-and-definition lists built out of order',
+    passLabel: 'Term-and-definition lists are built in order',
     plain: {
       what: 'A list of terms and their meanings is built in a way screen readers misread',
       why: 'A screen reader may read a glossary or term list out in a confusing or inaccurate way, so a visitor listening to the page cannot tell which description belongs to which term.',
@@ -855,6 +891,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Terms and definitions outside a list',
+    passLabel: 'Terms and definitions sit in a list',
     plain: {
       what: 'Terms and their meanings appear outside the list that should hold them',
       why: 'Screen readers cannot announce them as a term and its description, so visitors who listen to the page hear loose fragments and lose how the pieces relate.',
@@ -870,6 +907,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Labels that point to a duplicated reference',
+    passLabel: 'Label references are unique',
     plain: {
       what: 'Labels on this page point to a reference that appears twice, so one copy is overlooked',
       why: 'Screen readers usually follow only the first match, so a form field or control whose label points to the second copy may be announced with the wrong text or none, and visitors may fill in the wrong field.',
@@ -885,6 +923,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 3 },
     severity: 'notice',
     label: 'Form fields with more than one label',
+    passLabel: 'Form fields have one label each',
     plain: {
       what: 'Some form fields carry two or more labels, so screen readers may read out the wrong one',
       why: 'Screen readers handle a field with several labels inconsistently: some read the first, some the last, some all of them. Visitors who rely on them may misread what the field asks for, and the form falls short of accessibility guidelines.',
@@ -900,6 +939,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Embedded frames without a title',
+    passLabel: 'Embedded frames have titles',
     plain: {
       what: 'Embedded content such as videos, maps or forms has no name a screen reader can announce',
       why: 'Where a video, map or form is embedded, screen reader users hear only "frame", a file name or a web address, so they can\'t tell what it is or whether it\'s worth entering. The page also falls short of accessibility guidelines.',
@@ -915,6 +955,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 3 },
     severity: 'notice',
     label: 'Heading levels out of sequence',
+    passLabel: 'Heading levels in sequence',
     plain: {
       what: 'Headings jump down more than one level at a time, which confuses screen reader navigation',
       why: "This does not affect Google rankings: Google says heading order doesn't matter to Search. It matters to screen reader users, who move through a page by its headings and read a skipped level as a missing section.",
@@ -930,6 +971,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Page language is not set',
+    passLabel: 'Page language is set',
     plain: {
       what: "Screen readers aren't told the page's language, so they may read it in the wrong accent",
       why: 'This does not affect Google rankings: Google detects the language from the visible text. A screen reader set to another language will read the page with the wrong pronunciation, and accessibility standards require the language to be declared.',
@@ -945,6 +987,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Page language code is not valid',
+    passLabel: 'Page language code is valid',
     plain: {
       what: "The page names its language with a code that screen readers don't recognise",
       why: "This does not affect Google rankings, as Google reads the language from the text. Screen readers can't switch to the right voice for an unknown code, so visitors who use them may hear the whole page mispronounced.",
@@ -964,6 +1007,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 3 },
     severity: 'notice',
     label: 'Two language declarations disagree',
+    passLabel: 'Language declarations agree',
     plain: {
       what: 'The page states its language twice, and the two statements name different languages',
       why: 'This does not affect Google rankings, as Google reads the language from the text. Screen readers may follow the wrong statement and read the page with the wrong pronunciation, which hurts visitors who rely on them.',
@@ -983,6 +1027,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Form buttons with no text',
+    passLabel: 'Form buttons have text',
     plain: {
       what: 'Some form buttons have no words, so screen readers cannot say what they do',
       why: 'A screen reader announces such a button as just "button", so visitors who rely on one can\'t tell whether it submits, resets or searches. They may give up on the form, and the page fails accessibility guidelines.',
@@ -998,6 +1043,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Image buttons without alt text',
+    passLabel: 'Image buttons have alt text',
     plain: {
       what: 'Some buttons are pictures with no text description of what they do',
       why: "Screen reader users can't tell what an image button does, even when the picture shows words, so they may be unable to search, submit or sign up. The page also fails accessibility guidelines.",
@@ -1013,6 +1059,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Form fields without labels',
+    passLabel: 'Form fields have labels',
     plain: {
       what: 'Some boxes in a form have no label telling screen reader users what to enter',
       why: 'Visitors using screen readers hear only the kind of field, not what it is for, and must guess what to type, so contact and sign-up forms go unfinished. The form also fails accessibility guidelines.',
@@ -1028,6 +1075,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Links that stand out only by colour',
+    passLabel: 'Links stand out by more than colour',
     plain: {
       what: 'Links inside paragraphs are told apart from the surrounding text only by their colour',
       why: 'Visitors with low vision or colour blindness, which affects about 8% of men, may not notice the links at all, so they miss the pages you want them to reach.',
@@ -1043,6 +1091,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Links without a readable name',
+    passLabel: 'Links have readable names',
     plain: {
       what: 'Some links give screen readers nothing to announce about where they lead',
       why: 'Google reads link text to learn what the linked page is about, so a link with none tells it nothing. Screen reader users hear only "link" or a web address and can\'t tell where it goes.',
@@ -1062,6 +1111,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Lists with stray content inside',
+    passLabel: 'Lists hold only list items',
     plain: {
       what: 'Some bulleted or numbered lists hold content that is not a list item',
       why: 'Screen readers announce a list and how many items it has so visitors know what to expect; stray content breaks that, and people who rely on them lose track of where they are in it.',
@@ -1077,6 +1127,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'List items outside a list',
+    passLabel: 'List items sit in a list',
     plain: {
       what: 'Some lines are set up as list items without being inside a list',
       why: "Screen readers can't tell visitors that they are in a list or how many items it has, so people who rely on them get a run of fragments with no context.",
@@ -1092,6 +1143,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Page refreshes or redirects on a timer',
+    passLabel: 'No timed refresh or redirect',
     plain: {
       what: 'The page reloads itself or sends visitors elsewhere after a set delay',
       why: "Visitors can't stop or slow it, so people who read slowly or use a screen reader can be moved on before they finish, and a reload throws them back to the top. Google treats a delayed redirect as only a temporary one.",
@@ -1107,6 +1159,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Zooming is blocked on phones',
+    passLabel: 'Zooming is allowed on phones',
     plain: {
       what: 'The page stops visitors from zooming in, or limits how far they can zoom, on their phones',
       why: 'Visitors with low vision who pinch to zoom cannot enlarge the text enough, so they may not be able to read the page at all. This is an accessibility problem; Google does not document it as a ranking factor.',
@@ -1122,6 +1175,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Embedded objects without a text alternative',
+    passLabel: 'Embedded objects have a text alternative',
     plain: {
       what: 'Some embedded media or documents have no text description for screen readers',
       why: "Screen readers can't describe embedded media, documents or pages on their own, so visitors who rely on them miss whatever that content holds, and the page fails accessibility guidelines.",
@@ -1137,6 +1191,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Drop-down menus without labels',
+    passLabel: 'Drop-down menus have labels',
     plain: {
       what: 'Some drop-down menus in forms have no label saying what to choose',
       why: 'Screen reader users hear a list of options with no question attached, so they may pick the wrong one or abandon the form, and the form fails accessibility guidelines.',
@@ -1152,6 +1207,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 3 },
     severity: 'notice',
     label: 'Skip link leads nowhere',
+    passLabel: 'Skip links lead to their target',
     plain: {
       what: "The page's skip-to-content shortcut points to a spot that keyboard users can't reach",
       why: 'Keyboard and screen reader users use this shortcut to jump past the menu to the article; when it leads nowhere, they have to tab or listen through the whole menu on every page.',
@@ -1167,6 +1223,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Tab order forced out of reading order',
+    passLabel: 'Tab order follows reading order',
     plain: {
       what: 'The page forces its own order for moving through it with the Tab key',
       why: 'Keyboard users expect Tab to move down the page in reading order; a forced order jumps around and can seem to skip links and fields entirely, which disorients them and screen reader users.',
@@ -1182,6 +1239,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Tap targets too small or crowded',
+    passLabel: 'Tap targets are large enough',
     plain: {
       what: 'Some buttons and links are too small or too close together to tap reliably',
       why: 'Phone users, and people with hand tremors or limited dexterity, tap the wrong thing or miss altogether, which costs clicks on menus, buttons and calls to action.',
@@ -1197,6 +1255,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Table cells point to the wrong headers',
+    passLabel: 'Table cells point to the right headers',
     plain: {
       what: "Some table cells are linked to headers that aren't in the same table",
       why: "Screen reader users move through a table cell by cell, hearing each cell's headers as they go; broken links between cells and headers give them wrong or missing context for the figures.",
@@ -1212,6 +1271,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Table headers with no data under them',
+    passLabel: 'Table headers have data under them',
     plain: {
       what: 'Some table headers label nothing, so the table reads confusingly aloud',
       why: "Screen reader users rely on headers to know what each figure means; headers with no cells beneath them suggest columns that aren't there and muddle the whole table.",
@@ -1227,6 +1287,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 7 },
     severity: 'warning',
     label: 'Passages with an invalid language code',
+    passLabel: 'Passage language codes are valid',
     plain: {
       what: "Passages marked as being in another language use a code screen readers can't recognise",
       why: "This does not affect Google rankings, as Google reads the language from the text. Screen readers can't switch voice for an unknown code, so quotes or phrases in another language may be mispronounced to visitors who use them.",
@@ -1242,6 +1303,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 10 },
     severity: 'warning',
     label: 'Videos without captions',
+    passLabel: 'Videos have captions',
     plain: {
       what: 'Videos on this page come without captions for viewers who cannot hear them',
       why: 'Deaf and hard-of-hearing visitors miss everything said in the video, and so does anyone watching with the sound off. Uncaptioned video is a plain accessibility gap that guidelines require closing.',
@@ -1257,6 +1319,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 3 },
     severity: 'notice',
     label: 'No main content area marked',
+    passLabel: 'Main content area is marked',
     plain: {
       what: 'Screen reader users have no marked main section of the page to jump straight to',
       why: 'People using screen readers jump between labelled regions of a page; with no main region marked, they must listen through the header and menus to find the article.',
@@ -1272,6 +1335,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 1 },
     severity: 'notice',
     label: 'Form autofill hints are wrong',
+    passLabel: 'Form autofill hints are valid',
     plain: {
       what: 'Some form fields carry autofill hints that browsers and screen readers cannot use',
       why: 'Visitors with motor, vision or cognitive difficulties lean on autofill to complete forms; broken hints stop details such as name and email filling in, so sign-ups and enquiries take more effort.',
@@ -1287,6 +1351,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 1 },
     severity: 'notice',
     label: 'Decorative parts screen readers still reach',
+    passLabel: 'Decorative parts are hidden from screen readers',
     plain: {
       what: 'Parts of the page marked as decorative are still picked up by screen readers',
       why: 'Screen reader users land on items that were meant to be skipped and hear them announced without a useful name, which clutters and confuses the page for them.',
@@ -1302,6 +1367,7 @@ export const LIGHTHOUSE_CATALOGUE = {
     weights: { accessibility: 1 },
     severity: 'notice',
     label: 'Icons and graphics without a description',
+    passLabel: 'Icons and graphics have descriptions',
     plain: {
       what: 'Some icons, charts and other drawn graphics have no text description',
       why: "Screen reader users get nothing for these graphics, so the information they carry, such as a chart's figures or an icon's meaning, is lost to them, and the page fails accessibility guidelines.",

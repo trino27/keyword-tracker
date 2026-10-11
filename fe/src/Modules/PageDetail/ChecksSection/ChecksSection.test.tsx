@@ -73,8 +73,8 @@ describe("ChecksSection", () => {
 		const lighthouseLabel = await screen.findByText("Canonical URL is invalid or misdirected");
 		const row = lighthouseLabel.closest("[data-disagree]") as HTMLElement;
 		expect(row).not.toBeNull();
-		expect(within(row).getByText("Canonical URL is missing")).toBeInTheDocument();
-		expect(within(row).getByText("Canonical URL is relative")).toBeInTheDocument();
+		expect(within(row).getByText("Canonical URL is declared")).toBeInTheDocument();
+		expect(within(row).getByText("Canonical URL is absolute")).toBeInTheDocument();
 		expect(within(row).getByText("Sources disagree")).toBeInTheDocument();
 		// The reason is said in full under the marker, not hidden in a tooltip.
 		expect(
@@ -104,7 +104,7 @@ describe("ChecksSection", () => {
 	it("points nowhere when nothing failed", async () => {
 		render();
 
-		await screen.findByText("Title is missing");
+		await screen.findAllByText("Title is present");
 		expect(screen.queryByText(/are in SEO issues below/)).not.toBeInTheDocument();
 		expect(screen.queryByText("Sources disagree")).not.toBeInTheDocument();
 	});
@@ -116,7 +116,7 @@ describe("ChecksSection", () => {
 			await screen.findByText("Re-crawl this page to see each check."),
 		).toBeInTheDocument();
 		expect(screen.queryByText("Thin content")).not.toBeInTheDocument();
-		expect(screen.getByText("Canonical URL is invalid or misdirected")).toBeInTheDocument();
+		expect(screen.getByText("Canonical URL is valid")).toBeInTheDocument();
 	});
 
 	it("says a Lighthouse audit was not recorded rather than calling it passed", async () => {

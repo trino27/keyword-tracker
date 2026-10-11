@@ -41,6 +41,12 @@ export interface ISeoIssueDefinition {
 /** A check the crawl runs on a page's HTML. */
 export interface ICrawlIssueDefinition extends ISeoIssueDefinition {
   /**
+   * What the check reads as when it passed — "Language is declared" beside a passed
+   * LANG_MISSING. `label` names the problem, which beside a green mark reads as if the
+   * problem were the good outcome; a list of checks shows this instead for a pass.
+   */
+  passLabel: string;
+  /**
    * Why this check can be skipped, for the codes whose rule can answer `notApplicable`.
    * A property of the RULE, not of a page — `IMAGES_MISSING_ALT` is skipped for one
    * reason every time — so it is a constant here rather than a fact stored per page.
@@ -76,6 +82,12 @@ export type TLighthouseCategory = 'seo' | 'accessibility';
  * configuration, never from an answer, which reports 0 for an audit that did not apply.
  */
 export interface ILighthouseIssueDefinition extends ISeoIssueDefinition {
+  /**
+   * What the check reads as when it passed — "Language is declared" beside a passed
+   * LANG_MISSING. `label` names the problem, which beside a green mark reads as if the
+   * problem were the good outcome; a list of checks shows this instead for a pass.
+   */
+  passLabel: string;
   audit: string;
   weights: Partial<Record<TLighthouseCategory, number>>;
 }

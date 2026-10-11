@@ -130,7 +130,7 @@ export function summariseChecks(byOwner: TChecksByOwner, context: IChecksContext
 			return [
 				{
 					code,
-					label: SEO_ISSUE_CATALOGUE[code].label,
+					label: labelOf(code, status),
 					status,
 					reason: reasonFor(owner, code, status),
 				},
@@ -193,6 +193,16 @@ export function summariseChecks(byOwner: TChecksByOwner, context: IChecksContext
 		sections,
 		failed: [...statusOf.values()].filter((status) => status === "failed").length,
 	};
+}
+
+/**
+ * A passed check reads as what is right — "Language is declared" — and every other status
+ * as the problem it looks for. The problem's name beside a green mark reads as if the
+ * problem were the good outcome.
+ */
+function labelOf(code: TSeoIssueCode, status: TCheckStatus): string {
+	const entry = SEO_ISSUE_CATALOGUE[code];
+	return status === "passed" && "passLabel" in entry ? entry.passLabel : entry.label;
 }
 
 const isLighthouse = (code: TSeoIssueCode): code is TLighthouseIssueCode =>
