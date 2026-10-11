@@ -302,8 +302,12 @@ it green.
 
 ## 7. Change acceptance
 
-- [ ] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db && docker compose up
+- [x] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db && docker compose up
   -d --build && curl -fsS http://localhost:8080/api/health`.
+  Done 2026-10-11 at 8203f95, in a clean worktree: lint and typecheck clean; contracts 469, be 1283,
+  fe 378 and 188 db/e2e tests green; the be and web images build. The running stack's be was
+  rebuilt and answers health; its web was not, because the main tree held another session's
+  unfinished fe files that do not compile.
 - [ ] 7.2 Archive and deposit belong to plan phase 6. Harvest first (plan §18), then archive,
   rewrite the headings, and deposit:
   - CRAWL-011…013 into `CRAWL_MODULE.md`;

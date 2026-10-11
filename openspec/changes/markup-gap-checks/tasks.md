@@ -85,9 +85,11 @@ Each code gets one commit containing:
 - [x] 2.5 Re-read the catalogue-size claims. Verify: `git grep -n -E "sixty-one|61 checks|50 page
   checks" -- README.md be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`, and note in the
   harvest list each line to correct.
-- [ ] 2.6 Phase acceptance for 1b, run after 2.7–2.9. Verify: `pnpm --filter be test:ci --
+- [x] 2.6 Phase acceptance for 1b, run after 2.7–2.9. Verify: `pnpm --filter be test:ci --
   src/modules/page-analysis && pnpm --filter @app/contracts test:ci && pnpm --filter fe test:ci --
   describeIssue PageSchemas ChecksSection && pnpm lint && pnpm typecheck && pnpm test`.
+  Done 2026-10-11 at 8203f95, in a clean worktree: lint and typecheck clean; contracts 469, be 1283,
+  fe 378 tests green.
 - [x] 2.7 The http twin is reported once (plan D32) — ANALYSIS-015.
   - Write first:
     - `canonical-to-http.check.spec.ts` → "fails an https page whose canonical is its own
@@ -281,7 +283,8 @@ and before 6.
 
 ## 7. Change acceptance
 
-- [ ] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+- [x] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+  Done 2026-10-11 at 8203f95, in a clean worktree: as 2.6, plus 188 db and e2e tests green.
 - [ ] 7.2 Archive and deposit belong to plan phase 6. Harvest first (plan §18), then archive,
   rewrite the headings into the `[ID]` form, and deposit ANALYSIS-014…021 and ANALYSIS-023 into
   `PAGE_ANALYSIS_MODULE.md` (ANALYSIS-022 is never used, plan D33). Verify: `pnpm exec openspec
