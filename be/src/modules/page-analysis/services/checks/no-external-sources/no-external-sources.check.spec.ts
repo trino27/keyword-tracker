@@ -46,16 +46,31 @@ describe('NO_EXTERNAL_SOURCES', () => {
       'https://a.example/pricing/',
     ],
     ['a subdomain', 'https://a.example/post/', 'https://docs.a.example/api/'],
+    // blog.hubspot.com linking to cta-redirect.hubspot.com: a sibling, not a source.
+    [
+      'a sibling subdomain',
+      'https://blog.a.example/post/',
+      'https://cta.a.example/redirect/1',
+    ],
+    [
+      'a sibling under a country code',
+      'https://blog.a.co.uk/post/',
+      'https://shop.a.co.uk/x',
+    ],
   ])("counts %s as the site's own", (_, finalUrl, link) => {
     expect(
       NO_EXTERNAL_SOURCES_CHECK.evaluate(withLinks([link], finalUrl)),
     ).toEqual(failsWith({ links: 1 }));
   });
 
-  // A host ending in the site's name is not its subdomain.
-  it('does not take a lookalike host for the site', () => {
+  // A host ending in the site's name is not its subdomain, and another registrant under
+  // the same country code is another organisation.
+  it.each([
+    ['https://a.example/post/', 'https://nota.example/x'],
+    ['https://blog.a.co.uk/post/', 'https://b.co.uk/report'],
+  ])('does not take %s and %s for one site', (finalUrl, link) => {
     expect(
-      NO_EXTERNAL_SOURCES_CHECK.evaluate(withLinks(['https://nota.example/x'])),
+      NO_EXTERNAL_SOURCES_CHECK.evaluate(withLinks([link], finalUrl)),
     ).toEqual(PASSES);
   });
 

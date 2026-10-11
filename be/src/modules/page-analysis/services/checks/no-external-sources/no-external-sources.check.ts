@@ -3,20 +3,44 @@ import { attribute, evidence } from '../_shared/evidence';
 import { isLongText } from '../_shared/long-text';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
+/** Second-level labels under a country code that a registrant cannot own: co.uk, com.ua. */
+const PUBLIC_SECOND_LEVELS = new Set([
+  'co',
+  'com',
+  'org',
+  'net',
+  'gov',
+  'ac',
+  'edu',
+]);
+
 /**
- * Whether a link leaves the site's own organisation: the site key, its subdomains, and
- * the domain it is a subdomain of all count as the site. blog.example.com linking to
- * example.com/pricing cites nothing, though `sameSite` — which the internal-link checks
- * rightly use, since the crawler admits only one site key — would call it another site.
+ * The domain an organisation registers — example.com, example.co.uk — approximated
+ * without the Public Suffix List: the last two labels, or three under a country code's
+ * public second level. Close enough for "is this the same company", which is all it
+ * answers, and wrong only towards counting a link as the site's own.
+ */
+function organisationOf(hostname: string): string {
+  const labels = siteKeyOf(hostname).split('.');
+  const publicSecondLevel =
+    labels.length >= 3 &&
+    labels[labels.length - 1].length === 2 &&
+    PUBLIC_SECOND_LEVELS.has(labels[labels.length - 2]);
+  return labels.slice(publicSecondLevel ? -3 : -2).join('.');
+}
+
+/**
+ * Whether a link leaves the site's own organisation. blog.example.com linking to
+ * example.com/pricing, or to its own cta-redirect.example.com, cites nothing — though
+ * `sameSite`, which the internal-link checks rightly use since the crawler admits only
+ * one site key, would call both another site. On blog.hubspot.com every post "cited"
+ * HubSpot's own CTA redirect until the organisation was compared instead.
  */
 function outsideSource(href: string, pageUrl: string): boolean {
   try {
-    const site = siteKeyOf(new URL(pageUrl).hostname);
-    const host = siteKeyOf(new URL(href).hostname);
-    return !(
-      host === site ||
-      host.endsWith(`.${site}`) ||
-      site.endsWith(`.${host}`)
+    return (
+      organisationOf(new URL(href).hostname) !==
+      organisationOf(new URL(pageUrl).hostname)
     );
   } catch {
     return false;
