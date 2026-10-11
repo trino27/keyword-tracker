@@ -306,7 +306,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   if (blocks.length === 0 && mainText) blocks.push(mainText);
 
   const images: IPageImage[] = [];
-  main.find('img').each((_, element) => {
+  (postArticleIn($, main) ?? main).find('img').each((_, element) => {
     const image = $(element);
     images.push({
       src: image.attr('src') ?? null,
@@ -590,6 +590,40 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
     node.remove();
   });
   return main;
+}
+
+/** The share of the content's words an <article> needs to be the post on its own. */
+const POST_ARTICLE_SHARE = 0.5;
+
+/**
+ * The post's own <article> inside the content, when the content is wider than it.
+ *
+ * semrush.com sets the h1, byline and date above the <article>, so `mainContent` cannot
+ * pick the article out by its h1 and reads the whole <main>, and below the article the
+ * same <main> carries a "preferred source" badge with an image. Counted as the post's
+ * image, it passed NO_IMAGES and IMAGES_MISSING_ALT on posts with no image at all —
+ * Lighthouse, finding no content image there, said not applicable. The images are
+ * therefore read from the one <article> holding most of the content's words.
+ *
+ * Images only. Moving the text to the article as well drops the author bio and the
+ * related-post teasers, which is right, but the keyword catalogue measured four
+ * labelled keywords lost on four semrush posts doing it (scoring is tuned on <main>), so
+ * that change waits for a retuning of its own.
+ */
+function postArticleIn(
+  $: CheerioAPI,
+  main: ReturnType<CheerioAPI>,
+): ReturnType<CheerioAPI> | null {
+  if (main.is('article')) return null;
+  const total = wordsIn($, main);
+  if (total === 0) return null;
+  const posts = main
+    .find('article')
+    .filter((_, element) => $(element).parents('article').length === 0)
+    .filter(
+      (_, element) => wordsIn($, $(element)) > total * POST_ARTICLE_SHARE,
+    );
+  return posts.length === 1 ? posts.first() : null;
 }
 
 function metaContent(

@@ -106,6 +106,32 @@ describe('extractPage', () => {
     expect(parsed.blocks).toEqual(['Rome is warm.']);
   });
 
+  it('reads the images of the <article> that holds the post when its h1 sits above it', () => {
+    // semrush.com puts the h1, the byline and the date above the <article>, and a
+    // "preferred source" badge with an image below it in the same <main>. Reading <main>
+    // counted the badge as the post's image, so NO_IMAGES passed a post without one.
+    const parsed = page(
+      '<main><h1>AI Marketing Guide</h1>' +
+        '<article><p>AI drafts the copy, people decide what it says and to whom.</p>' +
+        '<p>Start with one channel, measure it, then widen the scope.</p></article>' +
+        '<section><img src="/badge.png" alt="Add us as a preferred source"></section>' +
+        '</main>',
+    );
+
+    expect(parsed.images).toEqual([]);
+    expect(parsed.blocks[0]).toContain('AI drafts the copy');
+  });
+
+  it('reads no image into a semrush post whose article has none (recorded)', () => {
+    const parsed = recorded(
+      'semrush/blog/what-is-ai-marketing/index.html',
+      'https://www.semrush.com/blog/what-is-ai-marketing/',
+    );
+
+    expect(parsed.images).toEqual([]);
+    expect(parsed.h1s).toHaveLength(1);
+  });
+
   it('does not mistake a related-post card for the article, h1 and all', () => {
     // canadiangeographic.ca does not wrap the post in an <article> at all, and the
     // cards under it are <article>s with an <h1> each. Taking the first one gave a
