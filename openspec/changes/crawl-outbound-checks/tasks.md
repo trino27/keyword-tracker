@@ -65,7 +65,7 @@ it green.
   external links would read as broken. A request with `maxBytes === 0` and no entry answers 200
   with an empty body, and `override` still wins. Commit: `test(fixtures): an unrecorded status
   check answers 200, never the network`. Verify: `pnpm --filter be test:ci -- fixture-http-transport`.
-- [ ] 2.2 Write first `be/src/modules/page-analysis/services/checks/_shared/document-facts.spec.ts`:
+- [x] 2.2 Write first `be/src/modules/page-analysis/services/checks/_shared/document-facts.spec.ts`:
   - "reads noindex from meta robots, googlebot and X-Robots-Tag";
   - "reads the first declared canonical";
   - "keeps the alternates".

@@ -84,7 +84,7 @@ function unavailableAfterOf(rawRules: string[]): Date | null {
 export function robotsDirectivesForGoogle({
   parsed,
   headers,
-}: ICheckInput): IRobotsDirectives[] {
+}: Pick<ICheckInput, 'parsed' | 'headers'>): IRobotsDirectives[] {
   const found: IRobotsDirectives[] = [];
   for (const [name, content] of [
     ['robots', parsed.metaRobots],
