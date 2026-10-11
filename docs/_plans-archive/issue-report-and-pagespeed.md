@@ -1,3 +1,59 @@
+<!-- ARCHIVED. Present tense below describes what this plan intended, not what is true. -->
+
+# ARCHIVE HEADER
+
+**Status:** archived 2026-10-12. **Branch:** `feat/issue-report-and-pagespeed`. Phases 1–6
+executed. The four changes are archived under `openspec/changes/archive/2026-10-10-*`. Phase 6 —
+verified against the live PageSpeed API — was plan-only, as D29 says. The body below was not
+edited, apart from three things: the decisions appended while the work ran (D30–D36), the VERIFY
+items of §8, §10.2 and §10.5 settled with SETTLED / AMENDED lines, and Phase 6's ticks and
+outcome. It still reads as the plan that was executed.
+
+**Built, and where it is pinned.** Every phase was implemented test-first. After Phase 6 the
+whole branch was audited by area — PageSpeed, the issue report and data isolation, page analysis,
+the crawl and contracts, the screens, the guide — and every defect found was fixed under a test,
+one commit each. The final full run is lint and typecheck clean, with 794 contracts, 1440
+backend, 466 frontend and 227 database/e2e tests. The stack was rebuilt from that code; a rejected
+key and its recovery were exercised against the live API; and a headless browser walked the
+screens. Among the fixes:
+- the PageSpeed claim could take a row twice;
+- a transient Lighthouse error on a 5xx failed the page;
+- one malformed field metric voided a measurement;
+- the whole-site row could show one metric in two bands;
+- a robots.txt was not applied to the posts' own host;
+- a regex could stall the analysis;
+- the search box dropped its focus.
+
+**Harvested into:**
+
+| fact | now lives in |
+| --- | --- |
+| the worker, the queue, the claim, the failure table, the key in a header, the per-process pause, R7, the measured cost and latency | `be/src/modules/page-speed/PAGE_SPEED_MODULE.md` |
+| `page_speed` is the pages module's; speed counts in issues, never in the score | `be/src/modules/pages/PAGES_MODULE.md` |
+| finalize enqueues the run's pages; robots.txt per host, by the origins a file governs | `be/src/modules/crawl/CRAWL_MODULE.md` |
+| the `owner` field, the plain copy, speed codes pinned by `cwv-issues-of.spec.ts` | `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` |
+| the current-run rule, the whole-site fold per metric and device, why no server-side filters | `be/src/modules/issue-report/ISSUE_REPORT_MODULE.md` |
+| the plan's decisions condensed (D1–D29 in full, the later ones where they changed behaviour), with the measured latency, cost and the rejected-key run | `docs/decisions.md` |
+| the key, the states, the rubric, mobile and desktop | `README.md` |
+| the four changes' requirements (SPEED-*, REPORT-*, PAGES-013/014, SEED-006, ANALYSIS-012/013, REMOTE-002/003, the screens' ids) | `openspec/specs/**`, deposited beside each owning document's invariants |
+
+**Left open, for a person:**
+
+1. **O1–O5 stay open with their defaults**, each with the trigger the plan names.
+2. **The project's PageSpeed quota was not read from the Cloud console.** The docs quote the
+   25 000 a day Google documents as the default.
+3. **Two answers stay synthesized**: `errored-document` and `server-error`. Neither can be
+   produced on demand.
+4. **Severity is read as stored.** Findings carry the severity they were written with; the score
+   weighs the catalogue's. The two disagree only between a catalogue change and the next crawl.
+5. **A page filter keeps every whole-site row (D17)**, including a speed row that does not cover
+   the filtered page because it has figures of its own. Marking which pages a row covers would
+   need a contract field.
+6. **The guide quotes some backend numbers as text** — outbound budgets, sitemap thresholds,
+   keyword weights. They match the code today, but the guide does not derive them.
+
+---
+
 # Issue report, PageSpeed measurement and Core Web Vitals
 
 A marketer opens **Issues**, picks a client, and reads every problem the tracker knows about
@@ -12,7 +68,7 @@ the SEO score. Without a PageSpeed key the app still runs from a clean clone and
 speed is not configured. Rank positions stay simulated: PageSpeed is the only thing that talks to
 Google.
 
-**Status:** active — branch `feat/issue-report-and-pagespeed`
+**Status:** archived — see the header above — branch `feat/issue-report-and-pagespeed`
 
 **Changes:** issue-catalogue-owners, page-speed-measurement, core-web-vitals-display, client-issue-report
 
@@ -557,6 +613,13 @@ VERIFY: the exact PSI error shapes — the Lighthouse runtime code in a 400/500 
 (`429 RESOURCE_EXHAUSTED`, and whether a daily-quota exhaustion arrives as 403). The recorded
 fixtures of phase 2e settle it; §10.5 is amended to what they show.
 
+SETTLED 2026-10-11 by the answers recorded in Phase 6 (6.3): a Lighthouse page error comes back
+as HTTP 400, not 500, naming its code in the message ("Lighthouse returned error:
+FAILED_DOCUMENT_REQUEST"); an empty error page answers `NO_FCP`, filed `PAGE_ERRORED`; a bad key
+in the header answers `400 API_KEY_INVALID`; a keyless request answers `429 RESOURCE_EXHAUSTED`
+with a daily limit of 0. A spent daily quota with a real key was not produced on demand: no 403
+quota answer was seen, and the classifier reads the per-day limit from the 429's reasons.
+
 ---
 
 ## 9. Background work
@@ -571,7 +634,7 @@ poll interval or a `page_speed_queued` NOTIFY.
 | Outcome | Row | Queue |
 | --- | --- | --- |
 | timeout (90 s), network, 5xx | `queued`, `next_attempt_at = now + 1 min × 4^(n−1)`, `last_error = PSI_UNAVAILABLE`; at attempt 5 → `failed` | continues |
-| 429 (or quota 403, per VERIFY) | released: `queued`, `attempts − 1`, `next_attempt_at = pause end` | ALL slots pause for `Retry-After` or 60 s |
+| 429 (no quota 403 seen live, §8) | released: `queued`, `attempts − 1`, `next_attempt_at = pause end` | ALL slots pause for `Retry-After` or 60 s |
 | permanent (FAILED/ERRORED document, other 4xx, no measurement) | `failed` with its code | continues |
 | key rejected | released as above | halted until restart; `PageSpeedRuntimeState.markKeyRejected()`, so every payload says `state: 'keyRejected'`; one `error` log line naming the cause, never the key |
 
@@ -631,6 +694,12 @@ VERIFY: `loadingExperience.origin_fallback` is how PSI marks URL data that is re
 origin's; the CLS ×100 scaling; the metric key names. The three recorded fixtures (url, origin
 only, lab only) pin them.
 
+SETTLED 2026-10-11 by the recorded `url-field`, `origin-only` and `lab-only` answers:
+`origin_fallback` marks the site's data under the page's name; CLS is the percentile × 100 (the
+distributions' bounds read 10 and 25); the key names are as written. AMENDED by the audit after
+Phase 6: a field metric in an odd shape reads as absent and the next source answers for it,
+rather than voiding the measurement.
+
 ### 10.3 Which findings (`cwvIssuesOf`, D10)
 
 For each metric with a value: `band = cwvBandOf(metric, value)`; good → nothing; otherwise one
@@ -666,6 +735,10 @@ Input: the transport's response or the thrown `RemoteApiError`. Output, in this 
    → `keyRejected`;
 4. a body naming a Lighthouse runtime error → `permanent` with `PAGE_LOAD_FAILED` /
    `PAGE_ERRORED` (any other runtime code → `PSI_REJECTED`);
+   AMENDED 2026-10-11 (Phase 6 and the audit after it): the page's own codes are listed —
+   `FAILED_DOCUMENT_REQUEST`, `DNS_FAILURE`, `ERRORED_DOCUMENT_REQUEST`, `NO_FCP`, `NOT_HTML`;
+   any other code is `transient` on a 5xx (Lighthouse failing on Google's side) and
+   `permanent PSI_REJECTED` on a 4xx;
 5. 5xx → `transient`; other 4xx → `permanent PSI_REJECTED`;
 6. 200 → `extractMeasurement`; null → `permanent NO_MEASUREMENT`; else `measured`.
 
@@ -1414,12 +1487,12 @@ learns the key is in place only from the user's word and from the worker's own l
 
 **Steps.**
 
-- [ ] 6.1 **User:** create a Google Cloud project; enable the PageSpeed Insights API; create an
+- [x] 6.1 **User:** create a Google Cloud project; enable the PageSpeed Insights API; create an
   API key restricted to that API (the README's "Run it from a clean clone" lists the steps). Put
   it in the local `.env` as `PAGESPEED_API_KEY` — `.env` is git-ignored and is never committed.
   Then run `docker compose up -d`.
-- [ ] 6.2 **User:** tell the session the key is in place.
-- [ ] 6.3 **Record real fixtures** with `be/test/fixtures/record-pagespeed-fixtures.ts`:
+- [x] 6.2 **User:** tell the session the key is in place.
+- [x] 6.3 **Record real fixtures** with `be/test/fixtures/record-pagespeed-fixtures.ts`:
   url-field, origin-only and lab-only. Add a real failed-document answer if a URL exists that
   PageSpeed cannot load and that the crawler's address guard is not involved in. Replace the
   `*.synthesized.json` success fixtures read by `extract-measurement.spec.ts`,
@@ -1438,7 +1511,7 @@ learns the key is in place only from the user's word and from the worker's own l
   - the quota-error shape with a real key.
   If the recorded answers contradict an assertion, the code is corrected first. Then a
   `fix(page-speed): …` commit names the defect a synthesized fixture had hidden.
-- [ ] 6.4 **Live end-to-end on the docker stack.**
+- [x] 6.4 **Live end-to-end on the docker stack.**
   - `docker compose logs be | grep "PageSpeed worker started"` prints the line.
   - The queued rows (834 at the time of writing) drain at least 1 s apart:
     `docker compose logs be` request timestamps are ≥ `PAGE_SPEED_MIN_INTERVAL_MS` apart.
@@ -1451,7 +1524,7 @@ learns the key is in place only from the user's word and from the worker's own l
   - For one URL, the stored LCP, INP and CLS are compared with pagespeed.web.dev, mobile.
     Field values must match for the same CrUX window. Lab values are only expected to be close,
     and the comparison says which source each value came from.
-- [ ] 6.5 **Failure behaviour against the real API.**
+- [x] 6.5 **Failure behaviour against the real API.**
   - Put a deliberately wrong key in `.env` and run `docker compose up -d` (the container is
     recreated with the changed environment).
   - Every payload says `"state":"keyRejected"`.
@@ -1459,25 +1532,56 @@ learns the key is in place only from the user's word and from the worker's own l
   - `docker compose logs be | grep -c "Google rejected PAGESPEED_API_KEY"` prints 1.
   - Restore the key and run `docker compose up -d` again: the state returns to `active` and the
     rows drain.
-- [ ] 6.6 **Record measured facts** in `docs/decisions.md`, and the cost per crawl in
+- [x] 6.6 **Record measured facts** in `docs/decisions.md`, and the cost per crawl in
   `PAGE_SPEED_MODULE.md` (§18):
   - PSI calls per crawl (≤ 15 per client);
   - typical latency (median and slowest of the drain, from the log);
   - quota headroom against the default daily quota (25 000/day — VERIFY in the Cloud console for
     this project);
   - the time to drain the seed's backlog.
-- [ ] 6.7 **Browser walk.**
+- [x] 6.7 **Browser walk.**
   - `/pages`: badges, legend, tooltips with source and date.
   - `/pages/:id`: Speed block with sources and dates; the fifth score paragraph.
   - `/issues`: By issue and By page, level filters with Improvement hidden by default, the Speed
     type, Whole site rows kept under a page filter.
   - No console error on any screen. Screenshots are optional.
-- [ ] 6.8 **Close.**
+- [x] 6.8 **Close.**
   - Tick 6.1–6.8.
   - Amend the archived `openspec/changes/archive/2026-10-10-*/tasks.md` lines and the module
     deposit lines only where a cited test name changed, each with an `AMENDED` line.
   - Move this plan to `docs/_plans-archive/` with its header: branch, what was harvested where,
     what was left open.
+
+**Outcome (2026-10-11/12).**
+
+- 6.1–6.2: the key is in the local `.env`; the session never read or printed it.
+- 6.3: `12630a8` recorded url-field, origin-only, lab-only, failed-document and no-fcp live, and
+  re-recorded key-invalid byte-identical; `rate-limited.json` and `key-invalid.json` were
+  recorded by `record-pagespeed-fixtures.ts` (`key: 'none'`, `key: 'madeUp'`), so neither is
+  renamed. Only `errored-document` and `server-error` stay `.synthesized.json`. What the
+  synthesized answers had hidden — page errors as 400, `NO_FCP` misfiled as `PSI_REJECTED`, a
+  recorder that could not run — was fixed in that commit. §8, §10.2 and §10.5 say what the
+  answers showed; D36 settles D23.
+- 6.4: on the rebuilt stack the worker logged its start once; `page_speed` holds 132 mobile and
+  131 desktop rows `done`, each with a measurement, and one desktop row `failed PAGE_LOAD_FAILED`;
+  `seo_issues` holds only the CWV codes of both devices; every payload says `"state":"active"`.
+  Requests start a second apart (the narrowest gap 0.998 s, rounding of the logged durations).
+  The desktop field values matched Google's live answer for the same URL (`e8a780f`).
+- 6.5: the API recreated with a wrong key (a shell override; `.env` untouched) and one row
+  queued: one "Google rejected PAGESPEED_API_KEY" line, the row back to `queued` with its attempt
+  and its measurement, all three payloads `keyRejected`, the key in no log line. Restored, the
+  row drained to `done` and the state returned to `active`.
+- 6.6: `docs/decisions.md` and `PAGE_SPEED_MODULE.md` hold the measured cost and latency — 140
+  calls in 41 minutes, median 23.7 s, p90 38.8 s, slowest 66.2 s; 30 calls per 15-post client
+  crawl. The project's quota was not read from the Cloud console; Google's documented default is
+  quoted as such.
+- 6.7: walked in headless Chrome over the DevTools protocol, screenshots reviewed: `/pages`
+  badges, tooltip ("LCP 4.9 s — poor. Real visitors to the whole site, measured Oct 11."),
+  legend; `/pages/:id` Speed block with both devices, Lighthouse cards, the score paragraph;
+  `/issues` by issue and by page, every level on by default (D30), the Speed type, Whole site
+  rows kept under a page filter. No console error after sign-in. The walk found one defect —
+  the badges clipped to "L…" at 1440 px — fixed in `f0de7b8`.
+- 6.8: no cited test name changed, so no archived `tasks.md` needed an AMENDED line.
 
 1. **Deliverables.** Recorded `be/test/fixtures/pagespeed/*.json` and their manifest entries.
    Specs pointed at the recorded files. Amended §8/§10.2/§10.5/D23 text in this plan.
@@ -1700,3 +1804,5 @@ D33. (2026-10-11, the user) `SITEMAP_LISTS_NON_INDEXABLE` is shown without "What
 D34. (2026-10-11, the user; refines D31) "All clients" by issue is one list of problems across the clients — a card counts every client's pages and lists them under the client's name and site (`groupByIssueAcrossClients`) — instead of one section per client; clients not in the list (loading, failed, never crawled, nothing found) are named once above it. By page, each client is a folded accordion item (name, site, crawl date, count) opening onto its pages, with "Only this client" beside the header, since a control cannot hold a second button. Why: the user wanted the grouping inside the issues' page lists, and the per-client view to fold.
 
 D35. (2026-10-11, the user) The position history's title names the positions' source in brackets: "Position history (simulated)". It is one fe constant (`Core/Constants/positionSource.ts`), because every stored position is simulated (the seed and the only rank provider) and a snapshot does not record its source; a real rank engine would carry its source per snapshot and replace the constant.
+
+D36. (2026-10-12, Phase 6; settles D23's VERIFY — D23 stays as written) Recorded live: Google reads the key in the `x-goog-api-key` header — a bad key there answers `400 API_KEY_INVALID`, and every measurement of the drain was made with the key in that header alone. The key reached no fixture, no log line and no stored error: `git grep -E "AIza|key=" -- be/test/fixtures/pagespeed` prints nothing and `docker compose logs be | grep -c AIza` prints 0. Over all of `be/test/fixtures` the grep matches only the recorder's own made-up key constant and the `public_key=` of Sentry's tags in recorded site HTML — neither is this project's key.
