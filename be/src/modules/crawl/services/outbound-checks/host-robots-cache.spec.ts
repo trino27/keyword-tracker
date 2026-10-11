@@ -27,6 +27,31 @@ describe('HostRobotsCache', () => {
     expect(fetchRobots).not.toHaveBeenCalled();
   });
 
+  it("answers an origin the run's file governs through its redirect, and fetches the rest", async () => {
+    const redirected = RobotsPolicy.parse(
+      'https://a.example/robots.txt',
+      'User-agent: *\nDisallow: /private/',
+      ['https://www.a.example/robots.txt'],
+    );
+    const fetchRobots = jest.fn(
+      answering({ 'https://blog.a.example': { status: 404 } }),
+    );
+    const cache = new HostRobotsCache(
+      'https://a.example',
+      redirected,
+      fetchRobots,
+    );
+
+    const www = await cache.policyFor('https://www.a.example', signal());
+    const blog = await cache.policyFor('https://blog.a.example', signal());
+
+    expect(www?.isAllowed('https://www.a.example/private/x')).toBe(false);
+    expect(blog?.isAllowed('https://blog.a.example/private/x')).toBe(true);
+    expect(fetchRobots.mock.calls.map(([origin]) => origin)).toEqual([
+      'https://blog.a.example',
+    ]);
+  });
+
   it("fetches each external host's robots.txt once, however many ask at once", async () => {
     const fetchRobots = jest.fn(
       answering({

@@ -82,8 +82,13 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   (`SiteHttpClient.checkLink`); canonical targets, then hreflang alternates, are read whole.
   `OUTBOUND_CHECK_LIMITS` bounds it: 300 link URLs and 30 documents per run, 8 requests in
   flight, 2 per host, 5 s per request, 60 s for the stage. Anything past those reads
-  "unchecked" with its reason (budget, deadline, robots), never fine and never broken. Each
-  external host's robots.txt is fetched once per run and obeyed for the crawler's own name.
+  "unchecked" with its reason (budget, deadline, robots), never fine and never broken. The
+  run's robots.txt answers for the client's origin and for the origin its request redirected
+  to (www, https); every other host's — the posts' own host included, when the file does not
+  govern it — is fetched once per run, in one attempt within the 5 s, and obeyed for the
+  crawler's own name. A link the deadline caught while its robots.txt was loading reads
+  "deadline", not "robots". The stage asks exactly the links the checks read
+  (`contentLinksOf`). The site probe reads the served host's rules the same way.
   No failure of the stage fails the run. There is no queue, as PageSpeed has, because a link
   check has neither Google's quota nor its minute-long answers. A queue would also change a
   page's issues after its crawl, and race the next crawl. Measured on 2026-10-11 over 29
@@ -143,7 +148,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/crawl/spec.md`.
 
 <!-- invariant: CRAWL-012 -->
 
-**robots.txt is honoured for every host a crawl asks: the run's own from discovery, each other fetched once; a 4xx allows, a 5xx, a 429, a challenge or no answer disallows. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `services/outbound-checks/host-robots-cache.spec.ts` -> "answers the run's own origin from the run's robots.txt, without a request", "fetches each external host's robots.txt once, however many ask at once", "a 4xx robots.txt allows the host; a 5xx, a 429 or no answer disallows it" and "a bot challenge on robots.txt disallows the host"; `outbound-checks.service.spec.ts` -> "never requests a disallowed URL" and "treats an unreachable robots.txt as disallowing the host".
+**robots.txt is honoured for every host a crawl asks: the run's own from discovery — for the client's origin and the one its robots.txt redirected to — each other fetched once; a 4xx allows, a 5xx, a 429, a challenge or no answer disallows. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `services/outbound-checks/host-robots-cache.spec.ts` -> "answers the run's own origin from the run's robots.txt, without a request", "answers an origin the run's file governs through its redirect, and fetches the rest", "fetches each external host's robots.txt once, however many ask at once", "a 4xx robots.txt allows the host; a 5xx, a 429 or no answer disallows it" and "a bot challenge on robots.txt disallows the host"; `outbound-checks.service.spec.ts` -> "never requests a disallowed URL", "reads the posts' host's own robots.txt when the run's file does not govern it" and "treats an unreachable robots.txt as disallowing the host"; `sitemap-discovery.service.spec.ts` -> "applies a robots.txt that redirected to www to both hosts".
 
 <!-- invariant: CRAWL-013 -->
 

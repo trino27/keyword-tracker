@@ -5,13 +5,15 @@ import type {
   IOutboundFacts,
   TOutboundOutcome,
 } from '@modules/page-analysis/interfaces/outbound-facts.interface';
+import { contentLinksOf } from '@modules/page-analysis/services/checks/_shared/content-links';
 import { sameDocument } from '@modules/page-analysis/services/checks/_shared/same-document';
 import { documentFactsOf } from '@modules/page-analysis/services/checks/_shared/document-facts';
 import { extractPage } from '@modules/page-analysis/services/html-extraction/extract-page';
 import { OUTBOUND_CHECK_LIMITS } from '../../constants/outbound-checks.constant';
 import type { ICrawledPage } from '../../interfaces/crawled-page.interface';
 import { SiteHttpClient } from '../site-http-client/site-http-client';
-import { HostRobotsCache, type IHostAllowance } from './host-robots-cache';
+import type { RobotsPolicy } from '../robots-policy/robots-policy';
+import { HostRobotsCache } from './host-robots-cache';
 
 /** The budget, injectable so a test can shrink it; production uses the constant. */
 export const OUTBOUND_LIMITS = Symbol('OUTBOUND_LIMITS');
@@ -22,10 +24,10 @@ export type IOutboundLimits = {
 export interface IOutboundInput {
   /** The run's posts, as fetched: their links, canonicals and hreflang are what is asked. */
   pages: readonly ICrawledPage[];
-  /** The run's robots.txt, for its own origin; every other host's is fetched once. */
-  robots: IHostAllowance;
-  /** The origin the posts were served from; null when no post was crawled. */
-  servedOrigin: string | null;
+  /** The run's robots.txt; a host it does not govern has its own fetched once. */
+  robots: RobotsPolicy;
+  /** The origin the run's robots.txt was requested for — the client's website. */
+  robotsOrigin: string;
   /** The run's signal: a lost lease or a shutdown aborts the stage, and the run. */
   signal: AbortSignal;
 }
@@ -74,18 +76,17 @@ function fromOwnFetch(page: ICrawledPage, url: string): TOutboundOutcome {
 
 /**
  * The content links of the run, in sitemap order and then document order, each
- * fragment-free URL once (plan §10.2). A link to the page itself is not a link to check.
- * The order is fixed, so two crawls of an unchanged site check the same links.
+ * fragment-free URL once (plan §10.2) — exactly the links the link checks judge
+ * (`contentLinksOf`), so no request is spent on a link nobody reads: the page itself,
+ * the site's development host, Cloudflare's `/cdn-cgi/`. The order is fixed, so two
+ * crawls of an unchanged site check the same links.
  */
 function linkOrder(pages: readonly ICrawledPage[]): string[] {
   const seen = new Set<string>();
   for (const page of [...pages].sort(
     (a, b) => a.sitemapPosition - b.sitemapPosition,
   ))
-    for (const href of page.parsed.links) {
-      const url = withoutFragment(href);
-      if (url && !sameDocument(url, page.finalUrl)) seen.add(url);
-    }
+    for (const url of contentLinksOf(page)) seen.add(url);
   return [...seen];
 }
 
@@ -148,10 +149,16 @@ export class OutboundChecksService {
       input.signal,
       AbortSignal.timeout(this.limits.deadlineMs),
     ]);
+    // Another host's robots.txt is one request within the stage's per-request timeout:
+    // the default retries would hold a slot for half a minute on a host that never answers.
     const robots = new HostRobotsCache(
-      input.servedOrigin,
+      input.robotsOrigin,
       input.robots,
-      (origin, signal) => this.http.getRobots(origin, signal),
+      (origin, signal) =>
+        this.http.getRobots(origin, signal, {
+          maxRetries: 0,
+          timeoutMs: this.limits.timeoutMs,
+        }),
     );
     const own = ownPagesOf(input.pages);
     const links = new Map<string, TOutboundOutcome>();
@@ -244,11 +251,18 @@ export class OutboundChecksService {
     run: AbortSignal,
   ): Promise<IDocumentFacts> {
     const allowance = await robots.policyFor(new URL(url).origin, stage);
+    // The deadline cut the robots.txt read short: the host never said no.
+    if (stage.aborted && !run.aborted)
+      return { url, outcome: UNCHECKED('deadline'), page: null };
     if (!allowance?.isAllowed(url))
       return { url, outcome: UNCHECKED('robots'), page: null };
     try {
       if (kind === 'link') {
-        const response = await this.http.checkLink(url, stage);
+        const response = await this.http.checkLink(
+          url,
+          stage,
+          this.limits.timeoutMs,
+        );
         return {
           url,
           outcome: {
@@ -260,7 +274,11 @@ export class OutboundChecksService {
           page: null,
         };
       }
-      const response = await this.http.readDocument(url, stage);
+      const response = await this.http.readDocument(
+        url,
+        stage,
+        this.limits.timeoutMs,
+      );
       const html =
         response.status === 200 &&
         (response.headers['content-type'] ?? '').includes('html');

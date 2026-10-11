@@ -7,6 +7,7 @@ import type {
   IHomePage,
   IProbeAnswer,
 } from '@modules/page-analysis/services/site-checks/site-check.interface';
+import { HostRobotsCache } from '../outbound-checks/host-robots-cache';
 import type { RobotsPolicy } from '../robots-policy/robots-policy';
 import { SiteHttpClient } from '../site-http-client/site-http-client';
 
@@ -73,12 +74,23 @@ export function hasWwwVariant(host: string): boolean {
 export class SiteProbeService {
   constructor(private readonly http: SiteHttpClient) {}
 
+  /**
+   * `robots` is the run's file, read for `robotsOrigin`. The served host answers from it
+   * only when the file governs that host; otherwise its own robots.txt is read, and a host
+   * whose robots.txt cannot be read is not asked for its pages at all (RFC 9309).
+   */
   async probe(
     servedOrigin: string,
     robots: RobotsPolicy,
+    robotsOrigin: string,
     runId: number,
     signal: AbortSignal,
   ): Promise<ISiteProbes> {
+    const servedRobots = await new HostRobotsCache(
+      robotsOrigin,
+      robots,
+      (origin, abort) => this.http.getRobots(origin, abort),
+    ).policyFor(servedOrigin, signal);
     const served = new URL(servedOrigin);
     const hosts = hasWwwVariant(served.hostname)
       ? [served.hostname, otherWwwVariant(served.hostname)]
@@ -94,10 +106,19 @@ export class SiteProbeService {
     // Named so that no site could have a page there, and so that a reader of the
     // site's logs can tell what asked.
     const missing = `${servedOrigin}/seo-keyword-tracker-missing-page-${runId}/`;
-    const missingPage = robots.isAllowed(missing)
+    const missingPage = servedRobots?.isAllowed(missing)
       ? await this.ask(missing, signal)
       : null;
-    const home = await this.readHome(`${servedOrigin}/`, robots, signal);
+    if (!servedRobots)
+      return {
+        servedOrigin,
+        hostVariants,
+        missingPage,
+        home: null,
+        favicon: null,
+        faviconFallback: null,
+      };
+    const home = await this.readHome(`${servedOrigin}/`, servedRobots, signal);
     const target = home ? faviconTargetOf(home) : null;
     const root = home ? new URL('/favicon.ico', home.url).href : null;
     return {
@@ -106,11 +127,11 @@ export class SiteProbeService {
       missingPage,
       home,
       favicon: target
-        ? await this.fetchIcon(target.href, robots, signal)
+        ? await this.fetchIcon(target.href, servedRobots, signal)
         : null,
       faviconFallback:
         root && root !== target?.href
-          ? await this.fetchIcon(root, robots, signal)
+          ? await this.fetchIcon(root, servedRobots, signal)
           : null,
     };
   }

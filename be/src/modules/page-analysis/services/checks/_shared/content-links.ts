@@ -12,7 +12,11 @@ const CLOUDFLARE_PATH = '/cdn-cgi/';
  * addresses, which are no pages. Keyed as the outbound stage keys its
  * outcomes, so a link and its outcome meet.
  */
-export function contentLinksOf(page: ICheckInput): string[] {
+export function contentLinksOf(
+  page: Pick<ICheckInput, 'finalUrl'> & {
+    parsed: Pick<ICheckInput['parsed'], 'links'>;
+  },
+): string[] {
   const pageHost = new URL(page.finalUrl).hostname;
   const links = new Set<string>();
   for (const href of page.parsed.links) {

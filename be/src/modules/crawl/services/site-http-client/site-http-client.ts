@@ -43,13 +43,21 @@ export class SiteHttpClient extends RemoteApiCore {
    * follows the limit, so a file past it still governs the crawl by its beginning. A
    * truncated body ends at its last complete line — a rule cut mid-path would be broader
    * than the one written (`Disallow: /admin/` read as `Disallow: /adm`).
+   *
+   * `budget` narrows the attempts and the timeout: the outbound stage asks another host's
+   * robots.txt once, within its own per-request timeout, like any of its requests.
    */
-  async getRobots(origin: string, signal: AbortSignal): Promise<ISiteResponse> {
+  async getRobots(
+    origin: string,
+    signal: AbortSignal,
+    budget: { maxRetries?: number; timeoutMs?: number } = {},
+  ): Promise<ISiteResponse> {
     const response = toText(
       await this.get(`${origin}/robots.txt`, {
         maxBytes: SITE_FETCH_LIMITS.robotsBytes,
         overflow: 'truncate',
         accept: 'text/plain',
+        ...budget,
         signal,
       }),
     );
@@ -116,13 +124,17 @@ export class SiteHttpClient extends RemoteApiCore {
    * a link that answers late or flakily reads as unknown, which is the check's call, not a
    * retry's. Redirects are followed hop by hop, each checked by the address guard.
    */
-  async checkLink(url: string, signal: AbortSignal) {
+  async checkLink(
+    url: string,
+    signal: AbortSignal,
+    timeoutMs: number = OUTBOUND_CHECK_LIMITS.timeoutMs,
+  ) {
     return this.get(url, {
       maxBytes: 0,
       overflow: 'truncate',
       accept: 'text/html, */*;q=0.5',
       maxRetries: 0,
-      timeoutMs: OUTBOUND_CHECK_LIMITS.timeoutMs,
+      timeoutMs,
       signal,
     });
   }
@@ -132,13 +144,17 @@ export class SiteHttpClient extends RemoteApiCore {
    * see what it declares: decoded as a post is, under the same cap, but asked once and
    * within the outbound stage's timeout.
    */
-  async readDocument(url: string, signal: AbortSignal): Promise<ISiteResponse> {
+  async readDocument(
+    url: string,
+    signal: AbortSignal,
+    timeoutMs: number = OUTBOUND_CHECK_LIMITS.timeoutMs,
+  ): Promise<ISiteResponse> {
     return toText(
       await this.get(url, {
         maxBytes: SITE_FETCH_LIMITS.htmlBytes,
         accept: 'text/html, application/xhtml+xml;q=0.9, */*;q=0.5',
         maxRetries: 0,
-        timeoutMs: OUTBOUND_CHECK_LIMITS.timeoutMs,
+        timeoutMs,
         signal,
       }),
     );

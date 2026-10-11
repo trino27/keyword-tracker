@@ -129,7 +129,7 @@ const check = (
   service(transport, limits).check({
     pages,
     robots,
-    servedOrigin: 'https://a.example',
+    robotsOrigin: 'https://a.example',
     signal: AbortSignal.timeout(10_000),
   });
 
@@ -341,6 +341,82 @@ describe('OutboundChecksService', () => {
     });
     expect(transport.requests).not.toContain('https://b.example/private/x');
     expect(transport.requests).not.toContain('https://a.example/hidden/');
+  });
+
+  it("reads the posts' host's own robots.txt when the run's file does not govern it", async () => {
+    const transport = new FakeTransport(
+      withRobots(() => ok(), {
+        'https://www.a.example': ok('User-agent: *\nDisallow: /drafts/'),
+      }),
+    );
+
+    const facts = await check(
+      transport,
+      [post('p', 0, links('https://www.a.example/drafts/x'))],
+      {},
+      RobotsPolicy.parse('https://a.example/robots.txt', 'User-agent: *\n'),
+    );
+
+    expect(facts.links.get('https://www.a.example/drafts/x')).toEqual({
+      kind: 'unchecked',
+      reason: 'robots',
+    });
+    expect(transport.requests).toContain('https://www.a.example/robots.txt');
+    expect(transport.requests).not.toContain('https://www.a.example/drafts/x');
+  });
+
+  it("asks another host's robots.txt once, never retried", async () => {
+    const transport = new FakeTransport(
+      withRobots(() => ok(), { 'https://b.example': status(503) }),
+    );
+
+    await check(transport, [post('p', 0, links('https://b.example/x'))]);
+
+    expect(
+      transport.requests.filter(
+        (url) => url === 'https://b.example/robots.txt',
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('marks a link whose robots.txt the deadline cut short unchecked: deadline', async () => {
+    const transport = new FakeTransport((request) =>
+      new URL(request.url).pathname === '/robots.txt'
+        ? later(500, status(404), request.signal)
+        : ok(),
+    );
+
+    const facts = await check(
+      transport,
+      [post('p', 0, links('https://b.example/x'))],
+      { deadlineMs: 50 },
+    );
+
+    expect(facts.links.get('https://b.example/x')).toEqual({
+      kind: 'unchecked',
+      reason: 'deadline',
+    });
+  });
+
+  it('spends no request on a link no check reads', async () => {
+    const transport = new FakeTransport(withRobots(() => ok()));
+
+    const facts = await check(transport, [
+      post(
+        'p',
+        0,
+        links(
+          'https://a.example/cdn-cgi/l/email-protection',
+          'https://staging.a.example/x',
+          'https://b.example/x',
+        ),
+      ),
+    ]);
+
+    expect([...facts.links.keys()]).toEqual(['https://b.example/x']);
+    expect(
+      transport.requests.filter((url) => !url.endsWith('/robots.txt')),
+    ).toEqual(['https://b.example/x']);
   });
 
   it('treats an unreachable robots.txt as disallowing the host', async () => {

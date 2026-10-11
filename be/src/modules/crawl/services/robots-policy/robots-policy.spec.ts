@@ -89,4 +89,23 @@ describe('RobotsPolicy', () => {
     expect(policy.isAllowed('https://a.example/anything')).toBe(true);
     expect(policy.sitemaps()).toEqual([]);
   });
+
+  it('governs only the origins it was read for', () => {
+    const policy = RobotsPolicy.parse(
+      ROBOTS_URL,
+      'User-agent: *\nDisallow: /private/\n\nUser-agent: Googlebot\nDisallow: /g/\n',
+      ['https://www.a.example/robots.txt'],
+    );
+
+    expect(policy.governs('https://a.example/')).toBe(true);
+    expect(policy.governs('https://www.a.example/')).toBe(true);
+    expect(policy.governs('https://blog.a.example/')).toBe(false);
+    expect(policy.isAllowed('https://www.a.example/private/x')).toBe(false);
+    expect(policy.allows('https://www.a.example/g/x', 'Googlebot')).toBe(false);
+    expect(policy.allows('https://blog.a.example/g/x', 'Googlebot')).toBeNull();
+    expect(policy.matchingRule('https://www.a.example/g/x', 'Googlebot')).toBe(
+      'line 5: Disallow: /g/',
+    );
+    expect(RobotsPolicy.allowAll().governs('https://a.example/')).toBe(false);
+  });
 });

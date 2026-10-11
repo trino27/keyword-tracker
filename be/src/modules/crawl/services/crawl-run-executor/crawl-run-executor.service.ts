@@ -231,6 +231,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       context.siteProbes = await this.siteProbe.probe(
         servedOrigin,
         discovery.robots,
+        new URL(target.websiteUrl).origin,
         run.id,
         signal,
       );
@@ -242,12 +243,13 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
    * the run's timings; still before the transaction, like every request a run makes.
    */
   private async outbound(context: IRunContext): Promise<void> {
-    const { discovery, selection, signal } = context;
-    if (!discovery || !selection || selection.pages.length === 0) return;
+    const { discovery, selection, target, signal } = context;
+    if (!discovery || !selection || !target || selection.pages.length === 0)
+      return;
     context.outbound = await this.outboundChecks.check({
       pages: selection.pages,
       robots: discovery.robots,
-      servedOrigin: servedOriginOf(selection.pages),
+      robotsOrigin: new URL(target.websiteUrl).origin,
       signal,
     });
   }
