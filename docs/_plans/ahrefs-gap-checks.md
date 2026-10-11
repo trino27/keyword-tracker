@@ -55,7 +55,8 @@ new check may duplicate an existing one; they supersede D7, D27 and O4 and drop 
 a planner-derived consequence of D32 and D34 and is **not confirmed by the user**. D38 is the
 phase-3 field audit's outcome. D39–D50 are consequences the planner derived on 2026-10-11 when
 the tree moved under phases 4 and 5 (the merged `lighthouse-checks`, migration `0015`, the fair
-claim, the requirement id SPEED-014 taken by that claim). They are **not confirmed by the user**.
+claim, the requirement id SPEED-014 taken by that claim). The user confirmed D39–D50 as written
+on 2026-10-11 (D51); their "not confirmed" marks stay because the log is append-only.
 Where one replaces part of an earlier section, the earlier text was rewritten and the D-line
 names what it supersedes. The paths of phases 4 and 5 were read in the tree at commit `adc8887`.
 
@@ -2480,14 +2481,14 @@ After it, every live firing has been read against PageSpeed's own report.
 - **O8 — RESOLVED 2026-10-11 by D31: keep.** `IMAGES_NOT_INDEXABLE` and D2's rejected "srcset/modern formats from markup". The
   existing check judges indexability (srcset with no src; HEIC/TIFF), not delivery weight, so it
   is not what D2 rejected. *Default:* it stays. *Reopens on* the user saying otherwise.
-- **O9. The order of a client's two devices in the queue** (D44). Within the client whose turn it
+- **O9 — RESOLVED 2026-10-11 by D51: mobile first.** The order of a client's two devices in the queue (D44). Within the client whose turn it
   is, every due mobile row is claimed before any of its desktop rows, because mobile feeds the
   score, the list's badge and Lighthouse's verdicts. The alternative is to interleave per page
   (page 1 mobile, page 1 desktop, page 2 mobile, …), which shows a page's both tabs sooner and
   delays the last page's score by about the same margin. *Default:* mobile first within a client.
   *Reopens on* the user asking for desktop figures sooner, or 4e's measured drain leaving desktop
   rows queued for more than a day on the seed's data.
-- **O10. The six mobile labels gain "on mobile"** (D48). This changes the names a marketer
+- **O10 — RESOLVED 2026-10-11 by D51: rename.** The six mobile labels gain "on mobile" (D48). This changes the names a marketer
   already reads on the Issues screen and in the report. *Default:* rename, so the mobile and
   desktop rows of one metric are told apart wherever a label stands alone. *Reopens on* the user
   preferring the old labels, in which case only the desktop labels carry the device and the
@@ -2594,3 +2595,5 @@ D48. (2026-10-11, derived by the planner from D9 and the catalogue's `label` bei
 D49. (2026-10-11, derived by the planner from D21, D42 and D43; **not confirmed by the user**) On the page detail, the checks section's Lighthouse column date and the score explanation read the mobile measurement, whatever the Speed block's switch shows. The switch is local state and requests nothing. A page with no desktop row reads "Not measured on desktop yet: this page was crawled before desktop measurement existed. The next crawl or seed run queues it." The "In queue" and "Measuring…" states of `3e4dc72` apply per strategy, each from its own row's status. Why: the Lighthouse verdicts the column shows come from the mobile answer (D42), so dating them by the desktop one would be false.
 
 D50. (2026-10-11, derived by the planner from D10's "owner 'pageSpeed'", D36 and the registry's `scored` flag; **not confirmed by the user**) `IMAGE_DELIVERY_INEFFICIENT` is a pageSpeed-owner code: unscored, not a check, in no counterpart group. It is not a Lighthouse-owner code, though Lighthouse computes it. The Lighthouse owner is scored and holds SEO and accessibility audits with category weights (`lighthouse-checks` D4, D14), and a performance opportunity in the score would contradict "speed never enters the score". Checked under D36 at `adc8887`, nothing reports the same fact. The 66 Lighthouse entries are SEO and accessibility audits; `LH_IMAGE_ALT`, `LH_INPUT_IMAGE_ALT` and `LH_SVG_IMG_ALT` judge alternative text. No crawl check judges image weight or format. The stored speed diagnostics (`extractDiagnostics`: TTFB, visit shares, `lcp-breakdown-insight`) read no image audit. Supersedes nothing; restates D10 for the registry.
+
+D51. (2026-10-11, the user's explicit choice) D39–D50 are confirmed as written. O9 is resolved as its default: within the client whose turn it is, mobile rows are claimed before desktop rows (D44). O10 is resolved as its default: the six mobile CWV labels gain "on mobile" and the desktop ones end "on desktop" (D48).
