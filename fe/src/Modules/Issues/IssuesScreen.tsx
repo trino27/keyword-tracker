@@ -1,4 +1,4 @@
-import { Alert, Select, Skeleton, Stack, Text } from "@mantine/core";
+import { Accordion, Alert, Select, Skeleton, Stack, Text } from "@mantine/core";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { IconBuildingStore, IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useMemo } from "react";
@@ -18,6 +18,7 @@ import {
 } from "@ViewModels/IssueReportViewModel/IssueReportViewModel";
 import { useScreenFiltersViewModel } from "@ViewModels/ScreenFiltersViewModel/ScreenFiltersViewModel";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
+import { AllClientsByIssue } from "./AllClientsByIssue/AllClientsByIssue";
 import { ClientIssues } from "./ClientIssues/ClientIssues";
 import { IssueFilters } from "./IssueFilters/IssueFilters";
 import { SeverityRubric } from "./SeverityRubric/SeverityRubric";
@@ -57,6 +58,10 @@ export function IssuesScreen() {
 		[clients],
 	);
 	const clientIdsKey = sortedClients.map((client) => client.id).join(",");
+	const reportClients = useMemo(
+		() => sortedClients.map(({ id, name, siteKey }) => ({ id, name, site: siteKey })),
+		[sortedClients],
+	);
 
 	useEffect(() => {
 		if (search.clientId !== undefined) void fetchReport(search.clientId);
@@ -173,12 +178,23 @@ export function IssuesScreen() {
 						onRetry={() => void fetchReport(clientId)}
 						onClearFilters={clearFilters}
 					/>
+				) : search.group === "issue" ? (
+					// All clients, by issue: one list, each card's pages grouped by client.
+					<AllClientsByIssue
+						clients={reportClients}
+						byClient={byClient}
+						search={search}
+						onRetry={(id) => void fetchReport(id)}
+						onClearFilters={clearFilters}
+					/>
 				) : (
-					<Stack gap="xl">
+					// All clients, by page: each client folds open onto its pages.
+					<Accordion multiple variant="separated" radius="md">
 						{sortedClients.map((client) => (
 							<ClientIssues
 								key={client.id}
 								section={{
+									id: client.id,
 									name: client.name,
 									site: client.siteKey,
 									onShowOnly: () => update({ clientId: client.id }),
@@ -191,7 +207,7 @@ export function IssuesScreen() {
 								onClearFilters={clearFilters}
 							/>
 						))}
-					</Stack>
+					</Accordion>
 				))}
 		</Stack>
 	);

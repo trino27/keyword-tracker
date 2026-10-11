@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { SEO_ISSUE_CATALOGUE } from "@app/contracts";
@@ -8,18 +8,26 @@ import { IssueCard } from "./IssueCard";
 
 const page = (id: number) => ({ id, url: `https://yoast.com/p${id}/`, title: `Post ${id}` });
 
-const CARD: IIssueCardView = {
+const titleRow = (id: number) => ({
+	code: "TITLE_LENGTH" as const,
+	severity: "notice" as const,
+	details: { value: 72, min: 30, max: 60 },
+	location: { kind: "page" as const, page: page(id) },
+});
+
+/** A one-client card: its rows need no client heading. */
+const oneClient = (card: Omit<IIssueCardView, "clients">): IIssueCardView => ({
+	...card,
+	clients: [{ client: null, affectedPages: card.affectedPages, rows: card.rows }],
+});
+
+const CARD: IIssueCardView = oneClient({
 	code: "TITLE_LENGTH",
 	severity: "notice",
 	affectedPages: 2,
 	wholeSite: false,
-	rows: [1, 2].map((id) => ({
-		code: "TITLE_LENGTH" as const,
-		severity: "notice" as const,
-		details: { value: 72, min: 30, max: 60 },
-		location: { kind: "page" as const, page: page(id) },
-	})),
-};
+	rows: [titleRow(1), titleRow(2)],
+});
 
 describe("IssueCard", () => {
 	it("says what, why and what to do in the catalogue's plain words, with the level", async () => {
@@ -60,7 +68,7 @@ describe("IssueCard", () => {
 	it("leaves out What to do for a check that has no advice", async () => {
 		renderWithProviders(() => (
 			<IssueCard
-				card={{
+				card={oneClient({
 					code: "SITEMAP_LISTS_NON_INDEXABLE",
 					severity: "warning",
 					affectedPages: 15,
@@ -73,7 +81,7 @@ describe("IssueCard", () => {
 							location: { kind: "site" },
 						},
 					],
-				}}
+				})}
 			/>
 		));
 
@@ -87,10 +95,52 @@ describe("IssueCard", () => {
 		expect(screen.queryByText(/check your sitemap plugin's settings/)).not.toBeInTheDocument();
 	});
 
-	it("says Whole site for a site check", async () => {
+	it("across clients, groups the pages under each client's name and site", async () => {
 		renderWithProviders(() => (
 			<IssueCard
 				card={{
+					...CARD,
+					affectedPages: 3,
+					rows: [titleRow(1), titleRow(2), titleRow(3)],
+					clients: [
+						{
+							client: { id: 7, name: "Yoast", site: "yoast.com" },
+							affectedPages: 2,
+							rows: [titleRow(1), titleRow(2)],
+						},
+						{
+							client: { id: 8, name: "Ahrefs", site: "ahrefs.com" },
+							affectedPages: 1,
+							rows: [titleRow(3)],
+						},
+					],
+				}}
+			/>
+		));
+
+		const yoast = await screen.findByRole("group", { name: "Yoast" });
+		expect(within(yoast).getByText("yoast.com")).toBeInTheDocument();
+		expect(
+			within(yoast)
+				.getAllByRole("link")
+				.map((link) => link.textContent),
+		).toEqual(["Post 1", "Post 2"]);
+		const ahrefs = screen.getByRole("group", { name: "Ahrefs" });
+		expect(within(ahrefs).getByRole("link", { name: "Post 3" })).toBeInTheDocument();
+		expect(screen.getByText("affects 3 pages")).toBeInTheDocument();
+	});
+
+	it("a one-client card has no client heading", async () => {
+		renderWithProviders(() => <IssueCard card={CARD} />);
+
+		await screen.findByRole("link", { name: "Post 1" });
+		expect(screen.queryByRole("group")).not.toBeInTheDocument();
+	});
+
+	it("says Whole site for a site check", async () => {
+		renderWithProviders(() => (
+			<IssueCard
+				card={oneClient({
 					code: "SOFT_404",
 					severity: "warning",
 					affectedPages: 15,
@@ -103,7 +153,7 @@ describe("IssueCard", () => {
 							location: { kind: "site" },
 						},
 					],
-				}}
+				})}
 			/>
 		));
 

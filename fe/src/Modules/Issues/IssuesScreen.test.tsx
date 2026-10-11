@@ -138,41 +138,95 @@ describe("IssuesScreen", () => {
 		expect(await screen.findByText(/Google rejected the PageSpeed key/)).toBeInTheDocument();
 	});
 
-	it("with no client chosen, shows every client under its own name, by name", async () => {
+	it("with no client chosen, by issue: one list, each card's pages grouped by client", async () => {
 		vi.spyOn(ClientGateway.prototype, "list").mockResolvedValue([
 			CLIENT,
-			{ id: 8, name: "Ahrefs" } as TClient,
+			{ id: 8, name: "Ahrefs", siteKey: "ahrefs.com" } as TClient,
+			{ id: 9, name: "Backlinko", siteKey: "backlinko.com" } as TClient,
 		]);
+		const AHREFS: TClientIssueReport = {
+			...REPORT,
+			client: { id: 8, name: "Ahrefs" },
+			issues: [
+				{
+					code: "TITLE_MISSING",
+					severity: "error",
+					details: {},
+					location: {
+						kind: "page",
+						page: { id: 50, url: "https://ahrefs.com/b/", title: "B post" },
+					},
+				},
+			],
+		};
+		const BACKLINKO: TClientIssueReport = {
+			...REPORT,
+			client: { id: 9, name: "Backlinko" },
+			issues: [],
+		};
 		const get = vi.spyOn(IssueReportGateway.prototype, "get").mockImplementation((clientId) =>
-			Promise.resolve(
-				clientId === 7
-					? { kind: "report", report: REPORT }
-					: {
-							kind: "report",
-							report: { ...REPORT, client: { id: 8, name: "Ahrefs" }, issues: [] },
-						},
-			),
+			Promise.resolve({
+				kind: "report",
+				report: clientId === 7 ? REPORT : clientId === 8 ? AHREFS : BACKLINKO,
+			}),
 		);
 
 		const router = await renderAt("/issues");
 
-		const yoast = await screen.findByRole("region", { name: "Yoast" });
-		await within(yoast).findByText("This page has no title for search results");
-		const ahrefs = screen.getByRole("region", { name: "Ahrefs" });
-		expect(within(ahrefs).getByText("No issues on the latest crawl.")).toBeInTheDocument();
-		// Sections follow the clients' names.
+		// One card for the problem, not one per client.
 		expect(
-			screen.getAllByRole("region").map((section) => section.getAttribute("aria-label")),
+			await screen.findAllByText("This page has no title for search results"),
+		).toHaveLength(1);
+		// The Critical card comes first; inside it, equal shares follow the clients' names.
+		const [yoast] = await screen.findAllByRole("group", { name: "Yoast" });
+		expect(within(yoast).getByRole("link", { name: "A post" })).toBeInTheDocument();
+		const card = yoast.parentElement as HTMLElement;
+		expect(
+			within(card)
+				.getAllByRole("group")
+				.map((group) => group.getAttribute("aria-label")),
 		).toEqual(["Ahrefs", "Yoast"]);
-		expect(get).toHaveBeenCalledWith(7);
-		expect(get).toHaveBeenCalledWith(8);
+		const ahrefs = within(card).getByRole("group", { name: "Ahrefs" });
+		expect(within(ahrefs).getByRole("link", { name: "B post" })).toBeInTheDocument();
+		expect(screen.getByText("No issues on the latest crawl: Backlinko.")).toBeInTheDocument();
+		expect(get).toHaveBeenCalledTimes(3);
 		expect(router.state.location.search.clientId).toBeUndefined();
 	});
 
-	it("in All clients, one client's failed read leaves the others shown, with Try again for it", async () => {
+	it("with no client chosen, by page: each client folds open onto its pages", async () => {
 		vi.spyOn(ClientGateway.prototype, "list").mockResolvedValue([
 			CLIENT,
-			{ id: 8, name: "Ahrefs" } as TClient,
+			{ id: 8, name: "Ahrefs", siteKey: "ahrefs.com" } as TClient,
+		]);
+		vi.spyOn(IssueReportGateway.prototype, "get").mockImplementation((clientId) =>
+			Promise.resolve({
+				kind: "report",
+				report:
+					clientId === 7
+						? REPORT
+						: { ...REPORT, client: { id: 8, name: "Ahrefs" }, issues: [] },
+			}),
+		);
+
+		await renderAt("/issues?group=page");
+
+		const yoast = await screen.findByRole("button", { name: /^Yoast/ });
+		const ahrefs = screen.getByRole("button", { name: /^Ahrefs/ });
+		// Folded until opened, in the clients' name order.
+		expect(yoast).toHaveAttribute("aria-expanded", "false");
+		expect(
+			ahrefs.compareDocumentPosition(yoast) & Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy();
+
+		fireEvent.click(yoast);
+
+		expect(await screen.findByRole("link", { name: "A post" })).toBeVisible();
+	});
+
+	it("in All clients, one client's failed read is named with Try again, the rest still listed", async () => {
+		vi.spyOn(ClientGateway.prototype, "list").mockResolvedValue([
+			CLIENT,
+			{ id: 8, name: "Ahrefs", siteKey: "ahrefs.com" } as TClient,
 		]);
 		const get = vi.spyOn(IssueReportGateway.prototype, "get").mockImplementation((clientId) =>
 			clientId === 8
@@ -185,32 +239,30 @@ describe("IssuesScreen", () => {
 
 		await renderAt("/issues");
 
-		const ahrefs = await screen.findByRole("region", { name: "Ahrefs" });
-		const retry = await within(ahrefs).findByRole("button", { name: "Try again" });
-		const yoast = screen.getByRole("region", { name: "Yoast" });
+		expect(await screen.findByText("Could not load Ahrefs")).toBeInTheDocument();
 		expect(
-			await within(yoast).findByText("This page has no title for search results"),
+			await screen.findByText("This page has no title for search results"),
 		).toBeInTheDocument();
 		// The key is the deployment's: any client's report tells the state.
 		expect(screen.getByText(/Google rejected the PageSpeed key/)).toBeInTheDocument();
 
 		get.mockClear();
-		fireEvent.click(retry);
+		fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 		await waitFor(() => expect(get).toHaveBeenCalledWith(8));
 		expect(get).not.toHaveBeenCalledWith(7);
 	});
 
-	it("a client's name narrows the report to that client", async () => {
+	it("Only this client narrows the report to that client", async () => {
 		vi.spyOn(IssueReportGateway.prototype, "get").mockResolvedValue({
 			kind: "report",
 			report: REPORT,
 		});
-		const router = await renderAt("/issues");
+		const router = await renderAt("/issues?group=page");
 
-		fireEvent.click(await screen.findByRole("button", { name: "Yoast" }));
+		fireEvent.click(await screen.findByRole("button", { name: "Only this client" }));
 
 		await waitFor(() => expect(router.state.location.search).toMatchObject({ clientId: 7 }));
-		expect(screen.queryByRole("region", { name: "Yoast" })).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: "Only this client" })).not.toBeInTheDocument();
 	});
 
 	it("says another user's or a deleted client was not found", async () => {

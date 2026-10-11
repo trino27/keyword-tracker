@@ -1,4 +1,5 @@
 import { fireEvent, screen, within } from "@testing-library/react";
+import { Accordion } from "@mantine/core";
 import { describe, expect, it, vi } from "vitest";
 import type { TIssuesSearch } from "@App/Router/SearchSchemas/IssuesSearchSchema/issuesSearchSchema";
 import type { TClientIssueReport } from "@Gateways/IssueReportGateway/Validation/IssueReportSchemas";
@@ -50,9 +51,13 @@ const show = (
 	const onRetry = vi.fn();
 	const onClearFilters = vi.fn();
 	const onShowOnly = vi.fn();
-	renderWithProviders(() => (
+	const issues = (
 		<ClientIssues
-			section={options.section ? { name: "Yoast", site: "yoast.com", onShowOnly } : undefined}
+			section={
+				options.section
+					? { id: 7, name: "Yoast", site: "yoast.com", onShowOnly }
+					: undefined
+			}
 			entry={entry}
 			search={options.search ?? SEARCH}
 			timeZone="America/Toronto"
@@ -60,36 +65,57 @@ const show = (
 			onRetry={onRetry}
 			onClearFilters={onClearFilters}
 		/>
-	));
+	);
+	// A section is an item of the screen's accordion, so it is rendered inside one.
+	renderWithProviders(() =>
+		options.section ? <Accordion multiple>{issues}</Accordion> : issues,
+	);
 	return { onRetry, onClearFilters, onShowOnly };
 };
 
-describe("ClientIssues", () => {
-	describe("as one section of All clients", () => {
-		it("heads its findings with the client's name, site, crawl date and count", async () => {
-			const { onShowOnly } = show(ready(), { section: true });
+const BY_PAGE: TIssuesSearch = { ...SEARCH, group: "page" };
 
-			const section = await screen.findByRole("region", { name: "Yoast" });
-			expect(within(section).getByText("yoast.com")).toBeInTheDocument();
+/** The item's header: the control that folds it, named by everything it says. */
+const header = () => screen.findByRole("button", { name: /Yoast/ });
+
+describe("ClientIssues", () => {
+	describe("as one client's item of All clients, by page", () => {
+		it("heads it with the client's name, site, crawl date and count, folded", async () => {
+			show(ready(), { section: true, search: BY_PAGE });
+
+			const control = await header();
+			expect(control).toHaveAttribute("aria-expanded", "false");
+			expect(within(control).getByText("yoast.com")).toBeInTheDocument();
 			// The crawl's time in the user's zone: 18:02 UTC is 2:02 PM in Toronto.
-			expect(within(section).getByText(/From the crawl that finished/)).toHaveTextContent(
+			expect(within(control).getByText(/From the crawl that finished/)).toHaveTextContent(
 				/2:02/,
 			);
-			expect(within(section).getByLabelText("2 issues")).toBeInTheDocument();
-			expect(
-				within(section).getByText("This page has no title for search results"),
-			).toBeInTheDocument();
+			expect(within(control).getByLabelText("2 issues")).toBeInTheDocument();
+		});
 
-			fireEvent.click(within(section).getByRole("button", { name: "Yoast" }));
+		it("unfolds onto the client's pages and their problems", async () => {
+			show(ready(), { section: true, search: BY_PAGE });
+
+			fireEvent.click(await header());
+
+			expect(await header()).toHaveAttribute("aria-expanded", "true");
+			expect(await screen.findByRole("link", { name: "A post" })).toBeVisible();
+			expect(screen.getByText("Whole site")).toBeInTheDocument();
+		});
+
+		it("offers to show only this client, outside the fold", async () => {
+			const { onShowOnly } = show(ready(), { section: true, search: BY_PAGE });
+
+			fireEvent.click(await screen.findByRole("button", { name: "Only this client" }));
+
 			expect(onShowOnly).toHaveBeenCalledOnce();
+			expect(await header()).toHaveAttribute("aria-expanded", "false");
 		});
 
 		it("counts only what the filters let through", async () => {
-			show(ready(), { section: true, search: { ...SEARCH, levels: ["error"] } });
+			show(ready(), { section: true, search: { ...BY_PAGE, levels: ["error"] } });
 
-			const section = await screen.findByRole("region", { name: "Yoast" });
-			expect(within(section).getByLabelText("1 issue")).toBeInTheDocument();
-			expect(within(section).queryByText(/Interactions/)).not.toBeInTheDocument();
+			expect(within(await header()).getByLabelText("1 issue")).toBeInTheDocument();
 		});
 
 		it.each([
@@ -104,35 +130,32 @@ describe("ClientIssues", () => {
 				{ status: "notFound" as const, report: null, error: null, requestId: 1 },
 				"This client is no longer available.",
 			],
-		])("says %s in one line", async (_, entry, line) => {
-			show(entry, { section: true });
+			["nothing matching the filters", ready(), "Nothing here matches these filters."],
+		])("says %s in one line once unfolded", async (label, entry, line) => {
+			show(entry, {
+				section: true,
+				search:
+					label === "nothing matching the filters"
+						? { ...BY_PAGE, type: "site" }
+						: BY_PAGE,
+			});
+
+			fireEvent.click(await header());
 
 			expect(await screen.findByText(line)).toBeInTheDocument();
-		});
-
-		it("says nothing matches the filters without a full-screen state", async () => {
-			show(ready(), { section: true, search: { ...SEARCH, type: "site" } });
-
-			expect(
-				await screen.findByText("Nothing here matches these filters."),
-			).toBeInTheDocument();
 			expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
 		});
 
-		it("offers Retry for its own failed read", async () => {
+		it("offers Try again for its own failed read", async () => {
 			const { onRetry } = show(
 				{ status: "error", report: null, error: "offline", requestId: 1 },
-				{ section: true },
+				{ section: true, search: BY_PAGE },
 			);
 
+			fireEvent.click(await header());
 			fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+
 			expect(onRetry).toHaveBeenCalledOnce();
-		});
-
-		it("shows a stand-in while it loads", async () => {
-			show({ status: "loading", report: null, error: null, requestId: 1 }, { section: true });
-
-			expect(await screen.findByLabelText("Loading issues")).toBeInTheDocument();
 		});
 	});
 

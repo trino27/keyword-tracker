@@ -1,11 +1,33 @@
 import { Badge, Divider, Group, Paper, Stack, Text } from "@mantine/core";
 import { severityLabel } from "@Core/Constants/severityLabel";
 import { issueCopyOf } from "@Core/Helpers/IssueCopy/issueCopy";
-import type { IIssueCardView } from "@ViewModels/IssueReportViewModel/Services/GroupByIssue/groupByIssue";
+import type {
+	IClientRowsView,
+	IIssueCardView,
+} from "@ViewModels/IssueReportViewModel/Services/GroupByIssue/groupByIssue";
 import { IssueLocation } from "../IssueLocation/IssueLocation";
 import { TechnicalDetails } from "../TechnicalDetails/TechnicalDetails";
 
 const SHOWN_ROWS = 8;
+
+/** Where a problem was found: its rows, capped so a card stays a card. */
+function Locations({ rows, more }: { rows: IClientRowsView["rows"]; more: string }) {
+	return (
+		<Stack gap="xs">
+			{rows.slice(0, SHOWN_ROWS).map((row, index) => (
+				// Index as key: rows of one code are unique by location, and a key built
+				// from it would differ only in its kind for site rows.
+				<IssueLocation key={index} row={row} />
+			))}
+			{rows.length > SHOWN_ROWS && (
+				<Text size="xs" c="dimmed">
+					…and {rows.length - SHOWN_ROWS} more {more}. Switch to "By page" or search to
+					see them.
+				</Text>
+			)}
+		</Stack>
+	);
+}
 
 /**
  * One problem, explained once: what is wrong, why it matters, what to do and who does it,
@@ -48,19 +70,34 @@ export function IssueCard({ card }: { card: IIssueCardView }) {
 				)}
 				<TechnicalDetails copy={copy} />
 				<Divider />
-				<Stack gap="xs">
-					{card.rows.slice(0, SHOWN_ROWS).map((row, index) => (
-						// Index as key: rows of one code are unique by location, and a
-						// key built from it would differ only in its kind for site rows.
-						<IssueLocation key={index} row={row} />
-					))}
-					{card.rows.length > SHOWN_ROWS && (
-						<Text size="xs" c="dimmed">
-							…and {card.rows.length - SHOWN_ROWS} more pages. Switch to "By page" or
-							search to see them.
-						</Text>
-					)}
-				</Stack>
+				{card.clients.some(({ client }) => client !== null) ? (
+					// Several clients: each one's pages under its name (plan D34).
+					<Stack gap="md">
+						{card.clients.map(({ client, rows }) => (
+							<Stack
+								key={client?.id ?? 0}
+								gap="xs"
+								role="group"
+								aria-label={client?.name}
+							>
+								<Group gap={6}>
+									<Text size="sm" fw={700}>
+										{client?.name}
+									</Text>
+									<Text size="xs" c="dimmed">
+										{client?.site}
+									</Text>
+								</Group>
+								<Locations
+									rows={rows}
+									more={`pages on ${client?.name ?? "this site"}`}
+								/>
+							</Stack>
+						))}
+					</Stack>
+				) : (
+					<Locations rows={card.rows} more="pages" />
+				)}
 			</Stack>
 		</Paper>
 	);

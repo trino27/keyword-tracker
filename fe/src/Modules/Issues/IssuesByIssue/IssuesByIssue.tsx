@@ -1,19 +1,16 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
 import { severityLabel } from "@Core/Constants/severityLabel";
-import type { TReportIssue } from "@Gateways/IssueReportGateway/Validation/IssueReportSchemas";
-import { groupByIssue } from "@ViewModels/IssueReportViewModel/Services/GroupByIssue/groupByIssue";
+import type { ISeverityGroupView } from "@ViewModels/IssueReportViewModel/Services/GroupByIssue/groupByIssue";
 import { IssueCard } from "../IssueCard/IssueCard";
 
-interface IIssuesByIssueProps {
-	issues: TReportIssue[];
-	currentPages: number;
-}
-
-/** One section per level, Critical first; within it, the widest problem first. */
-export function IssuesByIssue({ issues, currentPages }: IIssuesByIssueProps) {
+/**
+ * One section per level, Critical first; within it, the widest problem first — one
+ * client's problems, or every client's with their pages grouped by client in each card.
+ */
+export function IssuesByIssue({ groups }: { groups: ISeverityGroupView[] }) {
 	return (
 		<Stack gap="lg">
-			{groupByIssue(issues, currentPages).map((group) => {
+			{groups.map((group) => {
 				const level = severityLabel[group.severity];
 				return (
 					<Stack key={group.severity} gap="sm">

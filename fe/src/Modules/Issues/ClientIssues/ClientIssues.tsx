@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Group, Skeleton, Stack, Text, Title } from "@mantine/core";
+import { Accordion, Badge, Button, Group, Skeleton, Stack, Text } from "@mantine/core";
 import { IconCircleCheck, IconFilterOff, IconHourglass } from "@tabler/icons-react";
 import { useMemo } from "react";
 import type { TIssuesSearch } from "@App/Router/SearchSchemas/IssuesSearchSchema/issuesSearchSchema";
@@ -8,6 +8,7 @@ import { NotFound } from "@Modules/_Shared/NotFound/NotFound";
 import { SectionError } from "@Modules/_Shared/SectionError/SectionError";
 import type { IClientReport } from "@ViewModels/IssueReportViewModel/IssueReportViewModel";
 import { filterReport } from "@ViewModels/IssueReportViewModel/Services/FilterReport/filterReport";
+import { groupByIssue } from "@ViewModels/IssueReportViewModel/Services/GroupByIssue/groupByIssue";
 import {
 	reportViewOf,
 	type TReportView,
@@ -16,8 +17,11 @@ import { IssuesByIssue } from "../IssuesByIssue/IssuesByIssue";
 import { IssuesByPage } from "../IssuesByPage/IssuesByPage";
 
 interface IClientIssuesProps {
-	/** The client, its site and how to narrow the report to it: given, it is one section of "All clients". */
-	section?: { name: string; site: string; onShowOnly: () => void };
+	/**
+	 * The client, its site and how to narrow the report to it: given, this is one client's
+	 * item of "All clients" by page — it must sit inside an `Accordion` (plan D34).
+	 */
+	section?: { id: number; name: string; site: string; onShowOnly: () => void };
 	entry: IClientReport;
 	search: TIssuesSearch;
 	timeZone: string;
@@ -27,7 +31,10 @@ interface IClientIssuesProps {
 	onClearFilters: () => void;
 }
 
-/** One client's report: when it was crawled, then its rows grouped as chosen — or why there are none. */
+/**
+ * One client's report: when it was crawled, then its rows grouped as chosen — or why there
+ * are none. As an item of "All clients" by page it folds, its header saying what is inside.
+ */
 export function ClientIssues({
 	section,
 	entry,
@@ -82,40 +89,41 @@ export function ClientIssues({
 			</>
 		);
 
+	const count = view.kind === "ready" ? view.issues.length : null;
 	return (
-		<Stack gap="sm" component="section" aria-label={section.name}>
-			<Stack gap={2}>
-				<Group gap="xs">
-					<Title order={3}>
-						<Anchor
-							component="button"
-							type="button"
-							inherit
-							c="inherit"
-							onClick={section.onShowOnly}
-							title={`Only ${section.name}`}
-						>
-							{section.name}
-						</Anchor>
-					</Title>
-					<Text size="sm" c="dimmed">
-						{section.site}
-					</Text>
-					{view.kind === "ready" && (
-						<Badge
-							variant="light"
-							color="gray"
-							size="sm"
-							aria-label={`${view.issues.length} ${view.issues.length === 1 ? "issue" : "issues"}`}
-						>
-							{view.issues.length}
-						</Badge>
-					)}
-				</Group>
-				{crawled}
-			</Stack>
-			<SectionView view={view} search={search} onRetry={onRetry} />
-		</Stack>
+		<Accordion.Item value={String(section.id)}>
+			<Group wrap="nowrap" gap={0} align="center">
+				<Accordion.Control>
+					<Stack gap={2}>
+						<Group gap="xs">
+							<Text fw={700} size="lg">
+								{section.name}
+							</Text>
+							<Text size="sm" c="dimmed">
+								{section.site}
+							</Text>
+							{count !== null && (
+								<Badge
+									variant="light"
+									color="gray"
+									size="sm"
+									aria-label={`${count} ${count === 1 ? "issue" : "issues"}`}
+								>
+									{count}
+								</Badge>
+							)}
+						</Group>
+						{crawled}
+					</Stack>
+				</Accordion.Control>
+				<Button variant="subtle" size="xs" mx="sm" onClick={section.onShowOnly}>
+					Only this client
+				</Button>
+			</Group>
+			<Accordion.Panel>
+				<SectionView view={view} onRetry={onRetry} />
+			</Accordion.Panel>
+		</Accordion.Item>
 	);
 }
 
@@ -134,7 +142,7 @@ function Rows({
 	search: TIssuesSearch;
 }) {
 	return search.group === "issue" ? (
-		<IssuesByIssue issues={view.issues} currentPages={view.report.currentPages} />
+		<IssuesByIssue groups={groupByIssue(view.issues, view.report.currentPages)} />
 	) : (
 		<IssuesByPage issues={view.issues} />
 	);
@@ -204,8 +212,8 @@ function FullView({
 	}
 }
 
-/** One client among all: a short line instead of a full-screen empty state. */
-function SectionView({ view, search, onRetry }: IViewProps) {
+/** One client among all, by page: a short line instead of a full-screen empty state. */
+function SectionView({ view, onRetry }: Omit<IViewProps, "search">) {
 	switch (view.kind) {
 		case "loading":
 			return <Skeleton height={80} radius="md" aria-label="Loading issues" />;
@@ -237,6 +245,6 @@ function SectionView({ view, search, onRetry }: IViewProps) {
 				</Text>
 			);
 		case "ready":
-			return <Rows view={view} search={search} />;
+			return <IssuesByPage issues={view.issues} />;
 	}
 }
