@@ -261,9 +261,11 @@ switches in group 4.
 - [x] 3.5 Check the worker and its neighbours are unchanged. Verify: `pnpm --filter be test:ci --
   classify-psi-response page-speed-rate-limiter page-speed-worker psi-client`.
   Done: in the full run below.
-- [ ] 3.6 Check the stack queues both devices. Verify: `docker compose up -d --build`, re-crawl a
+- [x] 3.6 Check the stack queues both devices. Verify: `docker compose up -d --build`, re-crawl a
   seed client, then `docker compose exec postgres psql -U tracker -d seo_tracker -c "select
   strategy, status, count(*) from page_speed group by 1, 2"` shows `desktop` rows.
+  Done: after the rebuild, run 208 (semrush.com) queued the 15 desktop rows. Within minutes 9
+  were `done` with a measurement, while the mobile rows kept their own.
 - [x] 3.7 Commits: `test(fixtures): a desktop PageSpeed answer, recorded` · `feat(page-speed): ask
   Google for desktop, and queue both devices`. Verify: `pnpm lint && pnpm typecheck && pnpm test
   && pnpm test:db`.
