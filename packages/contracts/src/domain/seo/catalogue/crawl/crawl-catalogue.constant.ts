@@ -399,7 +399,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Update the post, then the year in its title; or drop the year if the post is evergreen.',
     explanation:
-      'The title ends with a year, or names one after "in", "for" or "в", and that year is earlier than the current year where the client is. Ahrefs recommends a year in titles of topics where freshness matters, and the same year becomes a liability once it passes: searchers read it as a sign of stale advice. Google draws no line on years in titles, and changing a date without changing the content is the very thing DATE_BUMPED_WITHOUT_CHANGES flags, so the fix is to refresh the post, not just the number. A year in the site name after the separator is not read, and neither is one inside the title such as "2024 vs 2025"; a historical title like "SEO in 2008" is reported, and is for the reader to judge.',
+      'The title ends with a year, or names one after "in", "for" or "в", and that year is earlier than the current year where the client is. Ahrefs recommends a year in titles of topics where freshness matters, and the same year becomes a liability once it passes: searchers read it as a sign of stale advice. Google draws no line on years in titles, and changing a date without changing the content is the very thing DATE_BUMPED_WITHOUT_CHANGES flags, so the fix is to refresh the post, not just the number. A year in the site name, before or after the separator, is not read, and neither is one inside the title such as "2024 vs 2025"; a historical title like "SEO in 2008" is reported, and is for the reader to judge.',
     sources: [SOURCE.ahrefsOnPage, SOURCE.titleLinks],
     skipReason: 'No title to read.',
   },
@@ -447,7 +447,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Write a description that adds to the title instead of restating it.',
     explanation:
-      "The meta description is the same text as the title once case, punctuation and the site's name after the separator are set aside. Google asks for a description that is a short, relevant summary of the specific page; a restated title summarises nothing the result does not already show, so Google tends to build the snippet from the page text instead. Ahrefs' on-page guidance names the rule directly: expand on the title rather than repeat it. A description that adds even one clause passes — how long it is, META_DESCRIPTION_LENGTH judges.",
+      "The meta description is the same text as the title — or the same as one part of the title between separators, as the post's name sits beside the site's — once case and punctuation are set aside. Google asks for a description that is a short, relevant summary of the specific page; a restated title summarises nothing the result does not already show, so Google tends to build the snippet from the page text instead. Ahrefs' on-page guidance names the rule directly: expand on the title rather than repeat it. A description that adds even one clause passes — how long it is, META_DESCRIPTION_LENGTH judges.",
     sources: [SOURCE.snippets, SOURCE.ahrefsOnPage],
     skipReason: 'No title or no description to compare.',
   },

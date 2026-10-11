@@ -85,6 +85,40 @@ describe('TITLE_YEAR_OUTDATED', () => {
     ).toEqual(PASSES);
   });
 
+  it('does not read the site name before the separator when the page names its site', () => {
+    expect(
+      TITLE_YEAR_OUTDATED_CHECK.evaluate(
+        makeCheckInput({
+          fetchedAt: new Date('2026-10-09T12:00:00Z'),
+          parsed: {
+            title: 'Studio 2019 | Link building basics',
+            openGraph: { 'og:site_name': 'Studio 2019' },
+          },
+        }),
+      ),
+    ).toEqual(PASSES);
+  });
+
+  it('reads a year that is the last part of the title', () => {
+    expect(
+      TITLE_YEAR_OUTDATED_CHECK.evaluate(titled('Best SEO Tools – 2025')),
+    ).toEqual(failsWith({ year: 2025 }));
+  });
+
+  it('reads the post before a site name that comes first', () => {
+    expect(
+      TITLE_YEAR_OUTDATED_CHECK.evaluate(
+        makeCheckInput({
+          fetchedAt: new Date('2026-10-09T12:00:00Z'),
+          parsed: {
+            title: 'Acme | Best SEO tools for 2025',
+            openGraph: { 'og:site_name': 'Acme' },
+          },
+        }),
+      ),
+    ).toEqual(failsWith({ year: 2025 }));
+  });
+
   it('is not applicable without a title', () => {
     expect(TITLE_YEAR_OUTDATED_CHECK.evaluate(titled(null))).toEqual(
       NOT_APPLICABLE,

@@ -18,7 +18,8 @@ const PRECEDED_BY_PREPOSITION = new RegExp(
 /**
  * The years a title offers as its date: one that ends it, or one after "in", "for" or
  * "в". A year anywhere else — "2024 vs 2025: what changed" — is a subject, not a date.
- * Read in the title without the site's name, so a brand like "Studio 2019" is not read.
+ * Read in each part of the title without the site's name, so a brand like "Studio 2019"
+ * is not read.
  */
 function datedYears(title: string): number[] {
   return [...title.matchAll(YEAR)]
@@ -38,12 +39,17 @@ function datedYears(title: string): number[] {
  */
 export const TITLE_YEAR_OUTDATED_CHECK = defineCheck(
   'TITLE_YEAR_OUTDATED',
-  ({ parsed: { title }, fetchedAt, timeZone }) => {
+  (page) => {
+    const {
+      parsed: { title },
+      fetchedAt,
+      timeZone,
+    } = page;
     if (!title) return NOT_APPLICABLE;
     const currentYear = Number(todayInZone(fetchedAt, timeZone).slice(0, 4));
-    const past = datedYears(titleWithoutBrand(title)).filter(
-      (year) => year < currentYear,
-    );
+    const past = titleWithoutBrand(title, page)
+      .flatMap(datedYears)
+      .filter((year) => year < currentYear);
     if (past.length === 0) return PASS;
     const year = Math.max(...past);
     return fails({

@@ -14,6 +14,14 @@ describe('META_DESCRIPTION_REPEATS_TITLE', () => {
     ).toEqual(failsWith({ description: 'How to build links.' }));
   });
 
+  it('fails a description equal to the title after a brand prefix', () => {
+    expect(
+      META_DESCRIPTION_REPEATS_TITLE_CHECK.evaluate(
+        page('Acme | How to Build Links', 'How to build links.'),
+      ),
+    ).toEqual(failsWith({ description: 'How to build links.' }));
+  });
+
   it('fails a description equal to the whole title', () => {
     expect(
       META_DESCRIPTION_REPEATS_TITLE_CHECK.evaluate(

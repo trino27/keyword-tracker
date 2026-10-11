@@ -61,7 +61,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 	},
 	TITLE_YEAR_OUTDATED: {
 		passes: 'The title offers no past year as its date: no earlier year ends it or follows "in" or "for".',
-		fails: 'The title, read without the site name after its separator, ends with a year, or says "in 2023" / "for 2023", and that year has already passed.',
+		fails: 'The title, read without the site name before or after its separator, ends with a year, or says "in 2023" / "for 2023", and that year has already passed.',
 		ifPasses:
 			"The headline does not tell searchers the post is out of date before they open it, so an evergreen or refreshed post keeps earning its clicks.",
 		example: {
@@ -70,7 +70,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker cuts the site name off the title at a spaced separator (" | ", " - ", " – ", " — ", " • ", " · ") and looks for standalone years from 1900 to 2099. A year counts as the title\'s date only when it ends the title (a closing bracket, colon or full stop may follow) or comes right after "in", "for" or the Russian "в"; a year anywhere else is read as the subject. The check fails when such a year is earlier than the current year in the account\'s time zone at the moment the page was fetched, and is skipped when the page has no title.',
+			'The tracker splits the title at spaced separators (" | ", " - ", " – ", " — ", " • ", " · ") and sets aside the parts that name the site — its og:site_name, a WebSite name or its domain\'s name — at either end; when no part does, the last part goes unless it is only a number. In the parts left it looks for standalone years from 1900 to 2099. A year counts as the title\'s date only when it ends its part (a closing bracket, colon or full stop may follow) or comes right after "in", "for" or the Russian "в"; a year anywhere else is read as the subject. The check fails when such a year is earlier than the current year in the account\'s time zone at the moment the page was fetched, and is skipped when the page has no title.',
 		manualCheck: [
 			"Open the page and press Ctrl+U to view its source.",
 			"Press Ctrl+F, search for <title and read the title up to the separator before the site name.",
@@ -141,7 +141,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker lowercases both texts, turns punctuation and symbols into spaces and collapses the spaces, then compares the description with the whole title and with the title cut at the separator before the site name (" | ", " - ", " – " and the like). It fails only on an exact match after that; a description that adds even a few words passes. A page without a title or without a description is skipped.',
+			'The tracker lowercases both texts, turns punctuation and symbols into spaces and collapses the spaces, then compares the description with the whole title and with each part of it between spaced separators (" | ", " - ", " – " and the like), so the site name may come first or last. It fails only on an exact match after that; a description that adds even a few words passes. A page without a title or without a description is skipped.',
 		manualCheck: [
 			"Open the page and press Ctrl+U to view its source.",
 			'Press Ctrl+F for <title, then for name="description".',
