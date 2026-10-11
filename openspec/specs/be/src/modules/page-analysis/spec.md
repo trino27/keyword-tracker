@@ -560,7 +560,8 @@ A page whose first declared canonical names another URL MUST be reported as
 `CANONICAL_TARGET_BROKEN`, a warning, when that target redirects, answers 4xx or 5xx, answers 200
 with noindex, or answers 200 declaring a canonical to yet another URL. The target MUST be judged
 from the run's own page when it is one, else from one document read under the crawl's document
-budget. A target that could not be read MUST make the check not applicable, never passed.
+budget. A target that could not be read MUST make the check not applicable, never passed — and a
+target that refused the crawler (401, 402, 403 or 429, the link verdict's refusals) was not read.
 
 The check MUST be not applicable when the canonical is the page's own http:// twin
 (`CANONICAL_TO_HTTP`'s) or when the target is a development, staging or preview host
@@ -573,6 +574,11 @@ judge as it does without outbound facts.
 
 `SITEMAP_LISTS_NON_INDEXABLE` MUST still name such a page's sitemap entry "names <url> as
 canonical", reading the canonical from the `CANONICAL_TARGET_BROKEN` finding.
+
+#### Scenario: a canonical whose target rate-limits the crawler
+- **WHEN** a post's canonical names `https://a.example/original/`, which answers 429
+- **THEN** `CANONICAL_TARGET_BROKEN` is not applicable and `CANONICAL_MISMATCH` judges as it does
+  without outbound facts
 
 #### Scenario: a canonical naming a moved URL
 - **WHEN** a post's canonical names `https://a.example/old/`, which answers 301

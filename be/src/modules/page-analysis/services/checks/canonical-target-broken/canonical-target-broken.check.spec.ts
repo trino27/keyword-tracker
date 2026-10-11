@@ -99,6 +99,32 @@ describe('CANONICAL_TARGET_BROKEN', () => {
     ).toEqual(failsWith({ problem: 'status', status: 404 }));
   });
 
+  it.each([401, 402, 403, 429])(
+    'is not applicable for a target that refuses the crawler with %i',
+    (status) => {
+      expect(
+        CANONICAL_TARGET_BROKEN_CHECK.evaluate(
+          pointingAt({ outcome: answered(status), page: null }),
+        ),
+      ).toEqual(NOT_APPLICABLE);
+    },
+  );
+
+  it('fails a target the crawl could not reach', () => {
+    expect(
+      CANONICAL_TARGET_BROKEN_CHECK.evaluate(
+        pointingAt({ outcome: { kind: 'failed', failure: 'nxdomain' } }),
+      ),
+    ).toEqual(failsWith({ problem: 'unreachable' }));
+    expect(
+      CANONICAL_TARGET_BROKEN_CHECK.evaluate(
+        pointingAt({
+          outcome: { kind: 'failed', failure: 'tooManyRedirects' },
+        }),
+      ),
+    ).toEqual(failsWith({ problem: 'unreachable' }));
+  });
+
   it('fails a noindexed target', () => {
     expect(
       CANONICAL_TARGET_BROKEN_CHECK.evaluate(

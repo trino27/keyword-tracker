@@ -6,6 +6,7 @@ import {
 } from './declared-canonicals';
 import { isDevelopmentHost } from './development-host';
 import { isHttpTwin } from './http-twin';
+import { REFUSAL_STATUSES } from './link-verdict';
 import { sameDocument } from './same-document';
 
 /** What is wrong with the page a canonical names, as the crawl found it. */
@@ -53,6 +54,8 @@ function problemOf(
       hops: outcome.redirects,
       finalUrl: outcome.finalUrl,
     };
+  // A refusal answers this crawler, not the reader, as for a link: it proves nothing.
+  if (REFUSAL_STATUSES.includes(outcome.status)) return 'unknown';
   if (outcome.status >= 400) return { kind: 'status', status: outcome.status };
   if (!document.page) return null;
   if (document.page.noindex) return { kind: 'noindex' };
