@@ -132,7 +132,8 @@ source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree.
   desktop — and none for a device measured in the last 24 h. Measured live on 2026-10-11 (above):
   4–5 measurements a minute, so a 15-post crawl takes 6–7 minutes to measure — 30 calls,
   against the 25 000 a day Google documents as the API's default (this project's own quota was
-  not read from the Cloud console). A 429 degrades to a shared pause, never to failed pages. A spent
+  not read from the Cloud console). A call takes 23.7 s at the median, 38.8 s at the 90th
+  percentile and 66.2 s at the slowest (140 calls, 2026-10-11) — well inside the 90 s timeout. A 429 degrades to a shared pause, never to failed pages. A spent
   DAILY quota (Google names a per-day limit, or `dailyLimitExceeded` / `quotaExceeded`) pauses
   for an hour instead of a minute: asking again every minute would ask all day for nothing.
 - **What the screens say** comes from one `PageSpeedAvailabilityService`

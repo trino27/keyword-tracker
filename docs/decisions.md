@@ -190,7 +190,13 @@ the `x-goog-api-key` header, never in the URL, because a URL reaches error messa
 fixtures. Recorded against the live API on 2026-10-10: a bad key in that header answers `400
 API_KEY_INVALID` (so Google reads it there), and a request with no key answers `429
 RESOURCE_EXHAUSTED` with a daily quota of 0 — keyless use is not an option. The pause and the halt
-live in process memory, which is right for the one API process this stack runs.
+live in process memory, which is right for the one API process this stack runs. Measured on the
+stack on 2026-10-11: 140 calls drained in 41 minutes, a median of 23.7 s per call, 38.8 s at the
+90th percentile and 66.2 s at the slowest, each started a second after the last; a 15-post client
+costs 30 calls a crawl, both devices, against the 25 000 a day Google documents as the default. A
+deliberately wrong key against the live API halted the queue at its first answer, left the row
+queued with its attempt and its last measurement, turned every payload to `keyRejected` and logged
+one line without the key; the right key and a restart drained the row.
 
 **The Issues report is one snapshot of one client.** `GET /api/clients/:id/issues` answers every
 finding of the client's current crawl — each page's, the speed findings, and the site checks
