@@ -102,10 +102,21 @@ export interface IPreviewImage {
 export interface IParsedPage {
   /** From `head > title` only — an SVG <title> in the body is not the page title. */
   title: string | null;
+  /** From `<head>` only: Google reads page metadata there and nowhere else. */
   metaDescription: string | null;
-  metaRobots: string | null;
-  /** `<meta name="googlebot">` content: Google obeys it exactly as it obeys `robots`. */
-  metaGooglebot: string | null;
+  /**
+   * Why `metaDescription` is null: no tag at all, a tag in `<head>` with no words in it,
+   * or a tag only outside `<head>`, where Google does not read it. Null when there is one.
+   */
+  metaDescriptionGap: 'absent' | 'empty' | 'outsideHead' | null;
+  /**
+   * The content of every `<meta name="robots">`, in document order, empty ones left out.
+   * Google combines several tags, and where they conflict the more restrictive rule wins,
+   * so the first tag alone can hide a `noindex` written after it.
+   */
+  metaRobots: readonly string[];
+  /** `<meta name="googlebot">` contents: Google obeys them exactly as it obeys `robots`. */
+  metaGooglebot: readonly string[];
   /** `<meta http-equiv="refresh">` content, as written; null when there is none. */
   metaRefresh: string | null;
   /** `<meta name="viewport">` content, as written; null when the tag is absent. */

@@ -49,6 +49,15 @@ describe('UndiciHttpTransport (local server)', () => {
         response.writeHead(200, { 'content-type': 'text/html' });
         const timer = setInterval(() => response.write('x'.repeat(1024)), 5);
         response.on('close', () => clearInterval(timer));
+      } else if (request.url === '/robots-headers') {
+        response
+          .writeHead(200, [
+            ['X-Robots-Tag', 'bingbot: noindex'],
+            ['X-Robots-Tag', 'noarchive'],
+            ['Vary', 'Accept'],
+            ['Vary', 'Cookie'],
+          ])
+          .end();
       } else if (request.url === '/moved') {
         response.writeHead(301, { location: '/target' }).end();
       } else {
@@ -95,6 +104,16 @@ describe('UndiciHttpTransport (local server)', () => {
     expect(response.headers['content-type']).toBe('text/html; charset=utf-8');
     expect(response.body.toString()).toContain('<title>TestBot/1.0</title>');
     expect(response.ttfbMs).toBeGreaterThanOrEqual(0);
+  });
+
+  /** Each X-Robots-Tag header may name its own crawler; a comma would merge the scopes. */
+  it('keeps repeated X-Robots-Tag headers apart, and joins the rest with commas', async () => {
+    const response = await send(transport(permissiveLookup), '/robots-headers');
+
+    expect(response.headers['x-robots-tag']).toBe(
+      'bingbot: noindex\nnoarchive',
+    );
+    expect(response.headers.vary).toBe('Accept, Cookie');
   });
 
   it('stops reading past maxBytes', async () => {

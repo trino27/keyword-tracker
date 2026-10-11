@@ -13,14 +13,16 @@ describe('NOINDEX', () => {
     ['max-snippet:-1, max-image-preview:large', PASSES],
   ])('meta robots %j', (metaRobots, expected) => {
     expect(
-      NOINDEX_CHECK.evaluate(makeCheckInput({ parsed: { metaRobots } })),
+      NOINDEX_CHECK.evaluate(
+        makeCheckInput({ parsed: { metaRobots: [metaRobots] } }),
+      ),
     ).toEqual(expected);
   });
 
   // Google obeys a meta tag addressed to it by name exactly as it obeys `robots`.
   it('reads <meta name="googlebot"> as well, and quotes the tag', () => {
     const verdict = NOINDEX_CHECK.evaluate(
-      makeCheckInput({ parsed: { metaGooglebot: 'noindex' } }),
+      makeCheckInput({ parsed: { metaGooglebot: ['noindex'] } }),
     );
 
     expect(verdict).toEqual(
@@ -52,6 +54,36 @@ describe('NOINDEX', () => {
     ).toEqual(expected);
   });
 
+  /**
+   * Google combines several robots tags and applies the more restrictive rule:
+   * backlinko.com writes `index,follow` and then `noindex, nofollow`.
+   */
+  it('reads every robots tag, not only the first', () => {
+    const verdict = NOINDEX_CHECK.evaluate(
+      makeCheckInput({
+        parsed: { metaRobots: ['index,follow', 'noindex, nofollow'] },
+      }),
+    );
+
+    expect(verdict).toEqual(
+      failsWith({ source: 'meta', value: 'noindex, nofollow' }),
+    );
+  });
+
+  /**
+   * Each X-Robots-Tag header starts unscoped (the transport keeps repeats apart by a line
+   * break), so a page-wide noindex after a crawler-scoped header is Google's.
+   */
+  it('reads each X-Robots-Tag header on its own', () => {
+    expect(
+      NOINDEX_CHECK.evaluate(
+        makeCheckInput({
+          headers: { 'x-robots-tag': 'bingbot: noindex\nnoindex' },
+        }),
+      ),
+    ).toEqual(failsWith({ source: 'header', value: 'noindex' }));
+  });
+
   it('quotes the header it read', () => {
     expect(
       evidenceOf(
@@ -68,7 +100,7 @@ describe('NOINDEX', () => {
     'unavailable_after: Fri, 25 Sep 2026 15:00:00 GMT, noarchive',
   ])('fails %j once the date has passed', (metaRobots) => {
     const verdict = NOINDEX_CHECK.evaluate(
-      makeCheckInput({ parsed: { metaRobots } }),
+      makeCheckInput({ parsed: { metaRobots: [metaRobots] } }),
     );
 
     expect(verdict).toEqual(failsWith({ source: 'meta', value: metaRobots }));
@@ -82,7 +114,7 @@ describe('NOINDEX', () => {
     expect(
       NOINDEX_CHECK.evaluate(
         makeCheckInput({
-          parsed: { metaRobots: 'unavailable_after: 2027-06-01' },
+          parsed: { metaRobots: ['unavailable_after: 2027-06-01'] },
         }),
       ),
     ).toEqual(PASSES);

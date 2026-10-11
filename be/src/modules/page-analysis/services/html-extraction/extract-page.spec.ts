@@ -245,7 +245,7 @@ describe('extractPage', () => {
     expect(parsed).toMatchObject({
       title: 'A title',
       metaDescription: 'The description',
-      metaRobots: 'noindex, follow',
+      metaRobots: ['noindex, follow'],
       canonicals: ['https://a.example/canonical/'],
       openGraph: { 'og:title': 'OG' },
       articleTags: ['SEO'],
@@ -314,6 +314,34 @@ describe('extractPage', () => {
       { level: 3, text: 'I already do this' },
     ]);
     expect(parsed.images.map(({ src }) => src)).toEqual(['/hero.png']);
+  });
+
+  /**
+   * Google reads metadata from <head> only. An <img> in <head> ends it for the parser,
+   * as for Google, so the description written after it lands in <body> and counts for
+   * nothing — the same rule the title is read by.
+   */
+  it('reads the description from <head> only, and says why there is none', () => {
+    expect(
+      page('', '<meta name="description" content="About links.">'),
+    ).toMatchObject({
+      metaDescription: 'About links.',
+      metaDescriptionGap: null,
+    });
+    expect(page('', '<meta name="description" content="  ">')).toMatchObject({
+      metaDescription: null,
+      metaDescriptionGap: 'empty',
+    });
+    expect(
+      page('', '<img src="/x.png"><meta name="description" content="Late.">'),
+    ).toMatchObject({
+      metaDescription: null,
+      metaDescriptionGap: 'outsideHead',
+    });
+    expect(page('')).toMatchObject({
+      metaDescription: null,
+      metaDescriptionGap: 'absent',
+    });
   });
 
   it('separates adjacent blocks so their words never fuse', () => {
@@ -537,7 +565,7 @@ describe('extractPage', () => {
     expect(
       page('<p>x</p>', '<meta name="Googlebot" content="noindex">')
         .metaGooglebot,
-    ).toBe('noindex');
+    ).toEqual(['noindex']);
   });
 
   /**

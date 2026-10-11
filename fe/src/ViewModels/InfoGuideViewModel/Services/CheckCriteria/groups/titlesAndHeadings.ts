@@ -106,7 +106,7 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker reads the content of the first <meta name="description"> in the HTML the server returns (the name is matched in any letter case), with whitespace collapsed. The check fails when there is no such tag or its content is empty. An og:description is quoted in the finding as a ready-made fix, but search results do not read it and it does not count.',
+			'The tracker reads the content of the first <meta name="description"> inside <head> of the HTML the server returns (the name is matched in any letter case), with whitespace collapsed. Google reads page metadata from <head> only, so a description in <body> — written there, or pushed there because an element that does not belong in <head>, such as an <img>, comes before it — does not count. The check fails when there is no such tag, its content is empty, or it sits outside <head>, and the finding says which. An og:description is quoted in the finding as a ready-made fix, but search results do not read it and it does not count.',
 		manualCheck: [
 			"Open the page and press Ctrl+U to view its source.",
 			'Press Ctrl+F and search for name="description".',

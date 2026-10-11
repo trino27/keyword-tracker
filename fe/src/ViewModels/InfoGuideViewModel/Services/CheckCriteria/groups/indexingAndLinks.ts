@@ -19,7 +19,7 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker reads the first <meta name="robots"> and the first <meta name="googlebot"> in the HTML as fetched, and the X-Robots-Tag response header. It fails the page when any of them holds noindex or none, or an unavailable_after date that was already past when the page was fetched. Header rules prefixed with another crawler\'s name (such as "bingbot: noindex") are ignored, because they do not apply to Google.',
+			'The tracker reads every <meta name="robots"> and <meta name="googlebot"> in the HTML as fetched, and every X-Robots-Tag response header, each on its own — Google combines several tags and headers and applies the most restrictive rule, so a second tag saying noindex counts even after one saying index. It fails the page when any of them holds noindex or none, or an unavailable_after date that was already past when the page was fetched. Header rules prefixed with another crawler\'s name (such as "bingbot: noindex") are ignored, because they do not apply to Google.',
 		manualCheck: [
 			'Open View source (Ctrl+U), press Ctrl+F and search for "noindex", "none" and "unavailable_after" in the robots and googlebot meta tags.',
 			"Run curl -I https://example.com/blog/post/ and look for an X-Robots-Tag line in the response headers.",

@@ -356,7 +356,7 @@ describe('evaluateChecks', () => {
           title: 'Shared title for 2020',
           // Too short, shared with the other broken page, and the title again.
           metaDescription: 'Shared title for 2020',
-          metaRobots: 'noindex, nosnippet',
+          metaRobots: ['noindex, nosnippet'],
           relativeCanonicals: ['/x/'],
           featuredImage: {
             loading: 'lazy',

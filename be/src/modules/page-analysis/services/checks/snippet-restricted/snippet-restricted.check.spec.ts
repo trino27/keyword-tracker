@@ -8,7 +8,7 @@ describe('SNIPPET_RESTRICTED', () => {
     ['index, follow, max-snippet: 0', 'max-snippet:0'],
   ])('fails robots meta %j, quoting the tag', (metaRobots, rule) => {
     const verdict = SNIPPET_RESTRICTED_CHECK.evaluate(
-      makeCheckInput({ parsed: { metaRobots } }),
+      makeCheckInput({ parsed: { metaRobots: [metaRobots] } }),
     );
 
     expect(verdict).toEqual(
@@ -25,7 +25,7 @@ describe('SNIPPET_RESTRICTED', () => {
     (metaRobots) => {
       expect(
         SNIPPET_RESTRICTED_CHECK.evaluate(
-          makeCheckInput({ parsed: { metaRobots } }),
+          makeCheckInput({ parsed: { metaRobots: [metaRobots] } }),
         ),
       ).toEqual(PASSES);
     },

@@ -40,8 +40,9 @@ export function makeCheckInput(
       title: 'A complete guide to link building for small sites',
       metaDescription:
         'Learn link building step by step: what works, what to avoid, and how to measure the links you earn.',
-      metaRobots: 'max-image-preview:large',
-      metaGooglebot: null,
+      metaDescriptionGap: null,
+      metaRobots: ['max-image-preview:large'],
+      metaGooglebot: [],
       metaRefresh: null,
       viewport: 'width=device-width, initial-scale=1',
       canonicals: ['https://a.example/post/'],

@@ -6,10 +6,10 @@ const facts = (overrides: Parameters<typeof makeCheckInput>[0]) =>
 
 describe('documentFactsOf', () => {
   it('reads noindex from meta robots, googlebot and X-Robots-Tag', () => {
-    expect(facts({ parsed: { metaRobots: 'noindex, follow' } }).noindex).toBe(
+    expect(facts({ parsed: { metaRobots: ['noindex, follow'] } }).noindex).toBe(
       true,
     );
-    expect(facts({ parsed: { metaGooglebot: 'none' } }).noindex).toBe(true);
+    expect(facts({ parsed: { metaGooglebot: ['none'] } }).noindex).toBe(true);
     expect(
       facts({
         headers: { 'content-type': 'text/html', 'x-robots-tag': 'noindex' },

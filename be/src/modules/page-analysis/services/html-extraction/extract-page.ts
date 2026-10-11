@@ -327,9 +327,10 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
 
   return {
     title: orNull($('head > title').first().text()),
-    metaDescription: orNull(metaContent($, 'name', 'description')),
-    metaRobots: orNull(metaContent($, 'name', 'robots')),
-    metaGooglebot: orNull(metaContent($, 'name', 'googlebot')),
+    metaDescription: orNull(metaContent($, 'name', 'description', 'head')),
+    metaDescriptionGap: metaDescriptionGapOf($),
+    metaRobots: metaContents($, 'robots'),
+    metaGooglebot: metaContents($, 'googlebot'),
     metaRefresh: orNull(httpEquivContent($, 'refresh')),
     viewport: orNull(metaContent($, 'name', 'viewport')),
     canonicals,
@@ -652,17 +653,51 @@ function postArticleIn(
     : null;
 }
 
+/**
+ * Why the page has no description Google reads. Google takes page metadata from `<head>`
+ * only, so a description the parser finds in `<body>` — written there, or pushed there by
+ * an element that does not belong in `<head>` — is as good as none. An empty one is told
+ * apart because its fix differs: the tag is there and only the CMS field is blank.
+ */
+function metaDescriptionGapOf(
+  $: CheerioAPI,
+): IParsedPage['metaDescriptionGap'] {
+  const inHead = metaContent($, 'name', 'description', 'head');
+  if (inHead !== undefined) return orNull(inHead) === null ? 'empty' : null;
+  return metaContent($, 'name', 'description') === undefined
+    ? 'absent'
+    : 'outsideHead';
+}
+
+/**
+ * The content of every `<meta name>` with this name, anywhere in the document, collapsed,
+ * empty ones left out. Robots rules are read from the whole document because Google
+ * Search does not enforce their placement in `<head>`.
+ */
+function metaContents($: CheerioAPI, name: string): string[] {
+  return $('meta[name]')
+    .filter(
+      (_, element) => ($(element).attr('name') ?? '').toLowerCase() === name,
+    )
+    .map((_, element) => orNull($(element).attr('content')))
+    .get()
+    .filter((content): content is string => content !== null);
+}
+
 function metaContent(
   $: CheerioAPI,
   attribute: 'name' | 'property',
   value: string,
+  scope: 'head' | 'document' = 'document',
 ): string | undefined {
   let content: string | undefined;
-  $(`meta[${attribute}]`).each((_, element) => {
-    if (content !== undefined) return;
-    if (($(element).attr(attribute) ?? '').toLowerCase() === value)
-      content = $(element).attr('content');
-  });
+  $(`${scope === 'head' ? 'head ' : ''}meta[${attribute}]`).each(
+    (_, element) => {
+      if (content !== undefined) return;
+      if (($(element).attr(attribute) ?? '').toLowerCase() === value)
+        content = $(element).attr('content');
+    },
+  );
   return content;
 }
 

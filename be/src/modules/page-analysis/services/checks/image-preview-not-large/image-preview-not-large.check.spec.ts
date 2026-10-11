@@ -10,7 +10,10 @@ const verdict = (
   IMAGE_PREVIEW_NOT_LARGE_CHECK.evaluate(
     makeCheckInput({
       headers: { 'content-type': 'text/html', ...headers },
-      parsed: { metaRobots, metaGooglebot },
+      parsed: {
+        metaRobots: metaRobots === null ? [] : [metaRobots],
+        metaGooglebot: metaGooglebot === null ? [] : [metaGooglebot],
+      },
     }),
   );
 

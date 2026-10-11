@@ -84,14 +84,23 @@ export class UndiciHttpTransport implements IHttpTransport {
   }
 }
 
+/**
+ * Headers whose repeats stay apart, joined by a line break no header value can hold. Each
+ * X-Robots-Tag header may name its own crawler ("bingbot: noindex"); joined by a comma, a
+ * page-wide header after it would read as that crawler's too, where Google reads them as
+ * separate headers.
+ */
+const LINE_JOINED_HEADERS = new Set(['x-robots-tag']);
+
 function normalizeHeaders(
   raw: Record<string, string | string[] | undefined>,
 ): Record<string, string> {
   const headers: Record<string, string> = {};
   for (const [name, value] of Object.entries(raw)) {
     if (value === undefined) continue;
-    headers[name.toLowerCase()] = Array.isArray(value)
-      ? value.join(', ')
+    const key = name.toLowerCase();
+    headers[key] = Array.isArray(value)
+      ? value.join(LINE_JOINED_HEADERS.has(key) ? '\n' : ', ')
       : value;
   }
   return headers;
