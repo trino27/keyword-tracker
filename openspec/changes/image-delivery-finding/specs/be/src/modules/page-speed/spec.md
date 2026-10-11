@@ -9,7 +9,7 @@ reach the catalogue's `min` (102 400 bytes). Its details MUST carry the savings 
 desktop answer MUST NOT produce it. An answer without the audit, or with an audit that does not
 parse, MUST produce no image finding and MUST still be stored as a Core Web Vitals measurement,
 never as a failed attempt. The finding MUST be replaced with the rest of that strategy's speed
-findings.
+findings. It is a speed finding: it MUST NOT be listed as a check and MUST NOT move the score.
 
 #### Scenario: a page with oversized images
 - **WHEN** a mobile answer's image-delivery audit fails with 245 000 bytes of savings over 4 images
@@ -27,3 +27,7 @@ findings.
 #### Scenario: a desktop answer
 - **WHEN** a desktop answer's image-delivery audit fails with 500 000 bytes of savings
 - **THEN** no `IMAGE_DELIVERY_INEFFICIENT` is stored for it
+
+#### Scenario: the page's score
+- **WHEN** a page scoring 88 gains `IMAGE_DELIVERY_INEFFICIENT`
+- **THEN** its notice count grows by one and it still scores 88

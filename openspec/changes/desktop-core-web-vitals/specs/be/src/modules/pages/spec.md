@@ -11,13 +11,15 @@ worker uses to choose findings; the band MUST NOT be stored. The failure reason 
 for a failed row. The list response and the detail MUST carry PageSpeed's state in the API
 process — `notConfigured` without a key, `keyRejected` after Google refused the key and the worker
 halted, `active` otherwise — answered by the one function every read path uses. The list MUST
-still be read in a constant number of statements, and MUST list a page once however many
-strategies it has rows for.
+still be read in a constant number of statements, MUST list a page once however many strategies
+it has rows for, and a page's score and place in the list's order MUST be read from its mobile
+row alone.
 
-Modified by `desktop-core-web-vitals`: a page now has a row per strategy (SPEED-014). The list
+Modified by `desktop-core-web-vitals`: a page now has a row per strategy (SPEED-020). The list
 keeps the mobile badge (plan D21), and a join that does not name the strategy would list every
-page twice. The detail carries both, keyed by strategy, so a third strategy would be a compile
-error on every reader rather than a field nobody reads.
+page twice and compute its Lighthouse share once per row (plan D43). The detail carries both,
+keyed by strategy, so a third strategy would be a compile error on every reader rather than a
+field nobody reads.
 
 #### Scenario: a page with a poor CLS from the lab
 - **WHEN** a page's stored mobile measurement holds CLS 0.31 from `lab`
@@ -50,3 +52,7 @@ error on every reader rather than a field nobody reads.
 #### Scenario: a page never measured on desktop
 - **WHEN** a page has a mobile row and no desktop row
 - **THEN** its detail's desktop summary is null
+
+#### Scenario: a desktop measurement lands
+- **WHEN** a page scoring 88 is measured on desktop
+- **THEN** it still scores 88 and keeps its place in the list

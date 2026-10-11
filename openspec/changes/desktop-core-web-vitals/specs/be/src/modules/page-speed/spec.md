@@ -1,11 +1,13 @@
 ## ADDED Requirements
 
-### Requirement: SPEED-014 — a page has one measurement per device, and each is its own job
+### Requirement: SPEED-020 — a page has one measurement per device, each its own job, and only mobile holds Lighthouse
 
 A page MUST have at most one `page_speed` row per strategy — `mobile` and `desktop` — removed with
 the page. Each row MUST be queued, claimed, retried, failed and completed independently of the
-other. The database MUST refuse a row that does not name its strategy. Rows that existed before
-desktop was measured MUST be `mobile` rows, unchanged.
+other. The database MUST refuse a row that does not name its strategy, and MUST refuse a desktop
+row that holds a Lighthouse list, a Lighthouse failed count or a category score. A desktop
+measurement MUST NOT write, replace or remove the page's Lighthouse record or Lighthouse
+findings. Rows that existed before desktop was measured MUST be `mobile` rows, unchanged.
 
 #### Scenario: a page measured on both devices
 - **WHEN** a page has a `done` mobile row and its desktop attempt times out
@@ -15,6 +17,16 @@ desktop was measured MUST be `mobile` rows, unchanged.
 #### Scenario: an insert that forgets the strategy
 - **WHEN** a write inserts a `page_speed` row without a strategy
 - **THEN** the database rejects it
+
+#### Scenario: a desktop row with a Lighthouse verdict
+- **WHEN** a write sets `lighthouse_judged` or `seo_score` on a desktop row
+- **THEN** the database rejects it on `page_speed_lighthouse_mobile_only`
+
+#### Scenario: a desktop measurement of a page with Lighthouse findings
+- **WHEN** a page holds two Lighthouse findings from its mobile measurement and its desktop row
+  is measured
+- **THEN** both Lighthouse findings, the mobile row's Lighthouse lists and the page's score are
+  unchanged
 
 #### Scenario: after the migration
 - **WHEN** the migration runs over a database of mobile measurements
@@ -68,6 +80,42 @@ Modified by `desktop-core-web-vitals`: freshness is per row, and a row is now on
 - **WHEN** a page measured on mobile an hour ago, never on desktop, is crawled
 - **THEN** its mobile row is unchanged and a desktop row is `queued`
 
+### Requirement: SPEED-014 — users and clients take turns in the queue
+
+Of the due rows, a slot MUST claim one of the user served longest ago, then of that user's
+client served longest ago, then, within that client, a mobile row before a desktop row, then
+the oldest; a user or client never served goes first. A user or client is served at the latest
+claim of any of its rows, on either device, so a backlog of one user's pages never stands in
+front of a client added after it. A claim MUST take one row, page and strategy together, and
+every outcome of the attempt MUST be written to that row alone.
+
+Modified by `desktop-core-web-vitals`: a page now has two rows (SPEED-020). A desktop claim
+serves its client as a mobile one does, or a client's desktop backlog would count as never
+served and jump every queue. Within a client mobile goes first, because mobile feeds the score,
+the list's badge and Lighthouse's verdicts (plan D44).
+
+#### Scenario: a client is added behind a backlog
+- **WHEN** one client has 3 pages queued and a second client then queues 1
+- **THEN** the claims take the first client's page, the second client's page, then the rest
+
+#### Scenario: a user with many clients
+- **WHEN** one user's 3 clients have a page queued each and another user then queues 1
+- **THEN** the second claim takes the other user's page
+
+#### Scenario: a client measured on desktop a minute ago
+- **WHEN** client A's desktop row was claimed a minute ago and client B, never served, queues a
+  row
+- **THEN** the next claim takes client B's row
+
+#### Scenario: both devices due for one client
+- **WHEN** a client whose turn it is has two pages due on both devices
+- **THEN** the claims take both mobile rows before either desktop row
+
+#### Scenario: a stale attempt on one device
+- **WHEN** attempt 2 of a page's desktop row completes late, and the page's mobile row is also
+  on attempt 2
+- **THEN** neither row is written
+
 ### Requirement: SPEED-005 — each metric takes the closest real measurement available, and says where it came from
 
 For LCP and CLS the measurement MUST take, per metric, Google's real-visitor figure for the page's
@@ -77,7 +125,8 @@ source MUST never be `lab`. The URL measured MUST be the page's final URL after 
 the strategy of the row being measured.
 
 Modified by `desktop-core-web-vitals`: "with strategy mobile" becomes the row's own strategy. A
-desktop row asks PageSpeed for `strategy=desktop`.
+desktop row asks PageSpeed for `strategy=desktop`. Which categories each strategy asks for is
+`lighthouse-checks`' SPEED-016.
 
 #### Scenario: a low-traffic post on a busy site
 - **WHEN** Google has no URL data for the post and has origin data for the site

@@ -15,13 +15,25 @@ No new check reports a fact an existing check already reports: where two meet on
 more specific one keeps it and the other steps aside (D32–D36).
 
 **Status:** active — branch `feat/issue-report-and-pagespeed` (the user's instruction: the work
-stays on the current branch; no new branch).
+stays on the current branch; no new branch). Phases 1 and 3 are closed: at `adc8887` every task of
+`markup-gap-checks` and `crawl-outbound-checks` is ticked except 7.2 in each, which is the
+archive-and-deposit step and belongs to phase 6. Phases 4 and 5 have not started. They were
+re-derived on 2026-10-11 against the tree at `adc8887`, after `feat/lighthouse-checks` was merged
+in (D39–D50), and their two changes were regenerated from §15.
 
 **Changes:** markup-gap-checks, crawl-outbound-checks, desktop-core-web-vitals, image-delivery-finding
 
 (`canonical-change-tracking` was dropped by D33. Its directory is removed with
 `git rm -r openspec/changes/canonical-change-tracking`. The requirement ids it had allocated,
 PAGES-015 and ANALYSIS-022, are not reused.)
+
+The change `lighthouse-checks` is not this plan's, but phases 4 and 5 are built on it: it moved
+the catalogue into a registry of owners, added the Lighthouse columns to `page_speed` and made
+Lighthouse's verdicts part of the score. Its design D16 decides that Lighthouse's SEO and
+accessibility audits are mobile-only, which phase 4 applies (D42). Its tasks are all ticked, but
+it is not archived yet, so its requirements (SPEED-016…019, PAGES-016/017, PAGEDETAIL-013,
+REPORT-005) still live under `openspec/changes/lighthouse-checks/`. SPEED-016 already says a
+desktop request asks for performance only; phase 4c is what makes that scenario true, and pins it.
 
 ## How to read this
 
@@ -40,7 +52,12 @@ names the decision and the file it follows from. The user confirmed D14–D29 as
 append-only, and D31 supersedes them. Several of them exist because the tree already does part
 of what a decision asked for (D14, D15). D32–D36 are the user's decisions of 2026-10-11 that no
 new check may duplicate an existing one; they supersede D7, D27 and O4 and drop phase 2. D37 is
-a planner-derived consequence of D32 and D34 and is **not confirmed by the user**.
+a planner-derived consequence of D32 and D34 and is **not confirmed by the user**. D38 is the
+phase-3 field audit's outcome. D39–D50 are consequences the planner derived on 2026-10-11 when
+the tree moved under phases 4 and 5 (the merged `lighthouse-checks`, migration `0015`, the fair
+claim, the requirement id SPEED-014 taken by that claim). They are **not confirmed by the user**.
+Where one replaces part of an earlier section, the earlier text was rewritten and the D-line
+names what it supersedes. The paths of phases 4 and 5 were read in the tree at commit `adc8887`.
 
 ---
 
@@ -84,26 +101,48 @@ crawl. The score's denominator grows by the new codes that apply. The score form
 
 ### 1.2 Page detail — Speed block
 
-The block's title becomes **Speed (Core Web Vitals)**. A two-option switch, **Mobile | Desktop**,
-sits beside it and opens on Mobile. Each option shows that strategy's three cards, lab caption and
-states, exactly as the mobile block shows them today (PAGEDETAIL-011). The states are Measuring…,
-Couldn't refresh, Couldn't measure, Not measured, and PageSpeed not configured or key rejected.
-For a page crawled before this work, Desktop reads "Not measured" until the page's next crawl
-queues it (D13).
+The block's title changes from **Speed (Core Web Vitals, mobile)** to **Speed (Core Web
+Vitals)**. A two-option switch, **Mobile | Desktop**, sits beside it and opens on Mobile. Each
+option shows that strategy's measurement exactly as the mobile block shows it today
+(PAGEDETAIL-011, PAGEDETAIL-013):
+
+- the three cards, each with its share-of-visits bar where the value comes from real visitors;
+- the time-to-first-byte line;
+- the LCP breakdown, labelled as a lab figure;
+- the lab performance score caption.
+
+The Lighthouse SEO and accessibility score captions appear on **Mobile only**. A desktop
+measurement asks Google for the performance category alone, so it has none (D42).
+
+The states, per strategy, are the ones the mobile block has today: In queue for measurement
+(clients take turns), Measuring…, Couldn't refresh, Couldn't measure, Not measured, and PageSpeed
+not configured or key rejected. Each option reads its own row's status, so Mobile can read
+"Measuring…" while Desktop reads "In queue". The key-rejected notice stands above both options.
+For a page crawled before this work, Desktop reads "Not measured on desktop yet: this page was
+crawled before desktop measurement existed. The next crawl or seed run queues it." (D13, D20,
+D49). Switching requests nothing.
+
+The checks section's Lighthouse column and the score explanation keep reading the mobile
+measurement, whichever option the Speed block shows (D49).
 
 ### 1.3 Pages list (`/pages`)
 
 Nothing changes on screen. The Core Web Vitals badges stay mobile, and the legend already says so
-(`PagesTable.tsx:197`). The SEO issues count now includes the new findings, desktop speed findings
+(`PagesTable.tsx:191`). The score and the list's order keep Lighthouse's share from the mobile
+measurement only (D43). The SEO issues count now includes the new findings, desktop speed findings
 and the image-delivery finding (PAGES-013).
 
 ### 1.4 Issues (`/issues`)
 
 New codes appear under their level. Desktop CWV codes and `IMAGE_DELIVERY_INEFFICIENT` are
-type **Speed** (`issueTypeOf` reads `PAGE_SPEED_ISSUE_CODES`). `CONTENT_NEEDS_JAVASCRIPT` is type
-**Site**, located "Whole site". The `active` PageSpeed line changes from "Speed figures are
-Google's mobile measurements…" (`IssuesScreen.tsx:136`) to "Speed figures are Google's mobile and
-desktop measurements; pages are re-measured at most once a day."
+type **Speed** (`issueTypeOf` reads `PAGE_SPEED_ISSUE_CODES`). Their labels name the device: the
+six mobile labels gain "on mobile" and the desktop labels end "on desktop" (D48). A desktop CWV
+finding from the site's data is folded into one whole-site row per code, as a mobile one is.
+`IMAGE_DELIVERY_INEFFICIENT` is a lab estimate about one page's images, so it is always shown at
+its page (D47).
+`CONTENT_NEEDS_JAVASCRIPT` is type **Site**, located "Whole site". The `active` PageSpeed line
+changes from "Speed figures are Google's mobile measurements…" (`IssuesScreen.tsx:141`) to "Speed
+figures are Google's mobile and desktop measurements; pages are re-measured at most once a day."
 
 ### 1.5 Clients → run log (site checks)
 
@@ -152,6 +191,11 @@ skipped in the item log, with today's reason "Rendered by JavaScript: …" (D8).
 - **P8 — Absence is not a measurement error.** An audit missing from a PageSpeed answer means no
   data (D10). *Consequence:* the image-delivery extractor cannot turn a good CWV answer into
   `NO_MEASUREMENT`.
+- **P9 — Lighthouse speaks for mobile only.** Its SEO and accessibility verdicts come from the
+  view Google indexes (lighthouse-checks D16, D42). *Consequence:* a desktop request asks for
+  performance alone. A desktop row cannot hold a verdict (a CHECK refuses it), and a desktop
+  measurement never touches the page's Lighthouse findings. Every read that feeds the score names
+  the mobile row.
 
 ---
 
@@ -167,58 +211,124 @@ The `pages.canonical_url` / `canonical_recorded` columns that D7 introduced are 
 defect D2 of the prior plan rejected. `pages.schema.ts` and its comment at `:52-55` stay as
 they are.
 
-### 3.2 `page_speed` — one row per page and strategy (two generated migrations, `0015` and `0016` as the tree stands today)
+### 3.2 `page_speed` — one row per page and strategy (two generated migrations, `0016` and `0017` as the tree stands at `adc8887`)
+
+**The table today** (`be/src/persistence/schema/tables/page-speed/page-speed.schema.ts`, after
+`0014_third_maverick.sql` and `0015_modern_wrecker.sql`):
+
+- `page_id` is the primary key. Postgres named the constraint `page_speed_pkey`, because 0014
+  declared it inline.
+- The job columns: `status`, `attempts`, `next_attempt_at`, `locked_until`, `last_error`.
+- The measurement: `lcp_*`, `inp_*`, `cls*`, `performance_score`, `measured_at`.
+- From 0015 (lighthouse-checks):
+  - Lighthouse's record: `lighthouse_judged`, `lighthouse_not_applicable`, `lighthouse_failed`,
+    `seo_score`, `accessibility_score`;
+  - `ttfb_ms` and `ttfb_source`;
+  - the eight `*_good_share` / `*_poor_share` columns;
+  - `lcp_breakdown_json`.
+- The partial index `page_speed_claim_idx` on `next_attempt_at`.
+- Nineteen CHECKs: the eight of 0014 and the eleven of 0015.
+
+**What changes:**
 
 ```ts
 // packages/contracts/src/domain/page-speed/psi-strategy.enum.ts — new
-/** The device PageSpeed Insights emulates; its query parameter `strategy`. */
+/**
+ * The device PageSpeed Insights emulates; its query parameter `strategy`. The order is the
+ * Postgres enum's order, and the claim takes a client's mobile rows first by it (D44).
+ */
 export const PSI_STRATEGIES = ['mobile', 'desktop'] as const;
 export type TPsiStrategy = (typeof PSI_STRATEGIES)[number];
 
 // be/src/persistence/schema/tables/page-speed/page-speed.schema.ts — changed
+// Exported from this file: drizzle-kit only emits CREATE TYPE for enums it finds here.
 export const psiStrategyEnum = pgEnum('psi_strategy_enum', PSI_STRATEGIES);
 
+/**
+ * One row per page AND device: its PageSpeed queue entry and the cache of its last
+ * successful measurement on that device. …(the rest of today's comment)…
+ */
 export const pageSpeed = pgTable(
   'page_speed',
   {
+    // No longer the key alone: page and device together are one question (D9).
     pageId: bigint('page_id', { mode: 'number' })
       .notNull()
       .references(() => pages.id, { onDelete: 'cascade' }),
-    // The device the answer is for. Page and strategy together are the key: a second row
-    // for the same pair would be a second answer to one question, which is what
-    // "how fast is this page on this device" must never have (D9).
-    strategy: psiStrategyEnum('strategy').notNull(), // the first migration adds it with .default('mobile'); the second drops the default (D22)
-    // …every other column and CHECK unchanged…
+    // The device the answer is for. NOT NULL with no default once 0017 runs: an insert that
+    // forgets it is refused rather than silently queued as mobile, where the desktop row
+    // would never appear (D22). 0016 is generated with `.default('mobile')`, which fills
+    // every existing row — they were all mobile answers (D9).
+    strategy: psiStrategyEnum('strategy').notNull(),
+    // …every other column unchanged, the 0015 columns included…
   },
   (t) => [
-    primaryKey({ name: 'page_speed_pkey', columns: [t.pageId, t.strategy] }),
-    // …the claim index and the eight CHECKs unchanged…
+    // A second row for one page and device would be a second answer to one question.
+    // Named as the repository names composite keys (rank_snapshots_pk, page_keywords_pk).
+    primaryKey({ name: 'page_speed_pk', columns: [t.pageId, t.strategy] }),
+    // …page_speed_claim_idx and the nineteen CHECKs unchanged…
+    // Lighthouse's SEO and accessibility verdicts are taken from mobile alone
+    // (lighthouse-checks D16): the desktop request asks for performance only, so a desktop
+    // row with a verdict or a category score is a writer's bug, refused here (D42).
+    check(
+      'page_speed_lighthouse_mobile_only',
+      sql`${t.strategy} = 'mobile' or (
+        ${t.lighthouseJudged} is null and ${t.lighthouseNotApplicable} is null
+        and ${t.lighthouseFailed} is null
+        and ${t.seoScore} is null and ${t.accessibilityScore} is null)`,
+    ),
   ],
 );
 ```
 
-The two-step generation (D22):
+**What each new piece means.**
 
-drizzle-kit numbers the files; with `0014` the latest today, they are `0015` and `0016`, and
-the names below follow that.
+- `strategy`: which device the row's job and measurement are for. It is never null; there is no
+  "unknown device".
+- The composite key: at most one row per page and device. The cascade still removes both rows
+  with their page (I16).
+- `page_speed_lighthouse_mobile_only`: on a desktop row every Lighthouse column is null. Null
+  there means "not asked", not "not measured yet". On a mobile row the columns keep 0015's
+  meaning: all null means the answer had no such categories.
+- TTFB, the shares and the breakdown are untouched. They are per row, so a desktop row stores
+  its own (D42).
 
-1. **`0015`.** The schema declares `strategy … .notNull().default('mobile')` and the composite
-   key, and `pnpm db:generate` writes the migration. Read the SQL. It must create
-   `psi_strategy_enum`, add the column NOT NULL DEFAULT 'mobile' (which fills every existing row
-   with `mobile`, D9), drop the old single-column primary key and add the composite one, and do
-   nothing else.
-2. **`0016`.** The schema drops `.default('mobile')` and `pnpm db:generate` writes the second
+The two-step generation (D22, D41). drizzle-kit numbers the files; with `0015_modern_wrecker.sql`
+the latest at `adc8887`, they are `0016` and `0017`. If another migration lands first, the numbers
+move and nothing else does:
+
+1. **`0016`.** The schema declares:
+   - `strategy … .notNull().default('mobile')`;
+   - the composite key;
+   - the new CHECK.
+
+   `pnpm db:generate` writes the migration. Read the SQL. It must hold, and hold nothing else:
+   - `CREATE TYPE "public"."psi_strategy_enum"`;
+   - `ADD COLUMN "strategy" … DEFAULT 'mobile' NOT NULL`;
+   - the drop of `page_speed_pkey`;
+   - `ADD CONSTRAINT "page_speed_pk" PRIMARY KEY("page_id","strategy")`;
+   - `ADD CONSTRAINT "page_speed_lighthouse_mobile_only"`.
+
+   The CHECK holds on every existing row, because every existing row becomes `mobile`. Postgres
+   validates a new CHECK against the existing rows when it is added, so a row that broke it would
+   fail the migration rather than slip in.
+2. **`0017`.** The schema drops `.default('mobile')` and `pnpm db:generate` writes the second
    migration. Read the SQL. It must hold exactly `ALTER COLUMN "strategy" DROP DEFAULT`.
 
-The default is dropped so that an insert which forgets the strategy is refused. Otherwise it would
-silently measure mobile again, and the desktop row would never appear.
-VERIFY: drizzle-kit 0.31 generates a composite primary-key change on an existing table without an
-interactive prompt, and names the constraint as declared. If it prompts or renames, follow its
-prompt to keep the generation honest, and record what it did as an `AMENDED` line on task 2.2 of
-`desktop-core-web-vitals`. Never hand-edit the SQL.
+VERIFY: two things about drizzle-kit 0.31:
 
-The claim index `page_speed_claim_idx` and the eight CHECKs are untouched. Every CHECK is per
-row, and a row is still one whole measurement.
+- that it generates the change from an inline primary key to a named composite one on an
+  existing table without an interactive prompt;
+- that it drops the old constraint under its Postgres name `page_speed_pkey`.
+
+If it prompts or names the dropped constraint differently, follow its prompt to keep the
+generation honest, and record what it did as an `AMENDED` line on task 2.2 of
+`desktop-core-web-vitals`. Never hand-edit the SQL or `drizzle/meta/_journal.json`.
+
+`page_speed_claim_idx` (on `next_attempt_at`, `where status in ('queued','running')`) is
+untouched: it still serves the claim's `due` filter, and the new ORDER BY keys (§10.14) sort a
+handful of due rows. The nineteen CHECKs are untouched. Every CHECK is per row, and a row is
+still one whole measurement.
 
 ---
 
@@ -226,9 +336,9 @@ row, and a row is still one whole measurement.
 
 | # | Invariant | Mechanism |
 | --- | --- | --- |
-| I1 | A catalogue entry whose every source is an industry source has severity notice | `inclusionBarViolations(catalogue, INDUSTRY_SOURCE_HOSTS)` (new, contracts) returns the offenders; a contracts test asserts `[]` over both catalogues (D24) |
+| I1 | A catalogue entry whose every source is an industry source has severity notice | `inclusionBarViolations(catalogue)` (contracts, reads `INDUSTRY_SOURCE_HOSTS`) returns the offenders; a contracts test asserts `[]` over the flattened issue catalogue (every owner) and the site catalogue (D24) |
 | I2 | Every new crawl code has exactly one check, and no pageSpeed code has one | `TCheckRegistry = { [K in TCrawlIssueCode]: TCheck<K> }` (existing, `checks.registry.ts:85`) |
-| I3 | Every new code, page or speed, has its sentence on the frontend | `DESCRIBE: Record<TSeoIssueCode, …>` (existing, `describeIssue.ts:44`) — a missing key does not compile |
+| I3 | Every new code, page or speed, has its sentence on the frontend | `DESCRIBE: Record<Exclude<TSeoIssueCode, TLighthouseIssueCode>, …>` (existing, `describeIssue.ts:50-53`; Lighthouse codes share one sentence) — a missing key does not compile |
 | I4 | A page whose hreflang set omits itself is reported once, under `HREFLANG_NO_SELF_REFERENCE`, never also under `HREFLANG_INVALID` | `HREFLANG_INVALID` no longer computes `selfReferenced`; two specs assert each side (D14) |
 | I5 | A post skipped as client-rendered stays a skipped item and never becomes a page; the site check reads a flag, never the reason text | `ISelectedItem.clientRendered: boolean` and `IFetchedEntry.clientRendered: boolean` (new, required); the skip path in `post-selection.service.ts:186-194` is unchanged apart from setting it |
 | I6 | A canonical that is the page's own http:// twin is `CANONICAL_TO_HTTP`'s alone; an http canonical naming any other address is `CANONICAL_MISMATCH`'s alone | one predicate, `isHttpTwin(canonical, finalUrl)` (`_shared/http-twin.ts`), read by both checks. `CANONICAL_TO_HTTP` is not applicable unless it holds, and `CANONICAL_MISMATCH` is not applicable when it does (D32) |
@@ -243,15 +353,21 @@ row, and a row is still one whole measurement.
 | I15 | Outbound checking never fails, delays past its deadline, or changes the outcome of a run | `OutboundChecksService` turns every `RemoteApiError` into an outcome per URL, as `SiteProbeService.ask` does. The stage deadline is an `AbortSignal.any([run, timeout])` |
 | I16 | At most one `page_speed` row per page and strategy, gone with its page | PK `(page_id, strategy)`; FK `ON DELETE cascade` |
 | I17 | A `page_speed` row cannot be inserted without a strategy | `strategy` NOT NULL with no default after the second migration of §3.2 |
-| I18 | A measurement replaces only its own strategy's findings | `replacePageSpeedFindingsForWorker(tx, pageId, strategy, rows)` deletes `code in PAGE_SPEED_CODES_BY_STRATEGY[strategy]`; rows typed by strategy |
-| I19 | Every pageSpeed code declares exactly one strategy; no crawl code declares one | `ISeoIssueDefinition` becomes a union: `owner: 'crawl'` with `strategy?: never`, `owner: 'pageSpeed'` with a required `strategy: TPsiStrategy` (typecheck); the strategy sets are derived from it |
-| I20 | Badge ⇔ issue holds per strategy: a metric outside the good band yields exactly its strategy's one code | `cwvIssuesOf(strategy, measurement)` reads `CWV_ISSUE_CODES[strategy][metric][band]`; the band comes from `cwvBandOf` (existing) |
-| I21 | `IMAGE_DELIVERY_INEFFICIENT` comes only from a mobile answer, and an answer without the audit is a CWV measurement with no image finding, never an error | `speedIssuesOf` writes the code only when `strategy === 'mobile'` (its catalogue strategy). `extractImageDelivery` returns `null` on absence through its own zod schema, separate from `extractMeasurement` |
-| I22 | No read multiplies a page by its strategies | the list's `left join page_speed` adds `and ps.strategy = 'mobile'`; the detail reads both into a `Record`; the report joins the strategy of each code |
+| I18 | A measurement replaces only its own strategy's speed findings | `replacePageSpeedFindingsForWorker(tx, pageId, strategy, rows)` deletes `code in PAGE_SPEED_CODES_BY_STRATEGY[strategy]`; its rows are typed `TPageSpeedSeoIssueOf<S>`, so a mobile code passed for desktop does not compile |
+| I19 | Every pageSpeed code declares exactly one strategy; no crawl or Lighthouse code declares one | `IPageSpeedIssueDefinition` gains a required `strategy: TPsiStrategy`; `ICrawlIssueDefinition` and `ILighthouseIssueDefinition` have no such field, so `as const satisfies Record<string, …>` refuses it as an excess property (typecheck, D39). `TPageSpeedIssueCodeOf<S>` and `PAGE_SPEED_CODES_BY_STRATEGY` are derived from the entries |
+| I20 | Badge ⇔ issue holds per strategy: a metric outside the good band yields exactly its strategy's one code | `cwvIssuesOf(strategy, measurement)` reads `CWV_ISSUE_CODES[strategy][metric][band]`, whose type requires each leaf to be a `TPageSpeedIssueCodeOf<strategy>`; the band comes from `cwvBandOf` (existing) |
+| I21 | `IMAGE_DELIVERY_INEFFICIENT` comes only from a mobile answer, and an answer without the audit is a CWV measurement with no image finding, never an error | the entry declares `strategy: 'mobile'`, so the code is a `TPageSpeedIssueCodeOf<'mobile'>`; `speedIssuesOf<S>(…)` returns `TPageSpeedSeoIssueOf<S>[]` and its desktop arm takes no image input, so a desktop result holding the code does not compile (typecheck). `extractImageDelivery` returns `null` on absence through its own zod schema; `classifyPsiResponse` calls it beside `extractMeasurement`, `extractDiagnostics` and `extractLighthouse`, and `measured` never depends on it (D46) |
+| I22 | No read multiplies a page by its strategies, and the score never reads a desktop row | the list's `left join page_speed ps on ps.page_id = p.id and ps.strategy = 'mobile'`, which `LIGHTHOUSE_SCORE_POINTS_LATERAL` and the ORDER BY read through `ps`; the detail joins `ps` the same way (Lighthouse lists, points, score, mobile summary) and, from 4d, `psd … and psd.strategy = 'desktop'` (desktop summary only); the report joins the strategy of `i.code`; the claim's CTEs join on `(page_id, strategy)` (D43) |
 | I23 | A check stays enabled only while every live firing in its field audit is correct | **not pinned by a test** — a reader judges each firing against the live page (D12). The tally is recorded in `PAGE_ANALYSIS_MODULE.md`, and the phase does not close without it |
 | I24 | Every query over a user's data stays scoped to that user | no new route; `findPreviousCrawlsForWorker` stays client-scoped (`pages.repository.ts:98-112`); the isolation matrix is unchanged (ISO-005) |
 | I25 | No new check reports a fact an older check reports: a development host is `DEVELOPMENT_HOST_REFERENCES`'s, an invalid hreflang code and a canonical naming another URL on an hreflang page are `HREFLANG_INVALID`'s, an http-twin canonical is `CANONICAL_TO_HTTP`'s | each new check reads the older check's own predicate: `isDevelopmentHost` for og:url, canonical targets and alternates, and `isOwnDevelopmentHost` for content links, exactly as `development-host-references.check.ts:35-43` splits them; the hreflang code validator moved to `_shared/hreflang-code.ts`; `isHttpTwin`. The new check then answers not applicable or skips the item. One spec case per deference, named for the older check (§10.13, D36) |
 | I26 | A sitemap entry whose page names another canonical is named by `SITEMAP_LISTS_NON_INDEXABLE` whichever canonical check carries the fact | `contradictionOf` (`sitemap-checks.ts:29-49`) reads `CANONICAL_MISMATCH`, `CANONICAL_TO_HTTP` and `CANONICAL_TARGET_BROKEN` findings (D37) |
+| I27 | A desktop row never holds a Lighthouse record, and a desktop measurement never touches the page's Lighthouse findings | CHECK `page_speed_lighthouse_mobile_only` (§3.2). `TPageSpeedCompletion` is a union on `strategy`: its desktop arm types the five Lighthouse fields as `null` and has no Lighthouse findings, and `PageSpeedResultsService.completeForWorker` calls `replaceLighthouseFindingsForWorker` only in the mobile arm (D42) |
+| I28 | A claim takes, and an outcome fences, exactly one row | the claim's `next` returns `(page_id, strategy)` and the UPDATE matches both columns; `ownedBy(pageId, strategy, attempt)` on every completion, failure and release (D44) |
+| I29 | A user or client is served by a claim of any of its rows, whatever the device; within one client, mobile rows go first | the `served` CTE groups by user and client with no strategy; the ORDER BY puts `d.strategy` after the two served-at keys and before `next_attempt_at`, relying on the enum's declaration order (`PSI_STRATEGIES`) (D44, O9) |
+| I30 | Until the worker can ask for desktop, no desktop row is queued | `PAGE_SPEED_QUEUED_STRATEGIES = ['mobile'] as const satisfies readonly TPsiStrategy[]` (4b only, in `be/src/shared/page-speed-queue/page-speed-queue.constant.ts`), which `PageSpeedQueueService` passes to the repository's `enqueueForWorker` and `backfillCurrentForWorker`. The repository takes the strategies as an argument and has no default. 4c deletes the constant and the service passes `PSI_STRATEGIES` (D45) |
+| I31 | `IMAGE_DELIVERY_INEFFICIENT` is never folded into a whole-site report row | the report's `allPages` row is typed `TCwvSeoIssue & { location: IAllPagesLocation }` (contracts), and `collapseOriginFindings` folds through `isCwv`, a guard over `TCwvIssueCode`. An image-delivery whole-site row does not compile, and its details have no `source` to read (D47) |
+| I32 | `IMAGE_DELIVERY_INEFFICIENT` never moves the score and is never listed as a check | it sits in the `pageSpeed` owner, whose registry entry is `scored: false`, so `SCORED_ISSUE_OWNERS` and `composePageChecks` never reach it; the score laterals count only codes in `checks_judged` / `lighthouse_judged`, which no writer puts it in (D50) |
 
 ---
 
@@ -264,16 +380,15 @@ row, and a row is still one whole measurement.
 /** Hosts whose guidance is an industry opinion, not a first-party statement (D1). */
 export const INDUSTRY_SOURCE_HOSTS = ['ahrefs.com', 'vercel.com'] as const;
 
-// seo/inclusion-bar/inclusion-bar.util.ts — new, tested beside it
-/** Codes above notice whose every source sits on an industry host. Empty = the bar holds. */
-export function inclusionBarViolations(
-  catalogue: Record<string, { severity: TSeoIssueSeverity; sources: readonly ISeoIssueSource[] }>,
-  industryHosts: readonly string[],
-): string[];
+// seo/inclusion-bar/inclusion-bar.util.ts — built in phase 1, tested beside it
+/** Codes above notice whose every source sits on an `INDUSTRY_SOURCE_HOSTS` host. */
+export const inclusionBarViolations = (
+  catalogue: Readonly<Record<string, { severity: TSeoIssueSeverity; sources: readonly ISeoIssueSource[] }>>,
+): string[] => …;
 
-// page-speed/psi-strategy.enum.ts — new (§3.2)
+// page-speed/psi-strategy.enum.ts — new in 4a (§3.2)
 
-// page-speed/image-delivery-measurement.interface.ts — new (D23)
+// page-speed/image-delivery-measurement.interface.ts — new in 5b (D23)
 export interface IImageDeliveryMeasurement extends ISeoMeasurement {
   /** Total savings Lighthouse estimates, in bytes; `min` is the catalogue's 102 400. */
   value: number;
@@ -282,46 +397,75 @@ export interface IImageDeliveryMeasurement extends ISeoMeasurement {
 }
 ```
 
-**Changed:**
+**Changed — the catalogue registry** (`seo/catalogue/`, D39). The registry
+(`issue-catalogues.constant.ts`, `ISSUE_CATALOGUES = { crawl, pageSpeed, lighthouse }`, each
+`{ scored, entries }`) is unchanged: no owner is added, and an entry still does not name its
+owner.
 
-- `seo/seo-issue-catalogue.constant.ts`:
-  - `ISeoIssueDefinition` becomes a union (I19). The name is kept, so the dozens of
-    `satisfies Record<string, ISeoIssueDefinition>` readers do not move.
-  - Ten crawl entries are added: `CANONICAL_TO_HTTP`, `OG_URL_MISMATCH`,
-    `HREFLANG_NO_SELF_REFERENCE`, `TITLE_YEAR_OUTDATED`, `META_DESCRIPTION_REPEATS_TITLE`,
-    `BREADCRUMB_MISSING`, `CANONICAL_TARGET_BROKEN`, `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
-    `HREFLANG_NOT_RECIPROCAL`. `CANONICAL_CHANGED` is not added (D33).
-  - `CANONICAL_MISMATCH`'s `skipReason` widens to cover its two step-asides (D32, D34): no
-    canonical, the canonical is the page's http:// twin (CANONICAL_TO_HTTP's), or its target is
-    broken (CANONICAL_TARGET_BROKEN's). There is one `skipReason` per code, so the sentence names
-    all three.
-  - Seven pageSpeed entries are added: `CWV_{LCP,INP,CLS}_{NEEDS_IMPROVEMENT,POOR}_DESKTOP` with
-    `strategy: 'desktop'`, and `IMAGE_DELIVERY_INEFFICIENT` with `strategy: 'mobile'` and
-    `min: 102_400`. The six existing CWV entries gain `strategy: 'mobile'`.
-  - New derived values: `PAGE_SPEED_CODES_BY_STRATEGY: Record<TPsiStrategy, TPageSpeedIssueCode[]>`
-    and `TCwvIssueCode`.
-  - `HREFLANG_INVALID`'s `hint`, `plain.why`, `plain.fix` and `explanation` lose their
-    self-reference clause (D14).
-  - The `ISSUE_SOURCES` additions (Ahrefs, Lighthouse) are each opened and read on the day they
-    are cited, per the file's own header (`seo-issue-catalogue.constant.ts:63-69`). VERIFY: each
-    URL as it is added.
+- `catalogue/issue-definition.interface.ts`: `IPageSpeedIssueDefinition` stops being an alias of
+  `ISeoIssueDefinition` and declares the device its finding is about:
+
+  ```ts
+  /**
+   * A finding the PageSpeed worker writes from one device's answer. `strategy` is required:
+   * the worker's replace deletes one strategy's codes, so a code with no strategy would be
+   * deleted by neither replace — or, written as a default, by the wrong one (D39).
+   */
+  export interface IPageSpeedIssueDefinition extends ISeoIssueDefinition {
+    strategy: TPsiStrategy;
+  }
+  ```
+
+  `ICrawlIssueDefinition` and `ILighthouseIssueDefinition` have no `strategy`, so an entry of
+  theirs that declares one is an excess property under the catalogue's `as const satisfies`.
+- `catalogue/page-speed/page-speed-catalogue.constant.ts`:
+  - 4a: `strategy: 'mobile'` on the six CWV entries, whose labels gain "on mobile" (D48); six
+    `CWV_{LCP,INP,CLS}_{NEEDS_IMPROVEMENT,POOR}_DESKTOP` entries with `strategy: 'desktop'`, the
+    severity and `max` of their mobile twin, labels ending "on desktop", `plain` copy about
+    computers rather than phones, and the twin's sources;
+  - 5b: `IMAGE_DELIVERY_INEFFICIENT` with `strategy: 'mobile'`, severity notice,
+    `min: 102_400` and a Lighthouse source (D10, D50).
+- `catalogue/issue-catalogues.constant.ts`, derived beside `PAGE_SPEED_ISSUE_CODES`, so neither
+  can drift from the entries:
+  - `TPageSpeedIssueCodeOf<S extends TPsiStrategy>`: the pageSpeed codes whose entry declares
+    `strategy: S`;
+  - `PAGE_SPEED_CODES_BY_STRATEGY: { [S in TPsiStrategy]: TPageSpeedIssueCodeOf<S>[] }`, filtered
+    from `PAGE_SPEED_CATALOGUE` by `strategy`.
 - `page-speed/cwv-issue-codes.constant.ts`: `CWV_ISSUE_CODES` becomes
-  `Record<TPsiStrategy, Record<TCwvMetric, Record<'needsImprovement' | 'poor', TCwvIssueCode>>>`.
-- `seo/seo-issue.interface.ts`: `TIssueDetails<K>` maps `IMAGE_DELIVERY_INEFFICIENT` to
-  `IImageDeliveryMeasurement`, every other pageSpeed code to `ICwvMeasurement`.
-- `site/site-check-catalogue.constant.ts`: `CONTENT_NEEDS_JAVASCRIPT` (notice, with `plain`,
-  `skipReason`, sources).
-- `pages/page-detail.interface.ts`: `pageSpeed: IPageSpeedSummary | null` is replaced by
-  `pageSpeedByStrategy: Record<TPsiStrategy, IPageSpeedSummary | null>` (D21). `IPageListItem.pageSpeed`
-  keeps its type and its comment gains "mobile".
+  `{ [S in TPsiStrategy]: Record<TCwvMetric, Record<'needsImprovement' | 'poor', TPageSpeedIssueCodeOf<S>>> }`.
+  `TCwvIssueCode` (new) is the union of its leaves, so image delivery is a pageSpeed code and not
+  a CWV code.
+- `seo/seo-issue.interface.ts`:
+  - `TIssueDetails<K>` maps a `TCwvIssueCode` to `ICwvMeasurement` and, from 5b,
+    `IMAGE_DELIVERY_INEFFICIENT` to `IImageDeliveryMeasurement`;
+  - new `TCwvSeoIssue = TIssueOver<TCwvIssueCode>` and
+    `TPageSpeedSeoIssueOf<S> = TIssueOver<TPageSpeedIssueCodeOf<S>>`.
+- `issue-report/client-issue-report.interface.ts` (5b): the `allPages` arm of `TReportIssue`
+  narrows from `TPageSpeedSeoIssue` to `TCwvSeoIssue` (D47, I31).
+- `pages/page-detail.interface.ts` (4d): `pageSpeed: IPageSpeedSummary | null` is replaced by
+  `pageSpeedByStrategy: Record<TPsiStrategy, IPageSpeedSummary | null>` (D21).
+  `IPageListItem.pageSpeed` keeps its type and its comment gains "mobile".
 
-**What must ship together.** A new code, its check (or writer), its `DESCRIBE` sentence and
-(where details are typed) its frontend schema variant land in ONE commit. `pnpm typecheck` builds
-contracts first and fails a code without its check or sentence. `PageSchemas.ts:61`'s
-`z.enum(CRAWL_ISSUE_CODES)` follows automatically. The detail's `pageSpeedByStrategy` ships with
-`page-read.service.ts`, `PageSchemas.ts` and `SpeedSection.tsx` in one commit, because a field the
-backend sends against a stricter schema is a thrown parse and an empty screen
-(`skills/fe-be-roundtrip`).
+**Changed in phases 1 and 3 (closed), recorded for the harvest:** ten crawl entries in
+`catalogue/crawl/crawl-catalogue.constant.ts` (`CANONICAL_TO_HTTP`, `OG_URL_MISMATCH`,
+`HREFLANG_NO_SELF_REFERENCE`, `TITLE_YEAR_OUTDATED`, `META_DESCRIPTION_REPEATS_TITLE`,
+`BREADCRUMB_MISSING`, `CANONICAL_TARGET_BROKEN`, `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
+`HREFLANG_NOT_RECIPROCAL`; not `CANONICAL_CHANGED`, D33); `CANONICAL_MISMATCH`'s widened
+`skipReason` (D32, D34); `HREFLANG_INVALID`'s copy without the self-reference clause (D14);
+`CONTENT_NEEDS_JAVASCRIPT` in `site/site-check-catalogue.constant.ts`.
+
+**What must ship together.**
+
+- A new code, its writer, its `DESCRIBE` sentence and, where details are typed, its frontend
+  schema variant land in ONE commit. `pnpm typecheck` builds contracts first and fails a code
+  without its sentence (`DESCRIBE` is a `Record` over every non-Lighthouse code).
+- A label change ships with the frontend tests that read the label (`git grep -n "Largest
+  Contentful Paint is" -- fe/src` before the commit).
+- The detail's `pageSpeedByStrategy` ships with `page-read.service.ts`, `PageSchemas.ts`,
+  `PageDetailViewModel.ts`, `PageDetailScreen.tsx` and `SpeedSection.tsx` in one commit. A field
+  the backend sends against a stricter schema is a thrown parse and an empty screen
+  (`skills/fe-be-roundtrip`).
+- The `allPages` narrowing ships with `collapse-origin-findings.ts` and `IssueReportSchemas.ts`.
 
 ---
 
@@ -450,34 +594,102 @@ backend sends against a stricter schema is a thrown parse and an empty screen
   `time_zone`.
 - `IRunTarget.timeZone: string` (D18).
 
-**Pages module:**
+**Pages module** (`be/src/modules/pages/`, the owner of `page_speed` and `seo_issues`):
 
 - `pages.repository.ts` and `crawl-results.service.ts`: unchanged (D33).
-- `page-speed.repository.ts`: every method takes or returns `strategy`.
-  - `enqueueForWorker(tx, pageIds, staleBefore)` upserts both strategies with
-    `on conflict (page_id, strategy)`.
-  - `backfillCurrentForWorker` works per strategy (D20).
-- `seo-issues.repository.ts`: `replacePageSpeedFindingsForWorker(tx, pageId, strategy, rows)`.
-- `page-list.repository.ts:123` joins `ps.strategy = 'mobile'`.
-- `page-detail.repository.ts:114` reads both strategies (one row each), and `page-speed-read.ts`
-  shapes the `Record`.
-- `page-read.service.ts` builds `pageSpeedByStrategy`.
+- `interfaces/page-speed.interface.ts`:
+  - `IClaimedPageSpeed` gains `strategy: TPsiStrategy`;
+  - **new** `TPageSpeedCompletion`, a union on `strategy` (D42, I27):
 
-**Issue-report module:** `issue-report.repository.ts:124` joins `page_speed` on the strategy of
-`i.code`. A `case` over `PAGE_SPEED_CODES_BY_STRATEGY.desktop` is passed as a parameter, and a
-crawl code joins mobile, whose `measured_at` it ignores (I22).
+    ```ts
+    /**
+     * What one successful measurement writes. Lighthouse speaks for mobile alone
+     * (lighthouse-checks D16), so the desktop arm cannot carry a Lighthouse record: a
+     * desktop answer that cleared the page's Lighthouse findings would erase mobile's.
+     */
+    export type TPageSpeedCompletion =
+      | {
+          strategy: 'mobile';
+          measurement: IPageSpeedMeasurementWrite;
+          speedFindings: TPageSpeedSeoIssueOf<'mobile'>[];
+          lighthouseFindings: TLighthouseSeoIssue[];
+        }
+      | {
+          strategy: 'desktop';
+          measurement: IPageSpeedMeasurementWrite & {
+            lighthouseJudged: null; lighthouseNotApplicable: null; lighthouseFailed: null;
+            seoScore: null; accessibilityScore: null;
+          };
+          speedFindings: TPageSpeedSeoIssueOf<'desktop'>[];
+        };
+    ```
+- `repositories/page-speed/page-speed.repository.ts`, every method keyed by page and strategy:
+  - `enqueueForWorker(tx, pageIds, strategies, staleBefore)` inserts one row per page and given
+    strategy (`cross join unnest(strategies)`) with `on conflict (page_id, strategy) do update`,
+    under today's freshness rule per row (SPEED-002);
+  - `backfillCurrentForWorker(strategies)` the same, `on conflict (page_id, strategy) do nothing`
+    (D20);
+  - `claimNextForWorker` returns the strategy and keeps the fair order (§10.14, D44);
+  - `completeForWorker(tx, pageId, strategy, attempt, measurement)`, `recordFailureForWorker` and
+    `releaseForWorker` fence on `ownedBy(pageId, strategy, attempt)`;
+  - `failAbandonedForWorker` is per row already and does not change.
+- `repositories/seo-issues/seo-issues.repository.ts`:
+  `replacePageSpeedFindingsForWorker<S>(tx, pageId, strategy: S, rows: (TPageSpeedSeoIssueOf<S> & { pageId: number })[])`
+  deletes `code in PAGE_SPEED_CODES_BY_STRATEGY[strategy]`. `replaceLighthouseFindingsForWorker`
+  is unchanged.
+- `services/page-speed-results/page-speed-results.service.ts`:
+  `completeForWorker(claim, completion: TPageSpeedCompletion)`. One transaction, under the
+  fence: the measurement, that strategy's speed replace, and in the mobile arm only the
+  Lighthouse replace.
+- `services/page-speed-queue/page-speed-queue.service.ts` passes `PAGE_SPEED_QUEUED_STRATEGIES`
+  (4b) and then `PSI_STRATEGIES` (4c) to both repository methods (D45).
+- `repositories/page-list/page-list.repository.ts:141`: `left join page_speed ps on ps.page_id =
+  p.id and ps.strategy = 'mobile'` (D43).
+- `repositories/page-detail/page-detail.repository.ts:142`: the same join (4b). In 4d a second
+  `left join page_speed psd on psd.page_id = p.id and psd.strategy = 'desktop'`, and
+  `ICurrentPageRecord.pageSpeed` becomes `pageSpeedByStrategy`. `scoreOf` in
+  `page-read.service.ts` keeps reading `.mobile`.
+- `repositories/page-speed/page-speed-read.ts` (4d): `PAGE_SPEED_COLUMNS` becomes
+  `pageSpeedColumns(alias: 'ps' | 'psd')`, prefixing each column with the alias. The alias is a
+  literal union, so the `sql.raw` it builds from cannot carry input. `pageSpeedRowOf(row, alias)`
+  reads it back. The desktop read leaves out `cardinality(lighthouse_judged)` and
+  `lighthouse_failed`, which only the score reads.
+- `services/page-read/page-read.service.ts` (4d) builds `pageSpeedByStrategy`.
+
+**Issue-report module:**
+
+- `repositories/issue-report/issue-report.repository.ts:124` (4b): `left join page_speed ps on
+  ps.page_id = p.id and ps.strategy = case when i.code = any(${desktopCodes}) then 'desktop' else
+  'mobile' end::psi_strategy_enum`, with `PAGE_SPEED_CODES_BY_STRATEGY.desktop` passed as one
+  array parameter. A crawl or Lighthouse code joins mobile and ignores its `measured_at` (I22).
+- `services/collapse-origin-findings/collapse-origin-findings.ts` (5b): `isSpeed` becomes
+  `isCwv`, a guard over `TCwvIssueCode`, so image delivery stays at its page (D47, I31). A
+  desktop CWV origin finding folds into its own row per code, as a mobile one does.
 
 **Page-speed module:**
 
-- `psi-client.ts`: `requestUrl(pageUrl, strategy)`, parameters in the fixed order
-  `url, strategy, category`.
-- `extract-image-delivery/extract-image-delivery.ts` — **new**, pure, with spec (§10.12).
-- `cwv-issues/cwv-issues-of.ts` → `cwvIssuesOf(strategy, measurement)`.
-- `speed-issues/speed-issues-of.ts` — **new**: `cwvIssuesOf` plus, for mobile only,
-  `imageDeliveryIssueOf`.
-- The executor and the results service carry `strategy` from the claim to the replace.
-- `be/test/fixtures/record-pagespeed-fixtures.ts` takes a strategy, and `KEPT_AUDITS` gains the
-  image-delivery audit id.
+- `services/psi-client/psi-client.ts` (4c): `requestUrl(pageUrl, strategy)` and
+  `runPagespeed(pageUrl, strategy, apiKey, signal)`. Parameters stay in a fixed order (`url`,
+  `strategy`, `category`) so fixtures key on the URL. Mobile asks for
+  `category=performance&category=seo&category=accessibility`. Desktop asks for
+  `category=performance` only (D42, SPEED-016).
+- `services/cwv-issues/cwv-issues-of.ts` (4a): `cwvIssuesOf<S>(strategy: S, measurement)`
+  returns `TPageSpeedSeoIssueOf<S>[]`.
+- `services/page-speed-executor/page-speed-executor.service.ts` (4b): builds the
+  `TPageSpeedCompletion` arm of `claim.strategy` from the `measured` outcome. The desktop arm
+  writes the five Lighthouse fields as null and passes no Lighthouse findings. 4c passes
+  `claim.strategy` to `runPagespeed`.
+- `services/classify-psi-response/classify-psi-response.ts` (5b): the `measured` outcome gains
+  `imageDelivery: IExtractedImageDelivery | null` from `extractImageDelivery(json)`. It is
+  never a condition of `measured` (D46).
+- `services/extract-image-delivery/extract-image-delivery.ts` — **new** in 5b, pure, with spec
+  (§10.12).
+- `services/speed-issues/speed-issues-of.ts` — **new** in 5b: `speedIssuesOf` is `cwvIssuesOf`
+  plus, in the mobile arm only, the image-delivery finding (§10.11). The executor calls it in
+  place of `cwvIssuesOf`.
+- `be/test/fixtures/record-pagespeed-fixtures.ts`: a target gains `strategy?: 'desktop'` (4c),
+  which records with `strategy=desktop&category=performance`; `KEPT_AUDITS` gains the
+  image-delivery audit id (5a).
 
 **Infrastructure:** `remote-api/remote-failure-kind/remote-failure-kind.ts` — **new**, pure.
 `remoteFailureKindOf(error)` → `'timeout' | 'nxdomain' | 'network' | 'forbiddenAddress' |
@@ -533,10 +745,14 @@ itself. The stage's own deadline is `AbortSignal.any([run signal, AbortSignal.ti
 | the stage deadline passes | the rest `unchecked: deadline` | "not checked" |
 
 **PageSpeed worker.** It runs the same slots, lease and limiter as today, over twice the rows
-(D9). A crawl queues both strategies in its finalize transaction (SPEED-001 modified). Quota use
-and drain time double, which was accepted in D9. The 429 pause, the halt and the key-rejected
-state are per process and unchanged. A failed desktop attempt touches only the desktop row's job
-columns (SPEED-006 applies per row).
+(D9). From 4c a crawl queues both strategies in its finalize transaction (SPEED-001 modified);
+in 4b it still queues mobile only (D45). Quota use and drain time double, which was accepted in
+D9. The claim keeps SPEED-014's turns: users, then clients, then the oldest row, where a claim of
+either device serves its user and client, and within a client mobile goes first (§10.14, D44).
+The 429 pause, the halt and the key-rejected state are per process and unchanged: a 429 on a
+desktop call pauses mobile calls too, because the quota is one key's. A failed desktop attempt
+touches only the desktop row's job columns (SPEED-006 applies per row). A desktop measurement
+writes the desktop row and the desktop speed findings, and nothing of Lighthouse (D42).
 
 ---
 
@@ -726,24 +942,49 @@ them today.
 
 ### 10.11 Speed findings per strategy (D9)
 
-`speedIssuesOf(strategy, measurement, imageDelivery)`:
+`cwvIssuesOf<S>(strategy: S, measurement): TPageSpeedSeoIssueOf<S>[]` (4a):
 
 - for each metric with a reading, `band = cwvBandOf(metric, value)`; a good band yields nothing;
   otherwise the result gains `CWV_ISSUE_CODES[strategy][metric][band]` with the catalogue's
-  severity and `max`;
-- for mobile only, `imageDeliveryIssueOf(imageDelivery)` (§10.12).
+  severity and `max`, and details `{ value, max, source }`.
+
+`speedIssuesOf` (5b) takes the strategy and its inputs as one discriminated argument, so the
+desktop arm has no image input to pass:
+
+```ts
+// be/src/modules/page-speed/services/speed-issues/speed-issues-of.ts — new in 5b
+// Two overloads, one per device: the desktop one has no image input, so image delivery
+// cannot reach a desktop row by a caller's slip (D10, I21).
+export function speedIssuesOf(input: {
+  strategy: 'mobile';
+  measurement: IExtractedMeasurement;
+  imageDelivery: IExtractedImageDelivery | null;
+}): TPageSpeedSeoIssueOf<'mobile'>[];
+export function speedIssuesOf(input: {
+  strategy: 'desktop';
+  measurement: IExtractedMeasurement;
+}): TPageSpeedSeoIssueOf<'desktop'>[];
+```
+
+- both arms: `cwvIssuesOf(strategy, measurement)`;
+- mobile arm: plus the image-delivery finding of §10.12 when it fires.
 
 The completion transaction calls `replacePageSpeedFindingsForWorker(tx, pageId, strategy, rows)`,
 which deletes only `PAGE_SPEED_CODES_BY_STRATEGY[strategy]`.
 
 ### 10.12 `IMAGE_DELIVERY_INEFFICIENT` (D10, D23)
 
-- **Input**: the PSI v5 JSON of a **mobile** answer.
-- **Rule**: `extractImageDelivery(body)` parses only `lighthouseResult.audits['<AUDIT_ID>']` with
+- **Input**: the PSI v5 JSON of a **mobile** answer, already parsed by `classifyPsiResponse`.
+  The classifier calls `extractImageDelivery(json)` beside `extractMeasurement`,
+  `extractDiagnostics` and `extractLighthouse`, and puts the result on the `measured` outcome as
+  `imageDelivery`. Its absence never turns `measured` into anything else (D46). A desktop answer
+  asks for performance only and may well carry the audit too; the executor never passes it on.
+- **Rule**: `extractImageDelivery(json)` parses only `lighthouseResult.audits['<AUDIT_ID>']` with
   its own zod schema. It returns `null` when the audit is absent or does not parse ("no data"),
   else `{ failing, savingsBytes, items }`. The finding is raised when `failing && savingsBytes >=
   SEO_ISSUE_CATALOGUE.IMAGE_DELIVERY_INEFFICIENT.min` (102 400), with details `{ value:
-  savingsBytes, min, images: items sorted by savings desc, first 10 }`.
+  savingsBytes, min, images: items sorted by savings desc, first 10 }`. The comparison reads the
+  catalogue's `min`, so the bar has one owner.
 - **Unverified shape.** `<AUDIT_ID>`, the meaning of "failing" (score below what?), and where the
   total savings and per-image savings sit are **VERIFY** items. Task 1.1 of `image-delivery-finding`
   settles them against a live answer, as the prior plan's Phase 6 did for CWV. The candidates
@@ -783,9 +1024,45 @@ spec case named for the check deferred to (§13 I6, I7, I25).
 - `CONTENT_NEEDS_JAVASCRIPT`: such a post is never analysed (D8), so no page check can report it.
 - `IMAGE_DELIVERY_INEFFICIENT` / `LCP_IMAGE_LAZY_LOADED` and the CWV codes: an opportunity
   (bytes Lighthouse says could be saved), versus a markup cause of LCP and a measured outcome.
+- `IMAGE_DELIVERY_INEFFICIENT` / the merged Lighthouse catalogue (D50, read at `adc8887`): its 66
+  entries are SEO and accessibility audits only. `LH_IMAGE_ALT`, `LH_INPUT_IMAGE_ALT` and
+  `LH_SVG_IMG_ALT` judge alternative text, not bytes. No crawl check judges image weight or format
+  (`IMAGES_MISSING_ALT`, `NO_IMAGES`, `IMAGES_NOT_INDEXABLE`, `IMAGE_FILENAMES_GENERIC`,
+  `IMAGE_PREVIEW_NOT_LARGE`, `PREVIEW_IMAGE_*`, `LCP_IMAGE_LAZY_LOADED`). The stored speed
+  diagnostics (`extractDiagnostics`: TTFB, visit shares, `lcp-breakdown-insight`) report no
+  image audit.
 - Desktop / mobile CWV: different device data from different PageSpeed answers.
 - `META_DESCRIPTION_REPEATS_TITLE` / `META_DESCRIPTION_LENGTH`: content versus length, both kept
   by the user's choice (D35).
+
+### 10.14 The claim, per strategy (D44)
+
+The fair claim of SPEED-014 (`page-speed.repository.ts:91-149`) keeps its three CTEs. The
+changes:
+
+- `due` selects `q.strategy` beside `q.page_id`.
+- `served` is unchanged: it groups by client and user over rows of either strategy. A claim of a
+  desktop row serves its client as a claim of a mobile row does. Without that, a client's desktop
+  backlog would count as never served and jump every queue.
+- `next` joins `due d on d.page_id = q.page_id and d.strategy = q.strategy`, and orders by:
+
+  ```sql
+  order by us.served_at nulls first, cs.served_at nulls first,
+           d.strategy,           -- psi_strategy_enum: 'mobile' sorts before 'desktop'
+           d.next_attempt_at, d.page_id
+  ```
+
+  Postgres sorts an enum by its declaration order, which is `PSI_STRATEGIES`' order. The
+  enum's comment says so, because reordering the array would silently reorder the queue.
+- The `update` matches `ps.page_id = next.page_id and ps.strategy = next.strategy` and returns
+  `ps.strategy`.
+
+Within the client chosen, every due mobile row goes before its desktop rows. Mobile feeds the
+score, the list's badge and Lighthouse's verdicts, and desktop feeds one tab of the Speed block
+(O9). Across users and clients the turns are exactly SPEED-014's.
+
+`page_speed_claim_idx` (on `next_attempt_at`, partial on the claimable statuses) still serves
+`due`. Ordering by `d.strategy` sorts the handful of due rows of one client and needs no index.
 
 ---
 
@@ -816,17 +1093,24 @@ collects 412 unique content links, of which 9 are run pages (built from the run,
    `LINKS_TO_REDIRECTS` for it, whatever it answers. It is `DEVELOPMENT_HOST_REFERENCES`'s (D36).
 9. Everything is written in the one finalize transaction.
 
-**B — desktop measured for the first time.** A page crawled last week has one `page_speed` row,
-`mobile`, `done`.
+**B — desktop measured for the first time.** After phase 5, a page crawled last week has one
+`page_speed` row, `mobile`, `done`, measured 20 h ago, with `CWV_LCP_POOR`,
+`IMAGE_DELIVERY_INEFFICIENT` and two `LH_*` findings. Its Lighthouse lists are set.
 
-1. Today's crawl's finalize upserts `(page, mobile)`, left alone because it is fresh, and
-   `(page, desktop)`, inserted `queued`.
-2. A slot claims the desktop row and calls PSI with `strategy=desktop`. LCP is 1.9 s (url), INP
-   null, CLS 0.02. No findings.
-3. The replace deletes only the desktop codes, so the page's mobile `CWV_LCP_POOR` and
-   `IMAGE_DELIVERY_INEFFICIENT` remain.
-4. The detail's Speed block on Desktop shows green cards. On Mobile it still shows the red LCP.
-5. The pages list row is unchanged and still has one row for the page (I22).
+1. Today's crawl's finalize upserts `(page, mobile)`, left alone because it is 20 h old, and
+   `(page, desktop)`, inserted `queued` (SPEED-002 per row).
+2. The client's turn comes (SPEED-014). Its due mobile rows of other pages go first, then this
+   desktop row (§10.14). The slot calls PSI with `strategy=desktop&category=performance`. LCP is
+   1.9 s (url), INP null, CLS 0.02, TTFB 410 ms (url). No findings.
+3. The completion's desktop arm writes the desktop row with null Lighthouse columns (the CHECK
+   would refuse anything else) and replaces only the desktop codes. The page's mobile
+   `CWV_LCP_POOR`, `IMAGE_DELIVERY_INEFFICIENT` and both `LH_*` findings remain, because the
+   Lighthouse replace is not called (D42).
+4. The detail's Speed block on Desktop shows green cards and the TTFB line, with no SEO or
+   accessibility caption. On Mobile it still shows the red LCP and both captions. The checks
+   section's Lighthouse column is dated by the mobile measurement (D49).
+5. The pages list has one row for the page, its badge is still the mobile LCP, and its score and
+   place in the order are unchanged (I22, D43).
 
 **C — an http canonical, reported once.** Two posts of an https site, both sitemap entries.
 
@@ -847,27 +1131,55 @@ collects 412 unique content links, of which 9 are run pages (built from the run,
 **No new route, gateway or ViewModel.** All of it is MVVM within existing pieces
 (`fe/skills/folder-structure`, `practices/fe/react/mvvm-layers`).
 
-- `Core/Helpers/DescribeIssue/describeIssue.ts`: eleven crawl sentences, six desktop sentences
-  (the `speed` helper gains a strategy word, "on desktop"), and one image-delivery sentence that
-  formats bytes as KiB. Compile-enforced (I3).
-- `Gateways/PageGateway/Validation/PageSchemas.ts:128-141`:
-  - `speedVariants` maps `CWV` codes (both strategies) to `cwvMeasurementSchema`;
-  - **new** `imageDeliverySchema = measurementSchema.extend({ images: z.array(z.object({ url:
-    z.string(), savingsBytes: z.number() })).max(10) })` for `IMAGE_DELIVERY_INEFFICIENT`;
-  - `pageDetailSchema` replaces `pageSpeed` with `pageSpeedByStrategy: z.object({ mobile:
-    pageSpeedSummarySchema.nullable(), desktop: pageSpeedSummarySchema.nullable() })`, which
-    `satisfies z.ZodType<…>`.
-- `ViewModels/PageDetailViewModel/PageDetailViewModel.ts` carries `pageSpeedByStrategy` through.
-- `Modules/PageDetail/SpeedSection/SpeedSection.tsx`:
+- `Core/Helpers/DescribeIssue/describeIssue.ts`:
+  - 4a: six desktop sentences. The `speed` helper (`:30-38`) gains a device word, "on mobile" or
+    "on desktop", so the sentence matches the label (D48);
+  - 5b: one image-delivery sentence that formats bytes as KiB and counts the images;
+  - compile-enforced: `DESCRIBE` is a `Record` over every non-Lighthouse code (`:50-53`, I3).
+- `Gateways/PageGateway/Validation/PageSchemas.ts`:
+  - 4a: `speedVariants` (`:178-184`) maps every pageSpeed code to `cwvMeasurementSchema`, so the
+    six desktop codes parse with no change. The test at `PageSchemas.test.ts:153` iterates
+    `PAGE_SPEED_ISSUE_CODES` and covers them;
+  - 5b: `speedVariants` maps `CWV_ISSUE_CODES`' leaves only. **New** `imageDeliverySchema =
+    measurementSchema.extend({ images: z.array(z.object({ url: z.string(), savingsBytes:
+    z.number().int().min(0) })).max(10) })` is the variant for `IMAGE_DELIVERY_INEFFICIENT`.
+    `pageSpeedIssueSchema` (`:256-259`, a report's whole-site row) is built from the CWV
+    variants alone (I31);
+  - 4d: `pageDetailSchema` (`:293`) replaces `pageSpeed` with `pageSpeedByStrategy: z.object({
+    mobile: pageSpeedSummarySchema.nullable(), desktop: pageSpeedSummarySchema.nullable() })`. It
+    still `satisfies z.ZodType<IPageDetail>`, so a schema that lags the contract does not
+    compile.
+- `Gateways/IssueReportGateway/Validation/IssueReportSchemas.ts:38-41` (5b): `allPagesRowSchema`
+  satisfies `TCwvSeoIssue & { location: IAllPagesLocation }`.
+- `ViewModels/PageDetailViewModel/PageDetailViewModel.ts` (4d) carries `pageSpeedByStrategy`
+  through.
+- `Modules/PageDetail/PageDetailScreen.tsx` (4d):
+  - `:80` passes `pageSpeedByStrategy` to the Speed block;
+  - `:121` (the checks section's Lighthouse date) and `:130` (the score explanation) read
+    `pageSpeedByStrategy.mobile` (D49).
+- `Modules/PageDetail/SpeedSection/SpeedSection.tsx` (4d):
   - props: `pageSpeedByStrategy`, `availability`, `timeZone`;
   - a Mantine `SegmentedControl` Mobile | Desktop, held in local `useState`, because nothing else
     reads it (`practices/fe/react/mvvm-layers` "input that nothing else needs");
   - the body is today's body over `pageSpeedByStrategy[strategy]`;
   - the title becomes "Speed (Core Web Vitals)";
-  - **states per strategy**: notMeasured, measuring, paused, couldNotMeasure, measured (with or
-    without refreshFailed), and the availability notice above both. Switching never refetches.
-- `Modules/Issues/IssuesScreen.tsx:136`: the `active` sentence (§1.4).
+  - **states per strategy**, from `pageSpeedViewOf(summary, availability)`: notConfigured,
+    notMeasured (desktop sentence per §1.2), queued ("In queue", 3e4dc72), measuring, paused,
+    couldNotMeasure, measured with or without refreshFailed. The availability notice stands above
+    both. Switching never refetches;
+  - the SEO and accessibility captions already render only when non-null (`:157-167`). A
+    desktop measurement carries null there (D42), so Desktop shows none without a branch on the
+    device. A test pins it.
+- `Modules/Issues/IssuesScreen.tsx:141` (4c): the `active` sentence names both devices (§1.4).
+  It lands in 4c, when desktop findings first appear, so the screen never says "mobile" beside a
+  desktop finding.
 - `Core/Helpers/DescribePageSpeed/describePageSpeed.ts`: unchanged. It is called per strategy.
+- `Modules/Pages/PagesTable/PagesTable.tsx:191`: unchanged. The legend's "Core Web Vitals,
+  mobile" stays true (D21).
+- The Info guide (`fe/src/Modules/Info/`, `fe/src/ViewModels/InfoGuideViewModel/`) says
+  "mobile strategy" in `speedAndSite.ts:8`, `CoreWebVitalsGuide.tsx:246` and
+  `UsingTracker.tsx:103`. VERIFY: at `adc8887` these files are untracked, another session's work
+  in progress. If they are committed by 4c, 4c rewrites those sentences to name both devices.
 - Site check rendering (run log, report) reads `SITE_CHECK_CATALOGUE` and `SITE_CHECK_CODES`
   generically (`ClientSchemas.ts:51`, `IssueReportSchemas.ts:44`), so `CONTENT_NEEDS_JAVASCRIPT`
   needs no component.
@@ -893,17 +1205,23 @@ collects 412 unique content links, of which 9 are run pages (built from the run,
 | I13 | `pnpm --filter be lint` with the new rule; one deliberate violation is tried locally and seen failing before the commit (task 1.4 of `crawl-outbound-checks`) |
 | I14 | `undici-http-transport.spec.ts` → "a zero-byte cap returns the head and frees the connection" (nine status-only requests against an endless body on one origin with `connections: 8` all resolve within the timeout) |
 | I15 | `outbound-checks.service.spec.ts` → "a host refusing every connection leaves outcomes, not an error"; `crawl-run-executor.service.spec.ts` → "an outbound stage that throws nothing but times out leaves the run succeeded" |
-| I16 | `page-speed.repository.int-spec.ts` → "holds one row per page and strategy", "deleting a page deletes both rows" |
-| I17 | same → "refuses a row without a strategy" |
-| I18 | `seo-issues.repository.int-spec.ts` → "a desktop replace leaves the page's mobile and crawl findings", "a mobile replace leaves its desktop findings" |
-| I19 | `pnpm typecheck`; `seo-issue-catalogue.test.ts` → "splits the speed codes by strategy: six CWV codes each, image delivery mobile" |
-| I20 | `cwv-issues-of.spec.ts` → "a desktop metric outside the good band yields its desktop code"; `be/test/e2e/page-speed.e2e-spec.ts` → "every non-good badge of each strategy has its finding, and no good one does" |
-| I21 | `speed-issues-of.spec.ts` (new) → "never yields IMAGE_DELIVERY_INEFFICIENT for desktop"; `extract-image-delivery.spec.ts` (new) → "an answer without the audit is null"; `page-speed-executor.service.spec.ts` → "an answer without the image audit is still a measurement" |
-| I22 | `page-list.repository.int-spec.ts` → "lists a page once when both strategies are stored"; `issue-report.repository.int-spec.ts` → "returns each finding once when both strategies are stored"; the list statement-count case still passes |
+| I16 | `page-speed.repository.int-spec.ts` → "holds one row per page and strategy" (a second insert of `(page, mobile)` fails on `page_speed_pk`), "deleting a page deletes both rows" |
+| I17 | same → "refuses a row without a strategy" (an insert through `sql` that omits the column fails on NOT NULL). The column's type is `TPsiStrategy` with no default, so a Drizzle insert without it is also a typecheck error |
+| I18 | `seo-issues.repository.int-spec.ts` → "a desktop replace leaves the page's mobile, Lighthouse and crawl findings", "a mobile replace leaves its desktop findings". Typecheck: passing a mobile code with `strategy: 'desktop'` does not compile |
+| I19 | `pnpm typecheck` (a `strategy` on a crawl or Lighthouse entry is an excess property; a pageSpeed entry without one is a missing property); `seo-issue-catalogue.test.ts` → "splits the speed codes by strategy: six CWV codes each" (4a), extended in 5b to "and image delivery is mobile's" |
+| I20 | `cwv-issues-of.spec.ts` → "a desktop metric outside the good band yields its desktop code"; `seo-issue-catalogue.test.ts` → "each CWV code's max is its metric's threshold for its band, on both strategies"; `be/test/e2e/page-speed.e2e-spec.ts` → "every non-good badge in the list has its finding in the detail, and no good one does" (existing, mobile) and "every non-good desktop card has its desktop finding" (new, 4d) |
+| I21 | `speed-issues-of.spec.ts` (new) → "raises IMAGE_DELIVERY_INEFFICIENT at 102 400 bytes, not 102 399"; the desktop overload has no image input, which is the typecheck half; `extract-image-delivery.spec.ts` (new) → "is null for an answer without the audit"; `classify-psi-response.spec.ts` → "an answer without the image audit is still measured" |
+| I22 | `page-list.repository.int-spec.ts` → "lists a page once, with its mobile summary and score, when both strategies are stored"; `page-detail` through `pages.e2e-spec.ts` → "the detail's score and Lighthouse lists come from the mobile row"; `issue-report.repository.int-spec.ts` → "returns each finding once when both strategies are stored, with its own strategy's measured_at"; the list statement-count case still passes. Before 4b closes, `git grep -n "join page_speed" be/src` lists only joins that name a strategy |
 | I23 | **not pinned by a test**: a reader judges every firing against the live page (D12). The phase's acceptance includes the tally in `PAGE_ANALYSIS_MODULE.md`, found by `git grep -n "Field audit of the Ahrefs-gap checks" be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` |
 | I24 | `be/test/e2e/isolation-matrix.e2e-spec.ts` static case "covers every route that takes an id or a clientId" (existing; unchanged route set) |
 | I25 | one case per §10.13 row, each named for the check deferred to: `og-url-mismatch.check.spec.ts` → "is not applicable to a development-host og:url — that is DEVELOPMENT_HOST_REFERENCES's"; `broken-links.check.spec.ts` and `links-to-redirects.check.spec.ts` → "skips a link to this site's development host — that is DEVELOPMENT_HOST_REFERENCES's"; `links-to-redirects.check.spec.ts` → "skips a link INTERNAL_LINK_VARIANTS reports"; `hreflang-not-reciprocal.check.spec.ts` → "skips an alternate whose code HREFLANG_INVALID reports", "skips a development-host alternate — that is DEVELOPMENT_HOST_REFERENCES's", "is not applicable when the canonical names another URL — that is HREFLANG_INVALID's"; `canonical-target-broken.check.spec.ts` → "is not applicable to the http twin — that is CANONICAL_TO_HTTP's", "is not applicable to a development-host target — that is DEVELOPMENT_HOST_REFERENCES's" |
 | I26 | `site-checks.registry.spec.ts` → "names an entry whose page names another URL as canonical" (CANONICAL_MISMATCH, D15), "names an entry whose canonical is its http twin" (CANONICAL_TO_HTTP, phase 1), "names an entry whose canonical target is broken" (CANONICAL_TARGET_BROKEN, phase 3) |
+| I27 | DB: `page-speed.repository.int-spec.ts` → "refuses a desktop row with a Lighthouse list or a category score" (fails on `page_speed_lighthouse_mobile_only`). Unit: `page-speed-results.service.spec.ts` → "a desktop completion writes its speed findings and never calls the Lighthouse replace". Typecheck: the desktop arm of `TPageSpeedCompletion` |
+| I28 | `page-speed.repository.int-spec.ts` → "claims a desktop row with its strategy", "a stale attempt on the desktop row writes nothing to the mobile row of the same page and attempt number" |
+| I29 | `page-speed.repository.int-spec.ts` → the three fair-claim cases (`:471`, `:485`, `:499`) kept green with a strategy on every row; new "a claim of a client's desktop row serves the client", "within one client, due mobile rows are claimed before its desktop rows" |
+| I30 | 4b: `page-speed-queue.service.spec.ts` → "queues only the strategies PAGE_SPEED_QUEUED_STRATEGIES names". 4c: the constant is deleted (the test is rewritten to "queues every strategy"), and `be/test/e2e/page-speed.e2e-spec.ts` → "a crawl queues both strategies of each page" |
+| I31 | typecheck (the `allPages` arm is `TCwvSeoIssue`); `collapse-origin-findings.spec.ts` → "keeps IMAGE_DELIVERY_INEFFICIENT at its page, and folds origin-sourced desktop CWV codes into one row each" |
+| I32 | `seo-issue-catalogue.test.ts` → "the crawl and Lighthouse are scored, the Core Web Vitals are not" (existing), extended in 5b with "IMAGE_DELIVERY_INEFFICIENT is a pageSpeed code"; `be/test/e2e/page-speed.e2e-spec.ts` → "a speed finding counts among the issues and leaves the score and the order unchanged" (existing), with an image-delivery finding added to its fixture in 5b |
 
 ---
 
@@ -918,10 +1236,14 @@ makes it fail.
 - `inclusion-bar.util.test.ts` fails on a predicate that reads one source instead of all.
 - `seo-issue-catalogue.test.ts`:
   - the inclusion bar over the real catalogue fails if an Ahrefs-only entry is a warning;
-  - "splits the speed codes by strategy";
-  - the six desktop `max`s equal `CWV_THRESHOLDS`;
-  - "gives the PageSpeed worker exactly …" now lists 13 codes;
-  - "is exactly the checks that compare a page with the rest of the crawl" (`:94-101`) is
+  - "splits the speed codes by strategy" fails if a desktop entry declares `mobile`, because
+    `PAGE_SPEED_CODES_BY_STRATEGY` is derived from the declarations it checks;
+  - "each CWV code's max is its metric's threshold for its band" (`:98-107`) and "makes a poor
+    metric a warning…" (`:110-119`) loop over both strategies, so a desktop `max` copied from the
+    wrong band fails;
+  - "gives the PageSpeed worker exactly the six Core Web Vitals codes" (`:83-92`) is renamed and
+    lists 12 codes in 4a, 13 in 5b;
+  - "is exactly the checks that compare a page with the rest of the crawl" (`:146-153`) is
     UNCHANGED, because every new check is page-scoped (D17). A run-scoped addition fails it.
 - `issue-plain-copy.test.ts` (existing) fails on any new entry whose copy breaks
   `PLAIN_COPY_LIMITS` or names no one who acts.
@@ -940,18 +1262,29 @@ makes it fail.
 - `site-checks.registry.spec.ts` new cases. `post-selection.service.spec.ts` flag case.
 - The changed `crawl-run-executor.service.spec.ts` cases.
 - `extract-image-delivery.spec.ts` (fixture kind: reads the recorded answer from disk),
-  `speed-issues-of.spec.ts`.
-- `psi-client.spec.ts` → "asks for desktop with strategy=desktop, in the fixed parameter order".
+  `speed-issues-of.spec.ts`. The extractor's spec fails if it reads anything outside the one
+  audit: the "passing" fixture keeps every other audit, and the case asserts the result is
+  unchanged when they are deleted from the parsed JSON.
+- `psi-client.spec.ts` → "a desktop request asks for strategy=desktop and category=performance
+  only, the key only in the header". It fails if the desktop URL carries `category=seo`, which
+  is SPEED-016's desktop scenario.
+- `page-speed-executor.service.spec.ts` → "a desktop claim completes the desktop arm with no
+  Lighthouse record". It fails if the executor copies the answer's Lighthouse record onto a
+  desktop completion.
+- `page-speed-results.service.spec.ts` → I27's unit case, with the repositories mocked.
+- `page-speed-queue.service.spec.ts` → I30's case.
 - `undici-http-transport.spec.ts` new case, against a local server and not the network.
 
 **Integration / DB (`*.int-spec.ts`, real Postgres).** Each covers what only the database decides:
 
 - `page-speed.repository.int-spec.ts`: the composite PK; NOT NULL without default; cascade; the
-  per-strategy enqueue and claim; the 24 h boundary per strategy;
+  mobile-only CHECK (I27); the per-strategy enqueue and claim; the fair turns across strategies
+  (I29); the fence per `(page, strategy, attempt)` (I28); the 24 h boundary per strategy;
 - `seo-issues.repository.int-spec.ts`: strategy-scoped deletes;
 - `page-list.repository.int-spec.ts`, `issue-report.repository.int-spec.ts`: no row
-  multiplication;
-- `seed-runner.int-spec.ts`: per-strategy backfill idempotence.
+  multiplication, and the list's score reads the mobile row's Lighthouse share only;
+- `seed-runner.int-spec.ts`: per-strategy backfill idempotence (4c, once both strategies are
+  queued).
 
 **e2e (API, `be/test/e2e/*.e2e-spec.ts`, `pnpm test:db`).**
 
@@ -959,8 +1292,13 @@ makes it fail.
   recorded 301 stores `BROKEN_LINKS` and `LINKS_TO_REDIRECTS` on that page and nothing else new.
   A canonical naming a recorded 301 stores `CANONICAL_TARGET_BROKEN` and not
   `CANONICAL_MISMATCH` (D34). The run log carries the outbound timing.
-- `page-speed.e2e-spec.ts`: both strategies queued and measured; badge ⇔ issue per strategy; the
-  list unchanged; the detail carries `pageSpeedByStrategy`.
+- `page-speed.e2e-spec.ts`: both strategies queued and measured (4c); the list unchanged; the
+  detail carries `pageSpeedByStrategy` (4d); badge ⇔ issue per strategy. Its PSI answers are
+  overridden per URL (`transport.override(PsiClient.requestUrl(finalUrl), …)` at `:69` and
+  `:255`). From 4c each override names a strategy and the desktop URL gets the desktop fixture.
+  An un-overridden desktop URL answers 404 under the fixture transport, which classifies as
+  `PSI_REJECTED`. The new case "a crawl queues both strategies; each measured row has its
+  findings" asserts both rows `done`, so it fails on that.
 - `pages.e2e-spec.ts`: the detail shape.
 - `issue-report.e2e-spec.ts`: desktop and image codes present; no duplicate rows.
 
@@ -976,9 +1314,11 @@ makes it fail.
   network call".
 - Its failure mode: if `checkLink` stopped asking with a zero cap, the recorded corpus would turn
   red in `crawl.e2e-spec.ts`, which is the intended alarm.
-- New recorded PSI answers: `url-field.desktop.json`, and a mobile answer keeping the
-  image-delivery audit. Both are recorded with `record-pagespeed-fixtures.ts`, which refuses a
-  file echoing the key.
+- New recorded PSI answers: `url-field.desktop.json` (4c), and two mobile answers that keep the
+  image-delivery audit, `image-delivery-failing.json` and `image-delivery-passing.json` (5a).
+  All are recorded with `record-pagespeed-fixtures.ts`, which refuses a file echoing the key and
+  records only the files named by its prefix argument, so no pinned answer is re-recorded by
+  accident.
 
 **Typecheck / lint.** I2, I3, I17 (the column type), I19. The ESLint rule of I13.
 `satisfies z.ZodType<…>` on the changed detail schema.
@@ -1010,10 +1350,15 @@ makes it fail.
 
 - The outbound stage is bounded by its deadline, not by data size. The measurement is the
   duration in step 6.
-- `page_speed` doubles to ≤ 2 rows per crawled page, so no EXPLAIN gate.
-- Phase 4 re-runs `be/test/explain/pages-list.explain.sql` on the seeded stack. The
-  `page_speed` access must still be a PK probe or a hash over the small table, now with
-  `strategy = 'mobile'` in the join condition.
+- `page_speed` doubles to ≤ 2 rows per crawled page, so no new index.
+- Phase 4b edits `be/test/explain/pages-list.explain.sql:33-41` (its join gains `AND ps.strategy
+  = 'mobile'`, its comment names `page_speed_pk`) and re-runs it on the seeded stack. The
+  `page_speed` access must still be an index scan on `page_speed_pk` with both key columns in
+  the condition, or a hash over the small table. A sequential scan feeding a nested loop per
+  listed page fails the phase.
+- The claim (§10.14) runs once per slot per measurement, over the due rows the partial index
+  `page_speed_claim_idx` returns. It is not EXPLAIN-gated. Its cost is one sort of one client's
+  due rows.
 
 ---
 
@@ -1051,7 +1396,12 @@ makes it fail.
     (D36);
   - `CANONICAL_MISMATCH`'s second step-aside (D34) builds on its first (D32).
 - Phase 5 depends on phase 4: the strategy-scoped replace and the catalogue's `strategy`.
-- Phases 4–5 do not depend on phases 1–3 and may run before them. The user decides.
+- Phases 1 and 3 are closed (Status). Phase 4 depends on neither. It depends on the merged
+  `lighthouse-checks` (the registry, migration `0015`, the Lighthouse replace), which is on the
+  branch at `adc8887`.
+- Within phase 4 the sub-phases are strictly ordered, 4a → 4b → 4c → 4d → 4e. 4b makes storage
+  per strategy while still queueing mobile only (D45). 4c is the first sub-phase in which a
+  desktop row exists.
 - Phase 6 (harvest and archive) depends on all.
 
 **Commit style:** `skills/claude-workflow/SKILL.md`. The branch is the current one.
@@ -1447,7 +1797,8 @@ check reports the fact (§10.13). `CANONICAL_MISMATCH` steps aside for a broken 
    - `_shared/hreflang-code.ts`: `problemWith` moved out of `hreflang-invalid.check.ts:71-100`
      unchanged.
    - `hreflang-invalid.check.ts`'s comment and the catalogue comment at
-     `seo-issue-catalogue.constant.ts:847-852` now point at the new code instead of saying
+     `seo-issue-catalogue.constant.ts:847-852` (a file `lighthouse-checks` has since moved to
+     `catalogue/crawl/crawl-catalogue.constant.ts`) now point at the new code instead of saying
      reciprocity is not checked.
 2. **Pre-conditions.** 3b, 1d. D2, D11, D36.
 3. **TDD points.** Before: §10.6's cases, all failing with no module:
@@ -1492,217 +1843,441 @@ check reports the fact (§10.13). `CANONICAL_MISMATCH` steps aside for a broken 
 ### Phase 4 — Desktop Core Web Vitals (change `desktop-core-web-vitals`)
 
 After it, every crawled page is measured on both devices. The Speed block switches between them,
-and desktop findings count as issues. The list stays mobile.
+and desktop findings count as issues. The pages list, the score and Lighthouse's verdicts stay
+mobile (D42, D43). The claim keeps SPEED-014's turns (D44).
 
 #### 4a. The catalogue knows two strategies
 
+After it, the catalogue declares a device for every speed code and holds the six desktop codes.
+Nothing writes them yet.
+
 1. **Deliverables.**
-   - Contracts: `page-speed/psi-strategy.enum.ts` (new); `seo-issue-catalogue.constant.ts`
-     (union, `strategy` on the six, six desktop entries, `PAGE_SPEED_CODES_BY_STRATEGY`,
-     `TCwvIssueCode`); `cwv-issue-codes.constant.ts`; `seo-issue-catalogue.test.ts`;
-     `src/index.ts`.
-   - Backend: `cwv-issues-of.ts` with its spec (strategy parameter; callers pass `'mobile'`).
-   - Frontend: `describeIssue.ts` (six sentences), `PageSchemas.ts` (variants).
-2. **Pre-conditions.** `pnpm lint && pnpm typecheck && pnpm test` green. D9.
+   - Contracts (`packages/contracts/src/domain/`):
+     - `page-speed/psi-strategy.enum.ts` (new, §3.2);
+     - `seo/catalogue/issue-definition.interface.ts`: `IPageSpeedIssueDefinition` with a
+       required `strategy` (§5, D39);
+     - `seo/catalogue/page-speed/page-speed-catalogue.constant.ts`: `strategy: 'mobile'` and
+       labels ending "on mobile" on the six entries (D48); six `CWV_*_DESKTOP` entries;
+     - `seo/catalogue/issue-catalogues.constant.ts`: `TPageSpeedIssueCodeOf<S>`,
+       `PAGE_SPEED_CODES_BY_STRATEGY`;
+     - `page-speed/cwv-issue-codes.constant.ts`: keyed by strategy, and `TCwvIssueCode`;
+     - `seo/seo-issue.interface.ts`: `TPageSpeedSeoIssueOf<S>`, `TCwvSeoIssue`, `TIssueDetails`
+       over `TCwvIssueCode`;
+     - `seo/seo-issue-catalogue.test.ts`; `src/index.ts`.
+   - Backend: `be/src/modules/page-speed/services/cwv-issues/cwv-issues-of.ts` with its spec. Its
+     one caller, `page-speed-executor.service.ts:125`, passes `'mobile'`.
+   - Frontend: `fe/src/Core/Helpers/DescribeIssue/describeIssue.ts` with its test (six sentences;
+     the `speed` helper's device word); every frontend test that asserts a CWV label.
+2. **Pre-conditions.** `pnpm lint && pnpm typecheck && pnpm test` green at `adc8887`. D9, D39,
+   D48.
 3. **TDD points.**
-   - Before: `seo-issue-catalogue.test.ts` → "splits the speed codes by strategy" and the desktop
-     `max` case. They fail with no export.
-   - Before: `cwv-issues-of.spec.ts` → "a desktop metric outside the good band yields its desktop
-     code". It fails because there is no parameter.
-   - Before: `describeIssue.test.ts` → "says 'on desktop' for a desktop code".
+   - Before, `seo-issue-catalogue.test.ts`: "splits the speed codes by strategy: six CWV codes
+     each", "each CWV code's max is its metric's threshold for its band, on both strategies",
+     "gives a desktop code its mobile twin's severity". They fail: `PAGE_SPEED_CODES_BY_STRATEGY`
+     does not exist and `CWV_ISSUE_CODES` has no strategy level.
+   - Before, `cwv-issues-of.spec.ts`: "a desktop metric outside the good band yields its desktop
+     code". It fails: there is no strategy parameter.
+   - Before, `describeIssue.test.ts`: "says 'on desktop' for a desktop code" and "says 'on
+     mobile' for a mobile code". They fail: no desktop code, no device word.
+   - Typecheck, seen failing once and restored: a `strategy` added to one crawl entry fails
+     `pnpm typecheck` as an excess property, and one removed from a pageSpeed entry fails it as
+     missing. This is I19's failing form.
+   - After: "gives the PageSpeed worker exactly the six Core Web Vitals codes" (`:83-92`) is
+     renamed "… the twelve Core Web Vitals codes, six per strategy" and lists twelve.
 4. **Acceptance.**
    - `pnpm --filter @app/contracts test:ci`
    - `pnpm --filter be test:ci -- src/modules/page-speed`
-   - `pnpm --filter fe test:ci -- describeIssue PageSchemas`
+   - `pnpm --filter fe test:ci -- describeIssue PageSchemas issueTypeOf`
    - `pnpm lint && pnpm typecheck && pnpm test`
+   - `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`
 5. **Regression guard.**
-   - ANALYSIS-012 deposit tests: "partitions the catalogue by owner" stays green. "Gives the
-     PageSpeed worker exactly the six Core Web Vitals codes" is renamed and lists twelve codes
-     here, then thirteen in 5b. The ANALYSIS-012 deposit line in `PAGE_ANALYSIS_MODULE.md:428`
-     names the old test, so the harvest corrects it.
-   - `issueTypeOf.test.ts`: desktop codes are `speed`.
-6. **Rollback.** Revert; nothing writes a desktop code yet.
+   - ANALYSIS-012's deposit (`PAGE_ANALYSIS_MODULE.md:580-582`) names "gives the PageSpeed worker
+     exactly the six Core Web Vitals codes". The rename is recorded on task 1.2 of the change, so
+     phase 6's deposit corrects the line. "Partitions the catalogue by owner" (`:69-81`) stays
+     green unchanged.
+   - `issueTypeOf.test.ts`: desktop codes are `speed`, because `issueTypeOf` reads
+     `PAGE_SPEED_ISSUE_CODES`.
+   - `issue-plain-copy.test.ts` holds the desktop copy to `PLAIN_COPY_LIMITS`.
+   - The label change: `git grep -n -E "Contentful Paint (is|needs)|Next Paint (is|needs)|Layout
+     Shift (is|needs)" -- fe/src be/src be/test` lists every reader of a CWV label; each is
+     re-read.
+6. **Rollback.** Revert. Nothing writes a desktop code yet, and the label change is copy only.
 7. **Commit points.** `feat(contracts): two PageSpeed strategies, and the six desktop Core Web
    Vitals codes`.
 
-#### 4b. One row per page and strategy
+#### 4b. One row per page and strategy, still measured on mobile only
+
+After it, storage, the fence, the replace, the writer and every read are per strategy. The crawl
+and the seed still queue mobile only (D45), so the product behaves exactly as before, and every
+read is proven not to multiply a page before a second row can exist.
 
 1. **Deliverables.**
-   - `page-speed.schema.ts` (§3.2) and the two generated migrations (`0015_*.sql`, `0016_*.sql`).
-   - `page-speed.repository.ts` and its int-spec; `seo-issues.repository.ts` and its int-spec.
-   - `page-speed-queue.service.ts`, `page-speed-results.service.ts` and their specs.
-   - `page-list.repository.ts`, `page-detail.repository.ts`, `page-speed-read.ts`.
-   - `issue-report.repository.ts` and its int-spec; `seed-runner` and its int-spec.
-   - `seed.ts` prints `pagespeed  N measurements queued`. A row is now one measurement, not
-     one page, so "pages" would overcount by two.
-2. **Pre-conditions.** 4a. D9, D13, D20, D22.
-3. **TDD points.**
-   - Before, `page-speed.repository.int-spec.ts`: "holds one row per page and strategy", "refuses
-     a row without a strategy", "enqueue queues both strategies of a new page", "re-queues a
-     strategy measured exactly 24 h ago and leaves the other", "claims a desktop row with its
-     strategy".
-   - Before, `seo-issues.repository.int-spec.ts`: the two I18 cases.
-   - Before, `page-list.repository.int-spec.ts` and `issue-report.repository.int-spec.ts`: the
-     I22 cases.
-   - Before, `seed-runner.int-spec.ts`: "queues each current page once per strategy, and a
-     second run queues none".
-   - All fail with no column.
+   - `be/src/persistence/schema/tables/page-speed/page-speed.schema.ts` (§3.2), and the two
+     generated files `be/drizzle/0016_*.sql` and `0017_*.sql` with drizzle-kit's `meta/`
+     snapshot and journal entries.
+   - `be/src/shared/page-speed-queue/page-speed-queue.constant.ts`: `PAGE_SPEED_QUEUED_STRATEGIES`
+     (I30).
+   - `be/src/modules/pages/`:
+     - `interfaces/page-speed.interface.ts`: `IClaimedPageSpeed.strategy`, `TPageSpeedCompletion`
+       (§7);
+     - `repositories/page-speed/page-speed.repository.ts` and its int-spec (§7, §10.14);
+     - `repositories/seo-issues/seo-issues.repository.ts` and its int-spec;
+     - `services/page-speed-queue/page-speed-queue.service.ts` and its spec;
+     - `services/page-speed-results/page-speed-results.service.ts` and its spec;
+     - `repositories/page-list/page-list.repository.ts:141` and its int-spec;
+     - `repositories/page-detail/page-detail.repository.ts:142`.
+   - `be/src/modules/page-speed/services/page-speed-executor/page-speed-executor.service.ts` and
+     its spec: the completion arm of `claim.strategy`.
+   - `be/src/modules/issue-report/repositories/issue-report/issue-report.repository.ts:124` and
+     its int-spec.
+   - `be/test/explain/pages-list.explain.sql:33-41`.
+   - Every test that inserts a `page_speed` row names a strategy:
+     `page-list.repository.int-spec.ts:211`, the inserts of `page-speed.repository.int-spec.ts`,
+     `be/test/e2e/page-speed.e2e-spec.ts`.
+   - `be/src/seed/seed.ts:45` prints `pagespeed  N measurements queued`. A row is one
+     measurement, not one page, so from 4c "pages" would overcount by two.
+2. **Pre-conditions.** 4a. D9, D13, D22, D41, D42, D43, D44, D45.
+3. **TDD points.** The int-specs cannot compile against a column that does not exist, so their
+   first observed failure is the type error (as `lighthouse-checks` task 4.1 recorded). What
+   makes each refusal case fail for the right reason afterwards is that it asserts the
+   CONSTRAINT NAME in the error, not merely that the insert threw.
+   - Before, `page-speed.repository.int-spec.ts`:
+     - "holds one row per page and strategy" (`page_speed_pk`);
+     - "deleting a page deletes both rows";
+     - "refuses a row without a strategy" (NOT NULL);
+     - "refuses a desktop row with a Lighthouse list or a category score"
+       (`page_speed_lighthouse_mobile_only`);
+     - "enqueue with both strategies queues both rows of a new page";
+     - "re-queues a strategy measured exactly 24 h ago and leaves the other";
+     - "claims a desktop row with its strategy";
+     - "a stale attempt on the desktop row writes nothing to the mobile row of the same page and
+       attempt number";
+     - "a claim of a client's desktop row serves the client";
+     - "within one client, due mobile rows are claimed before its desktop rows";
+     - every existing case rewritten with a strategy, the fair-claim cases (`:471`, `:485`,
+       `:499`) unchanged in what they assert.
+   - Before, `seo-issues.repository.int-spec.ts`: "a desktop replace leaves the page's mobile,
+     Lighthouse and crawl findings", "a mobile replace leaves its desktop findings".
+   - Before, `page-list.repository.int-spec.ts`: "lists a page once, with its mobile summary and
+     score, when both strategies are stored". It inserts a desktop row with different figures and
+     a Lighthouse-free record. Run after the schema change and before the join names the
+     strategy, it fails on two rows for one page, which is the defect D43 prevents.
+   - Before, `issue-report.repository.int-spec.ts`: "returns each finding once when both
+     strategies are stored, with its own strategy's measured_at". It fails the same way.
+   - Before, `page-speed-results.service.spec.ts`: "a desktop completion writes its speed
+     findings and never calls the Lighthouse replace". It fails: there is no desktop arm.
+   - Before, `page-speed-queue.service.spec.ts`: "queues only the strategies
+     PAGE_SPEED_QUEUED_STRATEGIES names". It fails: the repository takes no strategies.
+   - Before, `page-speed-executor.service.spec.ts`: "a desktop claim completes the desktop arm
+     with no Lighthouse record". It fails: the claim has no strategy.
 4. **Acceptance.**
-   - `pnpm db:generate` and read `0015_*.sql` (enum, column with default, PK swap, nothing else).
-     Edit the schema to drop the default. `pnpm db:generate` and read `0016_*.sql` (`DROP
-     DEFAULT` only). `pnpm db:migrate`.
-   - `pnpm --filter be test:db -- page-speed seo-issues page-list issue-report seed-runner`.
-   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
-   - On the seeded stack: `docker compose exec postgres psql -U tracker -d seo_tracker -c
-     "select strategy, status, count(*) from page_speed group by 1, 2"` shows only `mobile` rows
-     after the migration (D13).
+   - `pnpm db:generate`, then read `be/drizzle/0016_*.sql`. It holds exactly the five statements
+     of §3.2 step 1 and nothing else. Drop `.default('mobile')` from the schema, `pnpm
+     db:generate`, read `0017_*.sql`: exactly `ALTER COLUMN "strategy" DROP DEFAULT`. Then
+     `pnpm db:migrate`.
+   - `pnpm --filter be test:db -- page-speed seo-issues page-list issue-report`
+   - `pnpm --filter be test:ci -- src/modules/pages src/modules/page-speed src/modules/issue-report`
+   - `git grep -n "join page_speed" be/src`: every line names a strategy.
+   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
+   - `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`. Then
+     `docker compose exec postgres psql -U tracker -d seo_tracker -c "select strategy, status,
+     count(*) from page_speed group by 1, 2"` shows only `mobile` rows (D13). Re-crawl one seed
+     client from the UI; the same query still shows only `mobile` rows (D45).
    - `docker compose exec -T postgres psql -U tracker -d seo_tracker <
-     be/test/explain/pages-list.explain.sql`, then read the plan: the `page_speed` access is a PK
-     probe or a hash, with `strategy` in the condition.
+     be/test/explain/pages-list.explain.sql`, then read the plan (§14 Performance).
 5. **Regression guard.**
-   - SPEED-003 (fence) and SPEED-004 (current run only): the existing int-spec cases, all with a
-     strategy now.
+   - SPEED-003 (fence), SPEED-004 (current run only), SPEED-006 (whole or absent) and SPEED-014
+     (turns): the existing int-spec cases, all with a strategy now.
    - PAGES-010/011: `page-list.repository.int-spec.ts` in full, including the statement count.
-6. **Rollback.** Not by editing migrations. A forward migration generated from the schema
-   restoring `page_id` as the key would first need the desktop rows deleted by hand, because
-   that is data. Say so in the task if it is ever done.
+   - PAGES-016 (Lighthouse in the score): `be/test/e2e/page-speed.e2e-spec.ts` → "a Lighthouse
+     finding counts among the issues, in the spread and in the score" must stay green through
+     the join change. It is the check that `LIGHTHOUSE_SCORE_POINTS_LATERAL` still reads `ps`.
+   - REPORT-005: `issue-report.e2e-spec.ts` → "reports a Lighthouse finding at each page it is
+     on, never as a whole-site row".
+6. **Rollback.** Not by editing migrations. Until 4c no desktop row exists, so a forward
+   migration generated from a schema that restores `page_id` as the key loses nothing. After 4c
+   it would first need the desktop rows and their findings deleted by hand, which is data. Say
+   so in an `AMENDED` line if it is ever done.
 7. **Commit points.**
-   - `feat(db): a page_speed row per page and strategy`
-   - `feat(pages): enqueue, claim and replace per strategy; reads name the strategy they want`
-   - `feat(seed): queue each current page once per strategy`
+   - `feat(db): a page_speed row per page and strategy — queue, fence, replace and reads per
+     strategy`. One commit, because no smaller one is green: the key change breaks every
+     `on conflict (page_id)` at runtime, and the NOT NULL column without a default breaks every
+     insert at typecheck.
+   - `test(explain): the pages list joins the mobile row by its key`
+   - `feat(seed): the backfill counts measurements, not pages`
 
-#### 4c. Google is asked for desktop
+#### 4c. Google is asked for desktop, and the crawl queues it
+
+After it, a crawl and a seed run queue both devices, and a desktop row is measured with
+`strategy=desktop&category=performance`. Desktop findings appear among a page's issues and in the
+report, each with its "on desktop" label and a sentence carrying its value, bound and source. The
+Speed block still shows mobile only until 4d. That is a state a user can live with: no desktop
+finding needs the block to be understood, and no screen says "mobile" beside one.
 
 1. **Deliverables.**
-   - `psi-client.ts` with its spec; `page-speed-executor.service.ts` with its spec;
-     `page-speed-worker` (unchanged API, VERIFY).
-   - `record-pagespeed-fixtures.ts` (strategy argument); `be/test/fixtures/pagespeed/url-field.desktop.json`
-     (recorded); `page-speed.e2e-spec.ts`.
-2. **Pre-conditions.** 4b. A local PageSpeed key. VERIFY: the user has one in `.env`; the recorded
-   success fixtures show one was available.
+   - `be/src/modules/page-speed/services/psi-client/psi-client.ts` and its spec (§7).
+   - `page-speed-executor.service.ts`: passes `claim.strategy` to `runPagespeed`.
+   - `be/src/modules/pages/services/page-speed-queue/page-speed-queue.service.ts` passes
+     `PSI_STRATEGIES`, and `PAGE_SPEED_QUEUED_STRATEGIES` is deleted from
+     `page-speed-queue.constant.ts` (D45).
+   - `be/test/fixtures/record-pagespeed-fixtures.ts`: a target's `strategy?: 'desktop'`, recorded
+     with `category=performance` only. `be/test/fixtures/pagespeed/url-field.desktop.json` is
+     recorded with `node be/test/fixtures/record-pagespeed-fixtures.ts url-field.desktop` so
+     nothing else is re-recorded. `page-speed-fixtures.spec.ts` pins its role: field data, no
+     Lighthouse category.
+   - `be/test/e2e/page-speed.e2e-spec.ts`: overrides per strategy (§14), new cases.
+   - `be/src/seed/seed-runner/seed-runner.int-spec.ts`.
+   - `fe/src/Modules/Issues/IssuesScreen.tsx:141` and `IssuesScreen.test.tsx` (§1.4).
+   - The Info guide's "mobile strategy" sentences, if those files are committed by then (§12,
+     VERIFY).
+2. **Pre-conditions.** 4b. A PageSpeed key in the local `.env` for the recording. VERIFY: the
+   user confirms one is there; the session never prints `.env`. D9, D13, D20, D42, D45.
 3. **TDD points.**
-   - Before: `psi-client.spec.ts` → "asks for desktop with strategy=desktop, in the fixed parameter
-     order". It fails with no parameter.
-   - Before: executor → "completes the claimed strategy and replaces only its findings".
-   - Before: e2e → "a crawl queues both strategies; each measured row has its findings".
+   - Before, `psi-client.spec.ts`: "a desktop request asks for strategy=desktop and
+     category=performance only, the key only in the header". It fails: there is no strategy
+     parameter. The existing mobile case ("a mobile request asks for performance, seo and
+     accessibility…") is SPEED-016's other scenario and stays as it is.
+   - Before, `page-speed-queue.service.spec.ts`: "queues every strategy" replaces 4b's case. It
+     fails while the constant says mobile.
+   - Before, `page-speed.e2e-spec.ts`: "a crawl queues both strategies of each page", "a crawl
+     queues both strategies; each measured row has its findings", "a desktop measurement leaves
+     the page's Lighthouse findings, its score and its place in the list". They fail: no desktop
+     row is queued.
+   - Before, `seed-runner.int-spec.ts`: the existing "the backfill queues each current page once,
+     and a second run queues none" becomes "… once per strategy …", and its count doubles. It
+     fails while the backfill passes mobile only.
+   - Before, `IssuesScreen.test.tsx`: the `active` line names both devices.
 4. **Acceptance.**
-   - `pnpm --filter be test:ci -- src/modules/page-speed`
-   - `pnpm --filter be test:db -- page-speed`
+   - `pnpm --filter be test:ci -- src/modules/page-speed src/modules/pages`
+   - `pnpm --filter be test:db -- page-speed seed-runner`
+   - `pnpm --filter fe test:ci -- IssuesScreen`
    - `git grep -n -E "key=|AIza" -- be/test/fixtures/pagespeed` prints nothing.
-   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
-5. **Regression guard.** SPEED-008–012: `classify-psi-response.spec.ts`,
-   `page-speed-rate-limiter.spec.ts` and `page-speed-worker.spec.ts` in full.
-6. **Rollback.** Revert. Desktop rows stay `queued` with no worker asking for them.
+   - `git grep -n "PAGE_SPEED_QUEUED_STRATEGIES" -- be` prints nothing.
+   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
+   - `docker compose up -d --build`, re-crawl a seed client, then `docker compose exec postgres
+     psql -U tracker -d seo_tracker -c "select strategy, status, count(*) from page_speed group
+     by 1, 2"` shows `desktop` rows. Without a key they stay `queued` (SPEED-011).
+5. **Regression guard.**
+   - SPEED-008–012: `classify-psi-response.spec.ts`, `page-speed-rate-limiter.spec.ts` and
+     `page-speed-worker.spec.ts` in full. The worker's API does not change: it hands the claim
+     to the executor, and the claim now carries its strategy.
+   - The e2e override pitfall: an un-overridden desktop URL answers 404 under the fixture
+     transport (§14). The new e2e case catches it.
+   - SPEED-012: the desktop URL, like the mobile one, carries no key. `psi-client.spec.ts`
+     asserts it for both.
+6. **Rollback.** Revert, then delete the desktop rows and their findings by hand
+   (`delete from seo_issues where code = any(<the six desktop codes>)`, then `delete from
+   page_speed where strategy = 'desktop'`). Without that step the reverted client, which asks for
+   mobile, would measure the queued desktop rows as mobile. This is data, not schema, so it needs
+   no migration, and it is the user's call to run.
 7. **Commit points.**
    - `test(fixtures): a desktop PageSpeed answer, recorded`
-   - `feat(page-speed): measure each strategy as its own row`
+   - `feat(page-speed): ask Google for desktop, and queue both devices`
 
 #### 4d. The page shows both devices
 
+After it, the detail carries a summary per device and the Speed block switches between them. The
+checks section and the score explanation still read mobile (D49).
+
 1. **Deliverables.**
-   - `page-detail.interface.ts`, `page-read.service.ts` with its spec, `PageSchemas.ts`.
-   - `PageDetailViewModel.ts`, `SpeedSection.tsx` with its test, `PageDetailScreen.tsx`.
-   - `IssuesScreen.tsx:136`. `pages.e2e-spec.ts`.
-2. **Pre-conditions.** 4c. D21.
+   - Contracts: `packages/contracts/src/domain/pages/page-detail.interface.ts`
+     (`pageSpeedByStrategy`, D21).
+   - Backend (`be/src/modules/pages/`): `repositories/page-speed/page-speed-read.ts`
+     (`pageSpeedColumns(alias)`); `repositories/page-detail/page-detail.repository.ts` (the `psd`
+     join, `ICurrentPageRecord.pageSpeedByStrategy`); `services/page-read/page-read.service.ts`
+     with its spec.
+   - Frontend: `fe/src/Gateways/PageGateway/Validation/PageSchemas.ts` with its test;
+     `fe/src/ViewModels/PageDetailViewModel/PageDetailViewModel.ts`;
+     `fe/src/Modules/PageDetail/PageDetailScreen.tsx`;
+     `fe/src/Modules/PageDetail/SpeedSection/SpeedSection.tsx` with its test.
+   - e2e: `be/test/e2e/pages.e2e-spec.ts`, `be/test/e2e/page-speed.e2e-spec.ts`.
+2. **Pre-conditions.** 4c. D21, D42, D49.
 3. **TDD points.**
-   - Before: `page-read.service.spec.ts` → "the detail carries a summary per strategy, null where
-     never queued"; `pages.e2e-spec.ts` → "the detail carries pageSpeedByStrategy".
-   - Before: `SpeedSection.test.tsx` → "opens on Mobile", "Desktop shows the desktop cards",
-     "Desktop reads 'Not measured' for a page never queued on desktop", "the key-rejected notice
-     stands above both".
-   - All fail with no field or control.
+   - Before, `page-read.service.spec.ts`: "the detail carries a summary per strategy, null where
+     never queued", "the score reads the mobile row whatever the desktop row holds". They fail:
+     there is no field.
+   - Before, `pages.e2e-spec.ts`: "the detail carries pageSpeedByStrategy". Before,
+     `page-speed.e2e-spec.ts`: "every non-good desktop card has its desktop finding".
+   - Before, `PageSchemas.test.ts`: "parses a detail with a desktop summary and a null one". It
+     fails on the unknown key `pageSpeedByStrategy`.
+   - Before, `SpeedSection.test.tsx`: "opens on Mobile"; "Desktop shows the desktop cards and its
+     TTFB line"; "Desktop shows no SEO or accessibility caption"; "Desktop reads 'Not measured on
+     desktop yet' for a page never queued on desktop"; "Mobile reads 'Measuring…' while Desktop
+     reads 'In queue'"; "the key-rejected notice stands above both"; "switching makes no
+     request". They fail: there is no switch.
+   - No test is written for D49's "the Lighthouse date reads mobile": it cannot be got wrong.
+     The switch is `useState` inside `SpeedSection`, so `PageDetailScreen` cannot see which
+     device is shown, and once `pageSpeed` is gone from the detail `:121` and `:130` must name a
+     key of `pageSpeedByStrategy` to compile.
 4. **Acceptance.**
    - `pnpm --filter be test:ci -- src/modules/pages`
    - `pnpm --filter be test:db -- pages page-speed`
    - `pnpm --filter fe test:ci -- SpeedSection PageSchemas PageDetail`
    - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
-   - `docker compose up -d --build`, then in a browser a page's Speed block switches devices with
-     no console error.
-5. **Regression guard.** PAGEDETAIL-011's three scenarios in `SpeedSection.test.tsx`;
-   PAGELIST-008's `CwvBadges.test.tsx` (the list is still mobile).
+   - `docker compose up -d --build`. Signed in (`curl -c c.txt …/api/auth/sign-in`), `curl -s -b
+     c.txt http://localhost:8080/api/pages/<id> | grep -o '"pageSpeedByStrategy":{"mobile"'`
+     prints the match. Then in a browser, a page's Speed block switches devices with no console
+     error.
+5. **Regression guard.**
+   - PAGEDETAIL-011's three scenarios and PAGEDETAIL-013's four scenarios: `SpeedSection.test.tsx`
+     in full.
+   - PAGEDETAIL-009 and PAGEDETAIL-012: `ChecksSection.test.tsx` and `explainScore.test.ts`
+     unchanged.
+   - PAGELIST-008: `CwvBadges.test.tsx`. The list is still mobile.
 6. **Rollback.** Revert contracts, backend and frontend together, in one commit.
 7. **Commit points.** `feat(fe): the Speed block switches between mobile and desktop`.
 
 #### 4e. Live: both devices drain and agree with Google
 
-1. **Deliverables.** Measured facts in `PAGE_SPEED_MODULE.md`: calls per crawl (2 per page), and
-   the drain time of the seed's backlog with both strategies.
+After it, the measured cost of desktop is written down where the next reader looks for it.
+
+1. **Deliverables.** Facts in `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`:
+   - the strategy per row and the two-step migration;
+   - calls per crawl, two per page;
+   - the drain time of the seed's backlog with both strategies;
+   - the observed claim order (turns per user and client, mobile first within a client);
+   - Lighthouse on mobile only.
 2. **Pre-conditions.** 4d. A key in `.env`.
-3. **TDD points.** none; this is a measurement.
+3. **TDD points.** None; this is a measurement.
 4. **Acceptance.**
    - `docker compose up -d --build`, re-crawl a seed client, then `docker compose exec postgres
      psql -U tracker -d seo_tracker -c "select strategy, status, count(*), count(measured_at) from
      page_speed group by 1, 2"` shows `done` desktop rows.
+   - `… -c "select count(*) from page_speed where strategy = 'desktop' and (lighthouse_judged is
+     not null or seo_score is not null)"` prints 0. The CHECK makes anything else impossible,
+     and this reads it on live data.
    - One URL's stored desktop LCP, INP and CLS are compared with pagespeed.web.dev (Desktop tab).
      Field values must match for the same CrUX window; lab values only close.
    - `docker compose logs be | grep -c AIza` prints 0.
+   - `git grep -n "strategy" be/src/modules/page-speed/PAGE_SPEED_MODULE.md` prints the new
+     section.
 5. **Regression guard.** The mobile rows for the same pages are still measured and unchanged in
-   number.
+   number, and a page's `LH_*` findings count is the same before and after its desktop
+   measurement (`select count(*) from seo_issues where page_id = <id> and code like 'LH\_%'`).
 6. **Rollback.** Remove the key: rows stay queued, nothing is lost.
-7. **Commit points.** `docs(page-speed): desktop measured live — calls and drain time`.
+7. **Commit points.** `docs(page-speed): desktop measured live — calls, drain time and claim
+   order`.
 
 ### Phase 5 — Lighthouse's image delivery as a finding (change `image-delivery-finding`)
 
 After it, a mobile measurement whose image-delivery audit fails with at least 100 KiB of savings
-stores `IMAGE_DELIVERY_INEFFICIENT`.
+stores `IMAGE_DELIVERY_INEFFICIENT`. The finding is a speed finding: it counts among the issues,
+is shown at its page, and never moves the score (D47, D50). Nothing in the merged tree reports
+the same fact (§10.13, D36, D50).
 
 #### 5a. The audit's id and shape, read from a live answer
 
+After it, two recorded answers carry the audit, and §10.12 states its real id and paths.
+
 1. **Deliverables.**
-   - `record-pagespeed-fixtures.ts` (`KEPT_AUDITS` gains the image audit).
-   - A recorded mobile answer with the audit failing (`image-delivery-failing.json`) and one
-     passing or absent (`image-delivery-passing.json`).
-   - §10.12 amended in this plan to the real id, failing rule and savings paths; an `AMENDED`
-     line on task 1.1.
-2. **Pre-conditions.** Phase 4 closed. A key. D10.
-3. **TDD points.** none before; no assertion can be written before the answer is seen
-   (as the prior plan's Phase 6).
+   - `be/test/fixtures/record-pagespeed-fixtures.ts`: `KEPT_AUDITS` gains the image audit, and two
+     targets `image-delivery-failing.json` and `image-delivery-passing.json` are added. They are
+     mobile, with all three categories, as the app asks.
+   - The two recorded answers, written by `node be/test/fixtures/record-pagespeed-fixtures.ts
+     image-delivery-`, so no pinned answer is re-recorded.
+   - `page-speed-fixtures.spec.ts` pins both roles: failing with savings ≥ 102 400, and passing
+     or absent.
+   - §10.12 amended in this plan to the real id, the failing rule and the savings paths; an
+     `AMENDED during implementation:` line on task 1.1 of `image-delivery-finding`, even if the
+     guess held.
+2. **Pre-conditions.** Phase 4 closed: every task of `desktop-core-web-vitals` ticked but its
+   archive step, which belongs to phase 6. A key. D10.
+3. **TDD points.** None before. No assertion can be written before the answer is seen, as the
+   prior plan's Phase 6 found for CWV. After: the `page-speed-fixtures.spec.ts` role cases.
 4. **Acceptance.**
    - `git grep -n -E "key=|AIza" -- be/test/fixtures/pagespeed` prints nothing.
-   - The fixture holds the audit:
-     `node -e "const a=require('./be/test/fixtures/pagespeed/image-delivery-failing.json');console.log(Object.keys(a.lighthouseResult.audits))"`
-     lists it.
-5. **Regression guard.** The existing fixture specs (`extract-measurement.spec.ts`,
-   `page-speed-fixtures.spec.ts`) stay green: a larger `KEPT_AUDITS` changes no field they read.
+   - `node -e "const a=require('./be/test/fixtures/pagespeed/image-delivery-failing.json');console.log(Object.keys(a.lighthouseResult.audits))"`
+     lists the audit.
+   - `pnpm --filter be test:ci -- extract-measurement extract-lighthouse page-speed-fixtures`
+5. **Regression guard.** The existing fixture readers (`extract-measurement.spec.ts`,
+   `extract-lighthouse.spec.ts`, `page-speed-fixtures.spec.ts`) stay green. The new targets are
+   new files, and `KEPT_AUDITS` changes no existing file until it is re-recorded.
 6. **Rollback.** Revert.
 7. **Commit points.** `test(fixtures): PageSpeed answers that keep the image-delivery audit`.
 
 #### 5b. The finding
 
+After it, the finding is written, read, rendered and reported.
+
 1. **Deliverables.**
-   - Contracts: `image-delivery-measurement.interface.ts`; the catalogue entry (`strategy:
-     'mobile'`, `min: 102_400`, Lighthouse source); `seo-issue.interface.ts`.
-   - Backend: `extract-image-delivery/` (new); `speed-issues/` (new); `page-speed-executor.service.ts`.
-   - Frontend: `describeIssue.ts`, `PageSchemas.ts` (`imageDeliverySchema`).
-2. **Pre-conditions.** 5a. D10, D23.
+   - Contracts:
+     - `page-speed/image-delivery-measurement.interface.ts` (new, D23);
+     - `seo/catalogue/page-speed/page-speed-catalogue.constant.ts`: the entry (§5);
+     - `seo/seo-issue.interface.ts`: `TIssueDetails` maps it to `IImageDeliveryMeasurement`;
+     - `issue-report/client-issue-report.interface.ts`: the `allPages` arm narrows to
+       `TCwvSeoIssue` (I31);
+     - `seo/seo-issue-catalogue.test.ts`: 13 codes; "and image delivery is mobile's"; "is a
+       pageSpeed code" (I32).
+   - Backend:
+     - `be/src/modules/page-speed/services/extract-image-delivery/` (new);
+     - `services/classify-psi-response/classify-psi-response.ts` and its spec (`imageDelivery`
+       on `measured`, D46);
+     - `services/speed-issues/` (new);
+     - `services/page-speed-executor/page-speed-executor.service.ts` and its spec
+       (`speedIssuesOf` in place of `cwvIssuesOf`);
+     - `be/src/modules/issue-report/services/collapse-origin-findings/collapse-origin-findings.ts`
+       and its spec (`isCwv`).
+   - Frontend:
+     - `fe/src/Core/Helpers/DescribeIssue/describeIssue.ts` and its test;
+     - `fe/src/Gateways/PageGateway/Validation/PageSchemas.ts` and its test (`imageDeliverySchema`,
+       CWV-only `speedVariants` and `pageSpeedIssueSchema`);
+     - `fe/src/Gateways/IssueReportGateway/Validation/IssueReportSchemas.ts`.
+2. **Pre-conditions.** 5a. D10, D23, D46, D47, D50.
 3. **TDD points.**
-   - Before, `extract-image-delivery.spec.ts`: "reads the failing audit's savings and images, largest
-     first, at most 10", "is null for an answer without the audit".
+   - Before, `extract-image-delivery.spec.ts`, reading both recorded files from disk: "reads the
+     failing audit's savings and images, largest first, at most 10"; "is null for an answer
+     without the audit"; "is null for an audit that does not parse"; "reads nothing outside its
+     audit". They fail: there is no module.
    - Before, `speed-issues-of.spec.ts`: "raises IMAGE_DELIVERY_INEFFICIENT at 102 400 bytes, not
-     102 399", "never for desktop", "not for a passing audit with savings".
-   - Before, the executor case: "an answer without the image audit is still a measurement".
-   - Before, `PageSchemas.test.ts`: "parses an image-delivery finding; refuses one with 11 images".
-   - All fail with no module.
+     102 399"; "not for a passing audit with savings"; "keeps the CWV findings of cwvIssuesOf
+     unchanged"; "the desktop overload returns CWV findings only". They fail: there is no module.
+   - Before, `classify-psi-response.spec.ts`: "an answer without the image audit is still
+     measured"; "carries the image delivery of a failing answer".
+   - Before, `page-speed-executor.service.spec.ts`: "a mobile measurement stores the image finding
+     beside its CWV findings".
+   - Before, `collapse-origin-findings.spec.ts`: "keeps IMAGE_DELIVERY_INEFFICIENT at its page,
+     and folds origin-sourced desktop CWV codes into one row each".
+   - Before, `PageSchemas.test.ts`: "parses an image-delivery finding; refuses one with 11
+     images". Before, `describeIssue.test.ts`: "says how many KiB and how many images".
+   - The existing `PageSchemas.test.ts:153` loop parses every `PAGE_SPEED_ISSUE_CODES` with CWV
+     details. It fails once the entry exists, which shows the variant split is needed. It is
+     rewritten over `CWV_ISSUE_CODES`' leaves.
 4. **Acceptance.**
-   - `pnpm --filter be test:ci -- src/modules/page-speed`
    - `pnpm --filter @app/contracts test:ci`
-   - `pnpm --filter fe test:ci -- describeIssue PageSchemas`
+   - `pnpm --filter be test:ci -- src/modules/page-speed src/modules/issue-report`
+   - `pnpm --filter fe test:ci -- describeIssue PageSchemas IssueReport`
    - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
-5. **Regression guard.** `extract-measurement.spec.ts` unchanged and green (P8);
-   `classify-psi-response.spec.ts` in full.
-6. **Rollback.** Revert, or `enabled: false` on the entry if stored. Note that `enabled` today
-   governs crawl codes (`ACTIVE_ISSUE_CODES`), so for a pageSpeed code the rollback is reverting
-   `speedIssuesOf`'s call. VERIFY at the time.
+5. **Regression guard.**
+   - P8: `extract-measurement.spec.ts` unchanged and green. `extractMeasurement` is not edited.
+   - `classify-psi-response.spec.ts` in full: every outcome other than `measured` is unchanged.
+   - REPORT-005 and the whole-site rows: `issue-report.e2e-spec.ts` in full.
+   - PAGES-013 (a speed finding never moves the score): `page-speed.e2e-spec.ts` → "a speed
+     finding counts among the issues and leaves the score and the order unchanged", with an
+     image-delivery finding in its fixture.
+6. **Rollback.** Revert. On a stack that already stored the finding, `enabled: false` does not
+   apply: it retires crawl codes only (`ACTIVE_ISSUE_CODES` filters `CRAWL_ISSUE_CODES`,
+   `issue-catalogues.constant.ts:168-170`). So the retirement is removing the image arm from
+   `speedIssuesOf` while keeping the catalogue entry, the details type and the schema variant,
+   so stored findings still parse. The next mobile measurement of each page clears its finding.
 7. **Commit points.** `feat(page-speed): images Lighthouse says could be 100 KiB lighter`.
 
 #### 5c. Field audit of the image finding
 
+After it, every live firing has been read against PageSpeed's own report.
+
 1. **Deliverables.** The tally: every stored `IMAGE_DELIVERY_INEFFICIENT` on the audit sites is
-   compared with pagespeed.web.dev's "Improve image delivery" (Mobile) for the same URL.
+   compared with pagespeed.web.dev's "Improve image delivery" (Mobile) for the same URL. It is
+   recorded under "Field audit of the Ahrefs-gap checks" in `PAGE_ANALYSIS_MODULE.md`. The live
+   audit id, the failing rule and "absence is no error" go in `PAGE_SPEED_MODULE.md`.
 2. **Pre-conditions.** 5b. D12.
-3. **TDD points.** As 1f.
-4. **Acceptance.** The §14 query for the code, the tally line, and `pnpm lint && pnpm typecheck &&
-   pnpm test && pnpm test:db`.
+3. **TDD points.** As 1f: each wrong firing first becomes a failing spec built from that answer.
+4. **Acceptance.**
+   - `docker compose exec postgres psql -U tracker -d seo_tracker -c "select p.final_url,
+     i.details_json from seo_issues i join pages p on p.id = i.page_id where i.code =
+     'IMAGE_DELIVERY_INEFFICIENT'"` prints every firing.
+   - `git grep -n "IMAGE_DELIVERY_INEFFICIENT" -- be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md be/src/modules/page-speed/PAGE_SPEED_MODULE.md`
+     prints the tally and the audit facts.
+   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
 5. **Regression guard.** As 1f.
 6. **Rollback.** As 5b.
 7. **Commit points.** `docs(page-speed): image delivery, audited against PageSpeed's own report`.
@@ -1712,7 +2287,11 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 1. **Deliverables.**
    - The harvest of §18 into the owning documents.
    - Each of the four changes archived (`/opsx:archive`), its headings rewritten into the `[ID]`
-     form, and its MODIFIED blocks folded into `specs/` by hand.
+     form, and its MODIFIED blocks folded into `specs/` by hand. `desktop-core-web-vitals`
+     modifies SPEED-001/002/005/007/014, PAGES-014, SEED-006 and PAGEDETAIL-011, none of which
+     `lighthouse-checks` modifies, so the two fold in either order. Whichever is archived second
+     re-reads the page-speed spec after the first fold, so SPEED-016's desktop scenario and
+     SPEED-020 sit beside each other without contradicting.
    - Deposits.
    - This plan moved to `docs/_plans-archive/` with its header.
 2. **Pre-conditions.** Phases 1–5 closed, every audit tally at 0 wrong.
@@ -1739,17 +2318,21 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 | R1 | Every recorded post's external links read "broken" under the fixture transport's 404 default | §14's zero-cap fixture rule and its spec. `crawl.e2e-spec.ts` turns red if it stops applying |
 | R2 | The outbound stage makes crawls noticeably slower | 3f's measured `outbound` timings. The 60 s deadline bounds the worst case. The constants are the knob |
 | R3 | Our own request rate earns 429s from the client's site, which D3 reads as broken internal links (O3) | 3f's field audit reads every internal `BROKEN_LINKS` firing. One false firing reopens O3 |
-| R4 | A reader multiplies page rows by strategy after the PK change | I22's int-specs on the list and the report, and the list's statement count. Grep `left join page_speed` before 4b closes: `git grep -n "join page_speed" be/src` |
+| R4 | A reader multiplies page rows by strategy after the PK change, or the score reads a desktop row | I22's int-specs on the list and the report, and the list's statement count; PAGES-016's e2e case. 4b runs them while no desktop row exists, with desktop rows inserted by the tests themselves. Before 4b closes: `git grep -n "join page_speed" be/src` |
 | R5 | drizzle-kit mishandles the composite-PK change | 4b's acceptance reads both SQL files. §3.2's VERIFY |
 | R6 | The image-delivery audit id or shape differs from the guess, or is renamed by a Lighthouse release | 5a reads it from a live answer. P8/I21 make a rename cost the image finding only, never the CWV measurement |
 | R7 | `TITLE_YEAR_OUTDATED` fires on historical titles ("what happened in 2008") | 1f's audit (O1). One false firing reworks the pattern |
 | R8 | `BREADCRUMB_MISSING` fires on a page whose breadcrumbs are RDFa only | 1f's audit (O7) |
 | R9 | NXDOMAIN is not distinguishable from a temporary DNS failure in undici's error chain | 3a's `remote-failure-kind.spec.ts` drives the real guarded lookup. If the code is not surfaced, broken-by-nxdomain is dropped with an `AMENDED` line, and external links are broken only on 404/410 |
 | R10 | PSI quota exhausted by the doubled calls | `PAGE_SPEED_MODULE.md` measured calls per crawl (4e). The 429 pause degrades rather than fails |
-| R11 | The parallel worktree `.claude/worktrees/geo-content-checks` edits the same catalogue | VERIFY its state before 1b. Merge conflicts in `seo-issue-catalogue.constant.ts` are resolved by keeping both entries and re-running the contracts tests |
+| R11 | A parallel worktree under `.claude/worktrees/` edits the catalogue or `page_speed` while phase 4 is open. At `adc8887` the only one there is `lighthouse-checks`, already merged | VERIFY before 4a: `git worktree list` and `git log main..<branch> -- packages/contracts/src/domain/seo/catalogue be/src/persistence/schema/tables/page-speed` for each. A conflict in a catalogue file is resolved by keeping both entries and re-running the contracts tests; a second migration on `page_speed` is regenerated after the merge, never hand-merged |
 | R12 | The MODIFIED blocks do not fold against `[ID]`-form specs by tool | Phase 6 folds them by hand. `openspec validate --specs` checks the result |
 | R13 | A step-aside makes an older check stop reporting a fact it reported before, with nothing reporting it instead (a canonical contradiction lost from the sitemap check) | §10.13 lists every step-aside with the check that keeps the fact. D37 and I26 cover the one older reader (`SITEMAP_LISTS_NON_INDEXABLE`) that reads `CANONICAL_MISMATCH` findings. Before 1b and 3d close: `git grep -n "CANONICAL_MISMATCH" be/src fe/src --` lists every other reader, each re-read |
 | R14 | The catalogue grew since this plan was written (another session's `NO_IMAGES`, `NO_EXTERNAL_SOURCES`, `NO_SUBHEADINGS`, …), so a new check may meet one of them on a fact not listed in §10.13 | Before each new check's commit, read its rule against every catalogue entry touching the same element. A meeting found then gets a §10.13 row, a step-aside case and an `AMENDED` line |
+| R15 | A desktop measurement clears the page's Lighthouse findings, because SPEED-017 says an answer without the categories removes them | I27: the CHECK, the completion's desktop arm, and the results-service case "never calls the Lighthouse replace"; 4c's e2e "a desktop measurement leaves the page's Lighthouse findings, its score and its place in the list"; 4e's live count |
+| R16 | The desktop backlog starves: mobile rows of busy clients keep coming first | §10.14 orders mobile first only WITHIN a client; turns across users and clients are SPEED-014's. 4e records the drain time. O9 reopens the order |
+| R17 | The Info guide (untracked at `adc8887`) keeps saying "mobile strategy" once desktop is measured | 4c's deliverable re-reads `git grep -n -i "mobile" -- fe/src/Modules/Info fe/src/ViewModels/InfoGuideViewModel` if the files are committed by then |
+| R18 | A requirement id is reused: the desktop delta once allocated SPEED-014, which the fair claim now holds in `specs/` | D40 moved the per-device requirement to SPEED-020. Before each archive: `git grep -n "SPEED-0" openspec/specs openspec/changes` lists every SPEED id once per meaning |
 
 ---
 
@@ -1757,9 +2340,9 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 
 | Workspace | Changes | Ships with |
 | --- | --- | --- |
-| `packages/contracts` | inclusion bar; 11 crawl, 7 pageSpeed and 1 site entries; strategy enum and union; `CWV_ISSUE_CODES` per strategy; image-delivery details; `IPageDetail.pageSpeedByStrategy` | the backend writer and the frontend sentence or schema, in the same commit |
-| `be` | checks; site check; outbound stage; `SiteHttpClient` methods; failure kind; ESLint block; two `page_speed` migrations (no `pages` migration, D33); per-strategy queue, replace and reads; PSI strategy; image delivery | — |
-| `fe` | `DESCRIBE` sentences; `PageSchemas` variants and detail schema; Speed block switch; one sentence in Issues | the contracts change it parses |
+| `packages/contracts` | inclusion bar; 10 crawl, 7 pageSpeed and 1 site entries; strategy enum; `IPageSpeedIssueDefinition.strategy`; `PAGE_SPEED_CODES_BY_STRATEGY`; `CWV_ISSUE_CODES` per strategy; `TCwvSeoIssue` and the narrowed `allPages` row; image-delivery details; `IPageDetail.pageSpeedByStrategy` | the backend writer and the frontend sentence or schema, in the same commit |
+| `be` | checks; site check; outbound stage; `SiteHttpClient` methods; failure kind; ESLint block; two `page_speed` migrations (no `pages` migration, D33); per-strategy queue, claim, fence, replace and reads; PSI strategy; image delivery; the report's fold over CWV codes | — |
+| `fe` | `DESCRIBE` sentences; `PageSchemas` variants and detail schema; `IssueReportSchemas`' whole-site row; Speed block switch; one sentence in Issues | the contracts change it parses |
 | docker | none. Outbound requests go through the existing transport; no new env var | — |
 | CI | none. `pnpm test:db` already runs int and e2e specs; no test reaches the network (§14 fixtures) | — |
 | docs | `PAGE_ANALYSIS_MODULE.md`, `CRAWL_MODULE.md`, `PAGE_SPEED_MODULE.md`, `PAGES_MODULE.md`, `README.md`, `docs/decisions.md` | the phase that makes them true |
@@ -1801,11 +2384,16 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
   deadline (D6, D11), robots per host, the measured duration (3f), and why there is no queue for
   link checks (D4's rejection).
 - `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`: strategy per row (D9), the two-step migration
-  (D22), the desktop drain time and calls (4e), `IMAGE_DELIVERY_INEFFICIENT` and why absence is
-  no error (D10, P8), and the live audit id (5a).
-- `be/src/modules/pages/PAGES_MODULE.md`: the list reads mobile, the detail both (D21); the
-  per-strategy seed backfill (D20).
-- `docs/decisions.md`: D1–D37 condensed with their measurements.
+  (D22, D41), Lighthouse on mobile only and why a desktop answer never touches its findings
+  (D42), the claim order per strategy (D44), the desktop drain time and calls (4e),
+  `IMAGE_DELIVERY_INEFFICIENT` and why absence is no error (D10, P8, D46), why it is a pageSpeed
+  code and not a Lighthouse one (D50), and the live audit id (5a).
+- `be/src/modules/pages/PAGES_MODULE.md`: the list, the score and the Lighthouse column read
+  mobile, the detail both (D21, D43, D49); the per-strategy seed backfill (D20). Its line 12 ("one
+  row per page") and the PAGES-014 and SEED-006 deposits are rewritten.
+- `be/src/modules/issue-report/ISSUE_REPORT_MODULE.md`: image delivery is never a whole-site row
+  (D47), and desktop CWV origin findings fold per code.
+- `docs/decisions.md`: D1–D50 condensed with their measurements.
 - OpenSpec: after archive, the requirements of the four changes' deltas are deposited:
   - ANALYSIS-014…021, 023…027 into `PAGE_ANALYSIS_MODULE.md` (ANALYSIS-022 was allocated to the
     dropped `CANONICAL_CHANGED` and is never reused);
@@ -1814,7 +2402,10 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
     already live (`page-speed-measurement` task 8.3);
   - the modified PAGES-014 into `PAGES_MODULE.md` (PAGES-015 was allocated to the dropped
     change and is never reused);
-  - SPEED-014/015 and the modified SPEED ids into `PAGE_SPEED_MODULE.md`;
+  - SPEED-015 and SPEED-020 (new), and the modified SPEED-001/002/005/007/014, into
+    `PAGE_SPEED_MODULE.md`. SPEED-014's existing deposit gains the per-strategy pin (I29);
+  - the ANALYSIS-012 deposit (`PAGE_ANALYSIS_MODULE.md:580-582`) renames its pinning test
+    ("… the twelve Core Web Vitals codes, six per strategy", then thirteen codes);
   - the modified SEED-006 beside SEED-003;
   - PAGEDETAIL-011 (modified) where the prior plan's archive header placed the frontend ids
     (VERIFY there).
@@ -1834,6 +2425,14 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 - **Desktop columns in the same `page_speed` row.** D9: that breaks the whole-or-absent CHECK and
   the shared attempts.
 - **A desktop badge on the pages list.** D21.
+- **Lighthouse SEO and accessibility verdicts on desktop.** lighthouse-checks D16, applied by
+  D42: Google indexes the mobile view, and a second set of verdicts would put two Lighthouse
+  shares in one score.
+- **A fourth catalogue owner for the desktop codes.** D39: readers that ask for the `pageSpeed`
+  owner's codes (`issueTypeOf`, the report's fold, the schema variants) would silently miss
+  them.
+- **Image delivery in the score, or as a Lighthouse-owner code.** D50: the Lighthouse owner is
+  scored, and speed never enters the score.
 - **Backfilling the desktop queue by migration.** D13: migrations are never hand-written.
 - **`CANONICAL_CHANGED` and storing each page's canonical.** D33: every state a changed canonical
   leaves is already reported by `CANONICAL_MISMATCH` or `CANONICAL_MISSING`. Without
@@ -1866,7 +2465,8 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
   `CANONICAL_MISMATCH`. The default "both fire on an http canonical" is replaced: the http twin
   is `CANONICAL_TO_HTTP`'s alone, any other http address `CANONICAL_MISMATCH`'s alone.
 - **O5 — RESOLVED 2026-10-11 by D31: keep.** `IMAGE_FILENAMES_GENERIC` and D2's rejected "generic image filenames". The check exists
-  (`seo-issue-catalogue.constant.ts:678-693`, `checks.registry.ts:109`). It already excludes the
+  (`seo-issue-catalogue.constant.ts:678-693` when this was written, now
+  `catalogue/crawl/crawl-catalogue.constant.ts`; `checks.registry.ts:109`). It already excludes the
   CDN- and platform-hashed names D2 gives as the reason, and reports only camera and placeholder
   names the author chose. *Default:* the check stays. D2's rejection is recorded as rejecting the
   broader Ahrefs form (any non-descriptive name). *Reopens on* the user saying the existing check
@@ -1880,6 +2480,18 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 - **O8 — RESOLVED 2026-10-11 by D31: keep.** `IMAGES_NOT_INDEXABLE` and D2's rejected "srcset/modern formats from markup". The
   existing check judges indexability (srcset with no src; HEIC/TIFF), not delivery weight, so it
   is not what D2 rejected. *Default:* it stays. *Reopens on* the user saying otherwise.
+- **O9. The order of a client's two devices in the queue** (D44). Within the client whose turn it
+  is, every due mobile row is claimed before any of its desktop rows, because mobile feeds the
+  score, the list's badge and Lighthouse's verdicts. The alternative is to interleave per page
+  (page 1 mobile, page 1 desktop, page 2 mobile, …), which shows a page's both tabs sooner and
+  delays the last page's score by about the same margin. *Default:* mobile first within a client.
+  *Reopens on* the user asking for desktop figures sooner, or 4e's measured drain leaving desktop
+  rows queued for more than a day on the seed's data.
+- **O10. The six mobile labels gain "on mobile"** (D48). This changes the names a marketer
+  already reads on the Issues screen and in the report. *Default:* rename, so the mobile and
+  desktop rows of one metric are told apart wherever a label stands alone. *Reopens on* the user
+  preferring the old labels, in which case only the desktop labels carry the device and the
+  mobile ones stay as they are.
 
 ### Decision log (verbatim; append-only)
 
@@ -1958,3 +2570,27 @@ D36. (2026-10-11, derived and applied by review at the user's request) A new che
 D37. (2026-10-11, derived by the planner from D32, D34 and `sitemap-checks.ts:45-47`; **to be confirmed**) SITEMAP_LISTS_NON_INDEXABLE names an entry "names <url> as canonical" from a CANONICAL_TO_HTTP or CANONICAL_TARGET_BROKEN finding as well as from CANONICAL_MISMATCH. Why: today it reads CANONICAL_MISMATCH alone, and D32 and D34 make CANONICAL_MISMATCH step aside for exactly those pages, so without this the sitemap check would silently stop reporting entries it reports today. That would be a lost fact, not a removed duplicate. Rejected: leaving the sitemap check as is (it would lose findings); computing the canonical in the site check from the page (a second copy of the canonical rules, free to drift).
 
 D38. (2026-10-11, the outcome O3 named in advance, recorded by the field audit of phase 3) O3 reopened: moz.com and css-tricks.com answered the outbound stage's own requests with 429, and moz.com's checkout with 403. Internal links now read 401/402/403/429 as unknown, the sitemap check's refusal set (`REFUSAL_STATUSES` in `_shared/link-verdict.ts`). The same audit added three rules, each pinned by a spec from its site. An internal link that redirects off the site is judged as external (backlinko.com). Any answer reached through a third host is unknown (youtube.com via consent.youtube.com). Cloudflare's `/cdn-cgi/` addresses are not links (techcrunch.com). `INTERNAL_LINK_VARIANTS` leaves a dead link to `BROKEN_LINKS` (cossa.ru, under D32's one-fact rule). The tally is in `PAGE_ANALYSIS_MODULE.md`.
+
+D39. (2026-10-11, derived by the planner from D9 and the registry `lighthouse-checks` merged, `catalogue/issue-catalogues.constant.ts`; **not confirmed by the user**) The six desktop CWV codes go in the pageSpeed owner's catalogue (`catalogue/page-speed/page-speed-catalogue.constant.ts`), not in a new owner. `IPageSpeedIssueDefinition`, today a bare alias of `ISeoIssueDefinition`, declares a required `strategy: TPsiStrategy`. `ICrawlIssueDefinition` and `ILighthouseIssueDefinition` have no such field, so `as const satisfies` refuses one on their entries as an excess property. `TPageSpeedIssueCodeOf<S>` and `PAGE_SPEED_CODES_BY_STRATEGY` are derived from the declarations. Why: the per-strategy replace needs each speed code to name exactly one device, and a type is the only place that cannot drift from the entries. Supersedes the earlier §5/§4a design, written before the registry existed, in which `ISeoIssueDefinition` became a union on an `owner` field. Entries no longer carry `owner`. Rejected: a fourth owner `pageSpeedDesktop`, because every reader keyed on the `pageSpeed` owner (`issueTypeOf`, `collapseOriginFindings`, the schema's speed variants, `PAGE_SPEED_ISSUE_CODES`) would silently miss the desktop codes.
+
+D40. (2026-10-11, derived by the planner from `openspec/README.md` §3 "append-only, never reused" and commit `1e1fe1d`, which put SPEED-014 "users and clients take turns in the queue" into `openspec/specs/be/src/modules/page-speed/spec.md`; **not confirmed by the user**) The per-device requirement of `desktop-core-web-vitals` takes SPEED-020. SPEED-015 is `image-delivery-finding`'s, and SPEED-016…019 are `lighthouse-checks`'. `desktop-core-web-vitals` MODIFIES SPEED-014 instead, to say how turns are taken when a page has two rows (D44). Supersedes the delta's earlier allocation of SPEED-014 to "a page has one measurement per device", made before the fair claim landed. Two meanings under one id is the drift the convention exists to prevent.
+
+D41. (2026-10-11, derived by the planner from D22 and AGENTS.md "never hand-write or hand-edit a migration"; **not confirmed by the user**) The two generated migrations are `0016` and `0017`, because `lighthouse-checks` generated `0015_modern_wrecker.sql`. The first also adds D42's CHECK. The numbers are drizzle-kit's and move if another migration lands first; the plan names them only to say which files to read. Supersedes "0015 and 0016" in the earlier proposal, tasks and §15.
+
+D42. (2026-10-11, derived by the planner from `lighthouse-checks` design D16 and D9; **not confirmed by the user**) Lighthouse speaks for mobile only. The desktop request asks `category=performance` only (SPEED-016 already says so). The CHECK `page_speed_lighthouse_mobile_only` refuses, on a desktop row, any of `lighthouse_judged`, `lighthouse_not_applicable`, `lighthouse_failed`, `seo_score` and `accessibility_score`. D16 named the lists; the two category scores join them because the desktop request does not ask for those categories, so a value there could only be a writer's bug. The completion is a union on strategy whose desktop arm cannot carry a Lighthouse record and never calls `replaceLighthouseFindingsForWorker`. Why: SPEED-017 removes a page's Lighthouse findings when an answer lacks the categories, which every desktop answer does, so without this each desktop measurement would erase the page's mobile Lighthouse findings and move its score. TTFB, the visit shares and `lcp_breakdown_json` are per row, so a desktop row stores its own and the Desktop tab shows them; the SEO and accessibility captions appear on Mobile only. Supersedes nothing; applies D16.
+
+D43. (2026-10-11, derived by the planner from D21, D42 and `lighthouse-checks` D9, `score-points.ts:43-54`; **not confirmed by the user**) Every join to `page_speed` names its strategy. The list's, the detail's and the score's joins name `strategy = 'mobile'`, so `LIGHTHOUSE_SCORE_POINTS_LATERAL`, which reads `ps`, reads the mobile row. The detail's desktop summary comes from a second, separate join (`psd`). The report joins the strategy of each finding's code. Why: once the key is `(page_id, strategy)`, a join by page id alone returns two rows per page, which lists each page twice and computes the score lateral per row. Supersedes nothing; makes D21 hold under the new key.
+
+D44. (2026-10-11, derived by the planner from SPEED-014 (`1e1fe1d`, `page-speed.repository.ts:91-149`) and D9; **not confirmed by the user**) The claim takes one `(page_id, strategy)` row, and every fence (complete, fail, release) matches page, strategy and attempt. The `served` CTE stays per user and client across both strategies, so a desktop claim serves its client. Within the chosen client, mobile rows come before desktop rows: `d.strategy` is ordered after the two served-at keys and before `next_attempt_at`, and Postgres orders the enum by `PSI_STRATEGIES`' declaration order. Why: mobile feeds the score, the list's badge and Lighthouse's verdicts; desktop feeds one tab of the Speed block. The turns between users and clients stay exactly SPEED-014's. Open question O9 holds the alternative.
+
+D45. (2026-10-11, derived by the planner from the work-order rule that every sub-phase is independently runnable, and D9; **not confirmed by the user**) Between sub-phases 4b and 4c no desktop row is queued. `PAGE_SPEED_QUEUED_STRATEGIES = ['mobile']` is what the queue service passes to the crawl's enqueue and the seed's backfill. 4c deletes the constant, and both pass `PSI_STRATEGIES`. The repository takes the strategies as an argument with no default, so its int-spec proves both strategies in 4b. Why: until 4c the client asks Google with `strategy=mobile`, so a queued desktop row would be measured as mobile and stored as the desktop measurement, with wrong `_DESKTOP` findings. Supersedes the earlier 4b, in which the enqueue upserted both strategies before Google could be asked for desktop.
+
+D46. (2026-10-11, derived by the planner from D10, P8 and the classifier `lighthouse-checks` left, `classify-psi-response.ts:166-175`; **not confirmed by the user**) `extractImageDelivery(json)` is called by `classifyPsiResponse` beside `extractMeasurement`, `extractDiagnostics` and `extractLighthouse`. The `measured` outcome carries `imageDelivery: … | null`, and it is never a condition of `measured`, unlike the measurement and the diagnostics. Supersedes "the executor passes the answer to both extractors" in the earlier §7 and proposal: since `lighthouse-checks` the classifier parses the answer and the executor never sees the JSON.
+
+D47. (2026-10-11, derived by the planner from D23 and the report's fold, `collapse-origin-findings.ts:21-50`; **not confirmed by the user**) `IMAGE_DELIVERY_INEFFICIENT` is always reported at its page and never folded into a whole-site row. It is a lab estimate about one page's images and has no `source`. The fold reads CWV codes only (`isCwv` over `TCwvIssueCode`), and the contracts' `allPages` row narrows to `TCwvSeoIssue`, so an image-delivery whole-site row does not compile. Desktop CWV findings from the site's data fold one row per code, as mobile ones do. Why: the fold today keys on "a pageSpeed code whose details say `origin`", which image delivery's details cannot say, so leaving it there would be a type error on day one or, with a cast, a silent never-folding branch. Supersedes nothing.
+
+D48. (2026-10-11, derived by the planner from D9 and the catalogue's `label` being the issue's name on the Issues screen, the report and the detail; **not confirmed by the user**) The six mobile CWV labels gain "on mobile", and the six desktop labels end "on desktop", for example "Largest Contentful Paint is poor on mobile". The desktop entries' `plain` copy speaks of computers rather than phones, and their explanation of desktop visits, with their mobile twins' sources. The frontend sentence carries the same device word. Why: two codes labelled "Largest Contentful Paint is poor" would read as a duplicate wherever a label stands alone. No stored data names a label, so the rename is copy only. Open question O10 holds the narrower alternative (only desktop names its device).
+
+D49. (2026-10-11, derived by the planner from D21, D42 and D43; **not confirmed by the user**) On the page detail, the checks section's Lighthouse column date and the score explanation read the mobile measurement, whatever the Speed block's switch shows. The switch is local state and requests nothing. A page with no desktop row reads "Not measured on desktop yet: this page was crawled before desktop measurement existed. The next crawl or seed run queues it." The "In queue" and "Measuring…" states of `3e4dc72` apply per strategy, each from its own row's status. Why: the Lighthouse verdicts the column shows come from the mobile answer (D42), so dating them by the desktop one would be false.
+
+D50. (2026-10-11, derived by the planner from D10's "owner 'pageSpeed'", D36 and the registry's `scored` flag; **not confirmed by the user**) `IMAGE_DELIVERY_INEFFICIENT` is a pageSpeed-owner code: unscored, not a check, in no counterpart group. It is not a Lighthouse-owner code, though Lighthouse computes it. The Lighthouse owner is scored and holds SEO and accessibility audits with category weights (`lighthouse-checks` D4, D14), and a performance opportunity in the score would contradict "speed never enters the score". Checked under D36 at `adc8887`, nothing reports the same fact. The 66 Lighthouse entries are SEO and accessibility audits; `LH_IMAGE_ALT`, `LH_INPUT_IMAGE_ALT` and `LH_SVG_IMG_ALT` judge alternative text. No crawl check judges image weight or format. The stored speed diagnostics (`extractDiagnostics`: TTFB, visit shares, `lcp-breakdown-insight`) read no image audit. Supersedes nothing; restates D10 for the registry.
