@@ -114,6 +114,21 @@ describe("AppLayout navigation", () => {
 		});
 	});
 
+	it("offers Info as the fourth tab, opening the guide", async () => {
+		const router = await renderAt("/pages");
+		const main = await screen.findByRole("navigation", { name: "Main" });
+
+		expect(Array.from(main.querySelectorAll("a"), (link) => link.textContent)).toEqual([
+			"Pages",
+			"Issues",
+			"Clients",
+			"Info",
+		]);
+		nav("Info");
+
+		await waitFor(() => expect(router.state.location.pathname).toBe("/info"));
+	});
+
 	it("forgets the remembered filters on sign-out", async () => {
 		vi.spyOn(SessionGateway.prototype, "logout").mockResolvedValue();
 		await renderAt("/pages?clientId=7&q=seo");

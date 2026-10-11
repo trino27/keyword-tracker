@@ -62,6 +62,9 @@ export function AppLayout() {
 								<Link to="/clients" {...navLink}>
 									Clients
 								</Link>
+								<Link to="/info" {...navLink}>
+									Info
+								</Link>
 							</Group>
 						</Group>
 						{user && (

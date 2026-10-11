@@ -18,6 +18,7 @@ import { listenForExpiredSession } from "@ViewModels/SessionViewModel/SessionVie
 import { redirectIfSignedIn } from "../Guards/redirectIfSignedIn";
 import { requireSession } from "../Guards/requireSession";
 import { clientsSearchSchema } from "./SearchSchemas/ClientsSearchSchema/clientsSearchSchema";
+import { infoSearchSchema } from "./SearchSchemas/InfoSearchSchema/infoSearchSchema";
 import { issuesSearchSchema } from "./SearchSchemas/IssuesSearchSchema/issuesSearchSchema";
 import { pageDetailSearchSchema } from "./SearchSchemas/PageDetailSearchSchema/pageDetailSearchSchema";
 import { pagesSearchSchema } from "./SearchSchemas/PagesSearchSchema/pagesSearchSchema";
@@ -100,9 +101,25 @@ const clientsRoute = createRoute({
 	errorComponent: RouteError,
 });
 
+const infoRoute = createRoute({
+	getParentRoute: () => appRoute,
+	path: "/info",
+	validateSearch: infoSearchSchema,
+	// Its own chunk: the guide is long prose nobody needs before opening it.
+	component: lazyRouteComponent(() => import("@Modules/Info/InfoScreen"), "InfoScreen"),
+	errorComponent: RouteError,
+});
+
 const routeTree = rootRoute.addChildren([
 	signInRoute,
-	appRoute.addChildren([indexRoute, pagesRoute, pageDetailRoute, issuesRoute, clientsRoute]),
+	appRoute.addChildren([
+		indexRoute,
+		pagesRoute,
+		pageDetailRoute,
+		issuesRoute,
+		clientsRoute,
+		infoRoute,
+	]),
 ]);
 
 export function createAppRouter(history?: RouterHistory) {
