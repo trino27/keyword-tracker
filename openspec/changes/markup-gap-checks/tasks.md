@@ -113,7 +113,7 @@ Each code gets one commit containing:
 
 ## 4. The missing self-reference is its own finding, reported once (1d) — ANALYSIS-020
 
-- [ ] 4.1 Write first:
+- [x] 4.1 Write first:
   - `hreflang-no-self-reference/hreflang-no-self-reference.check.spec.ts` → "fails a set that
     never names this page", "is not applicable without alternates";
   - `hreflang-invalid.check.spec.ts` → "passes a valid set that omits this page — that is
@@ -122,7 +122,7 @@ Each code gets one commit containing:
   The first fails with no module, the second because the arm exists today
   (`hreflang-invalid.check.ts:128-130`). Verify: `pnpm --filter be test:ci -- hreflang` fails on
   those.
-- [ ] 4.2 Changes:
+- [x] 4.2 Changes:
   - add the new check, moving the arm out of `HREFLANG_INVALID`: remove `selfReferenced` from its
     details and its evidence line, and update its comment;
   - in the catalogue, the new entry (notice, Google localized-versions source) and
@@ -131,10 +131,10 @@ Each code gets one commit containing:
   - `make-check-input.ts:47-49`'s comment names the new code.
 
   Verify: `pnpm --filter be test:ci -- hreflang && pnpm --filter @app/contracts test:ci`.
-- [ ] 4.3 Write first `describeIssue.test.ts` → "renders an old HREFLANG_INVALID finding that still
+- [x] 4.3 Write first `describeIssue.test.ts` → "renders an old HREFLANG_INVALID finding that still
   carries selfReferenced", plus the new code's sentence. Then the two `DESCRIBE` entries. Verify:
   `pnpm --filter fe test:ci -- describeIssue && pnpm --filter fe typecheck`.
-- [ ] 4.4 Commit: `feat(page-analysis): a hreflang set that leaves out its own page, reported
+- [x] 4.4 Commit: `feat(page-analysis): a hreflang set that leaves out its own page, reported
   once`. Verify: `pnpm lint && pnpm typecheck && pnpm test`.
 
 ## 5. Posts that need JavaScript, said once per site (1e) — ANALYSIS-021

@@ -35,25 +35,15 @@ describe('HREFLANG_INVALID', () => {
           { lang: 'english', href: 'https://a.example/uk/' },
         ),
       ),
-    ).toEqual(
-      failsWith({ invalid: ['en_GB', 'english'], selfReferenced: true }),
-    );
+    ).toEqual(failsWith({ invalid: ['en_GB', 'english'] }));
   });
 
-  // Google ignores the whole set when the page is not in it, so a correct set of other
-  // languages is still a defect on this page.
-  it('fails a set that never names this page', () => {
+  // A set that leaves out its own page is HREFLANG_NO_SELF_REFERENCE's finding; reported
+  // here as well, one fact would count twice against the page (plan D14).
+  it("passes a valid set that omits this page — that is HREFLANG_NO_SELF_REFERENCE's", () => {
     expect(
       HREFLANG_INVALID_CHECK.evaluate(
         withAlternates({ lang: 'de-DE', href: 'https://a.example/de/post/' }),
-      ),
-    ).toEqual(failsWith({ invalid: [], selfReferenced: false }));
-  });
-
-  it('accepts a self-reference written without the trailing slash', () => {
-    expect(
-      HREFLANG_INVALID_CHECK.evaluate(
-        withAlternates({ lang: 'en', href: 'https://a.example/post' }),
       ),
     ).toEqual(PASSES);
   });

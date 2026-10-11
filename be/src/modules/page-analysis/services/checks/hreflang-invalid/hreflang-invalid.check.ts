@@ -100,14 +100,13 @@ function problemWith(lang: string): string | null {
 }
 
 /**
- * Three defects a page can be shown to have on its own: a tag that is not a language, a
- * set that never names the page carrying it, and a canonical naming another URL — which
- * declares the page a duplicate and takes it out of its own set. All are reported
- * together; a page with two has two things to fix.
+ * Two defects a page can be shown to have on its own: a tag that is not a language, and a
+ * canonical naming another URL — which declares the page a duplicate and takes it out of
+ * its own set. Both are reported together; a page with two has two things to fix. A set
+ * that never names the page carrying it is HREFLANG_NO_SELF_REFERENCE's (plan D14).
  *
  * Reciprocity — whether the page named back links here — is the other half of the
- * requirement and is deliberately not checked: it needs the other document, which is
- * usually on another site and never in this crawl.
+ * requirement and is not checked here: it needs the other document.
  *
  * A page with no hreflang at all is not judged. Most pages have none and want none, and
  * failing them would turn a check about multilingual sites into one that fires on every
@@ -125,31 +124,22 @@ export const HREFLANG_INVALID_CHECK = defineCheck(
         problem: problemWith(alternate.lang),
       }))
       .filter(({ problem }) => problem !== null);
-    const selfReferenced = parsed.alternates.some(({ href }) =>
-      sameDocument(href, finalUrl),
-    );
     const [canonical] = declaredCanonicals(page);
     const canonicalElsewhere =
       canonical && !sameDocument(canonical.url, finalUrl)
         ? canonical.url
         : null;
 
-    return problems.length === 0 && selfReferenced && !canonicalElsewhere
+    return problems.length === 0 && !canonicalElsewhere
       ? PASS
       : fails({
           invalid: problems.map(({ lang }) => lang),
-          selfReferenced,
           canonicalElsewhere,
           evidence: evidence([
             ...problems.map(
               ({ lang, href, problem }) =>
                 `<link rel="alternate" hreflang="${attribute(lang)}" href="${attribute(href)}"> — ${problem}`,
             ),
-            ...(selfReferenced
-              ? []
-              : [
-                  `None of the ${parsed.alternates.length} alternates names this page (${finalUrl})`,
-                ]),
             ...(canonicalElsewhere
               ? [
                   `<link rel="canonical" href="${attribute(canonicalElsewhere)}"> — this page calls itself a duplicate of another`,

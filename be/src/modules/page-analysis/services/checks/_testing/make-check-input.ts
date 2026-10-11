@@ -45,7 +45,7 @@ export function makeCheckInput(
       canonicalsOutsideHead: [],
       relativeCanonicals: [],
       // Self-referencing, and derived from the URL for the same reason `runPage` derives
-      // the canonical: a fixed href would fail HREFLANG_INVALID on every page of a run
+      // the canonical: a fixed href would fail HREFLANG_NO_SELF_REFERENCE on every page of a run
       // but the first, and the failure would be about the fixture, not about a check.
       alternates: [
         { lang: 'en', href: finalUrl },

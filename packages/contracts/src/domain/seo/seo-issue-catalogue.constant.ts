@@ -777,15 +777,15 @@ export const SEO_ISSUE_CATALOGUE = {
   IMAGES_NOT_INDEXABLE: {
     owner: 'crawl',
     severity: 'warning',
-    label: 'Images Google cannot index',
+    label: 'Images without a src fallback',
     plain: {
-      what: 'Some images are in a form Google Images does not pick up',
-      why: "Google indexes images from an image element's main address, in the formats it supports. An image given only as a set of sizes, or saved as HEIC or TIFF, may never show in Google Images or beside the result, and some browsers cannot show it either.",
-      fix: 'Ask your developer to give every image a plain src fallback and to save images as JPEG, PNG, WebP or AVIF; an image plugin in the CMS can convert uploads automatically.',
+      what: 'Some images give only a set of sizes, with no plain image address',
+      why: "Google finds images through an image element's plain address. One given only as a set of sizes has no fallback, so Google Images and browsers that do not read that set may never show it.",
+      fix: 'Ask your developer to give every image a plain src beside its srcset; a theme or image plugin usually writes both, and the template that drops src is the one to fix.',
     },
-    hint: 'Give each <img> a src, and use BMP, GIF, JPEG, PNG, WebP, SVG or AVIF.',
+    hint: 'Give each <img> with a srcset a src as well.',
     explanation:
-      'Google finds images in the src attribute of <img> elements and indexes the formats it lists: BMP, GIF, JPEG, PNG, WebP, SVG and AVIF. An <img> carrying only srcset has no fallback for crawlers and browsers that do not read it — Google asks for an <img> with src in every responsive image — and a file in a format outside that list (HEIC, TIFF, JPEG XL, JPEG 2000) is not indexed for Google Images. Each image reported is quoted with the reason. An image a lazy-loading script sets from data-src is not reported: Google renders the page and sees what the script sets.',
+      "An <img> carries a srcset and no src. Google finds images in the src attribute of <img> elements, and asks every responsive image to keep an <img> with src as the fallback for crawlers and browsers that do not read srcset or <picture>. Each image reported is quoted. The file's format is not judged from its extension: image CDNs convert on the way out — shopify.com answers its .heic uploads as JPEG — so an extension says nothing certain about what Google receives. An image a lazy-loading script sets from data-src is not reported: Google renders the page and sees what the script sets.",
     sources: [SOURCE.images],
     skipReason: 'The page has no images.',
   },
@@ -989,12 +989,27 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'Hreflang is malformed',
     plain: {
       what: "The page's links to its other language versions contain errors",
-      why: 'These links tell Google which version to show readers of each language or country. With a wrong code, or without listing this page itself, Google may ignore them and show visitors the wrong language version.',
-      fix: 'Ask your developer, or check your multilingual plugin, to use valid codes (for example "uk" for Ukrainian and "en-GB" for the UK) and to list this page among its own versions.',
+      why: 'These links tell Google which version to show readers of each language or country. With a wrong code, Google may ignore them and show visitors the wrong language version.',
+      fix: 'Ask your developer, or check your multilingual plugin, to use valid codes (for example "uk" for Ukrainian and "en-GB" for the UK).',
     },
-    hint: 'A hreflang with an invalid language code, or that never names this page, is ignored.',
+    hint: 'A hreflang with an invalid language code is ignored.',
     explanation:
-      'hreflang links tell Google which URL to show readers of each language or region. Google requires each value to be a valid ISO 639-1 language code, optionally followed by an ISO 3166-1 region, and requires each page of the set to list itself as well as the others; annotations that break these rules may be ignored, and readers shown the wrong language version. The usual slips are country codes written for languages — ua for Ukrainian (uk), kz for Kazakh (kk), jp for Japanese (ja) — and UK for the United Kingdom (GB). A page whose canonical names another URL declares itself a duplicate, which takes it out of its own hreflang set.',
+      'hreflang links tell Google which URL to show readers of each language or region. Google requires each value to be a valid ISO 639-1 language code, optionally followed by an ISO 3166-1 region; annotations that break this rule may be ignored, and readers shown the wrong language version. The usual slips are country codes written for languages — ua for Ukrainian (uk), kz for Kazakh (kk), jp for Japanese (ja) — and UK for the United Kingdom (GB). A page whose canonical names another URL declares itself a duplicate, which takes it out of its own hreflang set. A set that leaves out this page is reported as its own finding.',
+    sources: [SOURCE.hreflang],
+    skipReason: 'The page declares no hreflang.',
+  },
+  HREFLANG_NO_SELF_REFERENCE: {
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Hreflang omits this page',
+    plain: {
+      what: "The page's list of language versions leaves out the page itself",
+      why: 'Google asks every language version to list itself as well as the others. When the page is missing from its own list, Google may ignore the whole list and show readers the wrong language version.',
+      fix: 'Ask your developer, or check your multilingual plugin, so the list of language versions on every page includes that page itself.',
+    },
+    hint: 'List the page itself among its hreflang alternates.',
+    explanation:
+      "The page declares hreflang alternates, and none of them is the page itself; a trailing slash is not counted as a difference. Google's documentation on localized versions requires each language version to list itself as well as all the others, and annotations that break the rule may be ignored. The usual cause is a template or plugin that writes the other languages and skips the current one. A page with no hreflang at all is not judged.",
     sources: [SOURCE.hreflang],
     skipReason: 'The page declares no hreflang.',
   },

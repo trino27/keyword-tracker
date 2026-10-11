@@ -66,6 +66,19 @@ describe("describeIssue", () => {
 		);
 	});
 
+	it("renders an old HREFLANG_INVALID finding that still carries selfReferenced", () => {
+		expect(
+			describeIssue("HREFLANG_INVALID", {
+				invalid: [],
+				selfReferenced: false,
+				canonicalElsewhere: null,
+			}),
+		).toBe("The hreflang set is ignored — the alternates never name this page.");
+		expect(describeIssue("HREFLANG_NO_SELF_REFERENCE", { alternates: 3 })).toBe(
+			"None of the 3 hreflang alternates names this page.",
+		);
+	});
+
 	it("says what a missing breadcrumb or repeated description is", () => {
 		expect(describeIssue("BREADCRUMB_MISSING", {})).toBe(
 			"The page declares no BreadcrumbList.",

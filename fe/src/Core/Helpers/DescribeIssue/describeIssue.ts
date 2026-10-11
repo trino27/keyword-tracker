@@ -102,7 +102,7 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	NO_IMAGES: (d) => `The content runs to ${num(d, "words")} words without a single image.`,
 	IMAGES_NOT_INDEXABLE: (d) => {
 		const count = num(d, "count");
-		return `${count} of ${num(d, "total")} images ${count === 1 ? "has" : "have"} no src fallback or use a format Google Images does not index.`;
+		return `${count} of ${num(d, "total")} images ${count === 1 ? "has" : "have"} a srcset and no src fallback.`;
 	},
 	IMAGE_FILENAMES_GENERIC: (d) => {
 		const count = num(d, "count");
@@ -147,12 +147,15 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		const invalid = list(d, "invalid");
 		const parts = [
 			invalid && `not a language code: ${invalid}`,
+			// Findings stored before plan D14 moved this arm to HREFLANG_NO_SELF_REFERENCE.
 			d.selfReferenced === false && "the alternates never name this page",
 			text(d, "canonicalElsewhere") &&
 				`the canonical names another page (${text(d, "canonicalElsewhere")})`,
 		].filter((part): part is string => typeof part === "string" && part !== "");
 		return `The hreflang set is ignored — ${parts.join("; ")}.`;
 	},
+	HREFLANG_NO_SELF_REFERENCE: (d) =>
+		`None of the ${num(d, "alternates")} hreflang alternates names this page.`,
 	VIEWPORT_MISSING: () => "The page has no viewport meta tag.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
 	OG_URL_MISMATCH: (d) =>

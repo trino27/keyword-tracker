@@ -33,6 +33,7 @@ import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
+import { HREFLANG_NO_SELF_REFERENCE_CHECK } from './hreflang-no-self-reference/hreflang-no-self-reference.check';
 import { LCP_IMAGE_LAZY_LOADED_CHECK } from './lcp-image-lazy-loaded/lcp-image-lazy-loaded.check';
 import { RENDER_BLOCKING_SCRIPTS_CHECK } from './render-blocking-scripts/render-blocking-scripts.check';
 import { FONT_PRELOAD_WITHOUT_CROSSORIGIN_CHECK } from './font-preload-without-crossorigin/font-preload-without-crossorigin.check';
@@ -130,6 +131,7 @@ export const CHECKS: TCheckRegistry = {
   UNCRAWLABLE_LINKS: UNCRAWLABLE_LINKS_CHECK,
   LANG_MISSING: LANG_MISSING_CHECK,
   HREFLANG_INVALID: HREFLANG_INVALID_CHECK,
+  HREFLANG_NO_SELF_REFERENCE: HREFLANG_NO_SELF_REFERENCE_CHECK,
   VIEWPORT_MISSING: VIEWPORT_MISSING_CHECK,
   OG_TAGS_MISSING: OG_TAGS_MISSING_CHECK,
   OG_URL_MISMATCH: OG_URL_MISMATCH_CHECK,
