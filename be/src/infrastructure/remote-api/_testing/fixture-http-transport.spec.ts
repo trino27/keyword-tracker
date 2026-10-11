@@ -47,6 +47,24 @@ describe('FixtureHttpTransport', () => {
     expect(response.status).toBe(404);
   });
 
+  // A crawl now asks every link in its posts for a status (plan D5). Recorded posts link
+  // to hundreds of pages nobody recorded; as 404s they would all read as broken.
+  it('an unrecorded URL asked for its status only answers 200', async () => {
+    const response = await send(transport(), 'https://elsewhere.example/a/', 0);
+
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBe(0);
+  });
+
+  it('an override still wins over the status-only rule', async () => {
+    const fixture = transport();
+    fixture.override('https://elsewhere.example/gone/', { status: 410 });
+
+    expect(
+      (await send(fixture, 'https://elsewhere.example/gone/', 0)).status,
+    ).toBe(410);
+  });
+
   it('synthesizes an article for a URL matching a pattern', async () => {
     const response = await send(
       transport(),

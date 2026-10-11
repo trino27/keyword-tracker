@@ -44,6 +44,8 @@ import type {
   IRunStep,
 } from '../../pipelines/run-pipeline/run-step.interface';
 import type { ICrawlRunExecutor } from '../../ports/crawl-run-executor.port';
+import { NO_OUTBOUND_FACTS } from '@modules/page-analysis/interfaces/outbound-facts.interface';
+import { OutboundChecksService } from '../outbound-checks/outbound-checks.service';
 import { PostSelectionService } from '../post-selection/post-selection.service';
 import { SitemapDiscoveryService } from '../sitemap-discovery/sitemap-discovery.service';
 
@@ -119,6 +121,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
   private readonly pipeline: readonly IRunStep[] = assertRunPipeline([
     { name: 'discovery', run: (context) => this.discover(context) },
     { name: 'fetch', run: (context) => this.fetch(context) },
+    { name: 'outbound', run: (context) => this.outbound(context) },
     { name: 'analysis', run: (context) => this.analyse(context) },
     {
       name: 'persist',
@@ -132,6 +135,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
     private readonly discovery: SitemapDiscoveryService,
     private readonly selection: PostSelectionService,
     private readonly siteProbe: SiteProbeService,
+    private readonly outboundChecks: OutboundChecksService,
     private readonly analysis: PageAnalysisService,
     private readonly results: CrawlResultsService,
     private readonly pageSpeedQueue: PageSpeedQueueService,
@@ -233,6 +237,22 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
   }
 
   /**
+   * The posts' links, canonical targets and hreflang alternates, asked under a budget and
+   * a deadline of their own (plan D4, D6, D26). A stage of its own so its time shows in
+   * the run's timings; still before the transaction, like every request a run makes.
+   */
+  private async outbound(context: IRunContext): Promise<void> {
+    const { discovery, selection, signal } = context;
+    if (!discovery || !selection || selection.pages.length === 0) return;
+    context.outbound = await this.outboundChecks.check({
+      pages: selection.pages,
+      robots: discovery.robots,
+      servedOrigin: servedOriginOf(selection.pages),
+      signal,
+    });
+  }
+
+  /**
    * Outside any transaction: the whole run is judged at once (IDF). The one read it makes
    * is what the client's previous crawl kept about these URLs, so a check can compare —
    * done here, before the transaction, like every other input the analysis is handed.
@@ -250,6 +270,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
         ...page,
         previous: previous.get(page.url) ?? null,
         timeZone: target.timeZone,
+        linkStatuses: context.outbound ?? NO_OUTBOUND_FACTS,
       })),
       target.siteKey,
     );
@@ -267,6 +288,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
         status: item.status,
         httpStatus: item.httpStatus,
         reason: item.reason,
+        clientRendered: item.clientRendered,
         page: item.page
           ? {
               finalUrl: item.page.finalUrl,
@@ -285,6 +307,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       missingPage: context.siteProbes?.missingPage ?? null,
       home: context.siteProbes?.home ?? null,
       favicon: context.siteProbes?.favicon ?? null,
+      faviconFallback: context.siteProbes?.faviconFallback ?? null,
     });
     context.outcome = outcomeOf(
       selection.pages.length,

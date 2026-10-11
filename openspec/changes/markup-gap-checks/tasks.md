@@ -82,7 +82,7 @@ Each code gets one commit containing:
   failing pages carry an http canonical, a description equal to the title and no breadcrumb.
   On the 43 recorded posts the four fired once (BREADCRUMB_MISSING on a Semrush product
   page that declares none) — a corpus read, not the D12 field audit, which is 6.1.
-- [ ] 2.5 Re-read the catalogue-size claims. Verify: `git grep -n -E "sixty-one|61 checks|50 page
+- [x] 2.5 Re-read the catalogue-size claims. Verify: `git grep -n -E "sixty-one|61 checks|50 page
   checks" -- README.md be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`, and note in the
   harvest list each line to correct.
 - [ ] 2.6 Phase acceptance for 1b, run after 2.7–2.9. Verify: `pnpm --filter be test:ci --
@@ -175,7 +175,7 @@ Each code gets one commit containing:
 
 ## 5. Posts that need JavaScript, said once per site (1e) — ANALYSIS-021
 
-- [ ] 5.1 Write first:
+- [x] 5.1 Write first:
   - `be/src/modules/crawl/services/post-selection/post-selection.service.spec.ts` → "a
     client-rendered post stays skipped_listing, is no page, and carries clientRendered";
   - `be/src/modules/page-analysis/services/site-checks/site-checks.registry.spec.ts` → "reports
@@ -184,7 +184,7 @@ Each code gets one commit containing:
 
   They fail: no field. Verify: `pnpm --filter be test:ci -- post-selection site-checks` fails on
   those.
-- [ ] 5.2 Changes:
+- [x] 5.2 Changes:
   - `ISelectedItem.clientRendered: boolean` (`crawled-page.interface.ts`), set `true` only at the
     client-rendered skip (`post-selection.service.ts:186-194`, reason text unchanged) and `false`
     everywhere else;
@@ -196,9 +196,9 @@ Each code gets one commit containing:
 
   Verify: `pnpm --filter be test:ci -- src/modules/crawl src/modules/page-analysis &&
   pnpm --filter @app/contracts test:ci`.
-- [ ] 5.3 Check that the run log and the skip reasons are unchanged. Verify: `pnpm --filter be
+- [x] 5.3 Check that the run log and the skip reasons are unchanged. Verify: `pnpm --filter be
   test:db -- crawl`.
-- [ ] 5.4 Commit: `feat(site-checks): posts that render their content with JavaScript`. Verify:
+- [x] 5.4 Commit: `feat(site-checks): posts that render their content with JavaScript`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
 
 ## 5a. The sitemap keeps naming canonical contradictions (1g) — ANALYSIS-023
@@ -228,17 +228,17 @@ and before 6.
 
 ## 6. Field audit of the markup checks, and its record (1f) — plan D12
 
-- [ ] 6.1 Run the plan §14 field-audit protocol on the docker stack for `CANONICAL_TO_HTTP`,
+- [x] 6.1 Run the plan §14 field-audit protocol on the docker stack for `CANONICAL_TO_HTTP`,
   `OG_URL_MISMATCH`, `HREFLANG_NO_SELF_REFERENCE`, `TITLE_YEAR_OUTDATED`,
   `META_DESCRIPTION_REPEATS_TITLE`, `BREADCRUMB_MISSING` and `CONTENT_NEEDS_JAVASCRIPT`. Read
   every firing against the live page. Also read every `CANONICAL_MISMATCH` the twin step-aside
   removed, to confirm each was a twin. VERIFY: where the 2026-10-09 site list is; if it is not in
   the repository, list the sites used in the tally. Verify: the §14 queries print every firing,
   and each is judged.
-- [ ] 6.2 For each wrong firing: write first a spec from that site's markup that fails, then fix
+- [x] 6.2 For each wrong firing: write first a spec from that site's markup that fails, then fix
   the check, or retire it with `enabled: false`. One `fix(page-analysis): …` commit per defect.
   Verify: `pnpm --filter be test:ci -- src/modules/page-analysis`.
-- [ ] 6.3 Update `PAGE_ANALYSIS_MODULE.md`:
+- [x] 6.3 Update `PAGE_ANALYSIS_MODULE.md`:
   - the section "Field audit of the Ahrefs-gap checks (<date>)" with fired / correct / wrong per
     code, 0 wrong for every enabled code;
   - "What was considered and rejected" gains plan D2's rejected list with its reasons, plan O5
@@ -252,9 +252,32 @@ and before 6.
     never from an HTML timing.
 
   Verify: `git grep -n "Field audit of the Ahrefs-gap checks" be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`.
-- [ ] 6.4 Commit: `docs(page-analysis): the markup checks, audited on live sites; what was
+- [x] 6.4 Commit: `docs(page-analysis): the markup checks, audited on live sites; what was
   rejected and why`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db && docker
   compose up -d --build && curl -fsS http://localhost:8080/api/health`.
+
+  AMENDED during implementation: 2.5 — README's "50 page checks and 9 site checks" and the
+  module doc's "sixty-four" became seventy page checks (28 always apply, 42 conditional) and
+  thirteen site checks. 6.1 — the 2026-10-09 site list is not in the repository; the audit ran
+  a harness through the real pipeline (discovery, selection, analysis; deleted after) in two
+  passes. Pass 1 (6 posts a site): yoast.com, wordpress.org/news, css-tricks.com,
+  wpbeginner.com, backlinko.com, kinsta.com/blog, elegantthemes.com/blog, ghost.org,
+  404media.co, vercel.com/blog, nextjs.org/blog, react.dev/blog, lennysnewsletter.com,
+  testing.googleblog.com, theverge.com, techcrunch.com, seriouseats.com, minimalistbaker.com,
+  vc.ru, lifehacker.ru, habr.com/ru, cossa.ru, oborot.ru, gazeta.uz, kun.uz, semrush.com/blog,
+  ahrefs.com/blog, blog.hubspot.com, moz.com/blog, shopify.com/blog (no sitemap),
+  blog.cloudflare.com, notion.com/blog, seths.blog, kottke.org, searchenginejournal.com,
+  searchengineland.com (blocked), smashingmagazine.com, neilpatel.com/blog, wix.com/blog,
+  blog.duolingo.com. Pass 2 (8 posts, after the fixes): vercel.com/blog,
+  lennysnewsletter.com, zapier.com/blog, wordstream.com/blog (blocked), techradar.com,
+  tomsguide.com, texterra.ru/blog, unisender.com/ru/blog, deepl.com/en/blog, learn.g2.com,
+  hostinger.com/tutorials, semrush.com/kb, sitepoint.com, digitalocean.com/community/tutorials
+  (no sitemap), bluehost.com/blog (blocked), oberlo.com/blog (no sitemap). BREADCRUMB_MISSING's
+  firings were checked by searching each page's live HTML for any BreadcrumbList; the rest by
+  reading each firing. 6.2 — two wrong firings, one fix commit: Substack's site-wide noscript
+  banner (CONTENT_NEEDS_JAVASCRIPT) and vercel.com's BreadcrumbList in the Next.js payload
+  (BREADCRUMB_MISSING, now not applicable through `scriptedSchemaTypes`). Totals are in the
+  module doc's "Field audit of the Ahrefs-gap checks (2026-10-11)".
 
 ## 7. Change acceptance
 

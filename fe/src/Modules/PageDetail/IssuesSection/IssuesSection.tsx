@@ -1,32 +1,27 @@
 import { Anchor, Badge, Code, Group, Paper, Stack, Text, ThemeIcon, Title } from "@mantine/core";
-import {
-	IconAlertOctagon,
-	IconAlertTriangle,
-	IconCircleCheck,
-	IconInfoCircle,
-} from "@tabler/icons-react";
+import { IconCircleCheck } from "@tabler/icons-react";
 import type { TSeoIssueSeverity } from "@app/contracts";
 import { severityLabel } from "@Core/Constants/severityLabel";
 import type { TDetailIssue } from "@Gateways/PageGateway/Validation/PageSchemas";
 import { groupIssues } from "@ViewModels/PageDetailViewModel/Services/GroupIssues/groupIssues";
 
-/** The report's names and colours (plan D28); the icon is this section's own. */
+/** The report's names, colours and icons (plan D28). */
 const SEVERITY: Record<TSeoIssueSeverity, { title: string; color: string; icon: React.ReactNode }> =
 	{
 		error: {
 			title: severityLabel.error.plural,
 			color: severityLabel.error.color,
-			icon: <IconAlertOctagon size={16} />,
+			icon: <severityLabel.error.icon size={16} />,
 		},
 		warning: {
 			title: severityLabel.warning.plural,
 			color: severityLabel.warning.color,
-			icon: <IconAlertTriangle size={16} />,
+			icon: <severityLabel.warning.icon size={16} />,
 		},
 		notice: {
 			title: severityLabel.notice.plural,
 			color: severityLabel.notice.color,
-			icon: <IconInfoCircle size={16} />,
+			icon: <severityLabel.notice.icon size={16} />,
 		},
 	};
 

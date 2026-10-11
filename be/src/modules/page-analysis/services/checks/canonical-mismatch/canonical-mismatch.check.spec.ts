@@ -35,6 +35,46 @@ describe('CANONICAL_MISMATCH', () => {
     ).toEqual(NOT_APPLICABLE);
   });
 
+  // Plan D34: a broken target is the more specific finding; one fact, one finding.
+  it("is not applicable when the target is broken — that is CANONICAL_TARGET_BROKEN's", () => {
+    expect(
+      CANONICAL_MISMATCH_CHECK.evaluate(
+        makeCheckInput({
+          parsed: { canonicals: ['https://a.example/other/'] },
+          linkStatuses: {
+            links: new Map(),
+            documents: new Map([
+              [
+                'https://a.example/other/',
+                {
+                  url: 'https://a.example/other/',
+                  outcome: {
+                    kind: 'answered',
+                    status: 404,
+                    redirects: [],
+                    finalUrl: 'https://a.example/other/',
+                  },
+                  page: null,
+                },
+              ],
+            ]),
+          },
+        }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
+  // The budget never hides the canonical: an unread target leaves the mismatch reported.
+  it('judges as before when the target was not read', () => {
+    expect(
+      CANONICAL_MISMATCH_CHECK.evaluate(
+        makeCheckInput({
+          parsed: { canonicals: ['https://a.example/other/'] },
+        }),
+      ),
+    ).toEqual(failsWith({ canonical: 'https://a.example/other/' }));
+  });
+
   it('cannot be judged without a canonical', () => {
     expect(
       CANONICAL_MISMATCH_CHECK.evaluate(

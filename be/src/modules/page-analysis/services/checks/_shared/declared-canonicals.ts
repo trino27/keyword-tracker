@@ -42,7 +42,9 @@ function headerCanonicals(
  * once per source. The first is the one the page means; more than one distinct URL is a
  * conflict, which is CANONICAL_CONFLICT's to report.
  */
-export function declaredCanonicals(page: ICheckInput): IDeclaredCanonical[] {
+export function declaredCanonicals(
+  page: Pick<ICheckInput, 'parsed' | 'headers' | 'finalUrl'>,
+): IDeclaredCanonical[] {
   return [
     ...page.parsed.canonicals.map((url) => ({ url, source: 'head' as const })),
     ...[...new Set(headerCanonicals(page.headers.link, page.finalUrl))].map(

@@ -40,6 +40,8 @@ export interface IFetchedEntry {
   status: TCrawlItemStatus;
   httpStatus: number | null;
   reason: string | null;
+  /** Skipped as an empty shell whose content JavaScript draws (plan D8). */
+  clientRendered: boolean;
   /** The crawled page's findings, by code, when the entry became a page. */
   page: {
     finalUrl: string;
@@ -72,6 +74,11 @@ export interface ISiteCheckInput {
   home: IHomePage | null;
   /** The icon the home page declares; null when none was fetched. */
   favicon: IFaviconAnswer | null;
+  /**
+   * `/favicon.ico` at the root, asked when the declared icon is another file; null when
+   * it is the same file, or could not be asked. The file a client falls back to.
+   */
+  faviconFallback: IFaviconAnswer | null;
 }
 
 export type TSiteVerdict =

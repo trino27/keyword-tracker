@@ -87,7 +87,7 @@ files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Twenty-eight of the sixty-four checks always apply; thirty-six are conditional. Thirty-two
+  Twenty-eight of the seventy checks always apply; forty-two are conditional. Thirty-eight
   of those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
   CANONICAL_MISMATCH, CANONICAL_CONFLICT and CANONICAL_RELATIVE on there being a canonical,
   STRUCTURED_DATA_INVALID on there being any JSON-LD, DATES_INCONSISTENT on a publication
@@ -105,9 +105,10 @@ files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
   PREVIEW_IMAGE_TOO_SMALL on the page's own image having been measured, PREVIEW_IMAGE_IS_LOGO on
   the page naming an image for itself, AUTHOR_MARKUP_INCOMPLETE, ARTICLE_DATE_FORMAT_INVALID and
   ARTICLE_HEADLINE_MISMATCH on the article markup giving an author, a date or a headline,
-  BREADCRUMB_INVALID on a BreadcrumbList, NO_SUBHEADINGS, NO_IMAGES and NO_EXTERNAL_SOURCES on
+  BREADCRUMB_INVALID on a BreadcrumbList, the Ahrefs-gap checks on what each reads (below),
+  NO_SUBHEADINGS, NO_IMAGES and NO_EXTERNAL_SOURCES on
   the text running to THIN_CONTENT's 300 words — and four are run-scoped, skipped when the run
-  holds one page or the page has no value to compare. So `28 <= checks_applicable <= 64`, which
+  holds one page or the page has no value to compare. So `28 <= checks_applicable <= 70`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -321,7 +322,9 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   beside Cyrillic passes — fired on none of the Russian and Uzbek pages);
   `IMAGE_PREVIEW_NOT_LARGE` (no robots rule allows `max-image-preview:large`, which Discover
   needs for a large card — 24 of 58: semrush, moz, ahrefs, ghost, cloudflare, habr, vc.ru);
-  `IMAGES_NOT_INDEXABLE` (warning: srcset with no src, HEIC/TIFF/JPEG XL — 0 live);
+  `IMAGES_NOT_INDEXABLE` (warning: srcset with no src — 0 live. The format is NOT judged by
+  the extension: it was, and the one live finding was wrong — shopify.com's CDN answers its
+  `.heic` uploads as JPEG to every client, Googlebot-Image's name included);
   `IMAGE_FILENAMES_GENERIC` (IMG_0203, Screen-Shot-…, image-3, download (50) — 6, all right; a bare
   number is NOT one, moz numbers its authors' photos `/user/photo/10.jpg`); `VIDEO_WITHOUT_METADATA`
   (a YouTube/Vimeo/VK embed or a playable `<video>` with no VideoObject or og:video — 10; a muted
@@ -347,10 +350,27 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   is another hostname to Google) and its icon (one more): `FAVICON_INVALID` (warning: none, an
   SVG-only icon, blocked for Googlebot-Image, not answered, not square, under 8 px — read from
   the file. A page declaring no icon is judged by `/favicon.ico`, which ghost.org and moz.com
-  serve with no link at all; a WebP or AVIF answer is a CDN negotiating, as dev.to's does, and
-  no finding. Live: 1 of 30, blog.cloudflare.com's 99×96 favicon.ico); `SITE_NAME_NOT_DECLARED`
+  serve with no link at all; a declared icon that fails is no finding either while
+  `/favicon.ico` is a usable icon (one request more), since what results show is then not in
+  doubt — beachplumbingservices.com declares a theme icon that is gone, oborot.ru only an
+  SVG, and both serve one at the root. A WebP or AVIF answer is a CDN negotiating, as dev.to's
+  does, and no finding. Live: blog.cloudflare.com's 99×96 favicon.ico, on both audits);
+  `SITE_NAME_NOT_DECLARED`
   (no WebSite name — 17 of 30); `SITE_NAME_INCONSISTENT` (WebSite name against og:site_name,
   neither among the alternate names — 1: blog.google, "News from Google" and "blog.google").
+  A second audit ran the real pipeline — discovery, selection, the probes, the analysis —
+  over 40 sites, small businesses among them (plumbers, estate agents, Bitrix and Tilda
+  shops), 166 posts in sitemap order. Every firing was read, and the image sizes were
+  measured again from the files outside this code: all seven agreed. `PREVIEW_IMAGE_TOO_SMALL`
+  fired on 51 — older posts carry the small images of their day (dou.ua's 420×230, wpbeginner's
+  680×385); `ARTICLE_DATE_FORMAT_INVALID` on smashingmagazine's `0001-01-01 00:00:00 +0000 UTC`,
+  Hugo's zero time; `AUTHOR_MARKUP_INCOMPLETE` on shopify's "by Alicia Clark" (each author
+  written twice in one node, now counted once). It also found a crash, in no check: a body cut
+  at its cap was later aborted by its request's own timeout, and undici's error event on it
+  had no listener left — the transport now keeps one (`UndiciHttpTransport`). No live page
+  among the 224 read across both audits carries a TITLE_SCRIPT_MISMATCH, PREVIEW_IMAGE_IS_LOGO,
+  ARTICLE_HEADLINE_MISMATCH, BREADCRUMB_INVALID or data-nosnippet wrapper; those five are
+  proven by their specs alone.
   None reports what an older check already does. Where two could meet on one fact, the
   newer one steps aside, as STRUCTURED_DATA_INCOMPLETE does for STRUCTURED_DATA_MISSING: a
   date that does not read as one is ARTICLE_DATE_FORMAT_INVALID's alone (DATES_INCONSISTENT
@@ -402,17 +422,61 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   measured in `field-study-2026-10.md` and fires on effectively every page without `aria-label`
   and nested-alt handling. URL hygiene — underscores, length, parameter count — is finding 1
   again: a rule reporting a house style. Core Web Vitals and anything built on one server-side
-  timing stay out for the reason `SLOW_RESPONSE` was retired; the CWV risks above read markup,
-  never a timing. `llms.txt` is not a ratified
-  standard and not a confirmed signal, and a check would manufacture the urgency the catalogue's
+  timing stay out for the reason `SLOW_RESPONSE` was retired: Core Web Vitals are measured
+  by PageSpeed, never from an HTML timing, and the CWV risks above read markup. `llms.txt`
+  is not a ratified standard and not a confirmed signal, and a check would manufacture the urgency the catalogue's
   wording is careful to avoid. HTTP cache validators (`ETag`, `Last-Modified`), which Google's
   crawler documentation recommends: measured live on 2026-10-09, three of five well-run blogs
   send neither and yoast's `Last-Modified` is the time of the request, so the check would report
   a house style and pass a value that validates nothing. Scroll-triggered lazy loading cannot be
   told from IntersectionObserver lazy loading in the HTML, and only the first is a problem.
   Soft 404s, HTTP→HTTPS and www normalisation are properties of the SITE, not of a page: they
-  need a request of their own per crawl and a place to store a site-level finding, which the
-  catalogue — page and run scopes only — does not have yet.
+  are site checks (`SOFT_404`, `HOST_VARIANT_SERVES_CONTENT`, `HOST_REDIRECT_CHAIN`) in
+  `SITE_CHECK_CATALOGUE`, judged once per crawl from requests of their own.
+  From the comparison with Ahrefs' recommendations (plan `ahrefs-gap-checks`, D2, D33):
+  an empty `alt=""` is correct markup for a decorative image (WCAG), not a miss; "not
+  updated for N months" would push authors to bump dates, the very thing
+  `DATE_BUMPED_WITHOUT_CHANGES` flags; three to five links per post, "no outbound links" as
+  a count, and generic image names in Ahrefs' broad form are house style, as URL hygiene is
+  (`IMAGE_FILENAMES_GENERIC` and `NO_EXTERNAL_SOURCES` stay: they report the narrower,
+  measured forms); `srcset` and image formats read from markup guess without the CSS, as
+  images without width and height did, and Lighthouse measures them; `x-default` is optional
+  by Google's own words; the Lighthouse SEO category repeats this catalogue; a WAF probe
+  with an AI bot's user agent would be blocked as a fake bot, since Cloudflare verifies those
+  bots by IP — a finding on evidence we do not have, as `ORPHAN_PAGE` would be.
+  `CANONICAL_CHANGED` was planned and dropped: the canonical's current state is already
+  reported — self to other by `CANONICAL_MISMATCH`, removal by `CANONICAL_MISSING` — so
+  without repeating them it could fire only on other to self, which is a fix.
+- **Seven checks from Ahrefs' recommendations, one fact one finding (2026-10-11).** Plan
+  `ahrefs-gap-checks` compared the catalogue with Ahrefs' audit, on-page, technical and
+  canonical guidance and admitted what clears D1's bar: a first-party source at any
+  severity, an industry one (`INDUSTRY_SOURCE_HOSTS`) only as a notice — a contracts test
+  holds that half. `CANONICAL_TO_HTTP` (the page's own http:// twin as its canonical),
+  `OG_URL_MISMATCH`, `META_DESCRIPTION_REPEATS_TITLE`, `BREADCRUMB_MISSING`,
+  `TITLE_YEAR_OUTDATED` (read in the owner's zone, `ICheckInput.timeZone`),
+  `HREFLANG_NO_SELF_REFERENCE` (the arm moved out of `HREFLANG_INVALID`), and the site check
+  `CONTENT_NEEDS_JAVASCRIPT`, which counts the structured `clientRendered` flag of skipped
+  posts and never their reason text. Where a new check met an older one on the same fact,
+  one steps aside: `CANONICAL_MISMATCH` for the http twin, `OG_URL_MISMATCH` for a
+  development-host og:url; the sitemap check reads `CANONICAL_TO_HTTP` as it reads
+  `CANONICAL_MISMATCH`, so the step-aside loses no entry. `META_DESCRIPTION_REPEATS_TITLE`
+  and `META_DESCRIPTION_LENGTH` both fire on a copied title: length and content are two facts.
+- **Field audit of the Ahrefs-gap checks (2026-10-11).** Two passes through the real
+  pipeline on 56 live sites (WordPress, Ghost, Next.js, Substack, Blogger, news, recipes,
+  Russian and Uzbek sites, multilingual ones; the 2026-10-09 list is not in the repository,
+  so the sites are named in the plan), 50 reached, 256 posts. Every firing was read against
+  the page. Fired / wrong after the fixes below: `CANONICAL_TO_HTTP` 0 of 244 judged;
+  `OG_URL_MISMATCH` 5 / 0 (cossa.ru's og:url names the old http address, which 301s to the
+  served one); `META_DESCRIPTION_REPEATS_TITLE` 0 of 237; `BREADCRUMB_MISSING` 107 / 0 (each
+  page's HTML searched for any BreadcrumbList, JSON-LD, Microdata or RDFa);
+  `TITLE_YEAR_OUTDATED` 0 of 256; `HREFLANG_NO_SELF_REFERENCE` 0 of 43;
+  `CONTENT_NEEDS_JAVASCRIPT` 0 of 50 sites. A check that never fired is held by its spec's
+  failing cases, not by the field. Two false findings were found and fixed: Substack's
+  site-wide "requires JavaScript" `<noscript>` banner made its paywalled posts look like
+  shells (the banner now counts only in a body of at most 20 words), and vercel.com's
+  BreadcrumbList lives in the Next.js payload, written by React in the browser where Google
+  reads it (`scriptedSchemaTypes`; the check is not applicable to it). The same payload
+  carries vercel.com's Article markup, which `STRUCTURED_DATA_MISSING` does not yet consult.
 - **Two checks are deliberately absent.** `SLOW_RESPONSE` measured the crawler's network position
   rather than the page, and `KEYWORD_NOT_IN_TITLE` could not fail by construction. The
   measurements are in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and
@@ -444,34 +508,45 @@ and what pins it. Kept as a trailing section so the set is greppable — ANALYSI
 named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spec.md`.
 
 <!-- invariant: ANALYSIS-001 -->
+
 **Issues come only from the shared catalogue: one check per crawl-owned code and none for a speed code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per crawl-owned code", "has no check for a pageSpeed-owned code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The sixty-four checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+
+**The seventy checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
+
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".
 
 <!-- invariant: ANALYSIS-004 -->
+
 **Keyword candidates are normalized main-content phrases that never begin or end with a stop word.** Pinned by `services/keyword-extraction/collect-candidates/collect-candidates.spec.ts` -> "never starts or ends a candidate with a stop word" and "without a known language, stops at 2-grams and filters nothing"; `tokenize/tokenize.spec.ts` -> "normalizes and splits on sentence breaks".
 
 <!-- invariant: ANALYSIS-005 -->
+
 **Candidates are scored by field weight with subsumed duplicates removed, and the page keeps at most eight above the floor — never topped up to a minimum.** Pinned by `score-candidates/score-candidates.spec.ts` -> `describe("pageScore")`; `select-keywords/select-keywords.spec.ts` -> "keeps at most 8 above the floor, the top at relevance 1"; `extract-keywords/extract-keywords.spec.ts` -> "gives every page 1–8 keywords, the top at relevance 1".
 
 <!-- invariant: ANALYSIS-006 -->
+
 **Scores are damped by an IDF factor over the run’s pages, so a term on every page of a site fades.** Pinned by `score-candidates/score-candidates.spec.ts` -> `describe("idfFactor")` -> "is below 0.3 for a term on every page of 15, and 1 for a term on one of them"; `extract-keywords.spec.ts` -> "never returns the brand word at all".
 
 <!-- invariant: ANALYSIS-008 -->
+
 **A bounded code’s finding is a measurement carrying the bounds that were in force when the page was crawled, not today’s.** Pinned by `packages/contracts/src/domain/seo/measured-issue-codes.test.ts` -> "holds every catalogue entry that declares a min or a max"; `services/checks/title-length/title-length.check.spec.ts` -> the "at %d characters" cases; `be/test/e2e/pages.e2e-spec.ts` -> "the detail carries its score, the fetch time and a measured finding".
 
 <!-- invariant: ANALYSIS-009 -->
+
 **The extractor reads headings and blocks as a reader sees them: assistive-only text and in-heading controls contribute nothing.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "a copy-link control inside an h2 is not part of the heading (vercel.com)", "an element hidden from assistive technology contributes no text", "separates adjacent blocks so their words never fuse".
 
 <!-- invariant: ANALYSIS-010 -->
+
 **Every check answers pass, not applicable, or a finding, and the page stores both check counts.** Pinned by `services/checks/checks.registry.spec.ts` -> "finds nothing on two clean, unrelated pages, and applies every check", "does not count against a page a check that could not be judged", "keeps checksFailed equal to the number of issues"; the CHECKs `pages_checks_failed_range` and `pages_checks_applicable_positive`.
 
 <!-- invariant: ANALYSIS-012 -->
+
 **Every catalogue code names the one writer that owns it — the crawl or the PageSpeed worker; the two code sets are derived from that, disjoint and complete, and each writer replaces only its own codes.** Pinned by `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "partitions the catalogue by owner: every code in exactly one writer's set", "gives the PageSpeed worker exactly the six Core Web Vitals codes", "each CWV code's max is its metric's threshold for its band" and "makes a poor metric a warning and one that needs improvement a notice"; `be/src/modules/pages/repositories/seo-issues/seo-issues.repository.int-spec.ts` -> "a crawl's replace leaves the page's speed findings" and "a speed replace leaves the page's crawl findings". An entry without an owner is `pnpm typecheck` (the field is required), not a test.
 
 <!-- invariant: ANALYSIS-013 -->
+
 **Every page, speed and site entry explains itself in a plain what / why / fix, without markup, within its bounds, the fix naming who acts — beside the curated fields, never in place of them.** Pinned by `packages/contracts/src/domain/seo/issue-plain-copy.test.ts` -> "covers every page, speed and site entry", "%s carries what, why and fix", "%s has no < or > in its plain copy", "%s stays within its bounds" and "%s says in its fix who does it" (bounds and audience words in `plain-copy.interface.ts`). That the curated label, hint and explanation were not rewritten is NOT pinned by a test — it was checked once, by diff, when the copy landed. The tone is not testable at all.

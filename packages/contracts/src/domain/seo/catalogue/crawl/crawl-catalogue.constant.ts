@@ -157,6 +157,19 @@ export const ISSUE_SOURCES = {
     title: 'Ahrefs: On-page SEO',
     url: 'https://ahrefs.com/blog/on-page-seo/',
   },
+  ahrefsBrokenLinks: {
+    title: 'Ahrefs: How to find and fix broken links',
+    url: 'https://ahrefs.com/blog/fix-broken-links/',
+  },
+  ahrefsInternalLinks: {
+    title: 'Ahrefs: Internal links for SEO',
+    url: 'https://ahrefs.com/blog/internal-links-for-seo/',
+  },
+  httpNetworkErrors: {
+    title:
+      'Google Search Central: How HTTP status codes, and network and DNS errors affect Google Search',
+    url: 'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+  },
   articleMarkup: {
     title: 'Google Search Central: Article structured data',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/article',
@@ -519,10 +532,10 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'The page names another URL as canonical, so this one may not be indexed.',
     explanation:
-      'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal. A canonical that is this very page over http:// is reported as CANONICAL_TO_HTTP instead.',
+      'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal. A canonical that is this very page over http:// is reported as CANONICAL_TO_HTTP instead, and one whose target the crawl read and found broken as CANONICAL_TARGET_BROKEN.',
     sources: [SOURCE.canonical, SOURCE.sitemaps],
     skipReason:
-      'No canonical to disagree with, or it is the page over http:// (CANONICAL_TO_HTTP).',
+      'No canonical to disagree with, or it is the page over http:// (CANONICAL_TO_HTTP), or its target is broken (CANONICAL_TARGET_BROKEN).',
   },
   CANONICAL_TO_HTTP: {
     // A warning: the page asks Google to prefer the insecure copy of itself, against
@@ -540,6 +553,23 @@ export const CRAWL_CATALOGUE = {
     sources: [SOURCE.canonical, SOURCE.httpsSignal],
     skipReason:
       'No canonical declared, the page is not served over HTTPS, or the http:// canonical names another page (CANONICAL_MISMATCH).',
+  },
+  CANONICAL_TARGET_BROKEN: {
+    // A warning, as CANONICAL_CONFLICT is: the canonical names a page Google cannot settle
+    // on, so the signal is spent — the page may be indexed under neither address.
+    severity: 'warning',
+    label: 'Canonical points to a broken page',
+    plain: {
+      what: 'This page names a main version that redirects, is missing or is hidden from Google',
+      why: 'Google is told to index another address instead of this one, and that address is no page it can index. It may ignore the hint, pick an address you did not choose, or keep neither in results.',
+      fix: 'Ask your developer, or check the canonical setting in your SEO plugin, so the main-version address is a live page that is indexable and names itself.',
+    },
+    hint: 'Point the canonical at a live, indexable page that names itself as canonical.',
+    explanation:
+      "The page declares another URL as its canonical, and the crawl read that URL: it redirects, answers an error, cannot be reached, is set to noindex, or names yet another URL as its own canonical. Google's guidance asks for a canonical that is the page to index; a canonical pointing at a redirect, an error, a noindexed page or a chain gives conflicting signals, and Google may choose another URL or ignore the hint. When the target could not be read within the crawl's budget, robots.txt or deadline, the page is judged by CANONICAL_MISMATCH alone, as it would have been; when it is read and broken, this finding replaces CANONICAL_MISMATCH's, since it says the same and more.",
+    sources: [SOURCE.canonical, SOURCE.redirects],
+    skipReason:
+      "No canonical naming another page, or the page it names could not be read within the crawl's budget.",
   },
   CANONICAL_CONFLICT: {
     // A warning: conflicting canonicals leave the page where CANONICAL_MISSING would — a
@@ -862,6 +892,37 @@ export const CRAWL_CATALOGUE = {
     sources: [SOURCE.canonical, SOURCE.urlStructure],
     skipReason: 'The content links nowhere on the site.',
   },
+  BROKEN_LINKS: {
+    // A notice: Ahrefs names the rule, and Google says a 4xx costs only the page it is
+    // on — the reader who follows the link pays, not the ranking (plan D2, D3).
+    severity: 'notice',
+    label: 'Broken links in the text',
+    plain: {
+      what: 'Links in this post lead to pages that no longer exist',
+      why: 'A reader who clicks one lands on an error page, which reads as an outdated, unkept post and sends them away. A dead source also stops backing the claim it was linked for.',
+      fix: 'The writer or editor can replace each dead link in the CMS editor with a live page on the same subject, and remove it only when no such page exists.',
+    },
+    hint: 'Replace or remove links that answer 404 or 410, or whose domain no longer exists.',
+    explanation:
+      "The crawl asked every link in the post's main content for its status. A link to this site is broken when it answers any 4xx or 5xx, or redirects in a loop. A link to another site is broken only when it answers 404 or 410, or its domain does not exist: answers such as 401, 403, 429, LinkedIn's 999, any 5xx or a timeout are what anti-bot walls send crawlers and never readers, so they are never reported as broken. Google says a URL answering 4xx is simply left out of the index; the cost of a dead link falls on the reader who follows it, and Ahrefs' guidance treats broken outgoing links as a user-experience defect for that reason. When the crawl could not ask every link within its budget, robots.txt or deadline, the finding says how many it checked.",
+    sources: [SOURCE.ahrefsBrokenLinks, SOURCE.httpNetworkErrors],
+    skipReason:
+      "The page has no content links, or none could be checked within the crawl's budget.",
+  },
+  LINKS_TO_REDIRECTS: {
+    severity: 'notice',
+    label: 'Links to this site redirect',
+    plain: {
+      what: "Links in this post point to the site's own pages at old addresses",
+      why: 'Each one sends the reader and search engines through a redirect before the page opens: a little slower, and a mixed signal about which address is the real one. It usually means a page moved and the links were not updated.',
+      fix: 'The writer or editor can update each link in the CMS to the address it now redirects to.',
+    },
+    hint: 'Link to the final address, not to one that redirects to it.',
+    explanation:
+      "Links in the main content point to pages of this site that answer with a redirect before the page itself. Google's guidance on canonical URLs asks sites to link within the site to the canonical URL rather than a duplicate, because consistent internal links tell Google which address is preferred; a redirecting link says the opposite and sends every visit one hop around. Links to other sites are not judged — a redirect there is the other site's arrangement. A link that redirects only because it uses http://, the other www variant or a tracking parameter is reported by INTERNAL_LINK_VARIANTS instead, and one that ends on an error by BROKEN_LINKS.",
+    sources: [SOURCE.canonical, SOURCE.ahrefsInternalLinks],
+    skipReason: 'The page has no links to this site that could be checked.',
+  },
   LINKS_WITHOUT_TEXT: {
     severity: 'notice',
     label: 'Links with no text',
@@ -931,9 +992,27 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'List the page itself among its hreflang alternates.',
     explanation:
-      "The page declares hreflang alternates, and none of them is the page itself; a trailing slash is not counted as a difference. Google's documentation on localized versions requires each language version to list itself as well as all the others, and annotations that break the rule may be ignored. The usual cause is a template or plugin that writes the other languages and skips the current one. A page with no hreflang at all is not judged.",
+      "The page declares hreflang alternates, and none of them is the page itself; a trailing slash is not counted as a difference. Google's documentation on localized versions requires each language version to list itself as well as all the others, and annotations that break the rule may be ignored. The usual cause is a template or plugin that writes the other languages and skips the current one. A page with no hreflang at all is not judged, and neither is one whose canonical names another URL: it has left its own set, which HREFLANG_INVALID reports, and listing itself would not put it back.",
     sources: [SOURCE.hreflang],
-    skipReason: 'The page declares no hreflang.',
+    skipReason:
+      'The page declares no hreflang, or its canonical names another URL (HREFLANG_INVALID).',
+  },
+  HREFLANG_NOT_RECIPROCAL: {
+    // A warning: Google ignores a pair that does not link both ways, so the set fails to
+    // do the one thing it is for (plan D2).
+    severity: 'warning',
+    label: 'Hreflang is not returned',
+    plain: {
+      what: "This page's language versions don't link back to it",
+      why: 'Google pairs language versions only when each one links to the other. When a translation does not list this page, Google ignores the pair and may show readers the wrong language version.',
+      fix: 'Ask your developer, or check your multilingual plugin, so every language version lists all the others, this page included.',
+    },
+    hint: 'Make every language version list every other, both ways.',
+    explanation:
+      "The crawl read the language versions this page names in hreflang, and at least one of them lists no hreflang link back to this page; a trailing slash is not counted as a difference. Google's documentation on localized versions requires the annotations to be bidirectional: if page A names page B, B must name A, or the annotations may be ignored. Only versions that answered 200 directly are judged — one that redirects, fails or could not be read within the crawl's budget is not reported here — and x-default is not asked to link back. A version with an invalid language code, or on a development host, is reported by HREFLANG_INVALID or DEVELOPMENT_HOST_REFERENCES instead.",
+    sources: [SOURCE.hreflang],
+    skipReason:
+      'The page declares no hreflang, names another page as canonical, or none of its language versions could be read.',
   },
   VIEWPORT_MISSING: {
     // A warning and not an error, by the line ranking-signals.md draws: an error is for
@@ -974,10 +1053,10 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Set og:url to the canonical URL of the page.',
     explanation:
-      "The page's og:url names a different document from its canonical URL — or, when it declares no canonical, from the address it was served at; a trailing slash is not counted as a difference. The Open Graph protocol defines og:url as the canonical URL of the object, the permanent ID social platforms use to collect its likes and shares. When it disagrees with the canonical, shares and search results describe two addresses for one post. It does not affect Google rankings. The usual cause is a theme that writes og:url from the request address, with tracking parameters or a different host. An og:url on a staging or preview host is reported as DEVELOPMENT_HOST_REFERENCES instead.",
+      "The page's og:url names a different document from the page's own address, which its canonical confirms or, when it declares none, the address it was served at; a trailing slash is not counted as a difference. The Open Graph protocol defines og:url as the canonical URL of the object, the permanent ID social platforms use to collect its likes and shares. When it disagrees with the canonical, shares and search results describe two addresses for one post. It does not affect Google rankings. The usual cause is a theme that writes og:url from the request address, with tracking parameters or a different host. An og:url on a staging or preview host is reported as DEVELOPMENT_HOST_REFERENCES instead, and while the canonical names another page the canonical checks say what to fix first, so og:url is not judged.",
     sources: [SOURCE.openGraph, SOURCE.canonical],
     skipReason:
-      'The page declares no og:url, or it names a development host (DEVELOPMENT_HOST_REFERENCES).',
+      'The page declares no og:url, it names a development host (DEVELOPMENT_HOST_REFERENCES), or the canonical names another page (the canonical checks).',
   },
   PREVIEW_IMAGE_TOO_SMALL: {
     severity: 'notice',
@@ -1358,8 +1437,10 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Add a BreadcrumbList in JSON-LD or Microdata.',
     explanation:
-      "The page declares no BreadcrumbList, neither in JSON-LD (an @graph included) nor in Microdata. Google uses breadcrumb markup to categorise a page within its site and can show the trail in place of the URL in a result. The markup is optional and a page without it is not demoted; it only gives up the trail. RDFa is not read, so a trail declared only there is reported here. Whether a declared trail is complete is BREADCRUMB_INVALID's question.",
+      "The page declares no BreadcrumbList, neither in JSON-LD (an @graph included) nor in Microdata. Google uses breadcrumb markup to categorise a page within its site and can show the trail in place of the URL in a result. The markup is optional and a page without it is not demoted; it only gives up the trail. RDFa is not read, so a trail declared only there is reported here. Whether a declared trail is complete is BREADCRUMB_INVALID's question. A trail that an inline script inserts in the browser — as Next.js sites do — is read by Google after rendering and is not judged here.",
     sources: [SOURCE.breadcrumbMarkup],
+    skipReason:
+      'The trail is inserted by a script in the browser, which this crawler does not run.',
   },
   BREADCRUMB_INVALID: {
     // A warning, as a broken JSON-LD block is: the markup is there and Google ignores it.

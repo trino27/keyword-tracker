@@ -1,10 +1,11 @@
 /**
- * The four stages of one crawl run, in the order they happen. A run that is slow or
+ * The five stages of one crawl run, in the order they happen. A run that is slow or
  * that died is slow or dead somewhere, and "somewhere" is one of these.
  */
 export const CRAWL_STAGES = [
   'discovery',
   'fetch',
+  'outbound',
   'analysis',
   'persist',
 ] as const;

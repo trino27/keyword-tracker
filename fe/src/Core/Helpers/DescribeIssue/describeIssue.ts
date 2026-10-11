@@ -84,6 +84,17 @@ const DESCRIBE: Record<
 	CANONICAL_MISMATCH: (d) =>
 		`The ${text(d, "source") === "header" ? "Link header" : "canonical link"} names ${text(d, "canonical")}, not this page.`,
 	CANONICAL_TO_HTTP: (d) => `The canonical names ${text(d, "canonical")}, the insecure address.`,
+	CANONICAL_TARGET_BROKEN: (d) => {
+		const canonical = text(d, "canonical");
+		const problem = text(d, "problem");
+		if (problem === "status")
+			return `The canonical ${canonical} answers HTTP ${num(d, "status")}.`;
+		if (problem === "noindex") return `The canonical ${canonical} is set to noindex.`;
+		if (problem === "chain")
+			return `The canonical ${canonical} names ${text(d, "next")} as its own.`;
+		if (problem === "redirects") return `The canonical ${canonical} redirects.`;
+		return `The canonical ${canonical} cannot be reached.`;
+	},
 	CANONICAL_CONFLICT: (d) =>
 		`The page declares ${urls(d, "canonicals").length} different canonical URLs.`,
 	NOINDEX: (d) =>
@@ -145,6 +156,14 @@ const DESCRIBE: Record<
 		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "is" : "are"} marked nofollow.`,
 	INTERNAL_LINK_VARIANTS: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "uses" : "use"} a URL the site does not serve.`,
+	BROKEN_LINKS: (d) => {
+		const count = num(d, "count");
+		return `${count} link${count === 1 ? " leads" : "s lead"} nowhere: ${list(d, "links")}.`;
+	},
+	LINKS_TO_REDIRECTS: (d) => {
+		const count = num(d, "count");
+		return `${count} link${count === 1 ? "" : "s"} to this site redirect${count === 1 ? "s" : ""}: ${list(d, "links")}.`;
+	},
 	LINKS_WITHOUT_TEXT: (d) => {
 		const count = num(d, "count");
 		return `${count} link${count === 1 ? "" : "s"} to this site ${count === 1 ? "has" : "have"} no text, alt or label.`;
@@ -167,6 +186,10 @@ const DESCRIBE: Record<
 	},
 	HREFLANG_NO_SELF_REFERENCE: (d) =>
 		`None of the ${num(d, "alternates")} hreflang alternates names this page.`,
+	HREFLANG_NOT_RECIPROCAL: (d) => {
+		const count = num(d, "count");
+		return `${count} language version${count === 1 ? " does" : "s do"} not link back: ${list(d, "alternates")}.`;
+	},
 	VIEWPORT_MISSING: () => "The page has no viewport meta tag.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
 	OG_URL_MISMATCH: (d) =>

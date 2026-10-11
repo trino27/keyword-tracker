@@ -75,12 +75,19 @@ export const AUTHOR_MARKUP_INCOMPLETE_CHECK = defineCheck(
     // Person in the markup (habr.com, 2026-10) would otherwise report a second time.
     if (authors.length === 0 || parsed.authors.length === 0)
       return NOT_APPLICABLE;
-    const problems = authors.flatMap(problemsOf);
+    // One author written twice — shopify.com names each twice in one node (2026-10) —
+    // is one author, and one finding about them.
+    const unique = [
+      ...new Map(
+        authors.map((author) => [JSON.stringify(author), author]),
+      ).values(),
+    ];
+    const problems = unique.flatMap(problemsOf);
     return problems.length === 0
       ? PASS
       : fails({
           count: problems.length,
-          total: authors.length,
+          total: unique.length,
           evidence: evidence(problems),
         });
   },

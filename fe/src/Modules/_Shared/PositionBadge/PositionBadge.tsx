@@ -4,10 +4,12 @@ import { positionBucket } from "@Core/Helpers/PositionBucket/positionBucket";
 interface IPositionBadgeProps {
 	position: number | null;
 	size?: BadgeProps["size"];
+	/** The keyword the position belongs to, named on hover where the row has no room. */
+	keyword?: string;
 }
 
 /** A Google position in its bucket's colour; "—" until the first snapshot exists. */
-export function PositionBadge({ position, size = "md" }: IPositionBadgeProps) {
+export function PositionBadge({ position, size = "md", keyword }: IPositionBadgeProps) {
 	const bucket = positionBucket(position);
 	if (position === null) {
 		return (
@@ -18,15 +20,21 @@ export function PositionBadge({ position, size = "md" }: IPositionBadgeProps) {
 			</Tooltip>
 		);
 	}
-	return (
+	const badge = (
 		<Badge
 			color={bucket.color}
 			variant="filled"
 			size={size}
 			className="tabular"
-			title={bucket.label}
+			title={keyword ? undefined : bucket.label}
 		>
 			#{position}
 		</Badge>
+	);
+	if (!keyword) return badge;
+	return (
+		<Tooltip label={`${keyword} · ${bucket.label}`} withArrow>
+			{badge}
+		</Tooltip>
 	);
 }

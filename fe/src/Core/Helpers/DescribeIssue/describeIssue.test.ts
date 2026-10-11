@@ -91,6 +91,44 @@ describe("describeIssue", () => {
 		);
 	});
 
+	it("says what is wrong with the page the canonical names", () => {
+		expect(
+			describeIssue("CANONICAL_TARGET_BROKEN", {
+				canonical: "https://a.example/x/",
+				problem: "status",
+				status: 404,
+			}),
+		).toBe("The canonical https://a.example/x/ answers HTTP 404.");
+		expect(
+			describeIssue("CANONICAL_TARGET_BROKEN", {
+				canonical: "https://a.example/x/",
+				problem: "chain",
+				next: "https://a.example/y/",
+			}),
+		).toBe("The canonical https://a.example/x/ names https://a.example/y/ as its own.");
+	});
+
+	it("names the language versions that do not link back", () => {
+		expect(
+			describeIssue("HREFLANG_NOT_RECIPROCAL", {
+				count: 1,
+				alternates: ["https://a.example/de/"],
+			}),
+		).toBe("1 language version does not link back: https://a.example/de/.");
+	});
+
+	it("names the links that are broken or redirect", () => {
+		expect(describeIssue("BROKEN_LINKS", { count: 1, links: ["https://b.example/x"] })).toBe(
+			"1 link leads nowhere: https://b.example/x.",
+		);
+		expect(
+			describeIssue("LINKS_TO_REDIRECTS", {
+				count: 2,
+				links: ["https://a.example/1/", "https://a.example/2/"],
+			}),
+		).toBe("2 links to this site redirect: https://a.example/1/, https://a.example/2/.");
+	});
+
 	it("says what a missing breadcrumb or repeated description is", () => {
 		expect(describeIssue("BREADCRUMB_MISSING", {})).toBe(
 			"The page declares no BreadcrumbList.",

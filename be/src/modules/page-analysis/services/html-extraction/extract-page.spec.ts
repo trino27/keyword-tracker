@@ -543,6 +543,32 @@ describe('extractPage', () => {
     ).toBe(false);
   });
 
+  // Field audit, 2026-10-11: vercel.com's posts carry their JSON-LD inside the Next.js
+  // payload, escaped in a string; React writes the ld+json block in the browser.
+  it('reads the schema types an inline script will insert, escaped or not', () => {
+    expect(
+      page(
+        '<script>self.__next_f.push([1,"{\\"@context\\":\\"https://schema.org\\",\\"@type\\":\\"BreadcrumbList\\"}"])</script>' +
+          '<script>window.data = {"@type": "Organization"}</script>' +
+          '<script type="application/ld+json">{"@type":"Article"}</script>',
+      ).scriptedSchemaTypes,
+    ).toEqual(['BreadcrumbList', 'Organization']);
+  });
+
+  // Field audit, 2026-10-11: every Substack page carries a "This site requires JavaScript"
+  // banner in <noscript>, the server-rendered ones too. A paid post is short because of
+  // its paywall, not its scripts — the banner beside real text is no shell.
+  it('does not take a JavaScript banner beside server-rendered text for a shell', () => {
+    expect(
+      page(
+        '<noscript><div id="nojs-banner">This site requires JavaScript to run correctly.</div></noscript>' +
+          '<article><h1>Community Wisdom: getting value from personal AI agents</h1>' +
+          '<p>Hello and welcome to this week’s edition of Community Wisdom, a subscriber-only email, delivered every Saturday, highlighting the most helpful conversations in our members-only Slack community.</p>' +
+          '<p>This post is for paid subscribers. Subscribe. Already a paid subscriber? Sign in.</p></article>',
+      ).clientRendered,
+    ).toBe(false);
+  });
+
   /**
    * An author is often a reference into the graph — `{"@id": "#jane"}` — and only the
    * node carrying that @id has the name. Each source is kept as the evidence it is.

@@ -128,6 +128,48 @@ describe('SiteHttpClient', () => {
     expect(response.text).toContain('<title>');
   });
 
+  // Plan D5: a link is asked for its status; the body is never read, and a status that
+  // a retry might change is an answer too — the link check has its own budget.
+  it('checkLink asks once, with no body', async () => {
+    const transport = new FixtureHttpTransport({ entries: {}, patterns: [] });
+    const send = jest.spyOn(transport, 'send').mockResolvedValue({
+      status: 503,
+      headers: {},
+      body: Buffer.alloc(0),
+      ttfbMs: 1,
+    });
+
+    const response = await makeClient(transport).checkLink(
+      'https://other.example/post/',
+      signal(),
+    );
+
+    expect(response.status).toBe(503);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][0]).toMatchObject({
+      maxBytes: 0,
+      overflow: 'truncate',
+    });
+  });
+
+  it('readDocument does not retry a 503', async () => {
+    const transport = new FixtureHttpTransport({ entries: {}, patterns: [] });
+    const send = jest.spyOn(transport, 'send').mockResolvedValue({
+      status: 503,
+      headers: { 'content-type': 'text/html' },
+      body: Buffer.from('<html></html>'),
+      ttfbMs: 1,
+    });
+
+    const response = await makeClient(transport).readDocument(
+      'https://other.example/de/post/',
+      signal(),
+    );
+
+    expect(response.status).toBe(503);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
   it('a corrupt archive reads as an empty sitemap', async () => {
     const transport = new FixtureHttpTransport({ entries: {}, patterns: [] });
     const truncated = gzipSync('<urlset></urlset>').subarray(0, 12);

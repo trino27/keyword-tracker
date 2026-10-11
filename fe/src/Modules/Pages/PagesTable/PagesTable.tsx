@@ -83,8 +83,8 @@ export function PagesTable({
 							{showClient && <Table.Th>Client</Table.Th>}
 							<Table.Th>Keywords</Table.Th>
 							{/* The page's latest position: the strongest of its keywords' current
-							    ones, with that keyword named beside it, so the number says which
-							    term it belongs to rather than standing for the page as a whole. */}
+							    ones. The keyword it belongs to is named on hover — the Keywords
+							    column already lists it with its position. */}
 							<Table.Th>Latest position</Table.Th>
 							<Table.Th>SEO issues</Table.Th>
 							<Table.Th>Updated</Table.Th>
@@ -167,16 +167,10 @@ export function PagesTable({
 									</Group>
 								</Table.Td>
 								<Table.Td>
-									<Group gap={6} wrap="nowrap">
-										<PositionBadge
-											position={item.bestPosition?.position ?? null}
-										/>
-										{item.bestPosition && (
-											<Text size="xs" c="dimmed" truncate="end" maw={140}>
-												{item.bestPosition.term}
-											</Text>
-										)}
-									</Group>
+									<PositionBadge
+										position={item.bestPosition?.position ?? null}
+										keyword={item.bestPosition?.term}
+									/>
 								</Table.Td>
 								<Table.Td>
 									<IssueCounts item={item} />

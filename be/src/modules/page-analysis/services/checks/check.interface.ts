@@ -7,6 +7,7 @@ import type {
   IParsedPage,
   IPreviewImage,
 } from '../../interfaces/parsed-page.interface';
+import type { IOutboundFacts } from '../../interfaces/outbound-facts.interface';
 import type { IRobotsRules } from '../../interfaces/robots-rules.interface';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 
@@ -30,6 +31,12 @@ export interface ICheckInput {
   headers: Record<string, string>;
   /** When the response arrived: the "now" every date a check compares against. */
   fetchedAt: Date;
+  /**
+   * What the crawl's outbound stage learned: the status of each content link, and what
+   * each canonical target and hreflang alternate declares (plan D4). Empty when nothing
+   * was asked, which leaves every check that reads it not applicable.
+   */
+  linkStatuses: IOutboundFacts;
   /**
    * The client owner's IANA zone. A check that says "this year" reads `fetchedAt` in it,
    * so the year turns at the owner's midnight, not the server's (TZ-003).

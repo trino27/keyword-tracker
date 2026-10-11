@@ -16,6 +16,7 @@ export function emptyRunContext(
     selection: null,
     pages: null,
     siteProbes: null,
+    outbound: null,
     siteChecks: null,
     outcome: null,
   };

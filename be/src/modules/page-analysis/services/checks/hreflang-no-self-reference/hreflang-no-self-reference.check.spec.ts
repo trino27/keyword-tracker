@@ -35,6 +35,21 @@ describe('HREFLANG_NO_SELF_REFERENCE', () => {
     ).toEqual(PASSES);
   });
 
+  // No contradiction: a page whose canonical names another URL has left its own set,
+  // which HREFLANG_INVALID reports; asking it to list itself would advise the opposite.
+  it("is not applicable when the canonical names another URL — that is HREFLANG_INVALID's", () => {
+    expect(
+      HREFLANG_NO_SELF_REFERENCE_CHECK.evaluate(
+        makeCheckInput({
+          parsed: {
+            canonicals: ['https://a.example/original/'],
+            alternates: [{ lang: 'de', href: 'https://a.example/de/post/' }],
+          },
+        }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
   it('is not applicable without alternates', () => {
     expect(HREFLANG_NO_SELF_REFERENCE_CHECK.evaluate(withAlternates())).toEqual(
       NOT_APPLICABLE,

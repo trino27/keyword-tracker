@@ -125,7 +125,7 @@ describe("PagesTable", () => {
 			],
 		});
 
-		expect(await screen.findByText("1 Critical")).toBeInTheDocument();
+		expect(await screen.findByLabelText("1 Critical")).toHaveTextContent("1");
 		expect(screen.queryByText(/site-wide/)).not.toBeInTheDocument();
 	});
 

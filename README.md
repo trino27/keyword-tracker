@@ -67,7 +67,7 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   tokenized into every window it contains, so a phrase the prose never repeats is damped and a
   bare common word is not selected at all — otherwise a page is filed under `nlds thriller` or
   `exercises` while its subject sits one line below.
-- **The checks are not invented here:** 50 page checks and 9 site checks, one unit per catalogued code, from Google's
+- **The checks are not invented here:** 70 page checks and 13 site checks, one unit per catalogued code, from Google's
   SEO Starter Guide, Search Central's crawling and indexing guides and the set Lighthouse audits.
   Every check explains itself at length and links the documentation behind it, and every finding
   quotes the markup, header or robots.txt rule that proves it. Forty-six judge a page by

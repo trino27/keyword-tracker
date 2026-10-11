@@ -165,6 +165,8 @@ describe('evaluateChecks', () => {
               // No article markup, trail, video or image of its own to judge.
               articleMarkup: null,
               breadcrumbs: [],
+              // Its only trail is one a script would insert, which cannot be confirmed.
+              scriptedSchemaTypes: ['BreadcrumbList'],
               videos: [],
               openGraph: {},
             },
@@ -304,6 +306,49 @@ describe('evaluateChecks', () => {
           height: 60,
         },
         robots: blocked,
+        linkStatuses: {
+          // On `b` the canonical's target was read and is gone (CANONICAL_TARGET_BROKEN);
+          // on `c` it was not read, so CANONICAL_MISMATCH judges it as before.
+          documents: new Map(
+            path === 'b'
+              ? [
+                  [
+                    'https://a.example/x/',
+                    {
+                      url: 'https://a.example/x/',
+                      outcome: {
+                        kind: 'answered',
+                        status: 404,
+                        redirects: [],
+                        finalUrl: 'https://a.example/x/',
+                      },
+                      page: null,
+                    },
+                  ],
+                ]
+              : [],
+          ),
+          links: new Map([
+            [
+              'https://a.example/moved/',
+              {
+                kind: 'answered',
+                status: 200,
+                redirects: [{ url: 'https://a.example/moved/', status: 301 }],
+                finalUrl: 'https://a.example/new/',
+              },
+            ],
+            [
+              'https://gone.example/source',
+              {
+                kind: 'answered',
+                status: 404,
+                redirects: [],
+                finalUrl: 'https://gone.example/source',
+              },
+            ],
+          ]),
+        },
         headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
         htmlBytes: 2_000_000,
         parsed: {
@@ -376,7 +421,12 @@ describe('evaluateChecks', () => {
           ],
           resourceUrls: ['http://a.example/i.png'],
           renderResources: ['https://a.example/app.js'],
-          links: ['http://a.example/other/?utm_source=x'],
+          // A tracking variant, a link that redirects, and a source that is gone.
+          links: [
+            'http://a.example/other/?utm_source=x',
+            'https://a.example/moved/',
+            'https://gone.example/source',
+          ],
           nofollowLinks: ['http://a.example/other/?utm_source=x'],
           uncrawlableLinks: ['<a onclick="go()">Go</a>'],
           wordCount: 100,
@@ -386,6 +436,26 @@ describe('evaluateChecks', () => {
       url: 'http://a.example/plain/',
       finalUrl: 'http://a.example/plain/',
       robots: blocked,
+      // Its French version (makeCheckInput's `fr/` alternate) was read and does not
+      // name it back.
+      linkStatuses: {
+        links: new Map(),
+        documents: new Map([
+          [
+            'http://a.example/plain/fr/',
+            {
+              url: 'http://a.example/plain/fr/',
+              outcome: {
+                kind: 'answered',
+                status: 200,
+                redirects: [],
+                finalUrl: 'http://a.example/plain/fr/',
+              },
+              page: { noindex: false, canonical: null, alternates: [] },
+            },
+          ],
+        ]),
+      },
       parsed: {
         title: null,
         metaDescription: null,
@@ -399,6 +469,9 @@ describe('evaluateChecks', () => {
         links: [],
         jsonLd: { types: ['Article'], keywords: [], articleFields: [] },
         breadcrumbs: [],
+        // A French version only: the set leaves this page out, and the French page does
+        // not name it back either.
+        alternates: [{ lang: 'fr', href: 'http://a.example/plain/fr/' }],
         // Not the page's address, and not a staging host either.
         openGraph: {
           ...makeCheckInput().parsed.openGraph,
@@ -415,8 +488,13 @@ describe('evaluateChecks', () => {
 
     const evaluations = evaluateChecks(
       makeRunInput(
-        [broken('a'), broken('b'), opposite],
-        [keywordsOf('same'), keywordsOf('same'), keywordsOf('other')],
+        [broken('a'), broken('b'), broken('c'), opposite],
+        [
+          keywordsOf('same'),
+          keywordsOf('same'),
+          keywordsOf('same'),
+          keywordsOf('other'),
+        ],
       ),
     );
     const issues = evaluations.flatMap((evaluation) => evaluation.issues);

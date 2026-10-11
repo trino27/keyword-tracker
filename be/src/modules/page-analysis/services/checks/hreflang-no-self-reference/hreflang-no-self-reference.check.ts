@@ -1,3 +1,4 @@
+import { declaredCanonicals } from '../_shared/declared-canonicals';
 import { sameDocument } from '../_shared/same-document';
 import { evidence } from '../_shared/evidence';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
@@ -10,8 +11,17 @@ import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
  */
 export const HREFLANG_NO_SELF_REFERENCE_CHECK = defineCheck(
   'HREFLANG_NO_SELF_REFERENCE',
-  ({ parsed: { alternates }, finalUrl }) => {
+  (page) => {
+    const {
+      parsed: { alternates },
+      finalUrl,
+    } = page;
     if (alternates.length === 0) return NOT_APPLICABLE;
+    // A canonical naming another URL takes the page out of its own set: HREFLANG_INVALID
+    // says so, and asking it to list itself here would advise the opposite.
+    const [canonical] = declaredCanonicals(page);
+    if (canonical && !sameDocument(canonical.url, finalUrl))
+      return NOT_APPLICABLE;
     return alternates.some(({ href }) => sameDocument(href, finalUrl))
       ? PASS
       : fails({

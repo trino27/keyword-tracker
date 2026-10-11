@@ -10,6 +10,9 @@ import { ARTICLE_HEADLINE_MISMATCH_CHECK } from './article-headline-mismatch/art
 import { AUTHOR_MARKUP_INCOMPLETE_CHECK } from './author-markup-incomplete/author-markup-incomplete.check';
 import { BREADCRUMB_INVALID_CHECK } from './breadcrumb-invalid/breadcrumb-invalid.check';
 import { BREADCRUMB_MISSING_CHECK } from './breadcrumb-missing/breadcrumb-missing.check';
+import { BROKEN_LINKS_CHECK } from './broken-links/broken-links.check';
+import { LINKS_TO_REDIRECTS_CHECK } from './links-to-redirects/links-to-redirects.check';
+import { CANONICAL_TARGET_BROKEN_CHECK } from './canonical-target-broken/canonical-target-broken.check';
 import { CANONICAL_TO_HTTP_CHECK } from './canonical-to-http/canonical-to-http.check';
 import { META_DESCRIPTION_REPEATS_TITLE_CHECK } from './meta-description-repeats-title/meta-description-repeats-title.check';
 import { OG_URL_MISMATCH_CHECK } from './og-url-mismatch/og-url-mismatch.check';
@@ -34,6 +37,7 @@ import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
+import { HREFLANG_NOT_RECIPROCAL_CHECK } from './hreflang-not-reciprocal/hreflang-not-reciprocal.check';
 import { HREFLANG_NO_SELF_REFERENCE_CHECK } from './hreflang-no-self-reference/hreflang-no-self-reference.check';
 import { LCP_IMAGE_LAZY_LOADED_CHECK } from './lcp-image-lazy-loaded/lcp-image-lazy-loaded.check';
 import { RENDER_BLOCKING_SCRIPTS_CHECK } from './render-blocking-scripts/render-blocking-scripts.check';
@@ -108,6 +112,7 @@ export const CHECKS: TCheckRegistry = {
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
   CANONICAL_TO_HTTP: CANONICAL_TO_HTTP_CHECK,
+  CANONICAL_TARGET_BROKEN: CANONICAL_TARGET_BROKEN_CHECK,
   CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
   DEVELOPMENT_HOST_REFERENCES: DEVELOPMENT_HOST_REFERENCES_CHECK,
   CANONICAL_RELATIVE: CANONICAL_RELATIVE_CHECK,
@@ -129,11 +134,14 @@ export const CHECKS: TCheckRegistry = {
   NO_EXTERNAL_SOURCES: NO_EXTERNAL_SOURCES_CHECK,
   INTERNAL_LINKS_NOFOLLOW: INTERNAL_LINKS_NOFOLLOW_CHECK,
   INTERNAL_LINK_VARIANTS: INTERNAL_LINK_VARIANTS_CHECK,
+  BROKEN_LINKS: BROKEN_LINKS_CHECK,
+  LINKS_TO_REDIRECTS: LINKS_TO_REDIRECTS_CHECK,
   LINKS_WITHOUT_TEXT: LINKS_WITHOUT_TEXT_CHECK,
   UNCRAWLABLE_LINKS: UNCRAWLABLE_LINKS_CHECK,
   LANG_MISSING: LANG_MISSING_CHECK,
   HREFLANG_INVALID: HREFLANG_INVALID_CHECK,
   HREFLANG_NO_SELF_REFERENCE: HREFLANG_NO_SELF_REFERENCE_CHECK,
+  HREFLANG_NOT_RECIPROCAL: HREFLANG_NOT_RECIPROCAL_CHECK,
   VIEWPORT_MISSING: VIEWPORT_MISSING_CHECK,
   OG_TAGS_MISSING: OG_TAGS_MISSING_CHECK,
   OG_URL_MISMATCH: OG_URL_MISMATCH_CHECK,

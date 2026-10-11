@@ -22,6 +22,12 @@ export interface ISiteCheckDefinition {
 }
 
 const SITE_SOURCE = {
+  // An industry measurement of AI crawlers' traffic, opened and read on 2026-10-11; cited
+  // beside Google's own JavaScript guidance, which says Google renders the page.
+  aiCrawlers: {
+    title: 'Vercel: The rise of the AI crawler',
+    url: 'https://vercel.com/blog/the-rise-of-the-ai-crawler',
+  },
   unsupportedRobotsRules: {
     title:
       'Google Search Central Blog: A note on unsupported rules in robots.txt',
@@ -100,7 +106,7 @@ export const SITE_CHECK_CATALOGUE = {
       why: 'Entries use http instead of https, or www when the site runs without it (or the reverse). Each costs a redirect and tells Google a different address is the main one than the pages themselves do.',
       fix: 'Ask your developer to update the site address in the sitemap generator or CMS settings; it is usually left over from a move to https or a new domain.',
     },
-    hint: 'List every URL with the scheme and host the site serves — the one its pages declare as canonical.',
+    hint: 'List every URL with the scheme and host the site serves its pages from.',
     explanation:
       'Some sitemap URLs use a different scheme or host variant than the one the site serves its pages from — http:// on an https site, the www host on a site served without it, or the reverse. Every one costs a redirect and tells Google a different URL is the main one than the pages themselves do. The usual cause is a generator that takes the host from configuration that was never updated after a move.',
     sources: [SOURCE.sitemaps, SOURCE.canonical],
@@ -208,6 +214,22 @@ export const SITE_CHECK_CATALOGUE = {
     sources: [SOURCE.siteNames],
     skipReason:
       'The home page lacks WebSite markup with a name, or an og:site_name, to compare.',
+  },
+  CONTENT_NEEDS_JAVASCRIPT: {
+    // A notice: Google renders JavaScript and indexes such posts; the cost is to AI
+    // assistants' search crawlers, which do not (plan D8).
+    severity: 'notice',
+    label: 'Posts need JavaScript to show their text',
+    plain: {
+      what: "Some posts show no text until the browser runs the site's scripts",
+      why: 'Google runs the scripts and sees the post, so rankings are not the issue. The crawlers behind ChatGPT, Claude and Perplexity do not run them: to those assistants the post is empty, so they cannot quote it or link to it in their answers.',
+      fix: 'Ask your developer to render posts on the server or as static pages (most frameworks have a setting for it), so the text is in the HTML the server sends.',
+    },
+    hint: 'Serve the text of each post in its HTML: server-side or static rendering.',
+    explanation:
+      "Among the posts this crawl read, some arrived as an empty shell — an application root with no text, or a notice asking for JavaScript — with the content drawn by scripts in the browser. This crawler runs no scripts, so it skipped them; the finding names them. Google renders JavaScript and can index such pages, at the cost of a second, deferred rendering pass. The search crawlers of AI assistants do not: Vercel's measurement of their traffic found that none of the major ones — OpenAI's, Anthropic's and Perplexity's among them — executes JavaScript, so a client-rendered post is invisible to them. Server-side or static rendering puts the text in the HTML for every reader.",
+    sources: [SOURCE.javascriptSeo, SITE_SOURCE.aiCrawlers],
+    skipReason: 'The crawl read no post to judge.',
   },
 } as const satisfies Record<string, ISiteCheckDefinition>;
 

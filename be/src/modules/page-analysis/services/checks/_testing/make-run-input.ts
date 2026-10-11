@@ -20,6 +20,40 @@ export const runPage = (
     finalUrl: url,
     // Seen before, unchanged and under the same date — so the comparison applies and
     // passes, as it does for a page nobody touched.
+    // Every link the page carries answered, directly: the link checks apply and pass.
+    linkStatuses: {
+      links: new Map(
+        ['https://a.example/another-post/', 'https://study.example/report'].map(
+          (url) => [
+            url,
+            { kind: 'answered', status: 200, redirects: [], finalUrl: url },
+          ],
+        ),
+      ),
+      // Its French version, read, and naming this page back.
+      documents: new Map([
+        [
+          `${url}fr/`,
+          {
+            url: `${url}fr/`,
+            outcome: {
+              kind: 'answered',
+              status: 200,
+              redirects: [],
+              finalUrl: `${url}fr/`,
+            },
+            page: {
+              noindex: false,
+              canonical: `${url}fr/`,
+              alternates: [
+                { lang: 'en', href: url },
+                { lang: 'fr', href: `${url}fr/` },
+              ],
+            },
+          },
+        ],
+      ]),
+    },
     previous: {
       contentHash: 'a'.repeat(64),
       dateModified: '2026-02-01T09:00:00Z',
@@ -32,7 +66,10 @@ export const runPage = (
         Array.from({ length: 12 }, (_, k) => `${path}${n}w${k}`).join(' '),
       ),
       canonicals: [url],
-      alternates: [{ lang: 'en', href: url }],
+      alternates: [
+        { lang: 'en', href: url },
+        { lang: 'fr', href: `${url}fr/` },
+      ],
       ...parsed,
     },
   });
