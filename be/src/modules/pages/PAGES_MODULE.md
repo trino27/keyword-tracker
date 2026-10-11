@@ -5,20 +5,27 @@ serves the pages list, the page detail and the position history.
 
 - **Three owners of `seo_issues` codes, each replace taking only its own.** The catalogue is a
   registry of owners (`ISSUE_CATALOGUES`): the crawl's replace (`replaceCrawlFindingsForWorker`)
-  deletes crawl codes only, the PageSpeed worker's two replaces Core Web Vitals codes
-  (`replacePageSpeedFindingsForWorker`) and Lighthouse codes
-  (`replaceLighthouseFindingsForWorker`) only — so a re-crawl never erases a measurement's
-  findings, nor a measurement the crawl's. Pinned by `seo-issues.repository.int-spec.ts`.
+  deletes crawl codes only, the PageSpeed worker's two replaces one device's speed codes
+  (`replacePageSpeedFindingsForWorker(…, strategy, …)`, `PAGE_SPEED_CODES_BY_STRATEGY`) and
+  Lighthouse codes (`replaceLighthouseFindingsForWorker`, mobile completions only) — so a
+  re-crawl never erases a measurement's findings, a desktop measurement never erases mobile's or
+  Lighthouse's, nor the other way. Pinned by `seo-issues.repository.int-spec.ts`.
 - **`page_speed` is the PageSpeed queue and the cache of the last good measurement**, one row
-  per page; see `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. The list and the detail join it
-  by primary key and carry a `pageSpeed` summary (bands derived at read time) and the
-  `pageSpeedAvailability` state, from `PageSpeedAvailabilityService`. A Core Web Vitals finding counts among the page's issues by
-  severity and in its code's client-wide spread like any other, and never enters the score, the
-  checks list or the order. A Lighthouse finding counts in all of them: the score and the order
-  sum the crawl's `checks_applicable` / `checks_failed` with the measurement's
-  `cardinality(lighthouse_judged)` / `lighthouse_failed` (`pageScoreOf` over the scored owners),
-  and the detail lists each scored owner's checks with its own null (`checksByOwner`) — a
-  Lighthouse finding repeating a crawl one is counted on both sides (lighthouse-checks D9, D11).
+  per page and device (`strategy`, keyed `(page_id, strategy)`); see
+  `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. Every join names its device: the list, its
+  badges, the score and Lighthouse's checks read the mobile row (`ps.strategy = 'mobile'`) — a
+  join by page id alone would list a page once per device. The list carries the mobile
+  `pageSpeed` summary; the detail carries `pageSpeedByStrategy`, both devices (a second join,
+  `psd`, read back through the same `pageSpeedRowOf`), null for a device never queued. Bands are
+  derived at read time, and the `pageSpeedAvailability` state comes from
+  `PageSpeedAvailabilityService`. A speed finding — a Core Web Vitals band of either device, or
+  image delivery — counts among the page's issues by severity and in its code's client-wide
+  spread like any other, and never enters the score, the checks list or the order. A Lighthouse
+  finding counts in all of them: the score and the order sum the crawl's points with
+  Lighthouse's active checks weighed the same way (`LIGHTHOUSE_SCORE_POINTS_LATERAL` over the
+  mobile row; `pageScoreOf` over the scored owners), and the detail lists each scored owner's
+  checks with its own null (`checksByOwner`) — a Lighthouse finding repeating a crawl one is
+  counted on both sides (lighthouse-checks D9, D11).
 
 - **Current = on the client's latest succeeded/partial run** — one SQL fragment,
   `CURRENT_RUN_STATUSES_SQL` (`be/src/persistence/sql/current-run-statuses.ts`), for the list,
@@ -133,7 +140,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/pages/spec.md`.
 
 <!-- invariant: PAGES-014 -->
 
-**The list and the detail carry each page's speed summary — bands derived when read, never stored; the failure reason only for a failed row; null for a page never queued — and PageSpeed's state from `pageSpeedAvailabilityOf`.** Pinned by `services/page-speed-summary/page-speed-summary-of.spec.ts` -> "a summary carries each metric's band from the thresholds", "a never-measured page has a null measurement", "INP without field data is null inside a measurement", "lastError is null unless failed", "a page never queued has no summary"; `services/page-read/page-read.service.spec.ts` -> "the availability state comes from pageSpeedAvailabilityOf" (through `PageSpeedAvailabilityService`); `be/test/e2e/page-speed.e2e-spec.ts` -> "the list and the detail carry the PageSpeed state", "every non-good badge in the list has its finding in the detail, and no good one does" and, for `keyRejected` on the list, "after Google rejects the key every row is still queued and the state is keyRejected". The frontend refuses an unknown band or state: `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts` -> "refuses a summary with an unknown band" and "refuses an unknown availability state".
+**The list carries each page's mobile speed summary and the detail both devices' (`pageSpeedByStrategy`) — bands derived when read, never stored; the failure reason only for a failed row; null for a device never queued — and PageSpeed's state from `pageSpeedAvailabilityOf`.** The device half is pinned by `services/page-read/page-read.service.spec.ts` -> "the detail carries a summary per strategy, null where never queued" and "the score reads the mobile row whatever the desktop row holds", `page-list.repository.int-spec.ts` -> "lists a page once, with its mobile summary and score, when both strategies are stored", and `be/test/e2e/pages.e2e-spec.ts` -> "the detail carries pageSpeedByStrategy". The rest is pinned by `services/page-speed-summary/page-speed-summary-of.spec.ts` -> "a summary carries each metric's band from the thresholds", "a never-measured page has a null measurement", "INP without field data is null inside a measurement", "lastError is null unless failed", "a page never queued has no summary"; `services/page-read/page-read.service.spec.ts` -> "the availability state comes from pageSpeedAvailabilityOf" (through `PageSpeedAvailabilityService`); `be/test/e2e/page-speed.e2e-spec.ts` -> "the list and the detail carry the PageSpeed state", "every non-good badge in the list has its finding in the detail, and no good one does" and, for `keyRejected` on the list, "after Google rejects the key every row is still queued and the state is keyRejected". The frontend refuses an unknown band or state: `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts` -> "refuses a summary with an unknown band" and "refuses an unknown availability state".
 
 <!-- invariant: CRAWL-009 -->
 
@@ -157,7 +164,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/pages/spec.md`.
 
 <!-- invariant: SEED-006 -->
 
-**The seed queues every current page that has no `page_speed` row, once, and waits for no measurement. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "the backfill queues each current page once, and a second run queues none"; `repositories/page-speed/page-speed.repository.int-spec.ts` -> "queues each current page once, and a second run queues none". Not waiting is structural: the seed process does not import `PageSpeedModule`.
+**The seed queues every current page, once per device, that has no `page_speed` row for it, and waits for no measurement. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "the backfill queues each current page once per strategy, and a second run queues none"; `repositories/page-speed/page-speed.repository.int-spec.ts` -> "queues each current page once, and a second run queues none" (called with the strategies it is given). Not waiting is structural: the seed process does not import `PageSpeedModule`.
 
 <!-- invariant: TZ-003 -->
 
