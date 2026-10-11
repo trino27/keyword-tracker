@@ -1095,6 +1095,24 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.hreflang],
     skipReason: 'The page declares no hreflang.',
   },
+  HREFLANG_NOT_RECIPROCAL: {
+    // A warning: Google ignores a pair that does not link both ways, so the set fails to
+    // do the one thing it is for (plan D2).
+    owner: 'crawl',
+    severity: 'warning',
+    label: 'Hreflang is not returned',
+    plain: {
+      what: "This page's language versions don't link back to it",
+      why: 'Google pairs language versions only when each one links to the other. When a translation does not list this page, Google ignores the pair and may show readers the wrong language version.',
+      fix: 'Ask your developer, or check your multilingual plugin, so every language version lists all the others, this page included.',
+    },
+    hint: 'Make every language version list every other, both ways.',
+    explanation:
+      "The crawl read the language versions this page names in hreflang, and at least one of them lists no hreflang link back to this page; a trailing slash is not counted as a difference. Google's documentation on localized versions requires the annotations to be bidirectional: if page A names page B, B must name A, or the annotations may be ignored. Only versions that answered 200 directly are judged — one that redirects, fails or could not be read within the crawl's budget is not reported here — and x-default is not asked to link back. A version with an invalid language code, or on a development host, is reported by HREFLANG_INVALID or DEVELOPMENT_HOST_REFERENCES instead.",
+    sources: [SOURCE.hreflang],
+    skipReason:
+      'The page declares no hreflang, names another page as canonical, or none of its language versions could be read.',
+  },
   VIEWPORT_MISSING: {
     // A warning and not an error, by the line ranking-signals.md draws: an error is for
     // what keeps a page out of the running — unreachable, noindexed, canonicalised away.

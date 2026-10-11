@@ -235,7 +235,7 @@ it green.
 
 ## 5. `HREFLANG_NOT_RECIPROCAL` (3e) — ANALYSIS-027
 
-- [ ] 5.1 Write first `hreflang-not-reciprocal/hreflang-not-reciprocal.check.spec.ts`:
+- [x] 5.1 Write first `hreflang-not-reciprocal/hreflang-not-reciprocal.check.spec.ts`:
   - "fails an alternate that answers 200 and does not name this page";
   - "passes an alternate that names this page with a trailing-slash difference";
   - "does not judge a redirected alternate";
@@ -248,13 +248,17 @@ it green.
     D36).
 
   It fails: no module. Verify: `pnpm --filter be test:ci -- hreflang-not-reciprocal` fails.
-- [ ] 5.2 Move `problemWith` from `hreflang-invalid.check.ts:71-100` to `_shared/hreflang-code.ts`,
+- [x] 5.2 Move `problemWith` from `hreflang-invalid.check.ts:71-100` to `_shared/hreflang-code.ts`,
   unchanged, so both checks read one validator. Add the check, registered; the catalogue entry
   (warning, Google localized-versions source); `DESCRIBE`. Point the comments at `hreflang-invalid.check.ts:102-115` and
   `seo-issue-catalogue.constant.ts:847-852` at the new code, replacing "reciprocity is
   deliberately not checked". Verify: `pnpm --filter be test:ci -- hreflang && pnpm typecheck`.
-- [ ] 5.3 Commit: `feat(page-analysis): hreflang alternates that do not link back`. Verify:
+- [x] 5.3 Commit: `feat(page-analysis): hreflang alternates that do not link back`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+
+  AMENDED during implementation: the spec adds "says how many alternates it read when it could
+  not read them all". The registry's clean pages now carry a French version that names them
+  back (`runPage`), and its `opposite` page one that does not.
 
 ## 6. Field audit, measured cost, and the module document (3f) — plan D12
 

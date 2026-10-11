@@ -30,7 +30,29 @@ export const runPage = (
           ],
         ),
       ),
-      documents: new Map(),
+      // Its French version, read, and naming this page back.
+      documents: new Map([
+        [
+          `${url}fr/`,
+          {
+            url: `${url}fr/`,
+            outcome: {
+              kind: 'answered',
+              status: 200,
+              redirects: [],
+              finalUrl: `${url}fr/`,
+            },
+            page: {
+              noindex: false,
+              canonical: `${url}fr/`,
+              alternates: [
+                { lang: 'en', href: url },
+                { lang: 'fr', href: `${url}fr/` },
+              ],
+            },
+          },
+        ],
+      ]),
     },
     previous: {
       contentHash: 'a'.repeat(64),
@@ -44,7 +66,10 @@ export const runPage = (
         Array.from({ length: 12 }, (_, k) => `${path}${n}w${k}`).join(' '),
       ),
       canonicals: [url],
-      alternates: [{ lang: 'en', href: url }],
+      alternates: [
+        { lang: 'en', href: url },
+        { lang: 'fr', href: `${url}fr/` },
+      ],
       ...parsed,
     },
   });

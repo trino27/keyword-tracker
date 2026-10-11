@@ -102,6 +102,15 @@ describe("describeIssue", () => {
 		).toBe("The canonical https://a.example/x/ names https://a.example/y/ as its own.");
 	});
 
+	it("names the language versions that do not link back", () => {
+		expect(
+			describeIssue("HREFLANG_NOT_RECIPROCAL", {
+				count: 1,
+				alternates: ["https://a.example/de/"],
+			}),
+		).toBe("1 language version does not link back: https://a.example/de/.");
+	});
+
 	it("names the links that are broken or redirect", () => {
 		expect(describeIssue("BROKEN_LINKS", { count: 1, links: ["https://b.example/x"] })).toBe(
 			"1 link leads nowhere: https://b.example/x.",

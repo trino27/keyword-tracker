@@ -177,6 +177,10 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	},
 	HREFLANG_NO_SELF_REFERENCE: (d) =>
 		`None of the ${num(d, "alternates")} hreflang alternates names this page.`,
+	HREFLANG_NOT_RECIPROCAL: (d) => {
+		const count = num(d, "count");
+		return `${count} language version${count === 1 ? " does" : "s do"} not link back: ${list(d, "alternates")}.`;
+	},
 	VIEWPORT_MISSING: () => "The page has no viewport meta tag.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
 	OG_URL_MISMATCH: (d) =>

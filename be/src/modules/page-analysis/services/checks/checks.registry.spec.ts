@@ -436,6 +436,26 @@ describe('evaluateChecks', () => {
       url: 'http://a.example/plain/',
       finalUrl: 'http://a.example/plain/',
       robots: blocked,
+      // Its French version (makeCheckInput's `fr/` alternate) was read and does not
+      // name it back.
+      linkStatuses: {
+        links: new Map(),
+        documents: new Map([
+          [
+            'http://a.example/plain/fr/',
+            {
+              url: 'http://a.example/plain/fr/',
+              outcome: {
+                kind: 'answered',
+                status: 200,
+                redirects: [],
+                finalUrl: 'http://a.example/plain/fr/',
+              },
+              page: { noindex: false, canonical: null, alternates: [] },
+            },
+          ],
+        ]),
+      },
       parsed: {
         title: null,
         metaDescription: null,
