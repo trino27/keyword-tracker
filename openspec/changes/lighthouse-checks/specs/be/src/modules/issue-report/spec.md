@@ -11,7 +11,7 @@ neither MAY be merged into the other. Only Core Web Vitals findings MAY be locat
 - **WHEN** a current page holds `TITLE_MISSING` and Lighthouse's title code
 - **THEN** the report returns both findings, each located at that page
 
-#### Scenario: the same accessibility problem on every page
-- **WHEN** fifteen current pages fail Lighthouse's `color-contrast`
+#### Scenario: the same Lighthouse problem on every page
+- **WHEN** fifteen current pages fail Lighthouse's `link-text`
 - **THEN** the report returns fifteen page-located findings with a page count of 15, and none
   located at all pages

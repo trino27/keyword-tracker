@@ -59,7 +59,14 @@ The page detail MUST show a checks section with two columns: "Our checks" and "L
 ones the Info tab teaches (`CHECK_TOPICS`, one chapter per code by `CHECK_TOPIC_OF`). A
 counterpart group sits under the chapter of its crawl code; a Lighthouse-only row under its
 own Lighthouse chapter. Within a chapter, rows with a failure come first, and the order the
-backend sent is kept otherwise. Each heading MUST say how many of its rows failed.
+backend sent is kept otherwise. Each heading MUST say how many of its rows failed. The Lighthouse
+chapters MUST continue the list under their own headings, with no block heading of their own:
+they are the checks no check of ours shares, not a separate report. Lighthouse's accessibility
+audits MUST NOT be listed (ANALYSIS-028); its accessibility score in the speed block stands for
+them.
+
+AMENDED after implementation (D24): a "Lighthouse audits" heading opened Lighthouse's chapters,
+and its accessibility audits had chapters of their own. The user asked for both to go.
 
 AMENDED during implementation: this said our rows came first as one unheaded list, and only
 Lighthouse's were split, into "Lighthouse · SEO" and "Lighthouse · Accessibility". The user asked
@@ -115,11 +122,16 @@ showing a status Lighthouse never reported would be a false statement.
 - **THEN** one row shows the five crawl codes with passes on the left, the Lighthouse code with a
   failure on the right, and the disagreement marker
 
-#### Scenario: a Lighthouse-only accessibility failure
+#### Scenario: a Lighthouse-only failure
 
-- **WHEN** Lighthouse failed `color-contrast` and passed `button-name`
-- **THEN** both appear under their Lighthouse chapter with `color-contrast` first and an empty
-  "Our checks" cell
+- **WHEN** Lighthouse failed `link-text`
+- **THEN** it appears first under its Lighthouse chapter with an empty "Our checks" cell, and no
+  "Lighthouse audits" heading is shown
+
+#### Scenario: an accessibility audit
+
+- **WHEN** the detail is opened for any page
+- **THEN** no Lighthouse accessibility audit has a row, and no chapter is an accessibility one
 
 #### Scenario: a page with nothing failing
 

@@ -9,13 +9,22 @@ repeats a crawl finding of the same counterpart group MUST still be counted on i
 finding MAY hide the other.
 
 #### Scenario: a page without a title
-- **WHEN** a page with 16 applicable crawl checks and 20 judged Lighthouse audits holds
+- **WHEN** a page with 16 applicable crawl checks and 7 judged Lighthouse audits holds
   `TITLE_MISSING` and Lighthouse's title code, and nothing else fails
-- **THEN** its error count includes both, and its score is 34 passed of 36 applicable
+- **THEN** its issue counts include both, and its score is 21 passed of 23 applicable
 
-#### Scenario: an accessibility problem on a template
-- **WHEN** five of a client's fifteen current pages fail Lighthouse's `color-contrast`
+#### Scenario: a problem on a template
+- **WHEN** five of a client's fifteen current pages fail Lighthouse's `link-text`
 - **THEN** each of those pages reports that code as affecting five pages
+
+#### Scenario: a measurement stored before the accessibility audits were retired
+- **WHEN** a page's measurement judged 37 Lighthouse audits, ten of them SEO audits, and failed
+  `color-contrast`
+- **THEN** its score counts the ten SEO audits only, and `color-contrast` neither fails nor
+  appears among its checks
+
+AMENDED after implementation (D24): the score counts the active Lighthouse codes only, read
+through their weights in the query, not `cardinality(lighthouse_judged)` and `lighthouse_failed`.
 
 ### Requirement: PAGES-017 — the measurement carries the field TTFB, the shares of visits, the LCP breakdown and the category scores
 

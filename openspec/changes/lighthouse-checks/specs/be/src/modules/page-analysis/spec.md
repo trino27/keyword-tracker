@@ -11,21 +11,33 @@ NOT be catalogued: `manual`, `informative`, hidden, or weighted 0. Each code MUS
   answer reports 0 for an audit that does not apply to the page, so a weight is never read
   from an answer).
 
-A code's severity MUST follow from its highest weight: 7 or more is a warning, anything less is
-a notice.
-The one exception is `is-crawlable`, which is an error, and the exception MUST be declared where
-the rule is. Every Lighthouse code MUST carry the same plain copy, hint, explanation and sources
+Only the codes whose audit Lighthouse weighs in its SEO category MAY be checks: extracted from
+an answer, listed on a page and counted in its score (`ACTIVE_LIGHTHOUSE_CODES`). The
+accessibility-only codes MUST stay in the catalogue, retired, so that a verdict or finding stored
+before still reads back, and MUST NOT be extracted, listed or scored.
+
+A code's severity MUST be a notice, read from neither category's weight. The one exception is
+`is-crawlable`, which is an error, and the exception MUST be declared where the rule is. Every Lighthouse code MUST carry the same plain copy, hint, explanation and sources
 as any other catalogue code. Its copy MUST be written from what the audit checks in a recorded
 live answer, never from the audit's name alone.
+
+AMENDED after implementation (D24): the accessibility audits were checks, and a code's severity
+followed its highest weight, 7 or more a warning. The user asked to drop them from the checks
+and the score and keep Lighthouse's accessibility score as the overview, so they are retired,
+and a severity no longer borrows an accessibility weight.
 
 AMENDED during implementation (task 1.2): this requirement said "every audit that can return a
 verdict", with one category and one weight per code. The live answer showed three things:
 `image-alt` and `document-title` belong to both categories; seven audits return a verdict that
 Lighthouse never scores; and an answer reports weight 0 for every not-applicable audit.
 
-#### Scenario: an audit weighted 10 in accessibility
-- **WHEN** the catalogue entry for an accessibility audit of weight 10 is read
-- **THEN** its severity is warning
+#### Scenario: an accessibility audit
+- **WHEN** a PageSpeed answer fails `color-contrast`
+- **THEN** no verdict and no finding is recorded for it, and its code stays in the catalogue
+
+#### Scenario: the active codes
+- **WHEN** the active Lighthouse codes are read
+- **THEN** they are exactly the audits the snapshot weighs above 0 in SEO, ten of them
 
 #### Scenario: the page is blocked from indexing
 - **WHEN** the catalogue entry for `is-crawlable` is read
@@ -39,7 +51,7 @@ Lighthouse never scores; and an answer reports weight 0 for every not-applicable
 #### Scenario: an audit in both categories
 - **WHEN** the catalogue is read
 - **THEN** `image-alt` is one code, weighted 1 in SEO and 10 in accessibility, with severity
-  warning
+  notice, and active
 
 #### Scenario: an audit Lighthouse does not score
 - **WHEN** the snapshot gives `empty-heading` weight 0

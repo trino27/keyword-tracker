@@ -242,6 +242,32 @@ and each entry declares `audit: '<lighthouse id>'` and `category: 'seo' | 'acces
 extractor looks codes up by audit id through a map derived from the catalogue, never through a
 second list.
 
+**D24 — Lighthouse's accessibility audits are retired; its accessibility score stays as an
+overview.** Decided by the user after the screen was in use: the accessibility audits are not
+checks, the score does not count them, and the Info tab does not teach them. The speed block's
+Accessibility card is the overview.
+- `ACTIVE_LIGHTHOUSE_CODES` is derived from the catalogue: the codes with an SEO weight, ten of
+  them (`image-alt` and `document-title` included). The extractor judges, `composePageChecks`
+  lists and the score counts these only.
+- The 56 accessibility-only entries stay in the catalogue, as a retired crawl check's does, so a
+  stored verdict or finding still reads back until the page is re-measured. The re-measurement's
+  replace deletes every Lighthouse code, so it clears them.
+- The PSI call still asks for the accessibility category, for its score. An unknown audit is
+  looked for in the SEO category only.
+- Severity no longer reads any weight: `is-crawlable` is an error, every other code a notice.
+  Lighthouse's SEO category weighs its audits alike, and a weight borrowed from accessibility
+  would count accessibility in the score by the back door (`image-alt` and `document-title` were
+  warnings for that reason only).
+- Four counterpart groups went with their Lighthouse side: `HEADING_SKIP`/`heading-order`,
+  `LINKS_WITHOUT_TEXT`/`link-name`, `LANG_MISSING`/`html-has-lang`,
+  `META_REFRESH`/`meta-refresh`.
+- The score's Lighthouse share is counted in `LIGHTHOUSE_SCORE_POINTS_LATERAL`, through the active
+  weights, rather than from `cardinality(lighthouse_judged)` and D21's `lighthouse_failed`.
+  A measurement stored before keeps its accessibility codes in those columns, and reading them
+  would score checks the page no longer lists.
+- The checks section loses its "Lighthouse audits" block heading. Lighthouse's own chapters
+  continue the list: they hold the checks no check of ours shares, not a separate report.
+
 ## Risks / Trade-offs
 
 - **Axe renames or adds rules in a Lighthouse release.** A renamed audit leaves our code showing

@@ -20,16 +20,20 @@ the request header.
 
 ### Requirement: SPEED-017 — every Lighthouse audit with a verdict is recorded as passed, not applicable or a finding
 
-On each successful mobile measurement the worker MUST record, for every catalogue code owned by
-Lighthouse whose audit is in the answer, exactly one outcome:
+On each successful mobile measurement the worker MUST record, for every active Lighthouse code
+(its SEO audits, ANALYSIS-028) whose audit is in the answer, exactly one outcome:
 - an audit scored 1 is judged and passed;
 - an audit scored 0 is judged and becomes one finding under its code, with the severity the
   catalogue gives it;
 - an audit Lighthouse reports as not applicable is recorded as not applicable.
 
 An audit that errored, or that the answer does not contain, MUST be recorded as neither. An
-audit in the answer that the catalogue does not define MUST be ignored and logged once per audit
-id per process, and MUST NOT fail the measurement.
+accessibility audit MUST NOT be recorded at all: of that category only the score is read
+(SPEED-019). An SEO audit in the answer that no active code reads MUST be ignored and logged once
+per audit id per process, and MUST NOT fail the measurement.
+
+AMENDED after implementation (D24): every catalogued audit was recorded, and an unknown audit
+of either category was logged.
 
 The judged list, the not-applicable list and the Lighthouse findings MUST be written in the same
 transaction as the measurement. They MUST replace the page's previous Lighthouse record whole,
@@ -47,8 +51,13 @@ failed measurement.
   `image-alt` and `document-title` codes, and its not-applicable list holds the `hreflang` code
 
 #### Scenario: an audit that errored
-- **WHEN** the answer reports `color-contrast` with an error
-- **THEN** the `color-contrast` code is in neither list and is not a finding
+- **WHEN** the answer reports `robots-txt` with an error
+- **THEN** the `robots-txt` code is in neither list and is not a finding
+
+#### Scenario: an accessibility audit fails
+- **WHEN** the answer scores `color-contrast` 0 and the accessibility category 0.94
+- **THEN** no list holds the `color-contrast` code, it is not a finding, and the accessibility
+  score 94 is stored
 
 #### Scenario: an audit Lighthouse added after the catalogue was written
 - **WHEN** the answer holds an SEO audit id the catalogue does not define
