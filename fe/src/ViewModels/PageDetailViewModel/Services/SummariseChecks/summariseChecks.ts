@@ -1,6 +1,6 @@
 import {
 	ACTIVE_ISSUE_CODES,
-	LIGHTHOUSE_ISSUE_CODES,
+	ACTIVE_LIGHTHOUSE_CODES,
 	SEO_ISSUE_CATALOGUE,
 	counterpartGroupOf,
 	whyCounterpartsDiffer,
@@ -13,12 +13,7 @@ import {
 	type TScoredIssueOwner,
 	type TSeoIssueCode,
 } from "@app/contracts";
-import {
-	CHECK_TOPICS,
-	CHECK_TOPIC_OF,
-	type TCheckPart,
-	type TCheckTopicId,
-} from "@Core/Constants/checkTopics";
+import { CHECK_TOPICS, CHECK_TOPIC_OF, type TCheckTopicId } from "@Core/Constants/checkTopics";
 
 /** One check of one owner, as a cell shows it. */
 export interface ICheckCell {
@@ -42,8 +37,6 @@ export interface ICheckRow {
 /** One chapter of checks (`CHECK_TOPICS`), as the Info tab names it. */
 export interface ICheckSection {
 	heading: string;
-	/** Our reference checks, or Lighthouse's own audits: the screen draws a block per part. */
-	part: TCheckPart;
 	rows: ICheckRow[];
 	/** Rows in this chapter with at least one failed check, of either owner. */
 	failed: number;
@@ -166,18 +159,18 @@ export function summariseChecks(byOwner: TChecksByOwner, context: IChecksContext
 		if (group) placed.add(group);
 		rows.push({ topic: CHECK_TOPIC_OF[code], row: rowOf(code, group, code) });
 	}
-	for (const code of LIGHTHOUSE_ISSUE_CODES)
+	for (const code of ACTIVE_LIGHTHOUSE_CODES)
 		if (counterpartGroupOf(code) === null)
 			rows.push({ topic: CHECK_TOPIC_OF[code], row: rowOf(code, null, code) });
 
 	// The chapters the Info tab teaches, in its reading order, so a check sits under the
 	// same heading on both screens. Failures lead each chapter; the order is kept within.
-	const sections = CHECK_TOPICS.map(({ id, title, part }) => {
+	const sections = CHECK_TOPICS.map(({ id, title }) => {
 		const inTopic = rows
 			.filter(({ topic, row }) => topic === id && hasCells(row))
 			.map(({ row }) => row)
 			.sort((a, b) => Number(isFailed(b)) - Number(isFailed(a)));
-		return { heading: title, part, rows: inTopic, failed: inTopic.filter(isFailed).length };
+		return { heading: title, rows: inTopic, failed: inTopic.filter(isFailed).length };
 	}).filter((section) => section.rows.length > 0);
 
 	return {

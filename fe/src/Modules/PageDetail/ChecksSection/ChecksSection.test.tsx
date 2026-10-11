@@ -2,7 +2,7 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
 	ACTIVE_ISSUE_CODES,
-	LIGHTHOUSE_ISSUE_CODES,
+	ACTIVE_LIGHTHOUSE_CODES,
 	type TCheckStatus,
 	type TChecksByOwner,
 } from "@app/contracts";
@@ -16,7 +16,7 @@ const crawl = (statuses: TStatuses = {}) =>
 	ACTIVE_ISSUE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
 
 const lighthouse = (statuses: TStatuses = {}) =>
-	LIGHTHOUSE_ISSUE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
+	ACTIVE_LIGHTHOUSE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
 
 const render = (byOwner: Partial<TChecksByOwner> = {}) =>
 	renderWithProviders(() => (
@@ -83,20 +83,20 @@ describe("ChecksSection", () => {
 		expect(lighthouseLabel).toHaveAttribute("data-status", "failed");
 	});
 
-	/** PAGEDETAIL-009 "a Lighthouse-only accessibility failure". */
+	/** PAGEDETAIL-009 "a Lighthouse-only failure". */
 	it("lists a Lighthouse-only failure first under its heading, with no cell of ours", async () => {
-		render({ lighthouse: lighthouse({ LH_COLOR_CONTRAST: "failed" }) });
+		render({ lighthouse: lighthouse({ LH_LINK_TEXT: "failed" }) });
 
 		expect(
 			await screen.findByText(
-				CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF.LH_COLOR_CONTRAST)!.title,
+				CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF.LH_LINK_TEXT)!.title,
 			),
 		).toBeInTheDocument();
-		const failed = screen.getByText("Text with too little contrast");
+		const failed = screen.getByText('Links with generic text like "click here"');
 		expect(failed).toHaveAttribute("data-status", "failed");
-		// Lighthouse's own audits sit in a block of their own, after ours.
-		expect(screen.getAllByText("Lighthouse audits")).toHaveLength(1);
-		// Nothing of ours judges contrast, so there is nothing to disagree with.
+		// The checks only Lighthouse runs continue the list: no block heading sets them apart.
+		expect(screen.queryByText("Lighthouse audits")).not.toBeInTheDocument();
+		// Nothing of ours judges link wording, so there is nothing to disagree with.
 		expect(screen.queryByText("Sources disagree")).not.toBeInTheDocument();
 	});
 
@@ -120,7 +120,7 @@ describe("ChecksSection", () => {
 	});
 
 	it("says a Lighthouse audit was not recorded rather than calling it passed", async () => {
-		render({ lighthouse: lighthouse({ LH_TABINDEX: "notYetChecked" }) });
+		render({ lighthouse: lighthouse({ LH_ROBOTS_TXT: "notYetChecked" }) });
 
 		expect(
 			await screen.findByText("Lighthouse did not report this audit in its last run."),

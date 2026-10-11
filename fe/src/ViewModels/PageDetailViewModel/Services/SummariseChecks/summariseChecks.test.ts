@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	ACTIVE_ISSUE_CODES,
-	LIGHTHOUSE_ISSUE_CODES,
+	ACTIVE_LIGHTHOUSE_CODES,
 	type TCheckStatus,
 	type TChecksByOwner,
 } from "@app/contracts";
@@ -14,7 +14,7 @@ const crawl = (statuses: TStatuses = {}) =>
 	ACTIVE_ISSUE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
 
 const lighthouse = (statuses: TStatuses = {}) =>
-	LIGHTHOUSE_ISSUE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
+	ACTIVE_LIGHTHOUSE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
 
 const CONTEXT: IChecksContext = {
 	crawledAt: "2026-10-10T12:00:00Z",
@@ -54,7 +54,7 @@ const CRAWL = ACTIVE_ISSUE_CODES.length;
 /** The chapter heading a code sits under, as `CHECK_TOPICS` names it today. */
 const headingOf = (code: keyof typeof CHECK_TOPIC_OF) =>
 	CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF[code])!.title;
-const LIGHTHOUSE = LIGHTHOUSE_ISSUE_CODES.length;
+const LIGHTHOUSE = ACTIVE_LIGHTHOUSE_CODES.length;
 
 describe("summariseChecks", () => {
 	/** The Info tab's chapters, in its order, so a check sits under one heading on both screens. */
@@ -72,7 +72,9 @@ describe("summariseChecks", () => {
 		for (const section of sections)
 			for (const row of section.rows) {
 				const lead = row.cells.crawl[0]?.code ?? row.cells.lighthouse[0].code;
-				const topic = CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF[lead])!;
+				const topic = CHECK_TOPICS.find(
+					({ id }) => id === CHECK_TOPIC_OF[lead as keyof typeof CHECK_TOPIC_OF],
+				)!;
 				expect({ lead, heading: section.heading }).toEqual({ lead, heading: topic.title });
 			}
 	});
@@ -91,9 +93,8 @@ describe("summariseChecks", () => {
 		expect(
 			headings.rows.map((row) => row.cells.crawl[0]?.code ?? row.cells.lighthouse[0].code),
 		).toEqual(
-			[...ACTIVE_ISSUE_CODES, ...LIGHTHOUSE_ISSUE_CODES].filter(
-				(code) =>
-					CHECK_TOPIC_OF[code] === "headings" && !["LH_HEADING_ORDER"].includes(code),
+			[...ACTIVE_ISSUE_CODES, ...ACTIVE_LIGHTHOUSE_CODES].filter(
+				(code) => CHECK_TOPIC_OF[code] === "headings",
 			),
 		);
 	});
@@ -103,8 +104,8 @@ describe("summariseChecks", () => {
 		const summary = summarise({ crawl: crawl({ TITLE_LENGTH: "failed" }) });
 
 		expect(rowWith(summary, "LANG_MISSING")?.cells.crawl[0].label).toBe("Language is declared");
-		expect(rowWith(summary, "LH_HTML_HAS_LANG")?.cells.lighthouse[0].label).toBe(
-			"Page language is set",
+		expect(rowWith(summary, "LH_IS_CRAWLABLE")?.cells.lighthouse[0].label).toBe(
+			"Page is open to search engines",
 		);
 		expect(rowWith(summary, "TITLE_LENGTH")?.cells.crawl[0].label).toBe("Title length");
 	});
@@ -134,16 +135,31 @@ describe("summariseChecks", () => {
 
 	it("puts each Lighthouse-only audit under its own chapter, failures first", () => {
 		const { sections } = summarise({
-			lighthouse: lighthouse({ LH_TABINDEX: "failed", LH_HTTP_STATUS_CODE: "failed" }),
+			lighthouse: lighthouse({ LH_LINK_TEXT: "failed", LH_HTTP_STATUS_CODE: "failed" }),
 		});
-		const chapterOf = (code: "LH_TABINDEX" | "LH_HTTP_STATUS_CODE") =>
+		const chapterOf = (code: "LH_LINK_TEXT" | "LH_HTTP_STATUS_CODE") =>
 			sections.find(({ heading }) => heading === headingOf(code))!;
 
 		expect(chapterOf("LH_HTTP_STATUS_CODE").rows[0].cells.lighthouse[0].code).toBe(
 			"LH_HTTP_STATUS_CODE",
 		);
-		expect(chapterOf("LH_TABINDEX").rows[0].cells.lighthouse[0].code).toBe("LH_TABINDEX");
-		for (const row of chapterOf("LH_TABINDEX").rows) expect(row.cells.crawl).toEqual([]);
+		expect(chapterOf("LH_LINK_TEXT").rows[0].cells.lighthouse[0].code).toBe("LH_LINK_TEXT");
+		for (const row of chapterOf("LH_LINK_TEXT").rows) expect(row.cells.crawl).toEqual([]);
+	});
+
+	/**
+	 * Lighthouse's accessibility audits are retired: the page shows its accessibility score
+	 * instead. A verdict on one, were it ever sent, has no row and no chapter.
+	 */
+	it("lists no accessibility audit, even one sent as failed", () => {
+		const summary = summarise({
+			lighthouse: [...lighthouse(), { code: "LH_COLOR_CONTRAST", status: "failed" }],
+		});
+
+		expect(rowWith(summary, "LH_COLOR_CONTRAST")).toBeUndefined();
+		expect(summary.sections.every(({ heading }) => !heading.startsWith("Accessibility"))).toBe(
+			true,
+		);
 	});
 
 	it("lists every check of both owners exactly once", () => {
@@ -165,7 +181,7 @@ describe("summariseChecks", () => {
 		);
 		expect(rowWith(summary, "LH_DOCUMENT_TITLE")?.why).toBeNull();
 		expect(rowWith(summary, "LH_DOCUMENT_TITLE")?.disagree).toBe(false);
-		expect(rowWith(summary, "LH_TABINDEX")?.disagree).toBe(false);
+		expect(rowWith(summary, "LH_ROBOTS_TXT")?.disagree).toBe(false);
 	});
 
 	it("does not call two failures a disagreement", () => {
@@ -180,7 +196,10 @@ describe("summariseChecks", () => {
 	it("subtitles each column with what it judged and what it could not", () => {
 		const { columns } = summarise({
 			crawl: crawl({ TITLE_LENGTH: "failed", HEADING_SKIP: "notApplicable" }),
-			lighthouse: lighthouse({ LH_BYPASS: "notApplicable", LH_TABINDEX: "notYetChecked" }),
+			lighthouse: lighthouse({
+				LH_LINK_TEXT: "notApplicable",
+				LH_ROBOTS_TXT: "notYetChecked",
+			}),
 		});
 
 		expect(columns.crawl).toMatchObject({
@@ -199,7 +218,7 @@ describe("summariseChecks", () => {
 	it("counts the failures of both owners for the closing line", () => {
 		const { failed } = summarise({
 			crawl: crawl({ TITLE_MISSING: "failed" }),
-			lighthouse: lighthouse({ LH_DOCUMENT_TITLE: "failed", LH_TABINDEX: "failed" }),
+			lighthouse: lighthouse({ LH_DOCUMENT_TITLE: "failed", LH_ROBOTS_TXT: "failed" }),
 		});
 
 		expect(failed).toBe(3);
@@ -208,7 +227,10 @@ describe("summariseChecks", () => {
 	it("gives each owner's skipped and unrecorded checks their own reason", () => {
 		const summary = summarise({
 			crawl: crawl({ IMAGES_MISSING_ALT: "notApplicable", LANG_MISSING: "notYetChecked" }),
-			lighthouse: lighthouse({ LH_BYPASS: "notApplicable", LH_TABINDEX: "notYetChecked" }),
+			lighthouse: lighthouse({
+				LH_LINK_TEXT: "notApplicable",
+				LH_ROBOTS_TXT: "notYetChecked",
+			}),
 		});
 		const reason = (code: string) => {
 			const row = rowWith(summary, code)!;
@@ -218,8 +240,10 @@ describe("summariseChecks", () => {
 
 		expect(reason("IMAGES_MISSING_ALT")).toBe("The page has no images.");
 		expect(reason("LANG_MISSING")).toBe("Added after this page was last crawled.");
-		expect(reason("LH_BYPASS")).toBe("Lighthouse found nothing on the page for this audit.");
-		expect(reason("LH_TABINDEX")).toBe("Lighthouse did not report this audit in its last run.");
+		expect(reason("LH_LINK_TEXT")).toBe("Lighthouse found nothing on the page for this audit.");
+		expect(reason("LH_ROBOTS_TXT")).toBe(
+			"Lighthouse did not report this audit in its last run.",
+		);
 	});
 
 	/** D19: an owner with no record says why once, and none of its cells is invented. */
@@ -235,7 +259,7 @@ describe("summariseChecks", () => {
 
 		expect(summary.columns.lighthouse).toMatchObject({ empty: line, judgedAt: null });
 		expect(summary.sections.map(({ heading }) => heading)).not.toContain(
-			headingOf("LH_TABINDEX"),
+			headingOf("LH_LINK_TEXT"),
 		);
 		expect(rowWith(summary, "CANONICAL_RELATIVE")?.cells.lighthouse).toEqual([]);
 	});

@@ -67,16 +67,8 @@ export function ChecksSection({ checksByOwner, context, timeZone }: IChecksSecti
 							<ColumnHeader key={owner} column={columns[owner]} timeZone={timeZone} />
 						))}
 					</SimpleGrid>
-					{sections.map((section, index) => (
+					{sections.map((section) => (
 						<Stack key={section.heading} gap="xs">
-							{/* Lighthouse's own audits are a category of their own, as on the Info
-							    tab: a block heading where the part changes. */}
-							{section.part === "lighthouse" &&
-								sections[index - 1]?.part !== "lighthouse" && (
-									<Title order={5} pt="sm">
-										Lighthouse audits
-									</Title>
-								)}
 							<Divider
 								label={
 									<Group gap={6} wrap="nowrap">
