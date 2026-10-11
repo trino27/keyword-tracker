@@ -22,6 +22,7 @@ const ANSWERS: Record<
   { status: number; outcome: Partial<TPsiOutcome> }
 > = {
   'url-field.json': { status: 200, outcome: { kind: 'measured' } },
+  'url-field.desktop.json': { status: 200, outcome: { kind: 'measured' } },
   'origin-only.json': { status: 200, outcome: { kind: 'measured' } },
   'lab-only.json': { status: 200, outcome: { kind: 'measured' } },
   'lighthouse-url-field.json': { status: 200, outcome: { kind: 'measured' } },
@@ -101,6 +102,26 @@ describe('the recorded PageSpeed answers', () => {
     );
     expect(lab.loadingExperience?.metrics).toBeUndefined();
     expect(lab.originLoadingExperience?.metrics).toBeUndefined();
+  });
+
+  /**
+   * The desktop answer the e2e measures desktop rows with: the page's own desktop data, and
+   * the performance category only, as the app asks for desktop (lighthouse-checks D16).
+   */
+  it('url-field.desktop has the page’s own data and no Lighthouse SEO or accessibility category', () => {
+    const desktop = readPageSpeedFixture(
+      'url-field.desktop.json',
+    ) as TSuccess & {
+      lighthouseResult: { categories: Record<string, unknown> };
+    };
+
+    expect(desktop.loadingExperience?.origin_fallback).toBeUndefined();
+    expect(Object.keys(desktop.loadingExperience?.metrics ?? {})).toContain(
+      'LARGEST_CONTENTFUL_PAINT_MS',
+    );
+    expect(Object.keys(desktop.lighthouseResult.categories)).toEqual([
+      'performance',
+    ]);
   });
 
   /**

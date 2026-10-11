@@ -28,16 +28,18 @@ const FIXTURES = join(dirname(process.argv[1]), 'pagespeed');
 const ENDPOINT = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
 
 /**
- * The file, the page, which key to send — the real one, a made-up one, or none — and
- * whether Lighthouse's SEO and accessibility categories are asked for. The answers recorded
- * before the app asked for them stay performance-only: they are what an answer WITHOUT the
- * categories looks like, which the worker must still store as a measurement.
+ * The file, the page, which key to send — the real one, a made-up one, or none — whether
+ * Lighthouse's SEO and accessibility categories are asked for, and the device. The answers
+ * recorded before the app asked for the categories stay performance-only: they are what an
+ * answer WITHOUT them looks like, which the worker must still store as a measurement. A
+ * desktop target asks for performance only, as the app does (lighthouse-checks D16).
  */
 const TARGETS: {
   file: string;
   url: string;
   key: 'real' | 'madeUp' | 'none';
   verdicts?: true;
+  strategy?: 'desktop';
 }[] = [
   // The page's own Chrome data, every category: failing SEO and accessibility audits, the
   // LCP breakdown of an image, and a field TTFB with its distribution.
@@ -56,6 +58,13 @@ const TARGETS: {
   },
   // The page's own Chrome data (`loadingExperience` without `origin_fallback`).
   { file: 'url-field.json', url: 'https://yoast.com/', key: 'real' },
+  // The same page on desktop: its own desktop Chrome data, performance only.
+  {
+    file: 'url-field.desktop.json',
+    url: 'https://yoast.com/',
+    key: 'real',
+    strategy: 'desktop',
+  },
   // The site's data under the page's name (`origin_fallback: true`).
   {
     file: 'origin-only.json',
@@ -117,7 +126,7 @@ async function main(): Promise<void> {
     const categories = target.verdicts
       ? '&category=performance&category=seo&category=accessibility'
       : '&category=performance';
-    const requestUrl = `${ENDPOINT}?url=${encodeURIComponent(target.url)}&strategy=mobile${categories}`;
+    const requestUrl = `${ENDPOINT}?url=${encodeURIComponent(target.url)}&strategy=${target.strategy ?? 'mobile'}${categories}`;
     const headers: Record<string, string> = { accept: 'application/json' };
     if (target.key === 'real') headers['x-goog-api-key'] = key;
     if (target.key === 'madeUp') headers['x-goog-api-key'] = MADE_UP_KEY;

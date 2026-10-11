@@ -1,0 +1,368 @@
+{
+  "captchaResult": "CAPTCHA_NOT_NEEDED",
+  "kind": "pagespeedonline#result",
+  "id": "https://yoast.com/",
+  "loadingExperience": {
+    "id": "https://yoast.com/",
+    "metrics": {
+      "CUMULATIVE_LAYOUT_SHIFT_SCORE": {
+        "percentile": 18,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 10,
+            "proportion": 0.3479
+          },
+          {
+            "min": 10,
+            "max": 25,
+            "proportion": 0.5726
+          },
+          {
+            "min": 25,
+            "proportion": 0.0794
+          }
+        ],
+        "category": "AVERAGE"
+      },
+      "EXPERIMENTAL_TIME_TO_FIRST_BYTE": {
+        "percentile": 384,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 800,
+            "proportion": 0.8935
+          },
+          {
+            "min": 800,
+            "max": 1800,
+            "proportion": 0.073
+          },
+          {
+            "min": 1800,
+            "proportion": 0.0334
+          }
+        ],
+        "category": "FAST"
+      },
+      "FIRST_CONTENTFUL_PAINT_MS": {
+        "percentile": 1638,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 1800,
+            "proportion": 0.7822
+          },
+          {
+            "min": 1800,
+            "max": 3000,
+            "proportion": 0.145
+          },
+          {
+            "min": 3000,
+            "proportion": 0.0728
+          }
+        ],
+        "category": "FAST"
+      },
+      "INTERACTION_TO_NEXT_PAINT": {
+        "percentile": 62,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 200,
+            "proportion": 0.9689
+          },
+          {
+            "min": 200,
+            "max": 500,
+            "proportion": 0.0251
+          },
+          {
+            "min": 500,
+            "proportion": 0.006
+          }
+        ],
+        "category": "FAST"
+      },
+      "LARGEST_CONTENTFUL_PAINT_MS": {
+        "percentile": 2530,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 2500,
+            "proportion": 0.7461
+          },
+          {
+            "min": 2500,
+            "max": 4000,
+            "proportion": 0.1586
+          },
+          {
+            "min": 4000,
+            "proportion": 0.0953
+          }
+        ],
+        "category": "AVERAGE"
+      }
+    },
+    "overall_category": "AVERAGE",
+    "initial_url": "https://yoast.com/"
+  },
+  "originLoadingExperience": {
+    "id": "https://yoast.com",
+    "metrics": {
+      "CUMULATIVE_LAYOUT_SHIFT_SCORE": {
+        "percentile": 5,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 10,
+            "proportion": 0.8016
+          },
+          {
+            "min": 10,
+            "max": 25,
+            "proportion": 0.0876
+          },
+          {
+            "min": 25,
+            "proportion": 0.1108
+          }
+        ],
+        "category": "FAST"
+      },
+      "EXPERIMENTAL_TIME_TO_FIRST_BYTE": {
+        "percentile": 985,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 800,
+            "proportion": 0.6991
+          },
+          {
+            "min": 800,
+            "max": 1800,
+            "proportion": 0.1798
+          },
+          {
+            "min": 1800,
+            "proportion": 0.121
+          }
+        ],
+        "category": "AVERAGE"
+      },
+      "FIRST_CONTENTFUL_PAINT_MS": {
+        "percentile": 2441,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 1800,
+            "proportion": 0.5807
+          },
+          {
+            "min": 1800,
+            "max": 3000,
+            "proportion": 0.2606
+          },
+          {
+            "min": 3000,
+            "proportion": 0.1587
+          }
+        ],
+        "category": "AVERAGE"
+      },
+      "INTERACTION_TO_NEXT_PAINT": {
+        "percentile": 85,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 200,
+            "proportion": 0.9098
+          },
+          {
+            "min": 200,
+            "max": 500,
+            "proportion": 0.0624
+          },
+          {
+            "min": 500,
+            "proportion": 0.0278
+          }
+        ],
+        "category": "FAST"
+      },
+      "LARGEST_CONTENTFUL_PAINT_MS": {
+        "percentile": 2633,
+        "distributions": [
+          {
+            "min": 0,
+            "max": 2500,
+            "proportion": 0.7217
+          },
+          {
+            "min": 2500,
+            "max": 4000,
+            "proportion": 0.1858
+          },
+          {
+            "min": 4000,
+            "proportion": 0.0926
+          }
+        ],
+        "category": "AVERAGE"
+      }
+    },
+    "overall_category": "AVERAGE",
+    "initial_url": "https://yoast.com/"
+  },
+  "lighthouseResult": {
+    "requestedUrl": "https://yoast.com/",
+    "finalUrl": "https://yoast.com/",
+    "finalDisplayedUrl": "https://yoast.com/",
+    "lighthouseVersion": "13.5.0",
+    "fetchTime": "2026-10-11T15:17:51.429Z",
+    "runWarnings": [],
+    "audits": {
+      "largest-contentful-paint": {
+        "id": "largest-contentful-paint",
+        "title": "Largest Contentful Paint",
+        "description": "Largest Contentful Paint marks the time at which the largest text or image is painted. [Learn more about the Largest Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)",
+        "score": 0.63,
+        "scoreDisplayMode": "numeric",
+        "displayValue": "2.0 s",
+        "numericValue": 1985.0693983417677,
+        "numericUnit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "id": "cumulative-layout-shift",
+        "title": "Cumulative Layout Shift",
+        "description": "Cumulative Layout Shift measures the movement of visible elements within the viewport. [Learn more about the Cumulative Layout Shift metric](https://web.dev/articles/cls).",
+        "score": 0.52,
+        "scoreDisplayMode": "numeric",
+        "displayValue": "0.241",
+        "details": {
+          "items": [
+            {
+              "cumulativeLayoutShiftMainFrame": 0.24099076966605512,
+              "newEngineResultDiffered": false,
+              "newEngineResult": {
+                "cumulativeLayoutShift": 0.24099076966605512,
+                "cumulativeLayoutShiftMainFrame": 0.24099076966605512
+              }
+            }
+          ],
+          "type": "debugdata"
+        },
+        "numericValue": 0.24099076966605512,
+        "numericUnit": "unitless"
+      },
+      "first-contentful-paint": {
+        "id": "first-contentful-paint",
+        "title": "First Contentful Paint",
+        "description": "First Contentful Paint marks the time at which the first text or image is painted. [Learn more about the First Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/).",
+        "score": 0.96,
+        "scoreDisplayMode": "numeric",
+        "displayValue": "0.8 s",
+        "numericValue": 775.0117039633249,
+        "numericUnit": "millisecond"
+      },
+      "total-blocking-time": {
+        "id": "total-blocking-time",
+        "title": "Total Blocking Time",
+        "description": "Sum of all time periods between FCP and Time to Interactive, when task length exceeded 50ms, expressed in milliseconds. [Learn more about the Total Blocking Time metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time/).",
+        "score": 0.77,
+        "scoreDisplayMode": "numeric",
+        "displayValue": "210 ms",
+        "numericValue": 214,
+        "numericUnit": "millisecond"
+      },
+      "speed-index": {
+        "id": "speed-index",
+        "title": "Speed Index",
+        "description": "Speed Index shows how quickly the contents of a page are visibly populated. [Learn more about the Speed Index metric](https://developer.chrome.com/docs/lighthouse/performance/speed-index/).",
+        "score": 0.79,
+        "scoreDisplayMode": "numeric",
+        "displayValue": "1.6 s",
+        "numericValue": 1605.3759199966876,
+        "numericUnit": "millisecond"
+      },
+      "lcp-breakdown-insight": {
+        "id": "lcp-breakdown-insight",
+        "title": "LCP breakdown",
+        "description": "Each [subpart has specific improvement strategies](https://developer.chrome.com/docs/performance/insights/lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+        "score": 1,
+        "scoreDisplayMode": "informative",
+        "metricSavings": {
+          "LCP": 0
+        },
+        "details": {
+          "items": [
+            {
+              "headings": [
+                {
+                  "label": "Subpart",
+                  "key": "label",
+                  "valueType": "text"
+                },
+                {
+                  "key": "duration",
+                  "label": "Duration",
+                  "valueType": "ms"
+                }
+              ],
+              "items": [
+                {
+                  "duration": 7.226,
+                  "subpart": "timeToFirstByte",
+                  "label": "Time to first byte"
+                },
+                {
+                  "duration": 649.401,
+                  "subpart": "resourceLoadDelay",
+                  "label": "Resource load delay"
+                },
+                {
+                  "duration": 46.995,
+                  "label": "Resource load duration",
+                  "subpart": "resourceLoadDuration"
+                },
+                {
+                  "subpart": "elementRenderDelay",
+                  "duration": 185.505,
+                  "label": "Element render delay"
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "nodeLabel": "div.video-player > div.video-seo-embed-loader > picture.post__hero > img",
+              "type": "node",
+              "path": "1,HTML,1,BODY,3,DIV,0,MAIN,0,DIV,0,DIV,6,FIGURE,0,DIV,0,DIV,0,DIV,0,DIV,0,PICTURE,0,IMG",
+              "selector": "div.video-player > div.video-seo-embed-loader > picture.post__hero > img",
+              "lhId": "page-0-IMG",
+              "snippet": "<img alt=\"\" sizes=\"(max-width: 1280px) 100vw, 1280px\" srcset=\"https://embed-ssl.wistia.com/deliveries/b2e1b3e866eb2e9e5a8bd7cff6c44d86.j…\">",
+              "boundingRect": {
+                "top": 586,
+                "right": 1068,
+                "left": 268,
+                "width": 800,
+                "height": 450,
+                "bottom": 1036
+              }
+            }
+          ],
+          "type": "list"
+        }
+      }
+    },
+    "categories": {
+      "performance": {
+        "id": "performance",
+        "title": "Performance",
+        "score": 0.69
+      }
+    }
+  },
+  "analysisUTCTimestamp": "2026-10-11T15:17:51.429Z"
+}
