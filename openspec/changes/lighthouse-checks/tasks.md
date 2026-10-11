@@ -1,0 +1,306 @@
+# Tasks — lighthouse-checks
+
+Decisions: `design.md` D1–D23. Requirements: the deltas under `specs/`. A task that turns out wrong
+gets an `AMENDED during implementation:` line. One that was already satisfied is closed as
+`VERIFIED, NOT BUILT`, naming what pins it. A test marked "first" is run and seen failing for the
+stated reason, then lands in the same commit as the code that turns it green. Branch:
+`feat/issue-report-and-pagespeed`. Commit after each group.
+
+## 1. A live answer to build from
+
+- [ ] 1.1 Extend `be/test/fixtures/record-pagespeed-fixtures.ts`:
+  - request `category=performance&category=seo&category=accessibility`;
+  - keep, in `trim()`:
+    - `categories.{seo,accessibility}` with `auditRefs` (`id`, `weight`);
+    - every audit those refs name (`id`, `title`, `scoreDisplayMode`, `score`, `details` only
+      where a test needs it);
+    - the LCP breakdown audits;
+    - `loadingExperience` / `originLoadingExperience` whole, so `distributions` and
+      `EXPERIMENTAL_TIME_TO_FIRST_BYTE` survive.
+
+  The key stays in the header (SPEED-012).
+
+  Verify: re-record `url-field.json`, `origin-only.json` and `lab-only.json`, plus one new
+  `lighthouse-mixed.json` from a page with at least one failing SEO audit and one failing
+  accessibility audit. `git grep -n "$PAGESPEED_API_KEY" be/test` finds nothing.
+- [ ] 1.2 From the recorded answers, write down in this file under 1.2:
+  - the SEO and accessibility audit ids, each with its `scoreDisplayMode` and weight;
+  - the id and shape of the LCP breakdown and LCP element audits (`-insight` or legacy);
+  - the answer size in bytes.
+
+  If the size exceeds 4 MB, add `AMENDED during implementation:` and revisit
+  `PAGE_SPEED_MAX_BYTES` (design, Risks). Verify: the list is in this file, and every id in it
+  appears in a fixture.
+- [ ] 1.3 Commit: `test(page-speed): record answers with Lighthouse SEO, accessibility and the
+  LCP breakdown`. Verify: `pnpm --filter be test:ci -- src/modules/page-speed` is still green on
+  the re-recorded fixtures.
+
+## 2. The catalogue becomes a registry of owners — ANALYSIS-012
+
+- [ ] 2.1 Write first in `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts`:
+  - "derives the owners from the registry: crawl, pageSpeed, lighthouse";
+  - "no code belongs to two owners";
+  - "the crawl and Lighthouse are scored, the Core Web Vitals are not";
+  - a type-test file `issue-catalogues.type-test.ts`:
+    - `TCrawlIssueCode` excludes a Lighthouse code;
+    - an owner without a catalogue fails to compile.
+
+  They fail: there is no registry. Verify: `pnpm --filter @app/contracts test:ci` fails on them.
+- [ ] 2.2 Move the catalogue into `packages/contracts/src/domain/seo/catalogue/`:
+  - `crawl/` (split by theme, entries unchanged byte for byte apart from losing `owner`);
+  - `page-speed/`;
+  - `lighthouse/` (empty catalogue for now);
+  - `issue-catalogues.constant.ts` with `ISSUE_CATALOGUES`, `IIssueOwnerDefinition`,
+    `TIssueOwner`, `TIssueCodeOf`, `TScoredIssueOwner`, `SCORED_ISSUE_OWNERS` and
+    `flattenCatalogues` (design D3).
+
+  `SEO_ISSUE_CATALOGUE` keeps its name and stamps `owner`. `CRAWL_ISSUE_CODES` and
+  `PAGE_SPEED_ISSUE_CODES` become `issueCodesOf('crawl' | 'pageSpeed')`. Delete
+  `issue-owner.enum.ts` and fix `src/index.ts`.
+
+  Verify: `pnpm --filter @app/contracts test:ci && pnpm typecheck`. Every existing catalogue,
+  plain-copy and measured-code test passes unchanged.
+- [ ] 2.3 Confirm no consumer read `.owner` or `ISSUE_OWNERS` outside contracts (scout found
+  none). Run `git grep -n "ISSUE_OWNERS\|\.owner ===" -- be/src fe/src`. Verify: no hits, and
+  `pnpm lint && pnpm typecheck && pnpm test` passes.
+- [ ] 2.4 Commit: `refactor(contracts): issue owners are a registry, one folder each`.
+
+## 3. Lighthouse codes and counterpart groups — ANALYSIS-028, ANALYSIS-029
+
+- [ ] 3.1 Write first in `packages/contracts/src/domain/seo/catalogue/lighthouse/lighthouse-catalogue.test.ts`:
+  - "one code per verdict-giving SEO and accessibility audit in the recorded answer";
+  - "no code reads a manual or informative audit";
+  - "each declared weight is the audit's weight in the recorded answer";
+  - "severity: weight ≥ 7 warning, else notice, `is-crawlable` error".
+
+  The tests read the fixture from 1.1 through a path the contracts tests can reach. If that
+  breaks the package's boundaries, copy the audit list into a `lighthouse-audits.fixture.json`
+  inside contracts with a note pointing at the recorder. They fail: the catalogue is empty.
+- [ ] 3.2 Write the Lighthouse entries (`LH_<AUDIT_ID>`, D23) with `audit`, `category`, `weight`
+  and `severity` from the rule. Write them in two commits:
+  1. SEO;
+  2. accessibility.
+
+  Each entry gets `label`, `plain`, `hint`, `explanation` and `sources` (D15), written from what
+  the audit checks in the recorded answer. `issue-plain-copy.test.ts` covers them automatically.
+  Verify: `pnpm --filter @app/contracts test:ci`.
+- [ ] 3.3 Write first in `packages/contracts/src/domain/seo/catalogue/issue-counterparts.test.ts`:
+  - "a code is in at most one group";
+  - "a group spans at least two owners";
+  - "the canonical group holds the five canonical codes and `LH_CANONICAL`";
+  - "Lighthouse codes in no group are exactly these: […]", an explicit list kept as the review
+    point (D10).
+
+  Then `issue-counterparts.constant.ts` (`ISSUE_COUNTERPARTS`, `counterpartGroupOf(code)`), with
+  groups drawn from the 1.2 list. At least these: title, meta description, canonical,
+  crawlable/noindex/robots, link text, crawlable anchors, image alt, hreflang, `html-has-lang`,
+  viewport. Verify: `pnpm --filter @app/contracts test:ci`.
+- [ ] 3.4 Update `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`:
+  - the opening ("only crawl-owned codes are checks") becomes "crawl and Lighthouse codes are
+    checks, Core Web Vitals are not";
+  - the "newer one steps aside" rule is scoped to one owner (D11);
+  - the entry count in the plain-copy line is recounted from the test, not copied.
+
+  Verify: every number in the edited lines matches `issue-plain-copy.test.ts`'s count.
+- [ ] 3.5 Commit: `feat(contracts): Lighthouse SEO and accessibility codes, and counterpart groups`.
+
+## 4. Storage — SPEED-017, SPEED-018, SPEED-019
+
+- [ ] 4.1 Write first in `be/src/modules/pages/repositories/page-speed/page-speed.repository.int-spec.ts`:
+  - "refuses Lighthouse lists set one without the other";
+  - "refuses a code in both Lighthouse lists";
+  - "refuses a failed count above the judged list's size";
+  - "refuses shares whose sum exceeds 1";
+  - "refuses a share on a lab-sourced metric";
+  - "refuses a `lab` TTFB source";
+  - "a measurement without the new columns is still accepted".
+
+  They fail: there are no columns. Verify: `pnpm --filter be test:db -- page-speed` fails on them.
+- [ ] 4.2 Edit `be/src/persistence/schema/tables/page-speed/page-speed.schema.ts`:
+  - columns, all nullable:
+    - `lighthouse_judged`, `lighthouse_not_applicable`, `lighthouse_failed`;
+    - `seo_score`, `accessibility_score`;
+    - `ttfb_ms`, `ttfb_source`;
+    - `{lcp,inp,cls,ttfb}_good_share`, `_poor_share`;
+    - `lcp_breakdown_json`;
+  - CHECKs per design D6, D7, D21 and the ranges.
+
+  Run `pnpm db:generate` and READ `be/drizzle/0015_*.sql`. It must contain only `ADD COLUMN` and
+  `ADD CONSTRAINT`, with no default and no rewrite. Then `pnpm db:migrate`. Never edit the file.
+  If `desktop-core-web-vitals` landed first, its migrations come before this one and its
+  `strategy` CHECK is added here (D16). Verify: the SQL reads as stated, and
+  `pnpm --filter be test:db -- page-speed` passes.
+- [ ] 4.3 Commit: `feat(db): page_speed stores Lighthouse verdicts, field TTFB, visit shares and
+  the LCP breakdown`.
+
+## 5. The worker reads and writes it — SPEED-016, SPEED-017, SPEED-018, SPEED-019
+
+- [ ] 5.1 Write first in `be/src/modules/page-speed/services/psi-client/psi-client.spec.ts`:
+  "a mobile request asks for performance, seo and accessibility, the key only in the header".
+  Then `PsiClient.requestUrl`. Verify: `pnpm --filter be test:ci -- psi-client`.
+- [ ] 5.2 Write first in `be/src/modules/page-speed/services/extract-lighthouse/extract-lighthouse.spec.ts`,
+  against the recorded fixtures:
+  - "binary 1 is judged";
+  - "binary 0 is judged and a finding with the catalogue's severity";
+  - "notApplicable is listed as such";
+  - "an errored audit is in neither list";
+  - "an unknown audit id is ignored and reported once";
+  - "an answer without the categories gives null lists and no findings";
+  - "reads both category scores".
+
+  Then `extractLighthouse(body)` (pure, its own zod schema, codes looked up by audit id through a
+  map derived from the catalogue, D23). Verify: `pnpm --filter be test:ci -- extract-lighthouse`.
+- [ ] 5.3 Write first in `extract-measurement.spec.ts`:
+  - "TTFB from the URL, else the origin, never the lab";
+  - "good and poor shares from the metric's own source";
+  - "no shares for a lab metric";
+  - "CLS shares read the same scale as the value";
+  - "the LCP breakdown with a text element has no load phases";
+  - "an answer without the breakdown still measures".
+
+  Then extend `extractMeasurement` (or a sibling `extractDiagnostics`, if the function grows
+  past one concern), plus a zod schema for `lcp_breakdown_json` in `@app/contracts` that is used
+  at write and at read. Verify: `pnpm --filter be test:ci -- extract-measurement`.
+- [ ] 5.4 Write first in `page-speed-results.service.spec.ts` and the repository int-spec:
+  - "a measurement writes the Lighthouse lists, the failed count and the Lighthouse findings in
+    one transaction";
+  - "a Lighthouse replace leaves crawl and Core Web Vitals findings";
+  - "an answer without categories removes earlier Lighthouse findings" (D20);
+  - "a failed attempt leaves every new column as it was".
+
+  Then:
+  - `seo-issues.repository.ts` `replaceLighthouseFindingsForWorker` deletes only
+    `issueCodesOf('lighthouse')`;
+  - `completeForWorker` takes the Lighthouse record;
+  - `page-speed-executor.service.ts` calls both extractors and the unknown-audit warn (once per
+    id per process).
+
+  Verify: `pnpm --filter be test:ci -- src/modules/page-speed src/modules/pages && pnpm --filter
+  be test:db -- page-speed seo-issues`.
+- [ ] 5.5 Update `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`:
+  - what the call asks for;
+  - the status mapping table (D13);
+  - "no categories is not an error" (D20);
+  - the live audit ids from 1.2.
+
+  Verify: the doc names only ids present in a fixture.
+- [ ] 5.6 Commit: `feat(page-speed): Lighthouse SEO and accessibility verdicts, field TTFB, visit
+  shares and the LCP breakdown`.
+
+## 6. Reading: score, checks per owner, summary — PAGES-009, PAGES-012, PAGES-016, PAGES-017, REPORT-005
+
+- [ ] 6.1 Write first in `packages/contracts/src/domain/pages/page-score/page-score.util.test.ts`:
+  - "sums every scored owner";
+  - "an absent owner contributes nothing and is reported absent";
+  - "16/2 crawl and 20/3 Lighthouse score 86".
+
+  Then:
+  - `pageScoreOf(byOwner: { [O in TScoredIssueOwner]: { applicable, failed } | null })` returns
+    `{ value, applicable, failed, byOwner }`;
+  - `IPageScore` gains `byOwner`;
+  - `TTFB` thresholds go in `FIELD_METRIC_THRESHOLDS` with `fieldBandOf` (D22);
+  - the summary types gain `ttfb`, `share`, `lcpBreakdown`, `seoScore` and
+    `accessibilityScore`;
+  - `IPageCheck<O>`;
+  - `IPageDetail.checksByOwner` replaces `checks` (**BREAKING**, ships with the FE in group 7).
+
+  Verify: `pnpm --filter @app/contracts test:ci`.
+- [ ] 6.2 Write first in `be/src/modules/pages/repositories/page-list/page-list.repository.int-spec.ts`:
+  "orders by the score summed over crawl and Lighthouse". Use the PAGES-009 scenario: B (90
+  crawl-only, 80 with Lighthouse) comes before A (88). It fails on today's ORDER BY. Then change
+  `page-list.repository.ts:134` to sum `p.checks_*` with `coalesce(cardinality(ps.lighthouse_judged), 0)`
+  and `coalesce(ps.lighthouse_failed, 0)`, still `::numeric`. The tie-breakers stay. Verify:
+  `pnpm --filter be test:db -- page-list`.
+- [ ] 6.3 Write first in `compose-page-checks.spec.ts` and `page-read.service.spec.ts`:
+  - "composes each scored owner from its own lists";
+  - "Lighthouse null while the crawl is present, and the reverse";
+  - "an errored Lighthouse code is not recorded";
+  - "no Core Web Vitals code is a check".
+
+  Then:
+  - generalise `composePageChecks(owner, judged, notApplicable, failed)` over
+    `issueCodesOf(owner)` filtered to active codes;
+  - `page-detail.repository.ts` selects `ps.lighthouse_*`;
+  - `page-read.service.ts` builds `checksByOwner` and the per-owner score for list and detail;
+  - `page-speed-summary-of.ts` maps the new summary fields with `fieldBandOf`.
+
+  Verify: `pnpm --filter be test:ci -- src/modules/pages`.
+- [ ] 6.4 Write first in `be/test/e2e/page-speed.e2e-spec.ts`:
+  - "a Lighthouse finding counts in the issue counts, the spread and the score" (PAGES-016);
+  - in the issue-report int-spec: "returns a Lighthouse finding at its page beside the crawl
+    finding it repeats" (REPORT-005).
+
+  The issue counts and the report read `seo_issues` without an owner filter today (scout). If
+  both pass without code changes, close the build half as `VERIFIED, NOT BUILT` and keep the
+  tests. Verify: `pnpm --filter be test:e2e -- page-speed && pnpm --filter be test:db --
+  issue-report`.
+- [ ] 6.5 Update:
+  - `be/src/modules/pages/PAGES_MODULE.md`: two scored writers, the score per owner, the list
+    order;
+  - `docs/decisions.md`: the "speed never enters the score" entry keeps Core Web Vitals out and
+    records that Lighthouse SEO and accessibility are in, citing this change;
+  - `README.md:117-120`.
+
+  Verify: `git grep -n "never enters the score\|never moves the SEO score"` reads true in every
+  hit.
+- [ ] 6.6 Commit: `feat(pages): Lighthouse verdicts in the score and in the checks, per owner`.
+
+## 7. The page detail — PAGEDETAIL-009, PAGEDETAIL-012, PAGEDETAIL-013
+
+- [ ] 7.1 Gateways: in `fe/src/Gateways/PageGateway/Validation/PageSchemas.ts`:
+  - `checksByOwner` replaces `checks`, and `pageCheckSchema` takes the owner's codes;
+  - the score's `byOwner`;
+  - the new summary fields, with the breakdown via the contracts zod schema;
+  - `plainVariants` cover Lighthouse codes.
+
+  Write first in `PageSchemas.test.ts`: "accepts a detail with a null Lighthouse list", "rejects
+  a Core Web Vitals code as a check". Add `describeIssue` sentences for the Lighthouse codes
+  (`DESCRIBE` is a `Record`, so a missing one fails to compile). Verify: `pnpm --filter fe
+  test:ci -- PageSchemas describeIssue && pnpm --filter fe typecheck`.
+- [ ] 7.2 Write first in `fe/src/ViewModels/PageDetailViewModel/Services/SummariseChecks/summariseChecks.test.ts`:
+  - "one row per counterpart group, each cell its owner's codes";
+  - "crawl rows in catalogue order, then Lighthouse SEO, then accessibility, failures first";
+  - "marks a row whose owners disagree";
+  - "a null owner yields one column line naming why";
+  - "counts judged and not applicable per owner".
+
+  Then `summariseChecks(checksByOwner, availability)`. Verify: `pnpm --filter fe test:ci --
+  summariseChecks`.
+- [ ] 7.3 Write first in `ChecksSection.test.tsx`, one test per PAGEDETAIL-009 scenario. Then
+  rebuild `ChecksSection.tsx`:
+  - two columns, each header with its date in the user's zone;
+  - section headings;
+  - the disagreement marker with its tooltip;
+  - stacked cells under Mantine's `sm` breakpoint.
+
+  Read `fe/skills/folder-structure/SKILL.md` before adding a sub-component folder. Verify:
+  `pnpm --filter fe test:ci -- ChecksSection`.
+- [ ] 7.4 Write first in `explainScore.test.ts` the three PAGEDETAIL-012 scenarios. Then
+  `explainScore(score, lighthouseState)`: the per-owner arithmetic, and "not in the number yet"
+  with its reason. Verify: `pnpm --filter fe test:ci -- explainScore`.
+- [ ] 7.5 Write first in `SpeedSection.test.tsx` the three PAGEDETAIL-013 scenarios. Then:
+  - the TTFB line;
+  - a share bar per field metric, with its tooltip;
+  - the LCP breakdown with its lab label;
+  - the two category captions.
+
+  Verify: `pnpm --filter fe test:ci -- SpeedSection`.
+- [ ] 7.6 Commit: `feat(fe): checks in two columns, our checks and Lighthouse, and the speed
+  diagnostics`. Verify: `pnpm lint && pnpm typecheck && pnpm test`.
+
+## 8. End to end
+
+- [ ] 8.1 Run the stack with a real `PAGESPEED_API_KEY` (`docker compose up -d --build`), crawl
+  one client, and wait for its measurements. Open a page detail and confirm, by reading the
+  screen:
+  - a group row with both verdicts;
+  - Lighthouse-only sections;
+  - the column dates;
+  - the TTFB line, share bars, breakdown and captions;
+  - the score explanation's per-owner arithmetic;
+  - the client's report holding Lighthouse findings.
+
+  Record anything that contradicts a requirement with `AMENDED during implementation:` on the
+  task that built it. Verify: a short note under this task naming the client and page checked.
+- [ ] 8.2 `pnpm exec openspec validate lighthouse-checks` passes, and `pnpm lint && pnpm
+  typecheck && pnpm test` passes. Verify: both exit 0.
