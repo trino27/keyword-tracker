@@ -12,7 +12,7 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
 
 ## 1. The audit's id and shape, read from a live answer (5a) — plan D10
 
-- [ ] 1.1 Find the audit and record answers that carry it:
+- [x] 1.1 Find the audit and record answers that carry it:
   - with the local key, request one mobile PageSpeed answer, with the three categories the app
     asks for, for a page known for heavy images, and read `lighthouseResult.audits` for the
     image-delivery audit. The candidate is Lighthouse 13's `image-delivery-insight` (the recorded
@@ -31,10 +31,22 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
   `git grep -n -E "key=|AIza" -- be/test/fixtures/pagespeed` prints nothing, and
   `node -e "const a=require('./be/test/fixtures/pagespeed/image-delivery-failing.json');console.log(Object.keys(a.lighthouseResult.audits))"`
   lists the audit.
-- [ ] 1.2 Check that the existing fixture readers are unchanged. Verify: `pnpm --filter be test:ci
+  AMENDED during implementation (the guess held): the audit is `image-delivery-insight`
+  (Lighthouse 13.5.0, `scoreDisplayMode: 'metricSavings'`). Failing is `score < 1`. The total
+  savings is `details.debugData.wastedBytes`, and there is no `overallSavingsBytes`. Per image:
+  `details.items[]` with `url`, `totalBytes` and `wastedBytes`, which sum to the total.
+  `metricSavings` holds LCP and FCP milliseconds, not bytes. The failing answer is
+  bbcgoodfood.com/recipes/easy-pancakes (score 0.5, 162 175 bytes over 8 images, "Est savings of
+  158 KiB"); the passing one is smashingmagazine.com (score 1, nothing listed). Plan §10.12 is
+  amended to this.
+- [x] 1.2 Check that the existing fixture readers are unchanged. Verify: `pnpm --filter be test:ci
   -- extract-measurement extract-lighthouse page-speed-fixtures`.
-- [ ] 1.3 Commit: `test(fixtures): PageSpeed answers that keep the image-delivery audit`. Verify:
+  Done: 53 tests green; no existing answer was re-recorded.
+- [x] 1.3 Commit: `test(fixtures): PageSpeed answers that keep the image-delivery audit`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test`.
+  Done. AMENDED during implementation: the repo-wide `pnpm lint` failed on another session's
+  uncommitted `extract-page.spec.ts` in the shared tree. So this commit was checked on its own
+  files: eslint on the two changed files, be typecheck, and 1336 be tests, all green.
 
 ## 2. The finding (5b) — SPEED-015
 

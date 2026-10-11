@@ -980,19 +980,23 @@ which deletes only `PAGE_SPEED_CODES_BY_STRATEGY[strategy]`.
   `extractDiagnostics` and `extractLighthouse`, and puts the result on the `measured` outcome as
   `imageDelivery`. Its absence never turns `measured` into anything else (D46). A desktop answer
   asks for performance only and may well carry the audit too; the executor never passes it on.
-- **Rule**: `extractImageDelivery(json)` parses only `lighthouseResult.audits['<AUDIT_ID>']` with
-  its own zod schema. It returns `null` when the audit is absent or does not parse ("no data"),
-  else `{ failing, savingsBytes, items }`. The finding is raised when `failing && savingsBytes >=
+- **Rule**: `extractImageDelivery(json)` parses only
+  `lighthouseResult.audits['image-delivery-insight']` with its own zod schema. It returns `null`
+  when the audit is absent or does not parse ("no data"), else `{ failing, savingsBytes, items }`.
+  The finding is raised when `failing && savingsBytes >=
   SEO_ISSUE_CATALOGUE.IMAGE_DELIVERY_INEFFICIENT.min` (102 400), with details `{ value:
   savingsBytes, min, images: items sorted by savings desc, first 10 }`. The comparison reads the
   catalogue's `min`, so the bar has one owner.
-- **Unverified shape.** `<AUDIT_ID>`, the meaning of "failing" (score below what?), and where the
-  total savings and per-image savings sit are **VERIFY** items. Task 1.1 of `image-delivery-finding`
-  settles them against a live answer, as the prior plan's Phase 6 did for CWV. The candidates
-  known today are Lighthouse 13's `image-delivery-insight` with `details.items[].wastedBytes` and
-  a `metricSavings`/`overallSavingsBytes` total. The recorded fixtures carry `lighthouseVersion
-  13.5.0` (`be/test/fixtures/pagespeed/url-field.json:223`) and are trimmed to `KEPT_AUDITS`, so
-  the audit is not in them today.
+- **The shape, read from live answers on 2026-10-11** (Lighthouse 13.5.0, AMENDED by task 1.1 of
+  `image-delivery-finding`; the guess held):
+  - the id is `image-delivery-insight`, `scoreDisplayMode: 'metricSavings'`;
+  - **failing** is `score < 1`: bbcgoodfood.com's recipe page scored 0.5 with savings, and
+    smashingmagazine.com scored 1 with nothing listed. `metricSavings` holds the LCP and FCP gain
+    in milliseconds (0 on both), not bytes;
+  - the **total savings** is `details.debugData.wastedBytes` (162 175 bytes, which the audit's
+    own `displayValue` rounds to "Est savings of 158 KiB"). There is no `overallSavingsBytes`;
+  - **per image**: `details.items[]` with `url`, `totalBytes` and `wastedBytes` (bytes); the
+    total equals the items' sum.
 - **Absence**: `extractMeasurement` (`extract-measurement.ts:77`) is untouched. A renamed audit
   removes the image finding and nothing else.
 

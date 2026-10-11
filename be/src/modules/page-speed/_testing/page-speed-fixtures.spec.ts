@@ -23,6 +23,14 @@ const ANSWERS: Record<
 > = {
   'url-field.json': { status: 200, outcome: { kind: 'measured' } },
   'url-field.desktop.json': { status: 200, outcome: { kind: 'measured' } },
+  'image-delivery-failing.json': {
+    status: 200,
+    outcome: { kind: 'measured' },
+  },
+  'image-delivery-passing.json': {
+    status: 200,
+    outcome: { kind: 'measured' },
+  },
   'origin-only.json': { status: 200, outcome: { kind: 'measured' } },
   'lab-only.json': { status: 200, outcome: { kind: 'measured' } },
   'lighthouse-url-field.json': { status: 200, outcome: { kind: 'measured' } },
@@ -102,6 +110,38 @@ describe('the recorded PageSpeed answers', () => {
     );
     expect(lab.loadingExperience?.metrics).toBeUndefined();
     expect(lab.originLoadingExperience?.metrics).toBeUndefined();
+  });
+
+  /**
+   * The answers the image-delivery extraction is pinned against: one failing with well over
+   * 100 KiB to save, its total the sum of its images, and one passing with nothing listed.
+   */
+  it('image-delivery-failing saves over 100 KiB across its images; image-delivery-passing lists none', () => {
+    type TAudit = {
+      score: number;
+      details: {
+        debugData: { wastedBytes: number };
+        items: { url: string; wastedBytes: number }[];
+      };
+    };
+    const auditOf = (file: string) =>
+      (
+        readPageSpeedFixture(file) as {
+          lighthouseResult: { audits: Record<string, TAudit> };
+        }
+      ).lighthouseResult.audits['image-delivery-insight'];
+    const failing = auditOf('image-delivery-failing.json');
+    const passing = auditOf('image-delivery-passing.json');
+
+    expect(failing.score).toBeLessThan(1);
+    expect(failing.details.debugData.wastedBytes).toBeGreaterThanOrEqual(
+      102_400,
+    );
+    expect(
+      failing.details.items.reduce((sum, item) => sum + item.wastedBytes, 0),
+    ).toBe(failing.details.debugData.wastedBytes);
+    expect(passing.score).toBe(1);
+    expect(passing.details.items).toEqual([]);
   });
 
   /**

@@ -58,6 +58,21 @@ const TARGETS: {
   },
   // The page's own Chrome data (`loadingExperience` without `origin_fallback`).
   { file: 'url-field.json', url: 'https://yoast.com/', key: 'real' },
+  // Lighthouse's image-delivery audit failing with well over 100 KiB to save: a recipe page
+  // of large photographs, every category, as the app asks on mobile.
+  {
+    file: 'image-delivery-failing.json',
+    url: 'https://www.bbcgoodfood.com/recipes/easy-pancakes',
+    key: 'real',
+    verdicts: true,
+  },
+  // The same audit passing (score 1, nothing listed): images already sized and modern.
+  {
+    file: 'image-delivery-passing.json',
+    url: 'https://www.smashingmagazine.com/',
+    key: 'real',
+    verdicts: true,
+  },
   // The same page on desktop: its own desktop Chrome data, performance only.
   {
     file: 'url-field.desktop.json',
@@ -105,6 +120,7 @@ const KEPT_AUDITS = [
   'total-blocking-time',
   'speed-index',
   'lcp-breakdown-insight',
+  'image-delivery-insight',
 ];
 
 /**
