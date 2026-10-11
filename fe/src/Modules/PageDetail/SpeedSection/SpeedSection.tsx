@@ -25,6 +25,8 @@ import {
 	type TCwvMetric,
 	type TLcpPhase,
 	type TPsiStrategy,
+	type TScoreBand,
+	scoreBandOf,
 } from "@app/contracts";
 import { cwvBandColor, cwvBandLabel } from "@Core/Constants/cwvBandColor";
 import { pageSpeedAvailabilityCopy } from "@Core/Constants/pageSpeedAvailabilityCopy";
@@ -276,12 +278,14 @@ function LcpBreakdown({ breakdown }: { breakdown: ILcpBreakdown }) {
  * Lighthouse's own colours for a category score: 0–49 poor, 50–89 needs improvement,
  * 90–100 good — so a 47 reads as Lighthouse shows it in PageSpeed Insights.
  */
-const lighthouseColor = (score: number) =>
-	score >= 90
-		? cwvBandColor.good
-		: score >= 50
-			? cwvBandColor.needsImprovement
-			: cwvBandColor.poor;
+/** Lighthouse's own score bands (`SCORE_BANDS`), in the traffic-light colours. */
+const LIGHTHOUSE_BAND_COLOR: Record<TScoreBand, string> = {
+	good: cwvBandColor.good,
+	average: cwvBandColor.needsImprovement,
+	poor: cwvBandColor.poor,
+};
+
+const lighthouseColor = (score: number) => LIGHTHOUSE_BAND_COLOR[scoreBandOf(score)];
 
 /**
  * Lighthouse's category scores as cards: the number in a ring, coloured by Lighthouse's
