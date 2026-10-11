@@ -46,13 +46,18 @@ describe('PsiClient', () => {
     expect(JSON.stringify(logger.debug.mock.calls)).not.toContain(KEY);
   });
 
-  it('asks for mobile, performance only, with the page URL encoded', async () => {
+  /**
+   * SPEED-016: Lighthouse's SEO and accessibility verdicts ride on the measurement's own
+   * request, so they cost no quota of their own.
+   */
+  it('asks for mobile performance, SEO and accessibility in one request, with the page URL encoded', async () => {
     const { client, requests } = makeClient(() => ok());
 
     await client.runPagespeed('https://yoast.com/a b/?x=1', KEY);
 
+    expect(requests).toHaveLength(1);
     expect(requests[0].url).toBe(
-      'https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=https%3A%2F%2Fyoast.com%2Fa%20b%2F%3Fx%3D1&strategy=mobile&category=performance',
+      'https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=https%3A%2F%2Fyoast.com%2Fa%20b%2F%3Fx%3D1&strategy=mobile&category=performance&category=seo&category=accessibility',
     );
   });
 

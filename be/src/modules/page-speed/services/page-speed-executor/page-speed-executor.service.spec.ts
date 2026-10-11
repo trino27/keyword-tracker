@@ -79,7 +79,109 @@ describe('PageSpeedExecutorService', () => {
           details: { value: 212, max: 200, source: 'url' },
         },
       ],
+      [],
     );
+  });
+
+  /** SPEED-017/018/019: one answer, every part of it written in the one completion. */
+  it('writes the Lighthouse record, the category scores, the diagnostics and the Lighthouse findings', async () => {
+    const { run, results, claim } = setup(
+      answer(200, 'lighthouse-url-field.json'),
+    );
+
+    await run();
+
+    const [, write, cwv, lighthouse] = results.completeForWorker.mock
+      .calls[0] as [
+      unknown,
+      Record<string, unknown> & { lighthouseJudged: string[] },
+      unknown[],
+      { code: string }[],
+    ];
+    expect(results.completeForWorker).toHaveBeenCalledWith(
+      claim,
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(write).toMatchObject({
+      lighthouseFailed: 3,
+      seoScore: 92,
+      accessibilityScore: 94,
+      ttfbMs: 652,
+      ttfbSource: 'url',
+      lcpGoodShare: 0.6487,
+      lcpPoorShare: 0.1522,
+      clsGoodShare: 0.8962,
+      clsPoorShare: 0.019,
+      lcpBreakdown: { phases: expect.any(Array) as unknown },
+    });
+    expect(write.lighthouseJudged).toContain('LH_ROBOTS_TXT');
+    expect(cwv.length).toBeGreaterThan(0);
+    expect(lighthouse.map(({ code }) => code)).toEqual([
+      'LH_ROBOTS_TXT',
+      'LH_COLOR_CONTRAST',
+      'LH_LINK_NAME',
+    ]);
+  });
+
+  /** D20: the record is absent, not empty, and its old findings go with it. */
+  it('writes an answer without the categories with no Lighthouse record and no Lighthouse findings', async () => {
+    const { run, results } = setup(answer(200, 'url-field.json'));
+
+    await run();
+
+    const [, write, , lighthouse] = results.completeForWorker.mock.calls[0] as [
+      unknown,
+      Record<string, unknown>,
+      unknown,
+      unknown[],
+    ];
+    expect(write).toMatchObject({
+      lighthouseJudged: null,
+      lighthouseNotApplicable: null,
+      lighthouseFailed: null,
+      seoScore: null,
+      accessibilityScore: null,
+      lcpBreakdown: null,
+    });
+    expect(lighthouse).toEqual([]);
+  });
+
+  it('warns once per audit the catalogue does not know, however many pages report it', async () => {
+    const body = JSON.parse(
+      pageSpeedFixtureBody('lighthouse-url-field.json').toString('utf8'),
+    ) as {
+      lighthouseResult: {
+        categories: { seo: { auditRefs: { id: string; weight: number }[] } };
+        audits: Record<string, unknown>;
+      };
+    };
+    body.lighthouseResult.categories.seo.auditRefs.push({
+      id: 'new-seo-audit',
+      weight: 1,
+    });
+    body.lighthouseResult.audits['new-seo-audit'] = {
+      score: 1,
+      scoreDisplayMode: 'binary',
+    };
+    const result: TPsiCallResult = {
+      response: {
+        status: 200,
+        headers: {},
+        body: Buffer.from(JSON.stringify(body)),
+      },
+    };
+    const { run, logger, results } = setup(result);
+
+    await run();
+    await run();
+
+    expect(results.completeForWorker).toHaveBeenCalledTimes(2);
+    const warned = logger.warn.mock.calls.filter(([fields]) =>
+      JSON.stringify(fields).includes('new-seo-audit'),
+    );
+    expect(warned).toHaveLength(1);
   });
 
   it('a transient failure is retried later, with its attempt spent', async () => {
@@ -173,6 +275,7 @@ describe('PageSpeedExecutorService', () => {
           details: { value: 231, max: 200, source: 'origin' },
         },
       ],
+      [],
     );
   });
 
@@ -192,6 +295,7 @@ describe('PageSpeedExecutorService', () => {
         clsSource: 'lab',
         performanceScore: 100,
       }),
+      [],
       [],
     );
   });

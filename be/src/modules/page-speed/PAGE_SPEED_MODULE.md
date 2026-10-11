@@ -1,7 +1,7 @@
 # Page-speed module
 
-Measures queued pages with Google PageSpeed Insights (mobile, performance only) and writes what
-Google said. Owns no table: the pages module owns `page_speed` and `seo_issues`; this module only
+Measures queued pages with Google PageSpeed Insights (mobile: performance, and Lighthouse's SEO
+and accessibility categories, in one request) and writes what Google said. Owns no table: the pages module owns `page_speed` and `seo_issues`; this module only
 executes, the way the crawl module executes runs the clients module queues; the queue's shapes
 (`IClaimedPageSpeed`, `IPageSpeedJobWrite`, `IPageSpeedMeasurementWrite`) are the pages
 module's, in `be/src/modules/pages/interfaces/page-speed.interface.ts`, and nothing here
@@ -26,20 +26,49 @@ worker it would exit under mid-call.
   from the distribution bounds in the answer.
 - **What Google's answer means** (`classifyPsiResponse`), and what happens to the row:
 
-  | outcome | row | queue |
-  | --- | --- | --- |
-  | 200 with LCP, CLS and a score | `done`, measurement + findings in one transaction | continues |
-  | timeout, network, 5xx | back to `queued` after 1, 4, 16, 64 min; `failed PSI_UNAVAILABLE` at attempt 5 | continues |
-  | 429 / quota | released, attempt given back | every slot pauses for Retry-After or 60 s — an hour when the DAILY quota is spent |
-  | key refused (400/403 key reasons) | released, attempt given back | halted until restart; payloads say `keyRejected` |
-  | Lighthouse could not load / page errored / other 4xx / no measurement | `failed` with its reason | continues |
-  | an unexpected error (a bug, the database failing mid-write) | a failed attempt: back to `queued` with the same backoff, `failed PSI_UNAVAILABLE` at attempt 5 — never left `running` | continues |
+  | outcome                                                               | row                                                                                                                    | queue                                                                             |
+  | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+  | 200 with LCP, CLS and a score                                         | `done`, measurement + findings in one transaction                                                                      | continues                                                                         |
+  | timeout, network, 5xx                                                 | back to `queued` after 1, 4, 16, 64 min; `failed PSI_UNAVAILABLE` at attempt 5                                         | continues                                                                         |
+  | 429 / quota                                                           | released, attempt given back                                                                                           | every slot pauses for Retry-After or 60 s — an hour when the DAILY quota is spent |
+  | key refused (400/403 key reasons)                                     | released, attempt given back                                                                                           | halted until restart; payloads say `keyRejected`                                  |
+  | Lighthouse could not load / page errored / other 4xx / no measurement | `failed` with its reason                                                                                               | continues                                                                         |
+  | an unexpected error (a bug, the database failing mid-write)           | a failed attempt: back to `queued` with the same backoff, `failed PSI_UNAVAILABLE` at attempt 5 — never left `running` | continues                                                                         |
 
   Every failure path writes job columns only, so the last good measurement survives.
+
 - **Findings** (`cwvIssuesOf`): a metric outside the good band yields exactly its one code —
   `CWV_*_POOR` (Important) or `CWV_*_NEEDS_IMPROVEMENT` (Improvement) — with `{value, max,
-  source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree. Speed never
+source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree. Speed never
   enters the SEO score.
+- **Lighthouse's verdicts** (`extractLighthouse`, lighthouse-checks). The same answer carries
+  Lighthouse 13's SEO and accessibility categories; every audit Lighthouse SCORES in them (weight
+  above 0 — 66 in 13.5.0) is an `LH_*` catalogue code, looked up by the audit id the answer uses:
+
+  | the audit in the answer                | recorded                                      |
+  | -------------------------------------- | --------------------------------------------- |
+  | `binary`, score 1                      | `lighthouse_judged`                           |
+  | `binary`, score 0                      | `lighthouse_judged` + one `seo_issues` row    |
+  | `notApplicable`                        | `lighthouse_not_applicable`                   |
+  | `error`, any other mode, or absent     | neither — nothing is invented for it          |
+  | scored, but no catalogue code reads it | nothing; `warn` once per audit id per process |
+
+  `lighthouse_failed` counts the findings, so the score reads `page_speed` alone. An answer with
+  neither category is NOT an error: the Core Web Vitals are stored, the three Lighthouse columns
+  and both category scores are null, and the page's earlier `LH_*` findings are removed with the
+  rest of the replace — a finding with no record behind it could not be shown as a check (D20).
+  Lighthouse's findings are checks and count in the page's score; the CWV ones still do not.
+  The extraction is pinned against `lighthouse-url-field.json` and `lighthouse-lab-only.json`,
+  live answers recorded 2026-10-11. Weights are never read from an answer, which reports 0 for
+  every audit that did not apply: they are Lighthouse's configuration, snapshotted in
+  `packages/contracts/src/domain/seo/catalogue/lighthouse/lighthouse-audits.fixture.json`.
+
+- **Diagnostics** (`extractDiagnostics`): real visitors' TTFB (`EXPERIMENTAL_TIME_TO_FIRST_BYTE`,
+  page else site, never lab), the good and poor share of visits per metric from the SAME data as
+  the metric's value (none for a lab value), and the LCP breakdown from `lcp-breakdown-insight` —
+  the element and up to four phases. Those phases are from Lighthouse's unthrottled trace and sum
+  to no LCP the page shows. None of this is required for a measurement; each part is written on
+  every measurement, null included, so a row's figures always come from one answer.
 - **What is measured is the page's `final_url`**, not the sitemap URL: field data is keyed by the
   address visitors land on, and measuring a redirect measures the redirect.
 - **No heartbeat.** One attempt is one bounded request (90 s) plus one transaction, so the 3-minute
@@ -76,40 +105,53 @@ and what pins it. Unless another path is named, the requirement lives in
 `be/src/modules/`.
 
 <!-- invariant: SPEED-001 -->
+
 **A finished crawl queues its pages in the transaction that makes them current; a rolled-back or superseded finalize queues nothing.** Pinned by `crawl/services/crawl-run-executor/crawl-run-executor.service.spec.ts` -> "enqueues the run's pages in the finalize transaction" and "a superseded attempt enqueues nothing"; `be/test/e2e/page-speed.e2e-spec.ts` -> "a crawl queues its pages".
 
 <!-- invariant: SPEED-002 -->
+
 **A page is (re)queued only with no row, after a failure, or with a measurement at least 24 h old; a queued or running row is left alone, and re-queuing keeps the measurement.** Pinned by `pages/repositories/page-speed/page-speed.repository.int-spec.ts` -> "re-queues a measurement exactly 24 h old, not one 1 s younger", "re-queues a failed row with its attempts reset", "leaves a queued or running row alone", "keeps the measurement when re-queued"; `pages/services/page-speed-queue/page-speed-queue.service.spec.ts` -> "asks for pages measured a full day before now, in the given transaction".
 
 <!-- invariant: SPEED-003 -->
+
 **One slot holds a row at a time, only the attempt holding it writes its outcome, and a row abandoned five times fails `ABANDONED`.** Pinned by `page-speed.repository.int-spec.ts` -> "two concurrent claims take two different rows (SKIP LOCKED)", "a stale attempt's completion and failure write nothing", "reclaims a running row whose lease expired, as the next attempt", "fails a row abandoned at attempt 5 with ABANDONED, and never claims it"; the CHECK `page_speed_attempts_range`; `page-speed/workers/page-speed-worker/page-speed-worker.spec.ts` -> "runs at most 2 measurements at once".
 
 <!-- invariant: SPEED-004 -->
+
 **Only pages on their client's current run are claimed; any other row is left as it is.** Pinned by `page-speed.repository.int-spec.ts` -> "never claims a page its client's current run no longer has".
 
 <!-- invariant: SPEED-005 -->
-**Each metric takes this page's field data, else the site's, else the lab — INP never the lab — and keeps its source; the page's final URL is measured, on mobile.** Pinned by `page-speed/services/extract-measurement/extract-measurement.spec.ts` -> "takes URL field data when Google has it", "reads an origin fallback as the whole site, not as the page", "falls back to the origin per metric", "falls back to the lab for LCP and CLS, never for INP"; the CHECK `page_speed_inp_field_only`; `page-speed/services/page-speed-executor/page-speed-executor.service.spec.ts` -> "measures the page's final URL with the key, and writes the measurement with its findings"; `page-speed/services/psi-client/psi-client.spec.ts` -> "asks for mobile, performance only, with the page URL encoded". The extraction is pinned against SYNTHESIZED answers only — no key was available — so the comparison with a live answer is still owed.
+
+**Each metric takes this page's field data, else the site's, else the lab — INP never the lab — and keeps its source; the page's final URL is measured, on mobile.** Pinned by `page-speed/services/extract-measurement/extract-measurement.spec.ts` -> "takes URL field data when Google has it", "reads an origin fallback as the whole site, not as the page", "falls back to the origin per metric", "falls back to the lab for LCP and CLS, never for INP"; the CHECK `page_speed_inp_field_only`; `page-speed/services/page-speed-executor/page-speed-executor.service.spec.ts` -> "measures the page's final URL with the key, and writes the measurement with its findings"; `page-speed/services/psi-client/psi-client.spec.ts` -> "asks for mobile performance, SEO and accessibility in one request, with the page URL encoded". The extraction is pinned against SYNTHESIZED answers only — no key was available — so the comparison with a live answer is still owed.
 
 <!-- invariant: SPEED-006 -->
+
 **A measurement and its findings are written whole in one transaction, and a failed, released or abandoned attempt leaves the stored measurement byte-for-byte.** Pinned by `page-speed.repository.int-spec.ts` -> "refuses %s (%s)" (one row per CHECK) and "a failure, a release and an abandonment leave the measurement byte-for-byte"; `pages/services/page-speed-results/page-speed-results.service.spec.ts` -> "writes the measurement and the page findings in one transaction"; `page-speed-executor.service.spec.ts` -> "a failure never calls completeForWorker (%s)".
 
 <!-- invariant: SPEED-007 -->
+
 **A metric outside the good band is exactly one speed finding of its band's code, a good metric none, and only the speed worker writes them.** Pinned by `page-speed/services/cwv-issues/cwv-issues-of.spec.ts` -> "a metric outside the good band yields exactly its one code (%s %d → %s)", "never yields two codes for one metric", "takes severity from the catalogue: poor is a warning, needs improvement a notice"; `pages/repositories/seo-issues/seo-issues.repository.int-spec.ts` -> "a speed replace leaves the page's crawl findings"; `be/test/e2e/page-speed.e2e-spec.ts` -> "every non-good badge in the list has its finding in the detail, and no good one does". "Never two per metric" is NOT a database constraint — a CHECK cannot see the page's other rows.
 
 <!-- invariant: SPEED-008 -->
+
 **A timeout, network error or 5xx is retried after 1, 4, 16, 64 minutes and fails `PSI_UNAVAILABLE` at the fifth; a page Google cannot test fails at once with its reason; every reason but `ABANDONED` is producible.** Pinned by `page-speed/services/retry-delay/retry-delay.spec.ts` -> "waits 1, 4, 16, 64 minutes after the 1st to 4th failure"; `page-speed-executor.service.spec.ts` -> "a transient failure is retried later, with its attempt spent", "the 5th transient failure gives up on the page", "a permanent failure fails the page with its reason", "an unexpected error is a failed attempt, never a row left running"; `page-speed/services/classify-psi-response/classify-psi-response.spec.ts` -> "produces %s from some answer"; `psi-client.spec.ts` -> "one request, no retry, 90 s timeout".
 
 <!-- invariant: SPEED-009 -->
+
 **A 429 pauses every slot for `Retry-After` or 60 s — an hour when the daily quota is spent — and the row in flight goes back with its attempt.** Pinned by `page-speed/services/rate-limiter/page-speed-rate-limiter.spec.ts` -> "a pause holds every slot"; `page-speed-executor.service.spec.ts` -> "a 429 pauses every slot and releases the row without spending an attempt"; `classify-psi-response.spec.ts` -> "a 429 pauses as long as Retry-After asks, in seconds or as a date", "a 429 pauses for the default when Google names no Retry-After" and "a spent daily quota pauses for an hour"; `page-speed.repository.int-spec.ts` -> "a release gives back the attempt". The pause is per process — the known limitation above.
 
 <!-- invariant: SPEED-010 -->
+
 **A key Google refuses halts every slot until restart, gives the row back, logs the cause without the key, and makes the API say `keyRejected`.** Pinned by `classify-psi-response.spec.ts` -> "a rejected key halts the queue rather than failing the page" and "a key Google refuses for %s is rejected too"; `page-speed-executor.service.spec.ts` -> "a rejected key halts the queue, marks the state and gives the row back" and "no log line and no stored error contains the key"; `page-speed-worker.spec.ts` -> "a rejected key halts both slots and leaves the rows to the queue"; `be/test/e2e/page-speed.e2e-spec.ts` -> "after Google rejects the key every row is still queued and the state is keyRejected", which reads the list's and the report's payloads; the detail reaches the same `PageSpeedAvailabilityService` and is asserted at unit level only.
 
 <!-- invariant: SPEED-011 -->
+
 **Without a key the worker never starts and nothing asks Google, crawls still queue, and the API says `notConfigured`; with one it says `active`.** Pinned by `page-speed-worker.spec.ts` -> "does not start without a key" and "does not start with the worker flag off"; `be/src/infrastructure/config/page-speed-settings/page-speed-availability-of/page-speed-availability-of.spec.ts` -> "no key is notConfigured, a key is active, a rejected key is keyRejected"; `page-speed-availability/page-speed-availability.service.spec.ts` -> "answers from the configured key and what the worker learned since"; `be/test/e2e/page-speed.e2e-spec.ts` -> "the rows stay queued and nothing asks Google". "Adding a key and restarting drains the queue" is NOT pinned by a test.
 
 <!-- invariant: SPEED-012 -->
+
 **The key travels only in the `x-goog-api-key` header — never in a URL, a log line, a stored error or a fixture.** Pinned by `psi-client.spec.ts` -> "sends the key in a header and never in the URL"; `page-speed-executor.service.spec.ts` -> "no log line and no stored error contains the key". The fixtures are guarded by `be/test/fixtures/record-pagespeed-fixtures.ts`, which refuses an answer that echoes the key, and by the manual `git grep -n -E "key=|AIza" -- be/test/fixtures/pagespeed` — no test runs it.
 
 <!-- invariant: SPEED-013 -->
+
 **Reading a screen never calls PageSpeed.** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "opening the list, the detail and the report requests nothing from PageSpeed and writes nothing".

@@ -85,4 +85,53 @@ describe('SeoIssuesRepository', () => {
       'LANG_MISSING',
     ]);
   });
+
+  /**
+   * Lighthouse is a third writer: its replace runs in the same transaction as the speed
+   * one, and must take neither the crawl's findings nor the Core Web Vitals'. A crawl and
+   * a Lighthouse finding on the same fact are both kept (D11).
+   */
+  it("a Lighthouse replace leaves the page's crawl and speed findings, and is left by theirs", async () => {
+    const pageId = await pageWithBothKinds();
+    await testDb.db.insert(seoIssues).values({
+      pageId,
+      code: 'LH_HTML_HAS_LANG',
+      severity: 'warning',
+      details: {},
+    });
+
+    await testDb.db.transaction((tx) =>
+      repository.replaceLighthouseFindingsForWorker(tx, pageId, [
+        { pageId, code: 'LH_COLOR_CONTRAST', severity: 'warning', details: {} },
+      ]),
+    );
+    expect(await codesOf(pageId)).toEqual([
+      'CWV_LCP_POOR',
+      'LANG_MISSING',
+      'LH_COLOR_CONTRAST',
+    ]);
+
+    await testDb.db.transaction(async (tx) => {
+      await repository.replaceCrawlFindingsForWorker(tx, [pageId], []);
+      await repository.replacePageSpeedFindingsForWorker(tx, pageId, []);
+    });
+    expect(await codesOf(pageId)).toEqual(['LH_COLOR_CONTRAST']);
+  });
+
+  /** D20: an answer without the categories passes no findings, and clears the old ones. */
+  it('an empty Lighthouse replace clears the earlier Lighthouse findings', async () => {
+    const pageId = await pageWithBothKinds();
+    await testDb.db.insert(seoIssues).values({
+      pageId,
+      code: 'LH_COLOR_CONTRAST',
+      severity: 'warning',
+      details: {},
+    });
+
+    await testDb.db.transaction((tx) =>
+      repository.replaceLighthouseFindingsForWorker(tx, pageId, []),
+    );
+
+    expect(await codesOf(pageId)).toEqual(['CWV_LCP_POOR', 'LANG_MISSING']);
+  });
 });

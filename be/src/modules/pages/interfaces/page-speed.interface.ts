@@ -1,4 +1,9 @@
-import type { TCwvSource, TPageSpeedErrorCode } from '@app/contracts';
+import type {
+  ILcpBreakdown,
+  TCwvSource,
+  TLighthouseIssueCode,
+  TPageSpeedErrorCode,
+} from '@app/contracts';
 
 /**
  * The PageSpeed queue's shapes, exported by the pages module for the worker that drains
@@ -16,6 +21,28 @@ export interface IPageSpeedMeasurementWrite {
   clsSource: TCwvSource;
   performanceScore: number;
   measuredAt: Date;
+  /**
+   * Everything below is written on every measurement, null included, so an answer that
+   * lacks a part clears the part an older answer left (lighthouse-checks D20): a row's
+   * figures always come from one answer.
+   */
+  ttfbMs: number | null;
+  ttfbSource: Exclude<TCwvSource, 'lab'> | null;
+  lcpGoodShare: number | null;
+  lcpPoorShare: number | null;
+  inpGoodShare: number | null;
+  inpPoorShare: number | null;
+  clsGoodShare: number | null;
+  clsPoorShare: number | null;
+  ttfbGoodShare: number | null;
+  ttfbPoorShare: number | null;
+  lcpBreakdown: ILcpBreakdown | null;
+  /** Lighthouse's record: all three null when the answer had neither category. */
+  lighthouseJudged: TLighthouseIssueCode[] | null;
+  lighthouseNotApplicable: TLighthouseIssueCode[] | null;
+  lighthouseFailed: number | null;
+  seoScore: number | null;
+  accessibilityScore: number | null;
 }
 
 /**

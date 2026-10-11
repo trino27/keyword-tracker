@@ -2,8 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, inArray } from 'drizzle-orm';
 import {
   CRAWL_ISSUE_CODES,
+  LIGHTHOUSE_ISSUE_CODES,
   PAGE_SPEED_ISSUE_CODES,
   type TCrawlSeoIssue,
+  type TLighthouseSeoIssue,
   type TPageSpeedSeoIssue,
 } from '@app/contracts';
 import {
@@ -18,6 +20,9 @@ export type TNewCrawlIssue = TCrawlSeoIssue & { pageId: number };
 
 /** A speed finding addressed to a page. */
 export type TNewPageSpeedIssue = TPageSpeedSeoIssue & { pageId: number };
+
+/** A Lighthouse finding addressed to a page. */
+export type TNewLighthouseIssue = TLighthouseSeoIssue & { pageId: number };
 
 @Injectable()
 export class SeoIssuesRepository {
@@ -61,6 +66,28 @@ export class SeoIssuesRepository {
         and(
           eq(seoIssues.pageId, pageId),
           inArray(seoIssues.code, PAGE_SPEED_ISSUE_CODES),
+        ),
+      );
+    if (rows.length > 0) await tx.insert(seoIssues).values(rows);
+  }
+
+  /**
+   * A measurement's Lighthouse findings replace the page's previous ones, in the same
+   * transaction as the measurement. An answer without the categories passes none, which
+   * clears them: a finding with no Lighthouse record behind it could not be shown as a
+   * check (lighthouse-checks D20). Crawl and Core Web Vitals findings are left alone.
+   */
+  async replaceLighthouseFindingsForWorker(
+    tx: Transaction,
+    pageId: number,
+    rows: TNewLighthouseIssue[],
+  ): Promise<void> {
+    await tx
+      .delete(seoIssues)
+      .where(
+        and(
+          eq(seoIssues.pageId, pageId),
+          inArray(seoIssues.code, LIGHTHOUSE_ISSUE_CODES),
         ),
       );
     if (rows.length > 0) await tx.insert(seoIssues).values(rows);

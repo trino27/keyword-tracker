@@ -3,13 +3,26 @@ import type { TPageSpeedErrorCode } from '@app/contracts';
 import { RemoteApiError } from '@infrastructure/remote-api/remote-api.errors';
 import { PAGE_SPEED_DEFAULT_PAUSE_MS } from '../../constants/page-speed-worker.constant';
 import {
+  extractLighthouse,
+  type ILighthouseRecord,
+} from '../extract-lighthouse/extract-lighthouse';
+import {
+  extractDiagnostics,
   extractMeasurement,
+  type IExtractedDiagnostics,
   type IExtractedMeasurement,
 } from '../extract-measurement/extract-measurement';
 
 /** What one PageSpeed call came to, and therefore what the worker does next. */
 export type TPsiOutcome =
-  | { kind: 'measured'; measurement: IExtractedMeasurement }
+  | {
+      kind: 'measured';
+      measurement: IExtractedMeasurement;
+      /** Never null beside a measurement: both read the same parsed answer. */
+      diagnostics: IExtractedDiagnostics;
+      /** Null when the answer has neither Lighthouse category (D20). */
+      lighthouse: ILighthouseRecord | null;
+    }
   /** Google did not answer usefully this time: try the page again later. */
   | { kind: 'transient'; error: 'PSI_UNAVAILABLE' }
   /** Too many requests: every slot pauses, and the page loses no attempt. */
@@ -152,7 +165,14 @@ export function classifyPsiResponse(
 
   if (status === 200) {
     const measurement = extractMeasurement(json);
-    if (measurement) return { kind: 'measured', measurement };
+    const diagnostics = extractDiagnostics(json);
+    if (measurement && diagnostics)
+      return {
+        kind: 'measured',
+        measurement,
+        diagnostics,
+        lighthouse: extractLighthouse(json),
+      };
     if (lighthouseCode)
       return (
         LIGHTHOUSE_ERRORS[lighthouseCode] ?? {

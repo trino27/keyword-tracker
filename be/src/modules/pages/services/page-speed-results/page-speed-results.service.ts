@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { TPageSpeedSeoIssue } from '@app/contracts';
+import type { TLighthouseSeoIssue, TPageSpeedSeoIssue } from '@app/contracts';
 import { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
 import type {
   IClaimedPageSpeed,
@@ -31,13 +31,15 @@ export class PageSpeedResultsService {
   }
 
   /**
-   * The measurement and its findings in ONE transaction, under the fence: a stale attempt
-   * writes neither, and a reader never sees new figures beside old findings.
+   * The measurement and both kinds of its findings — Core Web Vitals and Lighthouse — in
+   * ONE transaction, under the fence: a stale attempt writes none of them, and a reader
+   * never sees new figures beside old findings.
    */
   completeForWorker(
     claim: IClaimedPageSpeed,
     measurement: IPageSpeedMeasurementWrite,
     findings: TPageSpeedSeoIssue[],
+    lighthouseFindings: TLighthouseSeoIssue[],
   ): Promise<boolean> {
     return this.transactions.run(async (tx) => {
       const owned = await this.pageSpeed.completeForWorker(
@@ -51,6 +53,14 @@ export class PageSpeedResultsService {
         tx,
         claim.pageId,
         findings.map((finding) => ({ ...finding, pageId: claim.pageId })),
+      );
+      await this.seoIssues.replaceLighthouseFindingsForWorker(
+        tx,
+        claim.pageId,
+        lighthouseFindings.map((finding) => ({
+          ...finding,
+          pageId: claim.pageId,
+        })),
       );
       return true;
     });

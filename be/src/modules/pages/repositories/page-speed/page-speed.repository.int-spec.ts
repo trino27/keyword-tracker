@@ -22,6 +22,22 @@ const MEASUREMENT: IPageSpeedMeasurementWrite = {
   clsSource: 'url',
   performanceScore: 72,
   measuredAt: new Date('2026-10-01T12:00:00Z'),
+  ttfbMs: null,
+  ttfbSource: null,
+  lcpGoodShare: null,
+  lcpPoorShare: null,
+  inpGoodShare: null,
+  inpPoorShare: null,
+  clsGoodShare: null,
+  clsPoorShare: null,
+  ttfbGoodShare: null,
+  ttfbPoorShare: null,
+  lcpBreakdown: null,
+  lighthouseJudged: null,
+  lighthouseNotApplicable: null,
+  lighthouseFailed: null,
+  seoScore: null,
+  accessibilityScore: null,
 };
 
 let userId: number;

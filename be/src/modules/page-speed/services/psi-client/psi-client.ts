@@ -17,8 +17,9 @@ import {
 import type { TPsiCallResult } from '../classify-psi-response/classify-psi-response';
 
 /**
- * Google PageSpeed Insights, mobile, performance only. One request per call — no retries
- * inside it: the queue owns the retry schedule, in minutes, not milliseconds.
+ * Google PageSpeed Insights, mobile: performance, and Lighthouse's SEO and accessibility.
+ * One request per call — no retries inside it: the queue owns the retry schedule, in
+ * minutes, not milliseconds.
  *
  * The key travels in the `x-goog-api-key` header, never in the query string: the request
  * URL is what error messages, logs and fixtures record, and a key in it would reach all
@@ -34,9 +35,13 @@ export class PsiClient extends RemoteApiCore {
     super(transport, logger, timing);
   }
 
-  /** The request URL for a page, parameters in a fixed order so fixtures can key on it. */
+  /**
+   * The request URL for a page, parameters in a fixed order so fixtures can key on it.
+   * Lighthouse's SEO and accessibility categories ride on the same request: one call, one
+   * unit of quota, every verdict (SPEED-016).
+   */
   static requestUrl(pageUrl: string): string {
-    return `${PSI_ENDPOINT}?url=${encodeURIComponent(pageUrl)}&strategy=mobile&category=performance`;
+    return `${PSI_ENDPOINT}?url=${encodeURIComponent(pageUrl)}&strategy=mobile&category=performance&category=seo&category=accessibility`;
   }
 
   /** Never throws for what Google or the network did; the caller classifies the result. */

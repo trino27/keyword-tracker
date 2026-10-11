@@ -276,10 +276,10 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 5. The worker reads and writes it — SPEED-016, SPEED-017, SPEED-018, SPEED-019
 
-- [ ] 5.1 Write first in `be/src/modules/page-speed/services/psi-client/psi-client.spec.ts`:
+- [x] 5.1 Write first in `be/src/modules/page-speed/services/psi-client/psi-client.spec.ts`:
   "a mobile request asks for performance, seo and accessibility, the key only in the header".
   Then `PsiClient.requestUrl`. Verify: `pnpm --filter be test:ci -- psi-client`.
-- [ ] 5.2 Write first in `be/src/modules/page-speed/services/extract-lighthouse/extract-lighthouse.spec.ts`,
+- [x] 5.2 Write first in `be/src/modules/page-speed/services/extract-lighthouse/extract-lighthouse.spec.ts`,
   against the recorded fixtures:
   - "binary 1 is judged";
   - "binary 0 is judged and a finding with the catalogue's severity";
@@ -291,7 +291,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
   Then `extractLighthouse(body)` (pure, its own zod schema, codes looked up by audit id through a
   map derived from the catalogue, D23). Verify: `pnpm --filter be test:ci -- extract-lighthouse`.
-- [ ] 5.3 Write first in `extract-measurement.spec.ts`:
+- [x] 5.3 Write first in `extract-measurement.spec.ts`:
   - "TTFB from the URL, else the origin, never the lab";
   - "good and poor shares from the metric's own source";
   - "no shares for a lab metric";
@@ -302,7 +302,19 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   Then extend `extractMeasurement` (or a sibling `extractDiagnostics`, if the function grows
   past one concern), plus a zod schema for `lcp_breakdown_json` in `@app/contracts` that is used
   at write and at read. Verify: `pnpm --filter be test:ci -- extract-measurement`.
-- [ ] 5.4 Write first in `page-speed-results.service.spec.ts` and the repository int-spec:
+
+  AMENDED during implementation:
+  - **A sibling, not an extension.** `extractDiagnostics` sits beside `extractMeasurement`
+    rather than extending it: the existing assertions on `extractMeasurement`'s exact shape
+    stay as they were.
+  - **Same visits.** Both read the field through one `fieldReader`, so a share always comes
+    from the data its metric's value came from.
+  - **Bad breakdown is no error.** A breakdown that does not parse reads as none
+    (`.catch(undefined)` on that audit), never as a failed measurement.
+  - **Where the schema lives.** The breakdown's zod schema is in the extractor, per the 4.2
+    amendment.
+  - **Tests.** Eight new cases, pinned on the two live `lighthouse-*` answers.
+- [x] 5.4 Write first in `page-speed-results.service.spec.ts` and the repository int-spec:
   - "a measurement writes the Lighthouse lists, the failed count and the Lighthouse findings in
     one transaction";
   - "a Lighthouse replace leaves crawl and Core Web Vitals findings";
@@ -318,14 +330,27 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
   Verify: `pnpm --filter be test:ci -- src/modules/page-speed src/modules/pages && pnpm --filter
   be test:db -- page-speed seo-issues`.
-- [ ] 5.5 Update `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`:
+
+  AMENDED during implementation:
+  - **Measured outcome.** The classifier's `measured` outcome now carries `diagnostics` and
+    `lighthouse` beside `measurement`, so the executor writes all three from one parse.
+  - **Complete write.** `IPageSpeedMeasurementWrite` makes every new column REQUIRED and
+    nullable, so each measurement writes all of them and an absent part clears an old one
+    (D20).
+  - **First red run.** The executor tests were seen failing on the missing fourth argument
+    before the code.
+  - **Bug in my own test.** One test of mine expected `hreflang` to be not applicable on
+    yoast.com. The live answer says it passes, so the test now uses `accesskeys`.
+  - **Results.** BE: 1208 unit tests, 44 db tests in `seo-issues` and `page-speed`. Lint
+    clean.
+- [x] 5.5 Update `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`:
   - what the call asks for;
   - the status mapping table (D13);
   - "no categories is not an error" (D20);
   - the live audit ids from 1.2.
 
   Verify: the doc names only ids present in a fixture.
-- [ ] 5.6 Commit: `feat(page-speed): Lighthouse SEO and accessibility verdicts, field TTFB, visit
+- [x] 5.6 Commit: `feat(page-speed): Lighthouse SEO and accessibility verdicts, field TTFB, visit
   shares and the LCP breakdown`.
 
 ## 6. Reading: score, checks per owner, summary — PAGES-009, PAGES-012, PAGES-016, PAGES-017, REPORT-005

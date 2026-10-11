@@ -13,7 +13,12 @@ import {
   type TPsiCallResult,
 } from '../classify-psi-response/classify-psi-response';
 import { cwvIssuesOf } from '../cwv-issues/cwv-issues-of';
-import type { IExtractedMeasurement } from '../extract-measurement/extract-measurement';
+import type { IPageSpeedMeasurementWrite } from '@modules/pages/interfaces/page-speed.interface';
+import type { ILighthouseRecord } from '../extract-lighthouse/extract-lighthouse';
+import type {
+  IExtractedDiagnostics,
+  IExtractedMeasurement,
+} from '../extract-measurement/extract-measurement';
 import { PsiClient } from '../psi-client/psi-client';
 import { PageSpeedRateLimiter } from '../rate-limiter/page-speed-rate-limiter';
 import { retryDelayMs } from '../retry-delay/retry-delay';
@@ -33,6 +38,13 @@ import { retryDelayMs } from '../retry-delay/retry-delay';
  */
 @Injectable()
 export class PageSpeedExecutorService {
+  /**
+   * Lighthouse audits the catalogue does not know, already reported. A stale catalogue
+   * shows on every page measured; one line per audit per process says so without
+   * drowning the log (lighthouse-checks D13).
+   */
+  private readonly unknownAuditsReported = new Set<string>();
+
   constructor(
     private readonly results: PageSpeedResultsService,
     private readonly psi: PsiClient,
@@ -60,6 +72,17 @@ export class PageSpeedExecutorService {
       await this.settle(claim, result);
     } catch (err: unknown) {
       await this.settleUnexpected(claim, err);
+    }
+  }
+
+  private reportUnknownAudits(lighthouse: ILighthouseRecord | null): void {
+    for (const audit of lighthouse?.unknownAudits ?? []) {
+      if (this.unknownAuditsReported.has(audit)) continue;
+      this.unknownAuditsReported.add(audit);
+      this.logger.warn(
+        { audit },
+        'Lighthouse scored an audit the catalogue does not know; re-record the PageSpeed fixtures and update the catalogue',
+      );
     }
   }
 
@@ -100,13 +123,22 @@ export class PageSpeedExecutorService {
     switch (outcome.kind) {
       case 'measured': {
         const findings = cwvIssuesOf(outcome.measurement);
+        const lighthouseFindings = outcome.lighthouse?.findings ?? [];
         const written = await this.results.completeForWorker(
           claim,
-          toWrite(outcome.measurement, now),
+          toWrite(outcome, now),
           findings,
+          lighthouseFindings,
         );
+        this.reportUnknownAudits(outcome.lighthouse);
         this.logger.info(
-          { ...where, findings: findings.map(({ code }) => code), written },
+          {
+            ...where,
+            findings: [...findings, ...lighthouseFindings].map(
+              ({ code }) => code,
+            ),
+            written,
+          },
           'Page measured',
         );
         return;
@@ -171,7 +203,19 @@ export class PageSpeedExecutorService {
   }
 }
 
-function toWrite(measurement: IExtractedMeasurement, measuredAt: Date) {
+function toWrite(
+  {
+    measurement,
+    diagnostics,
+    lighthouse,
+  }: {
+    measurement: IExtractedMeasurement;
+    diagnostics: IExtractedDiagnostics;
+    lighthouse: ILighthouseRecord | null;
+  },
+  measuredAt: Date,
+): IPageSpeedMeasurementWrite {
+  const { shares } = diagnostics;
   return {
     lcpMs: measurement.lcp.value,
     lcpSource: measurement.lcp.source,
@@ -181,5 +225,21 @@ function toWrite(measurement: IExtractedMeasurement, measuredAt: Date) {
     clsSource: measurement.cls.source,
     performanceScore: measurement.performanceScore,
     measuredAt,
+    ttfbMs: diagnostics.ttfb?.value ?? null,
+    ttfbSource: diagnostics.ttfb?.source ?? null,
+    lcpGoodShare: shares.lcp?.good ?? null,
+    lcpPoorShare: shares.lcp?.poor ?? null,
+    inpGoodShare: shares.inp?.good ?? null,
+    inpPoorShare: shares.inp?.poor ?? null,
+    clsGoodShare: shares.cls?.good ?? null,
+    clsPoorShare: shares.cls?.poor ?? null,
+    ttfbGoodShare: shares.ttfb?.good ?? null,
+    ttfbPoorShare: shares.ttfb?.poor ?? null,
+    lcpBreakdown: diagnostics.lcpBreakdown,
+    lighthouseJudged: lighthouse?.judged ?? null,
+    lighthouseNotApplicable: lighthouse?.notApplicable ?? null,
+    lighthouseFailed: lighthouse?.findings.length ?? null,
+    seoScore: lighthouse?.seoScore ?? null,
+    accessibilityScore: lighthouse?.accessibilityScore ?? null,
   };
 }

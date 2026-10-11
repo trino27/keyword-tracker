@@ -16,6 +16,22 @@ const measurement: IPageSpeedMeasurementWrite = {
   clsSource: 'lab',
   performanceScore: 70,
   measuredAt: new Date('2026-10-10T12:00:00Z'),
+  ttfbMs: null,
+  ttfbSource: null,
+  lcpGoodShare: null,
+  lcpPoorShare: null,
+  inpGoodShare: null,
+  inpPoorShare: null,
+  clsGoodShare: null,
+  clsPoorShare: null,
+  ttfbGoodShare: null,
+  ttfbPoorShare: null,
+  lcpBreakdown: null,
+  lighthouseJudged: ['LH_IMAGE_ALT', 'LH_CANONICAL'],
+  lighthouseNotApplicable: [],
+  lighthouseFailed: 1,
+  seoScore: 90,
+  accessibilityScore: 88,
 };
 
 const setup = (owned: boolean) => {
@@ -24,6 +40,7 @@ const setup = (owned: boolean) => {
   };
   const seoIssues = {
     replacePageSpeedFindingsForWorker: jest.fn().mockResolvedValue(undefined),
+    replaceLighthouseFindingsForWorker: jest.fn().mockResolvedValue(undefined),
   };
   const transactions = {
     run: (work: (t: Transaction) => Promise<unknown>) => work(tx),
@@ -37,16 +54,27 @@ const setup = (owned: boolean) => {
 };
 
 describe('PageSpeedResultsService.completeForWorker', () => {
-  it('writes the measurement and the page findings in one transaction', async () => {
+  it('writes the measurement, its speed findings and its Lighthouse findings in one transaction', async () => {
     const { service, pageSpeed, seoIssues } = setup(true);
 
-    const written = await service.completeForWorker(claim, measurement, [
-      {
-        code: 'CWV_LCP_NEEDS_IMPROVEMENT',
-        severity: 'notice',
-        details: { value: 3100, max: 2500, source: 'url' },
-      },
-    ]);
+    const written = await service.completeForWorker(
+      claim,
+      measurement,
+      [
+        {
+          code: 'CWV_LCP_NEEDS_IMPROVEMENT',
+          severity: 'notice',
+          details: { value: 3100, max: 2500, source: 'url' },
+        },
+      ],
+      [{ code: 'LH_IMAGE_ALT', severity: 'warning', details: {} }],
+    );
+
+    expect(seoIssues.replaceLighthouseFindingsForWorker).toHaveBeenCalledWith(
+      tx,
+      7,
+      [{ pageId: 7, code: 'LH_IMAGE_ALT', severity: 'warning', details: {} }],
+    );
 
     expect(written).toBe(true);
     expect(pageSpeed.completeForWorker).toHaveBeenCalledWith(
@@ -73,7 +101,10 @@ describe('PageSpeedResultsService.completeForWorker', () => {
   it('writes no findings when the attempt no longer owns the row', async () => {
     const { service, seoIssues } = setup(false);
 
-    expect(await service.completeForWorker(claim, measurement, [])).toBe(false);
+    expect(await service.completeForWorker(claim, measurement, [], [])).toBe(
+      false,
+    );
     expect(seoIssues.replacePageSpeedFindingsForWorker).not.toHaveBeenCalled();
+    expect(seoIssues.replaceLighthouseFindingsForWorker).not.toHaveBeenCalled();
   });
 });
