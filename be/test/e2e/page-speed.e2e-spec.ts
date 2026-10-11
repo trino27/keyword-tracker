@@ -128,7 +128,7 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
 
     it('a measured page has its speed findings in the detail', async () => {
       const [pageId] = await crawlYoast(s);
-      await answerEveryPage(s.transport, 200, 'url-field.synthesized.json');
+      await answerEveryPage(s.transport, 200, 'url-field.json');
 
       expect(await drain(s.app)).toBe(15);
 
@@ -142,7 +142,14 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         expect.objectContaining({
           code: 'CWV_LCP_NEEDS_IMPROVEMENT',
           severity: 'notice',
-          details: { value: 3100, max: 2500, source: 'url' },
+          details: { value: 3025, max: 2500, source: 'url' },
+        }),
+      );
+      expect(detail.issues).toContainEqual(
+        expect.objectContaining({
+          code: 'CWV_INP_NEEDS_IMPROVEMENT',
+          severity: 'notice',
+          details: { value: 212, max: 200, source: 'url' },
         }),
       );
       // A speed code is never a check.
@@ -157,7 +164,7 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         .where(eq(pageSpeed.pageId, pageId));
       expect(row).toMatchObject({
         status: 'done',
-        lcpMs: 3100,
+        lcpMs: 3025,
         lcpSource: 'url',
       });
     });
@@ -165,7 +172,7 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
     it('a speed finding counts among the issues and leaves the score and the order unchanged', async () => {
       await crawlYoast(s);
       const before = await listOf(s);
-      await answerEveryPage(s.transport, 200, 'url-field.synthesized.json');
+      await answerEveryPage(s.transport, 200, 'url-field.json');
 
       await drain(s.app);
       const after = await listOf(s);
@@ -174,9 +181,10 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       expect(after.map(({ score }) => score)).toEqual(
         before.map(({ score }) => score),
       );
+      // The recorded answer: LCP 3025 ms and INP 212 ms need improvement, CLS is good.
       after.forEach((item, i) => {
-        expect(item.issues.total).toBe(before[i].issues.total + 1);
-        expect(item.issues.notice).toBe(before[i].issues.notice + 1);
+        expect(item.issues.total).toBe(before[i].issues.total + 2);
+        expect(item.issues.notice).toBe(before[i].issues.notice + 2);
       });
     });
 
@@ -187,11 +195,7 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         .select({ finalUrl: pages.finalUrl })
         .from(pages);
       // Three different answers, so good, needs-improvement and poor all occur.
-      const fixtures = [
-        'url-field.synthesized.json',
-        'origin-only.synthesized.json',
-        'lab-only.synthesized.json',
-      ];
+      const fixtures = ['url-field.json', 'origin-only.json', 'lab-only.json'];
       rows.forEach(({ finalUrl }, i) =>
         s.transport.override(
           PsiClient.requestUrl(finalUrl),
