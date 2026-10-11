@@ -133,6 +133,69 @@ describe('PageSpeedExecutorService', () => {
     });
   });
 
+  /** Google's live answer for an empty error page. */
+  it('a page that painted nothing fails as a page answering with an error', async () => {
+    const { run, results, claim } = setup(answer(400, 'no-fcp.json'));
+
+    await run();
+
+    expect(results.recordFailureForWorker).toHaveBeenCalledWith(claim, {
+      status: 'failed',
+      lastError: 'PAGE_ERRORED',
+    });
+  });
+
+  it("writes the site's figures as the whole site's, with findings saying so", async () => {
+    const { run, results, claim } = setup(answer(200, 'origin-only.json'));
+
+    await run();
+
+    expect(results.completeForWorker).toHaveBeenCalledWith(
+      claim,
+      expect.objectContaining({
+        lcpMs: 3824,
+        lcpSource: 'origin',
+        inpMs: 231,
+        inpSource: 'origin',
+        cls: 0,
+        clsSource: 'origin',
+        performanceScore: 59,
+      }),
+      [
+        {
+          code: 'CWV_LCP_NEEDS_IMPROVEMENT',
+          severity: 'notice',
+          details: { value: 3824, max: 2500, source: 'origin' },
+        },
+        {
+          code: 'CWV_INP_NEEDS_IMPROVEMENT',
+          severity: 'notice',
+          details: { value: 231, max: 200, source: 'origin' },
+        },
+      ],
+    );
+  });
+
+  it('writes a lab-only page without INP and, when its lab figures are good, no findings', async () => {
+    const { run, results, claim } = setup(answer(200, 'lab-only.json'));
+
+    await run();
+
+    expect(results.completeForWorker).toHaveBeenCalledWith(
+      claim,
+      expect.objectContaining({
+        lcpMs: 809,
+        lcpSource: 'lab',
+        inpMs: null,
+        inpSource: null,
+        cls: 0,
+        clsSource: 'lab',
+        performanceScore: 100,
+      }),
+      [],
+    );
+  });
+
   it('a 429 pauses every slot and releases the row without spending an attempt', async () => {
     const { run, results, limiter, claim } = setup(
       answer(429, 'rate-limited.json'),

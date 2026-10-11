@@ -102,7 +102,12 @@ export function ClientIssues({
 						{section.site}
 					</Text>
 					{view.kind === "ready" && (
-						<Badge variant="light" color="gray" size="sm">
+						<Badge
+							variant="light"
+							color="gray"
+							size="sm"
+							aria-label={`${view.issues.length} ${view.issues.length === 1 ? "issue" : "issues"}`}
+						>
 							{view.issues.length}
 						</Badge>
 					)}
