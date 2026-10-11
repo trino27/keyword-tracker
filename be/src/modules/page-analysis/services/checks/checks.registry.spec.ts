@@ -469,6 +469,9 @@ describe('evaluateChecks', () => {
         links: [],
         jsonLd: { types: ['Article'], keywords: [], articleFields: [] },
         breadcrumbs: [],
+        // A French version only: the set leaves this page out, and the French page does
+        // not name it back either.
+        alternates: [{ lang: 'fr', href: 'http://a.example/plain/fr/' }],
         // Not the page's address, and not a staging host either.
         openGraph: {
           ...makeCheckInput().parsed.openGraph,

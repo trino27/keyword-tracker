@@ -108,7 +108,7 @@ export const SITE_CHECK_CATALOGUE = {
       why: 'Entries use http instead of https, or www when the site runs without it (or the reverse). Each costs a redirect and tells Google a different address is the main one than the pages themselves do.',
       fix: 'Ask your developer to update the site address in the sitemap generator or CMS settings; it is usually left over from a move to https or a new domain.',
     },
-    hint: 'List every URL with the scheme and host the site serves — the one its pages declare as canonical.',
+    hint: 'List every URL with the scheme and host the site serves its pages from.',
     explanation:
       'Some sitemap URLs use a different scheme or host variant than the one the site serves its pages from — http:// on an https site, the www host on a site served without it, or the reverse. Every one costs a redirect and tells Google a different URL is the main one than the pages themselves do. The usual cause is a generator that takes the host from configuration that was never updated after a move.',
     sources: [SOURCE.sitemaps, SOURCE.canonical],

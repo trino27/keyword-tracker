@@ -23,17 +23,37 @@ describe('OG_URL_MISMATCH', () => {
     );
   });
 
-  it('compares with the canonical when one is declared', () => {
+  // No contradiction between checks: when the canonical names another page, the canonical
+  // checks ask to fix the canonical, so asking here to copy it into og:url would advise
+  // the opposite. With the canonical disputed, og:url is not judged.
+  it('is not applicable while the canonical names another page — the canonical checks say what to fix', () => {
+    for (const ogUrl of [
+      'https://a.example/post/',
+      'https://a.example/original/',
+    ])
+      expect(
+        OG_URL_MISMATCH_CHECK.evaluate(
+          makeCheckInput({
+            parsed: {
+              canonicals: ['https://a.example/original/'],
+              openGraph: og(ogUrl),
+            },
+          }),
+        ),
+      ).toEqual(NOT_APPLICABLE);
+  });
+
+  it('compares with a canonical that names the page itself', () => {
     expect(
       OG_URL_MISMATCH_CHECK.evaluate(
         makeCheckInput({
           parsed: {
-            canonicals: ['https://a.example/original/'],
-            openGraph: og('https://a.example/original/'),
+            canonicals: ['https://a.example/post/'],
+            openGraph: og('https://a.example/post/?utm_source=x'),
           },
         }),
       ),
-    ).toEqual(PASSES);
+    ).toEqual(failsWith({ expected: 'https://a.example/post/' }));
   });
 
   it('compares with the served address when no canonical is declared', () => {

@@ -993,7 +993,7 @@ export const SEO_ISSUE_CATALOGUE = {
     plain: {
       what: 'Links in this post lead to pages that no longer exist',
       why: 'A reader who clicks one lands on an error page, which reads as an outdated, unkept post and sends them away. A dead source also stops backing the claim it was linked for.',
-      fix: 'The writer or editor can replace each dead link with a live page on the same subject, or remove it, in the CMS editor.',
+      fix: 'The writer or editor can replace each dead link in the CMS editor with a live page on the same subject, and remove it only when no such page exists.',
     },
     hint: 'Replace or remove links that answer 404 or 410, or whose domain no longer exists.',
     explanation:
@@ -1091,9 +1091,10 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'List the page itself among its hreflang alternates.',
     explanation:
-      "The page declares hreflang alternates, and none of them is the page itself; a trailing slash is not counted as a difference. Google's documentation on localized versions requires each language version to list itself as well as all the others, and annotations that break the rule may be ignored. The usual cause is a template or plugin that writes the other languages and skips the current one. A page with no hreflang at all is not judged.",
+      "The page declares hreflang alternates, and none of them is the page itself; a trailing slash is not counted as a difference. Google's documentation on localized versions requires each language version to list itself as well as all the others, and annotations that break the rule may be ignored. The usual cause is a template or plugin that writes the other languages and skips the current one. A page with no hreflang at all is not judged, and neither is one whose canonical names another URL: it has left its own set, which HREFLANG_INVALID reports, and listing itself would not put it back.",
     sources: [SOURCE.hreflang],
-    skipReason: 'The page declares no hreflang.',
+    skipReason:
+      'The page declares no hreflang, or its canonical names another URL (HREFLANG_INVALID).',
   },
   HREFLANG_NOT_RECIPROCAL: {
     // A warning: Google ignores a pair that does not link both ways, so the set fails to
@@ -1155,10 +1156,10 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'Set og:url to the canonical URL of the page.',
     explanation:
-      "The page's og:url names a different document from its canonical URL — or, when it declares no canonical, from the address it was served at; a trailing slash is not counted as a difference. The Open Graph protocol defines og:url as the canonical URL of the object, the permanent ID social platforms use to collect its likes and shares. When it disagrees with the canonical, shares and search results describe two addresses for one post. It does not affect Google rankings. The usual cause is a theme that writes og:url from the request address, with tracking parameters or a different host. An og:url on a staging or preview host is reported as DEVELOPMENT_HOST_REFERENCES instead.",
+      "The page's og:url names a different document from the page's own address, which its canonical confirms or, when it declares none, the address it was served at; a trailing slash is not counted as a difference. The Open Graph protocol defines og:url as the canonical URL of the object, the permanent ID social platforms use to collect its likes and shares. When it disagrees with the canonical, shares and search results describe two addresses for one post. It does not affect Google rankings. The usual cause is a theme that writes og:url from the request address, with tracking parameters or a different host. An og:url on a staging or preview host is reported as DEVELOPMENT_HOST_REFERENCES instead, and while the canonical names another page the canonical checks say what to fix first, so og:url is not judged.",
     sources: [SOURCE.openGraph, SOURCE.canonical],
     skipReason:
-      'The page declares no og:url, or it names a development host (DEVELOPMENT_HOST_REFERENCES).',
+      'The page declares no og:url, it names a development host (DEVELOPMENT_HOST_REFERENCES), or the canonical names another page (the canonical checks).',
   },
   PREVIEW_IMAGE_TOO_SMALL: {
     owner: 'crawl',
