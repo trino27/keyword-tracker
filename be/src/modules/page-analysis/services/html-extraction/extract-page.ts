@@ -747,27 +747,48 @@ function canonicalsOf(
 
 /**
  * What a screen reader would announce for a link, in the order the accessible-name rules
- * take: aria-labelledby, aria-label, the content (with each image's alt in place, and
- * nothing marked aria-hidden), then the title attribute — which Google, too, falls back
- * to for an empty link.
+ * take: aria-labelledby, aria-label, the content, then the title attribute — which
+ * Google, too, falls back to for an empty link.
+ *
+ * In the content, nothing marked aria-hidden counts, and an element that carries a name
+ * of its own is read by it, as the rules read every node on the way down: an icon's
+ * aria-label (`<svg role="img" aria-label="Home">`), an image's alt or title, an
+ * `<svg>`'s `<title>`, an image button's alt. Reading only `img@alt` called such links
+ * empty where every browser and axe give them a name.
  */
 function accessibleNameOf($: CheerioAPI, anchor: TSelection): string {
-  const labelledBy = (anchor.attr('aria-labelledby') ?? '')
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((id) => collapse($(`[id="${id.replace(/"/g, '')}"]`).text()))
-    .join(' ');
-  if (collapse(labelledBy)) return collapse(labelledBy);
-  const label = collapse(anchor.attr('aria-label') ?? '');
-  if (label) return label;
+  const own = ownNameOf($, anchor);
+  if (own) return own;
   const content = anchor.clone();
   content.find('[aria-hidden="true"]').remove();
-  content.find('img').each((_, image) => {
-    $(image).replaceWith(` ${$(image).attr('alt') ?? ''} `);
-  });
+  content
+    .find('[aria-label], [aria-labelledby], img, svg, input[type="image" i]')
+    .each((_, element) => {
+      const node = $(element);
+      const name =
+        ownNameOf($, node) ||
+        (node.is('img, input')
+          ? collapse(node.attr('alt') ?? '') ||
+            collapse(node.attr('title') ?? '')
+          : '') ||
+        (node.is('svg') ? collapse(node.children('title').text()) : '');
+      if (name || node.is('img, svg, input')) node.replaceWith(` ${name} `);
+    });
   const text = collapse(content.text());
   if (text) return text;
   return collapse(anchor.attr('title') ?? '');
+}
+
+/** An element's name from aria-labelledby, else aria-label; '' when it has neither. */
+function ownNameOf($: CheerioAPI, node: TSelection): string {
+  const labelledBy = collapse(
+    (node.attr('aria-labelledby') ?? '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((id) => $(`[id="${id.replace(/"/g, '')}"]`).text())
+      .join(' '),
+  );
+  return labelledBy || collapse(node.attr('aria-label') ?? '');
 }
 
 /**

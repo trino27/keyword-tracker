@@ -47,6 +47,45 @@ describe('LINKS_TO_REDIRECTS', () => {
     ]);
   });
 
+  /**
+   * Google: a temporary redirect shows "the source page in search results", so the link
+   * already names the URL to link to (semrush.com's /analytics/one2target/ → 302).
+   */
+  it('passes a temporary redirect, and fails a permanent 308', () => {
+    expect(
+      LINKS_TO_REDIRECTS_CHECK.evaluate(
+        page({
+          'https://a.example/tool/': redirecting('https://a.example/app/', 302),
+          'https://a.example/beta/': redirecting('https://a.example/app/', 307),
+        }),
+      ),
+    ).toEqual(PASSES);
+    expect(
+      LINKS_TO_REDIRECTS_CHECK.evaluate(
+        page({
+          'https://a.example/plans/pro': redirecting(
+            'https://a.example/plans/pro-plan',
+            308,
+          ),
+        }),
+      ),
+    ).toEqual(failsWith({ count: 1 }));
+  });
+
+  /** yoast.com: /out/clicky/ is an affiliate redirect, /eu/cart?add-to-cart= an action. */
+  it('leaves out affiliate redirects and cart actions, which redirect by design', () => {
+    expect(
+      LINKS_TO_REDIRECTS_CHECK.evaluate(
+        page({
+          'https://a.example/out/clicky/': redirecting('https://clicky.com/1'),
+          'https://a.example/eu/cart?add-to-cart=109998': redirecting(
+            'https://a.example/eu/checkout/',
+          ),
+        }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
   it('skips a link INTERNAL_LINK_VARIANTS reports', () => {
     expect(
       LINKS_TO_REDIRECTS_CHECK.evaluate(

@@ -1022,6 +1022,13 @@ describe('extractPage', () => {
         '<a href="/label/" aria-label="Close"></a>' +
         '<a href="/titled/" title="Archive"></a>' +
         '<a href="/hidden/"><span aria-hidden="true">→</span></a>' +
+        // A name carried by what the link holds, as the accessible-name rules read it.
+        '<a href="/svg-label/"><svg role="img" aria-label="Home"></svg></a>' +
+        '<a href="/svg-title/"><svg><title>Search</title></svg></a>' +
+        '<a href="/img-label/"><img src="h.png" aria-label="Home"></a>' +
+        '<a href="/img-title/"><img src="h.png" title="Home"></a>' +
+        '<a href="/span-label/"><span role="img" aria-label="Cart"></span></a>' +
+        '<a href="/svg-bare/"><svg><path d="M0 0"></path></svg></a>' +
         '</p></main>',
     );
 
@@ -1033,6 +1040,10 @@ describe('extractPage', () => {
       {
         href: 'https://a.example/hidden/',
         markup: '<a href="/hidden/"><span aria-hidden="true">→</span></a>',
+      },
+      {
+        href: 'https://a.example/svg-bare/',
+        markup: '<a href="/svg-bare/"><svg><path d="M0 0"></path></svg></a>',
       },
     ]);
   });

@@ -248,7 +248,7 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 	},
 	LINKS_TO_REDIRECTS: {
 		passes: "Links to this site point straight at the final address.",
-		fails: "A content link to this site answers with a redirect before reaching the page.",
+		fails: "A content link to this site answers with a permanent redirect (301 or 308) before reaching the page.",
 		ifPasses:
 			"Readers and crawlers reach each linked page in one request, and every internal link names the address the site prefers, a consistent hint about which URL is canonical.",
 		example: {
@@ -266,7 +266,7 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 			lang: "http",
 		},
 		howChecked:
-			"The tracker uses the same link requests as the broken-links check, but judges only links to this site that are not http://, other-www or tracking-tagged variants (those are reported as variants). A link fails when it went through one or more redirects and ended on a 2xx page; one that ended on an error is a broken link instead. Because trailing slashes are not a variant, a link to /post that redirects to /post/ counts here. Links to other sites are not judged, and the check is not applicable when no internal link got an answer.",
+			"The tracker uses the same link requests as the broken-links check, but judges only links to this site that are not http://, other-www or tracking-tagged variants (those are reported as variants). A link fails when its first hop is a permanent redirect (301 or 308) and it ended on a 2xx page; one that ended on an error is a broken link instead. A temporary redirect (302, 303, 307) passes: Google keeps showing the source URL for one, so the link already names the address to use. Affiliate redirects under /out/, /go/, /refer/ and the like, and actions such as /cart, /checkout, add-to-cart or sign-in links, are left out, because redirecting is what they are for. Because trailing slashes are not a variant, a link to /post that redirects to /post/ counts here. Links to other sites are not judged, and the check is not applicable when no internal link got an answer.",
 		manualCheck: [
 			"List the post's internal links in the Chrome DevTools Console with [...document.querySelectorAll('article a[href]')].map(a => a.href).",
 			"Run curl -I on each; a 301, 302, 307 or 308 with a Location header means the link redirects.",
@@ -291,7 +291,7 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'For each link in the main content, the tracker works out the name a screen reader would announce: aria-labelledby, then aria-label, then the link\'s text with each image replaced by its alt, then the title attribute. Visually hidden screen-reader text (such as .sr-only or .screen-reader-text) counts; anything marked aria-hidden="true" does not. The page fails if a link to this site has an empty name; links to other sites, such as icon-only share buttons, are left out.',
+			"For each link in the main content, the tracker works out the name a screen reader would announce: aria-labelledby, then aria-label, then the link's text — in which an element with a name of its own is read by it: an icon's aria-label, an image's alt or title, an <svg>'s <title>, an image button's alt — then the title attribute. Visually hidden screen-reader text (such as .sr-only or .screen-reader-text) counts; anything marked aria-hidden=\"true\" does not. The page fails if a link to this site has an empty name; links to other sites, such as icon-only share buttons, are left out.",
 		manualCheck: [
 			'In Chrome DevTools run Lighthouse with the Accessibility category and look for "Links do not have a discernible name".',
 			"Or in the Console run [...document.querySelectorAll('article a[href]')].filter(a => !a.innerText.trim() && !a.getAttribute('aria-label') && !a.title && !a.querySelector('img[alt]:not([alt=\"\"])')).",

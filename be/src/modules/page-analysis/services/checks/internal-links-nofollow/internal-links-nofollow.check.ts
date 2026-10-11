@@ -1,37 +1,7 @@
 import { attribute, evidence } from '../_shared/evidence';
+import { isOwnPage } from '../_shared/own-page-link';
 import { internalLinks } from '../_shared/same-site';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
-
-/**
- * The first path segments under which a site keeps redirects to someone else's site —
- * its affiliate links, `/refer/bluehost/` on wpbeginner.com. The URL is the site's, the
- * page it leads to is not, and Google asks for exactly such links to be marked.
- */
-const OUTBOUND_REDIRECT_SECTIONS = new Set([
-  'refer',
-  'go',
-  'goto',
-  'out',
-  'recommends',
-  'visit',
-  'aff',
-  'affiliate',
-]);
-
-/** A print version of a post — `/wprm_print/<slug>`, `/print/` — is the post again. */
-const PRINT_SEGMENT = /(?:^|[-_])print(?:$|[-_])/i;
-
-/**
- * Whether the link leads to a page of this site that the site would vouch for: not an
- * outbound redirect dressed as an internal URL, not a print copy kept out on purpose.
- */
-function isOwnPage(href: string): boolean {
-  const segments = new URL(href).pathname.split('/').filter(Boolean);
-  return !(
-    OUTBOUND_REDIRECT_SECTIONS.has(segments[0]?.toLowerCase() ?? '') ||
-    segments.some((segment) => PRINT_SEGMENT.test(segment))
-  );
-}
 
 /**
  * Links to other pages of this site carrying `rel="nofollow"`. Google reserves nofollow
