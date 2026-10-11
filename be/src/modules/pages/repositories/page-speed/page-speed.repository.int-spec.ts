@@ -131,6 +131,115 @@ describe('PageSpeedRepository', () => {
         'page_speed_values_range',
         { status: 'done' as const, ...MEASUREMENT, performanceScore: 101 },
       ],
+      [
+        'Lighthouse lists set one without the other',
+        'page_speed_lighthouse_sets_together',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          lighthouseJudged: ['LH_CANONICAL'],
+          lighthouseFailed: 0,
+        },
+      ],
+      [
+        'a code in both Lighthouse lists',
+        'page_speed_lighthouse_sets_disjoint',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          lighthouseJudged: ['LH_CANONICAL'],
+          lighthouseNotApplicable: ['LH_CANONICAL'],
+          lighthouseFailed: 0,
+        },
+      ],
+      [
+        'a duplicate in the judged list',
+        'page_speed_lighthouse_judged_clean',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          lighthouseJudged: ['LH_CANONICAL', 'LH_CANONICAL'],
+          lighthouseNotApplicable: [],
+          lighthouseFailed: 0,
+        },
+      ],
+      [
+        'a failed count above the judged list',
+        'page_speed_lighthouse_failed_range',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          lighthouseJudged: ['LH_CANONICAL'],
+          lighthouseNotApplicable: [],
+          lighthouseFailed: 2,
+        },
+      ],
+      [
+        'Lighthouse verdicts without a measurement',
+        'page_speed_extras_need_measurement',
+        {
+          status: 'queued' as const,
+          lighthouseJudged: [],
+          lighthouseNotApplicable: [],
+          lighthouseFailed: 0,
+        },
+      ],
+      [
+        'an SEO score over 100',
+        'page_speed_category_scores_range',
+        { status: 'done' as const, ...MEASUREMENT, seoScore: 101 },
+      ],
+      [
+        'a TTFB without its source',
+        'page_speed_ttfb_pair',
+        { status: 'done' as const, ...MEASUREMENT, ttfbMs: 620 },
+      ],
+      [
+        'a lab TTFB',
+        'page_speed_ttfb_field_only',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          ttfbMs: 620,
+          ttfbSource: 'lab' as const,
+        },
+      ],
+      [
+        'shares that add up to more than every visit',
+        'page_speed_shares_range',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          lcpGoodShare: 0.7,
+          lcpPoorShare: 0.4,
+        },
+      ],
+      [
+        'a good share without its poor share',
+        'page_speed_shares_range',
+        { status: 'done' as const, ...MEASUREMENT, clsGoodShare: 0.9 },
+      ],
+      [
+        'shares on a lab metric',
+        'page_speed_shares_field_only',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          lcpSource: 'lab' as const,
+          lcpGoodShare: 0.6,
+          lcpPoorShare: 0.1,
+        },
+      ],
+      [
+        'shares on an absent TTFB',
+        'page_speed_shares_field_only',
+        {
+          status: 'done' as const,
+          ...MEASUREMENT,
+          ttfbGoodShare: 0.8,
+          ttfbPoorShare: 0.06,
+        },
+      ],
     ])('refuses %s (%s)', async (_, constraint, values) => {
       const { pageId } = await currentPage();
 
@@ -138,6 +247,46 @@ describe('PageSpeedRepository', () => {
         testDb.db.insert(pageSpeed).values({ pageId, ...values }),
         { code: '23514', constraint },
       );
+    });
+
+    /**
+     * Shares of 0.8011 and 0.1989 with nothing in between sum to 1 only up to `real`'s
+     * precision; the bound tolerates that rather than refusing Google's own figures.
+     */
+    it('accepts a whole measurement with every new part, and one without any', async () => {
+      const { pageId: full } = await currentPage();
+      const { pageId: bare } = await currentPage();
+
+      await testDb.db.insert(pageSpeed).values([
+        {
+          pageId: full,
+          status: 'done' as const,
+          ...MEASUREMENT,
+          lighthouseJudged: ['LH_CANONICAL', 'LH_ROBOTS_TXT'],
+          lighthouseNotApplicable: ['LH_HREFLANG'],
+          lighthouseFailed: 1,
+          seoScore: 92,
+          accessibilityScore: 94,
+          ttfbMs: 652,
+          ttfbSource: 'url' as const,
+          lcpGoodShare: 0.68,
+          lcpPoorShare: 0.11,
+          inpGoodShare: 0.9,
+          inpPoorShare: 0.02,
+          clsGoodShare: 0.95,
+          clsPoorShare: 0.01,
+          ttfbGoodShare: 0.8011,
+          ttfbPoorShare: 0.1989,
+          lcpBreakdown: {
+            element: { selector: 'main img', snippet: '<img alt="">' },
+            phases: [{ phase: 'timeToFirstByte' as const, ms: 6 }],
+          },
+        },
+        { pageId: bare, status: 'done' as const, ...MEASUREMENT },
+      ]);
+
+      expect((await rowOf(full)).lighthouseFailed).toBe(1);
+      expect((await rowOf(bare)).lighthouseJudged).toBeNull();
     });
 
     it('deleting a page deletes its row', async () => {

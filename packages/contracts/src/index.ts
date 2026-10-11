@@ -38,6 +38,7 @@ export * from './domain/page-speed/page-speed-availability.interface.js';
 export * from './domain/page-speed/page-speed-status.enum.js';
 export * from './domain/page-speed/page-speed-error.constant.js';
 export * from './domain/page-speed/page-speed-summary.interface.js';
+export * from './domain/page-speed/lcp-breakdown.interface.js';
 export * from './domain/seo/catalogue/issue-catalogues.constant.js';
 export * from './domain/seo/catalogue/issue-definition.interface.js';
 export * from './domain/seo/catalogue/crawl/crawl-catalogue.constant.js';
