@@ -31,10 +31,10 @@ beforeEach(() => {
 
 /**
  * The guide is the largest screen in the app, and a role query walks every node of it:
- * alone a test takes about two seconds, and under the parallel suite it passed 5.
+ * alone the first test takes two to seven seconds, and under the parallel suite it passed 15.
  * Queries are scoped to the part under test, and the budget is set for the screen.
  */
-describe("InfoScreen", { timeout: 15_000 }, () => {
+describe("InfoScreen", { timeout: 30_000 }, () => {
 	it("lays the guide out with its contents beside it: how the tracker works, SEO, vitals, every check", async () => {
 		await renderAt("/info");
 
