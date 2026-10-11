@@ -479,4 +479,36 @@ describe('PageSpeedExecutorService', () => {
     );
     expect(logger.error).toHaveBeenCalled();
   });
+
+  it('an unexpected error on the last attempt fails the page', async () => {
+    const { run, results, claim } = setup(answer(200, 'url-field.json'), 5);
+    results.completeForWorker.mockRejectedValue(new Error('connection reset'));
+
+    await run();
+
+    expect(results.recordFailureForWorker).toHaveBeenCalledWith(claim, {
+      status: 'failed',
+      lastError: 'PSI_UNAVAILABLE',
+    });
+  });
+
+  it('a call that throws something unexpected is a failed attempt too', async () => {
+    const { run, results, claim, psi } = setup(
+      answer(200, 'url-field.json'),
+      1,
+    );
+    psi.runPagespeed.mockResolvedValue({
+      error: new TypeError('not a remote failure'),
+    } satisfies TPsiCallResult);
+
+    await run();
+
+    expect(results.recordFailureForWorker).toHaveBeenCalledWith(
+      claim,
+      expect.objectContaining({
+        status: 'queued',
+        lastError: 'PSI_UNAVAILABLE',
+      }),
+    );
+  });
 });

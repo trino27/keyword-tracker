@@ -4,7 +4,7 @@ Measures queued pages with Google PageSpeed Insights, on mobile (performance, an
 SEO and accessibility categories, in one request) and on desktop (performance only), and writes
 what Google said. Owns no table: the pages module owns `page_speed` and `seo_issues`; this module only
 executes, the way the crawl module executes runs the clients module queues; the queue's shapes
-(`IClaimedPageSpeed`, `IPageSpeedJobWrite`, `IPageSpeedMeasurementWrite`) are the pages
+(`IClaimedPageSpeed`, `TPageSpeedJobWrite`, `IPageSpeedMeasurementWrite`) are the pages
 module's, in `be/src/modules/pages/interfaces/page-speed.interface.ts`, and nothing here
 imports its repository. Imported by `AppModule` only — the seed process must never hold a
 worker it would exit under mid-call.

@@ -10,7 +10,7 @@ import { pageSpeed } from '@persistence/schema/tables/page-speed/page-speed.sche
 import { CURRENT_RUN_STATUSES_SQL } from '@persistence/sql/current-run-statuses';
 import type {
   IClaimedPageSpeed,
-  IPageSpeedJobWrite,
+  TPageSpeedJobWrite,
   IPageSpeedMeasurementWrite,
 } from '../../interfaces/page-speed.interface';
 import {
@@ -220,7 +220,7 @@ export class PageSpeedRepository {
     pageId: number,
     strategy: TPsiStrategy,
     attempt: number,
-    write: IPageSpeedJobWrite,
+    write: TPageSpeedJobWrite,
   ): Promise<boolean> {
     const rows = await this.db
       .update(pageSpeed)
@@ -228,7 +228,9 @@ export class PageSpeedRepository {
         status: write.status,
         lastError: write.lastError,
         lockedUntil: null,
-        ...(write.nextAttemptAt ? { nextAttemptAt: write.nextAttemptAt } : {}),
+        ...(write.status === 'queued'
+          ? { nextAttemptAt: write.nextAttemptAt }
+          : {}),
       })
       .where(this.ownedBy(pageId, strategy, attempt))
       .returning({ pageId: pageSpeed.pageId });

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { TPageSpeedErrorCode } from '@app/contracts';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import {
   PAGE_SPEED_SETTINGS,
@@ -7,6 +8,8 @@ import {
 import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
 import type {
   IClaimedPageSpeed,
+  TPageSpeedJobWrite,
+  IPageSpeedMeasurementWrite,
   TPageSpeedCompletion,
 } from '@modules/pages/interfaces/page-speed.interface';
 import { PageSpeedResultsService } from '@modules/pages/services/page-speed-results/page-speed-results.service';
@@ -16,7 +19,6 @@ import {
   type TPsiCallResult,
 } from '../classify-psi-response/classify-psi-response';
 import type { IExtractedImageDelivery } from '../extract-image-delivery/extract-image-delivery';
-import type { IPageSpeedMeasurementWrite } from '@modules/pages/interfaces/page-speed.interface';
 import type { ILighthouseRecord } from '../extract-lighthouse/extract-lighthouse';
 import type {
   IExtractedDiagnostics,
@@ -108,16 +110,9 @@ export class PageSpeedExecutorService {
       { err, pageId: claim.pageId, attempt: claim.attempt },
       'PageSpeed measurement failed unexpectedly',
     );
-    const final = claim.attempt >= PAGE_SPEED_MAX_ATTEMPTS;
     await this.results.recordFailureForWorker(
       claim,
-      final
-        ? { status: 'failed', lastError: 'PSI_UNAVAILABLE' }
-        : {
-            status: 'queued',
-            lastError: 'PSI_UNAVAILABLE',
-            nextAttemptAt: new Date(Date.now() + retryDelayMs(claim.attempt)),
-          },
+      failedAttemptWrite(claim, 'PSI_UNAVAILABLE', new Date()),
     );
   }
 
@@ -150,19 +145,9 @@ export class PageSpeedExecutorService {
         return;
       }
       case 'transient': {
-        const final = claim.attempt >= PAGE_SPEED_MAX_ATTEMPTS;
-        await this.results.recordFailureForWorker(
-          claim,
-          final
-            ? { status: 'failed', lastError: outcome.error }
-            : {
-                status: 'queued',
-                lastError: outcome.error,
-                nextAttemptAt: new Date(
-                  now.getTime() + retryDelayMs(claim.attempt),
-                ),
-              },
-        );
+        const write = failedAttemptWrite(claim, outcome.error, now);
+        const final = write.status === 'failed';
+        await this.results.recordFailureForWorker(claim, write);
         this.logger.warn(
           { ...where, final },
           final
@@ -207,6 +192,24 @@ export class PageSpeedExecutorService {
       }
     }
   }
+}
+
+/**
+ * A failed attempt that is not the page's verdict: back in the queue after the backoff
+ * (1, 4, 16, 64 minutes), or — the attempts spent — failed with the same reason.
+ */
+function failedAttemptWrite(
+  claim: IClaimedPageSpeed,
+  lastError: TPageSpeedErrorCode,
+  now: Date,
+): TPageSpeedJobWrite {
+  return claim.attempt >= PAGE_SPEED_MAX_ATTEMPTS
+    ? { status: 'failed', lastError }
+    : {
+        status: 'queued',
+        lastError,
+        nextAttemptAt: new Date(now.getTime() + retryDelayMs(claim.attempt)),
+      };
 }
 
 /**

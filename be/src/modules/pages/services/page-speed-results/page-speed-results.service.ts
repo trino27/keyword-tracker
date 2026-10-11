@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
 import type {
   IClaimedPageSpeed,
-  IPageSpeedJobWrite,
+  TPageSpeedJobWrite,
   TPageSpeedCompletion,
 } from '../../interfaces/page-speed.interface';
 import { PageSpeedRepository } from '../../repositories/page-speed/page-speed.repository';
@@ -77,7 +77,7 @@ export class PageSpeedResultsService {
 
   recordFailureForWorker(
     claim: IClaimedPageSpeed,
-    write: IPageSpeedJobWrite,
+    write: TPageSpeedJobWrite,
   ): Promise<boolean> {
     return this.pageSpeed.recordFailureForWorker(
       claim.pageId,

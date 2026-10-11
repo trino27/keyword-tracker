@@ -52,12 +52,11 @@ export interface IPageSpeedMeasurementWrite {
  * What a failed attempt may write — job columns only, by construction: there is no key
  * here a measurement could travel under, so a failure cannot erase the last good one.
  */
-export interface IPageSpeedJobWrite {
-  /** `queued` to try again at `nextAttemptAt`, `failed` to give up. */
-  status: 'queued' | 'failed';
-  nextAttemptAt?: Date;
-  lastError: TPageSpeedErrorCode;
-}
+export type TPageSpeedJobWrite =
+  /** Try again, not before `nextAttemptAt` — a retry with no time would retry at once. */
+  | { status: 'queued'; nextAttemptAt: Date; lastError: TPageSpeedErrorCode }
+  /** Give up. */
+  | { status: 'failed'; lastError: TPageSpeedErrorCode };
 
 /** A claimed row: the page and device, the attempt that owns it, and the URL Google measures. */
 export interface IClaimedPageSpeed {
