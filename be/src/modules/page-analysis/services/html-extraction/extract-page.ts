@@ -166,6 +166,24 @@ const NAME_ATTRIBUTE = 'data-seo-accessible-name';
 /** Which entry of the links' markup-as-written a link is, for the same reason. */
 const INDEX_ATTRIBUTE = 'data-seo-link-index';
 
+/** The element the main content is read from, marked before it is cloned. */
+const MAIN_ATTRIBUTE = 'data-seo-main';
+
+/** Which `data-nosnippet` holder an element is, so the main content's clone can name it. */
+const NOSNIPPET_ATTRIBUTE = 'data-seo-nosnippet';
+
+/** Every attribute this extractor parks on the document; none is quoted. */
+const PARKED_ATTRIBUTES = [
+  NAME_ATTRIBUTE,
+  INDEX_ATTRIBUTE,
+  MAIN_ATTRIBUTE,
+  NOSNIPPET_ATTRIBUTE,
+].join(' ');
+
+/** Google honours `data-nosnippet` on span, div and section only. */
+const NOSNIPPET_HOLDERS =
+  'span[data-nosnippet], div[data-nosnippet], section[data-nosnippet]';
+
 /**
  * A meta element that declares the encoding, in either of its two forms — `<meta
  * charset>` or an http-equiv Content-Type whose content names a charset. Both carry
@@ -238,6 +256,9 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   $(HIDDEN_TEXT).remove();
   $(HEADINGS).find(HEADING_CONTROLS).remove();
 
+  $(NOSNIPPET_HOLDERS).each((index, element) => {
+    $(element).attr(NOSNIPPET_ATTRIBUTE, String(index));
+  });
   const main = mainContent($);
   // `.text()` concatenates siblings: "Title</h1><p>One" would read as "TitleOne". This runs
   // BEFORE anything is collected, or the headings and blocks never see the separators and
@@ -368,7 +389,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     websiteNames: [...structured.websiteNames, ...microdata.websiteNames],
     icons: iconsOf($, baseUrl),
     videos: videosOf($),
-    contentNosnippet: contentNosnippetOf($, wordCount),
+    contentNosnippet: contentNosnippetOf($, main, wordCount),
     lang: orNull($('html').attr('lang')),
     h1s: $('body h1')
       .map((_, element) => collapse($(element).text()))
@@ -590,6 +611,7 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
         ($('article').first().length
           ? $('article').first()
           : $('body').first())));
+  candidate.attr(MAIN_ATTRIBUTE, '');
   const main = candidate.clone();
   main.find('iframe').replaceWith(`<${FRAME_MARKER}></${FRAME_MARKER}>`);
   main.find(NEVER_CONTENT).remove();
@@ -960,10 +982,10 @@ function isSized(image: TSelection): boolean {
   );
 }
 
-/** An element as written, without the attribute this extractor parks on links. */
+/** An element as written, without the attributes this extractor parks on the document. */
 function quoteMarkup($: CheerioAPI, element: TSelection): string {
   const clone = element.clone();
-  clone.removeAttr(NAME_ATTRIBUTE).removeAttr(INDEX_ATTRIBUTE);
+  clone.find('*').addBack().removeAttr(PARKED_ATTRIBUTES);
   return collapse($.html(clone)).slice(0, MARKUP_QUOTE_MAX);
 }
 
@@ -1339,19 +1361,30 @@ function videosOf($: CheerioAPI): string[] {
  */
 const NOSNIPPET_MIN_SHARE = 0.5;
 
-/** The `data-nosnippet` element holding most of the main content, or null. */
-function contentNosnippetOf($: CheerioAPI, wordCount: number): string | null {
+/**
+ * The `data-nosnippet` element holding most of the main content, or null. Only the words
+ * it holds INSIDE the main content count — or all of them, when it wraps the main content:
+ * a comments block kept out of the snippet holds many words, and none of the article's.
+ */
+function contentNosnippetOf(
+  $: CheerioAPI,
+  main: TSelection,
+  wordCount: number,
+): string | null {
   if (wordCount === 0) return null;
-  // Google honours the attribute on span, div and section only.
-  const holder = $(
-    'span[data-nosnippet], div[data-nosnippet], section[data-nosnippet]',
-  )
+  const holder = $(NOSNIPPET_HOLDERS)
     .toArray()
     .map((element) => $(element))
     .find((element) => {
-      const clone = element.clone();
-      clone.find(NEVER_CONTENT).remove();
-      return wordsIn($, clone) >= wordCount * NOSNIPPET_MIN_SHARE;
+      if (element.is(`[${MAIN_ATTRIBUTE}]`)) return true;
+      if (element.find(`[${MAIN_ATTRIBUTE}]`).length > 0) return true;
+      const inside = main.find(
+        `[${NOSNIPPET_ATTRIBUTE}="${element.attr(NOSNIPPET_ATTRIBUTE)}"]`,
+      );
+      return (
+        inside.length > 0 &&
+        wordsIn($, inside.first()) >= wordCount * NOSNIPPET_MIN_SHARE
+      );
     });
   if (!holder) return null;
   const opening = /^<[^>]*>/.exec(quoteMarkup($, holder.clone().empty()));

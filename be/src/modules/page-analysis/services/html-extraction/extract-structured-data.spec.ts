@@ -222,4 +222,34 @@ describe('extractPage: icons, videos and the snippet', () => {
       ).contentNosnippet,
     ).toBeNull();
   });
+
+  it('does not name a data-nosnippet block outside the article, however long', () => {
+    const post = Array.from({ length: 80 }, (_, n) => `word${n}`).join(' ');
+    const comments = Array.from({ length: 60 }, (_, n) => `reply${n}`).join(
+      ' ',
+    );
+    expect(
+      page(
+        `<main><p>${post}</p></main><div id="replies" data-nosnippet><p>${comments}</p></div>`,
+      ).contentNosnippet,
+    ).toBeNull();
+  });
+
+  it('names a data-nosnippet element that wraps the article', () => {
+    const words = Array.from({ length: 80 }, (_, n) => `word${n}`).join(' ');
+    expect(
+      page(
+        `<div class="site" data-nosnippet><main><p>${words}</p></main></div>`,
+      ).contentNosnippet,
+    ).toBe('<div class="site" data-nosnippet="">');
+  });
+
+  it('quotes no attribute the extractor parks on the document', () => {
+    const words = Array.from({ length: 80 }, (_, n) => `word${n}`).join(' ');
+    expect(
+      page(
+        `<main><div class="entry" data-nosnippet><p>${words} <a href="/x">x</a></p></div></main>`,
+      ).contentNosnippet,
+    ).not.toMatch(/data-seo-/);
+  });
 });
