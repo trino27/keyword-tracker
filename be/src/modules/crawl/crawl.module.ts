@@ -9,6 +9,7 @@ import { CrawlRunExecutorService } from './services/crawl-run-executor/crawl-run
 import { FeedDiscoveryService } from './services/feed-discovery/feed-discovery.service';
 import { PostSelectionService } from './services/post-selection/post-selection.service';
 import { SiteHttpClient } from './services/site-http-client/site-http-client';
+import { OutboundChecksService } from './services/outbound-checks/outbound-checks.service';
 import { SiteProbeService } from './services/site-probe/site-probe.service';
 import { SitemapDiscoveryService } from './services/sitemap-discovery/sitemap-discovery.service';
 import { CrawlWorker } from './workers/crawl-worker/crawl-worker';
@@ -27,6 +28,7 @@ import { CrawlWorker } from './workers/crawl-worker/crawl-worker';
     SitemapDiscoveryService,
     PostSelectionService,
     SiteProbeService,
+    OutboundChecksService,
     CrawlRunExecutorService,
     { provide: CRAWL_RUN_EXECUTOR, useExisting: CrawlRunExecutorService },
   ],

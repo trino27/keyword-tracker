@@ -73,7 +73,7 @@ it green.
   They fail: no module. Then write `document-facts.ts` and
   `interfaces/outbound-facts.interface.ts` (plan §7). Verify: `pnpm --filter be test:ci --
   document-facts`.
-- [ ] 2.3 Write first `be/src/modules/crawl/services/outbound-checks/outbound-checks.service.spec.ts`
+- [x] 2.3 Write first `be/src/modules/crawl/services/outbound-checks/outbound-checks.service.spec.ts`
   (`FixtureHttpTransport`, fake clock):
   - "checks at most 300 link URLs and marks the rest unchecked: budget";
   - "orders by sitemap position, then document order";
@@ -88,11 +88,11 @@ it green.
   - "a host refusing every connection leaves outcomes, not an error".
 
   They fail: no module. Verify: `pnpm --filter be test:ci -- outbound-checks` fails.
-- [ ] 2.4 Write `crawl/constants/outbound-checks.constant.ts` (`OUTBOUND_CHECK_LIMITS`, each number
+- [x] 2.4 Write `crawl/constants/outbound-checks.constant.ts` (`OUTBOUND_CHECK_LIMITS`, each number
   with its reason), `services/outbound-checks/host-robots-cache.ts` with its spec, and
   `outbound-checks.service.ts` (plan §10.2–§10.5), listed in `crawl.module.ts` providers.
   Verify: `pnpm --filter be test:ci -- outbound-checks host-robots-cache`.
-- [ ] 2.5 Write first in `crawl-run-executor.service.spec.ts`:
+- [x] 2.5 Write first in `crawl-run-executor.service.spec.ts`:
   - "runs the outbound stage after fetch and before analysis, outside the transaction";
   - "an outbound stage that times out leaves the run succeeded".
 
@@ -105,13 +105,21 @@ it green.
     maps.
 
   Verify: `pnpm --filter be test:ci -- src/modules/crawl src/modules/page-analysis`.
-- [ ] 2.6 Make sure the recorded corpus still behaves the same with empty facts. Verify:
+- [x] 2.6 Make sure the recorded corpus still behaves the same with empty facts. Verify:
   `pnpm --filter be test:ci -- checks.registry && pnpm --filter be test:db -- crawl`.
 - [ ] 2.7 On the stack, re-crawl a seed client. Verify: `docker compose up -d --build`, then after
   the run `docker compose logs be | grep '"Crawl run stages"' | tail -n 2` shows an `outbound`
   timing under 60000.
-- [ ] 2.8 Commit: `feat(crawl): an outbound stage — links and documents under a budget, robots per
+- [x] 2.8 Commit: `feat(crawl): an outbound stage — links and documents under a budget, robots per
   host`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+
+  AMENDED during implementation: 2.3/2.4 — the budget is injected under `OUTBOUND_LIMITS`
+  (the constant by default), so the spec shrinks it instead of faking a clock; the spec uses a
+  transport that measures what is in flight, and adds "a link that cannot be reached is a
+  failure with its kind". 2.6 — the e2e crawls log an `outbound` timing (8–14 ms over the
+  fixtures). 2.7 is not done yet: rebuilding the docker stack from this working tree would
+  ship another session's unfinished edits; the live check runs through the field-audit
+  harness in 3f instead.
 
 ## 3. `BROKEN_LINKS` and `LINKS_TO_REDIRECTS` (3c) — ANALYSIS-024, ANALYSIS-025
 

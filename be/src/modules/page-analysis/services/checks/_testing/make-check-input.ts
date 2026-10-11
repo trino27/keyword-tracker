@@ -1,3 +1,4 @@
+import { NO_OUTBOUND_FACTS } from '../../../interfaces/outbound-facts.interface';
 import type { IParsedPage } from '../../../interfaces/parsed-page.interface';
 import type { IRobotsRules } from '../../../interfaces/robots-rules.interface';
 import type { ICheckInput } from '../check.interface';
@@ -26,6 +27,7 @@ export function makeCheckInput(
     htmlBytes: 50_000,
     fetchedAt: new Date('2026-10-09T12:00:00Z'),
     timeZone: 'America/Toronto',
+    linkStatuses: NO_OUTBOUND_FACTS,
     previewImage: {
       url: 'https://a.example/i.png',
       status: 200,

@@ -9,6 +9,7 @@ import type { ISiteCheckResult } from '@app/contracts';
 import type { ISiteProbes } from '../../services/site-probe/site-probe.service';
 import type { TSitemapDiscovery } from '../../services/sitemap-discovery/sitemap-discovery.service';
 import type { TCrawlStage } from './run-stages';
+import type { IOutboundFacts } from '@modules/page-analysis/interfaces/outbound-facts.interface';
 
 /** A discovery that found a blog; the failing variant never reaches a later step. */
 export type TBlogFound = Extract<TSitemapDiscovery, { ok: true }>;
@@ -30,6 +31,8 @@ export interface IRunContext {
   pages: IRunPage[] | null;
   /** The extra answers the site checks asked for; null when no page told the host. */
   siteProbes: ISiteProbes | null;
+  /** What the posts' links, canonicals and hreflang answered; null when none was asked. */
+  outbound: IOutboundFacts | null;
   /** Every site check's verdict, ready to be written with the run. */
   siteChecks: ISiteCheckResult[] | null;
   /** Set as soon as the run's verdict is known; `persist` writes it, or nothing is. */
