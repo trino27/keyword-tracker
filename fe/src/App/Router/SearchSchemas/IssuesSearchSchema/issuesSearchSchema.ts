@@ -6,7 +6,7 @@ import { ISSUE_TYPES } from "@ViewModels/IssueReportViewModel/Services/FilterRep
  * Every level by default: the report opens on everything found, and the reader narrows it.
  * (Planned as Critical and Important only, D9; the user asked for all — plan D30.)
  */
-export const DEFAULT_LEVELS: TSeoIssueSeverity[] = ["error", "warning", "notice"];
+export const DEFAULT_LEVELS: TSeoIssueSeverity[] = [...SEO_ISSUE_SEVERITIES];
 
 /**
  * The report's state lives in the URL — the client, the page filter, the grouping and
