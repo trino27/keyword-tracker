@@ -2,16 +2,16 @@
 
 ### Requirement: PAGEDETAIL-011 — the page shows its Core Web Vitals with their source and age
 
-The detail MUST show a "Speed (Core Web Vitals)" block with a Mobile | Desktop switch that opens
-on Mobile. For the chosen device it MUST show one card per metric — the value with its unit, the
-band in words and colour, the source in plain words and the date measured — and the Lighthouse lab
+The detail MUST show a "Speed (Core Web Vitals)" block with a Mobile | Desktop switch that opens on
+Mobile. For the chosen device it MUST show one card per metric — the value with its unit, the band
+in words and colour, the source in plain words and the date measured — and the Lighthouse lab
 performance score as a caption that says it is a lab figure. A lab-sourced value MUST say it may
 vary between runs; a missing INP MUST say why there is none. For the chosen device the block MUST
-state "Measuring…", "Couldn't refresh: <reason>, showing the measurement from <date>", "Couldn't
-measure: <reason>", "Not measured" and "PageSpeed not configured" in words, never as empty cards;
-when PageSpeed's state is `keyRejected` it MUST open with "Google rejected the PageSpeed key —
-speed measurements are paused. See the README." above whatever is stored, on either device.
-Switching devices MUST NOT request anything.
+state "In queue for measurement", "Measuring…", "Couldn't refresh: <reason>, showing the
+measurement from <date>", "Couldn't measure: <reason>", "Not measured" and "PageSpeed not
+configured" in words, never as empty cards; when PageSpeed's state is `keyRejected` it MUST open
+with "Google rejected the PageSpeed key — speed measurements are paused. See the README." above
+whatever is stored, on either device. Switching devices MUST NOT request anything.
 
 Modified by `desktop-core-web-vitals`: the page is now measured on two devices (plan D9), and the
 block shows one at a time, behind a switch, so the cards keep the layout a reader already knows.

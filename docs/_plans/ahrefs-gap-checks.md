@@ -3,8 +3,7 @@
 Our check catalogue now covers what Ahrefs' blog tells a site owner to fix, and every new finding
 is held to the same standard as the old ones. When a marketer opens a page, it says whether the
 page's canonical points to plain HTTP or to a URL that redirects, is broken, is noindexed or is
-itself canonicalised elsewhere. It says whether the canonical changed since the last crawl,
-whether og:url names another URL, and whether the hreflang set leaves out this page or is not
+itself canonicalised elsewhere. It says whether og:url names another URL, and whether the hreflang set leaves out this page or is not
 returned by the pages it names. It also reports a title still selling last year, a description
 that only repeats the title, missing breadcrumb markup, and links in the text that are broken or
 redirect. A link the crawl could not check is never presented as fine. Per site it says how many
@@ -12,11 +11,17 @@ posts show their text only after JavaScript runs. In the Speed block a marketer 
 between mobile and desktop Core Web Vitals. Lighthouse's image-delivery audit becomes a finding
 when it can save at least 100 KiB. An industry-only recommendation never ranks above an
 Improvement, and every new check stays only if each firing in a live field audit is correct.
+No new check reports a fact an existing check already reports: where two meet on one fact, the
+more specific one keeps it and the other steps aside (D32–D36).
 
 **Status:** active — branch `feat/issue-report-and-pagespeed` (the user's instruction: the work
 stays on the current branch; no new branch).
 
-**Changes:** markup-gap-checks, canonical-change-tracking, crawl-outbound-checks, desktop-core-web-vitals, image-delivery-finding
+**Changes:** markup-gap-checks, crawl-outbound-checks, desktop-core-web-vitals, image-delivery-finding
+
+(`canonical-change-tracking` was dropped by D33. Its directory is removed with
+`git rm -r openspec/changes/canonical-change-tracking`. The requirement ids it had allocated,
+PAGES-015 and ANALYSIS-022, are not reused.)
 
 ## How to read this
 
@@ -33,7 +38,9 @@ the planner derived while checking the decisions against the tree. Each is marke
 names the decision and the file it follows from. The user confirmed D14–D29 as written on
 2026-10-11 (D31). The "to be confirmed" marks on those lines stay, because the log is
 append-only, and D31 supersedes them. Several of them exist because the tree already does part
-of what a decision asked for (D14, D15).
+of what a decision asked for (D14, D15). D32–D36 are the user's decisions of 2026-10-11 that no
+new check may duplicate an existing one; they supersede D7, D27 and O4 and drop phase 2. D37 is
+a planner-derived consequence of D32 and D34 and is **not confirmed by the user**.
 
 ---
 
@@ -46,13 +53,12 @@ its level and its sentence. Severity names follow SHELL-004 (Critical / Importan
 
 | Finding (code) | Level | The sentence a reader sees (example) |
 | --- | --- | --- |
-| `CANONICAL_TO_HTTP` | Important | "The canonical names http://a.example/post/, a plain-HTTP address, while the page is served over HTTPS." |
+| `CANONICAL_TO_HTTP` | Important | "The canonical names http://a.example/post/, this page's own address over plain HTTP." |
 | `OG_URL_MISMATCH` | Improvement | "og:url names https://a.example/other/; the page's canonical is https://a.example/post/." |
 | `HREFLANG_NO_SELF_REFERENCE` | Improvement | "None of the 3 hreflang alternates names this page." |
 | `TITLE_YEAR_OUTDATED` | Improvement | "The title says 2024; it is 2026." |
 | `META_DESCRIPTION_REPEATS_TITLE` | Improvement | "The meta description repeats the title word for word." |
 | `BREADCRUMB_MISSING` | Improvement | "The page declares no BreadcrumbList." |
-| `CANONICAL_CHANGED` | Improvement | "The canonical was https://a.example/post/ at the crawl of Oct 4; it is now https://a.example/new/." |
 | `CANONICAL_TARGET_BROKEN` | Important | "The canonical https://a.example/old/ redirects (301) to https://a.example/new/." |
 | `BROKEN_LINKS` | Improvement | "2 links in the text are broken. Checked 38 of 40 links." |
 | `LINKS_TO_REDIRECTS` | Improvement | "3 links to this site's pages redirect." |
@@ -64,6 +70,13 @@ Each finding quotes its evidence under **Technical details**, as every finding d
 (PAGE_ANALYSIS_MODULE "Every finding shows its proof"). A finding that rests on a sample says so.
 The link findings carry "Checked N of M links" whenever N < M. The text names why the rest went
 unchecked: the crawl's link budget, robots.txt, or no conclusive answer.
+
+A fact is reported once (§10.13). A page whose canonical is its own http:// twin shows
+`CANONICAL_TO_HTTP` and not `CANONICAL_MISMATCH`. A page whose canonical target is broken
+shows `CANONICAL_TARGET_BROKEN` and not `CANONICAL_MISMATCH`. Links to a development host are
+`DEVELOPMENT_HOST_REFERENCES`'s and are never counted as broken or redirecting. On the
+**Checks** list the check that stepped aside reads "not applicable", with its skip reason
+naming the check that reports the fact.
 
 **Checks** (ChecksSection) lists each new crawl-owned code with its four-status outcome
 (PAGES-012). A page last crawled before a code existed reads "not yet checked" for it until its next
@@ -110,9 +123,19 @@ skipped in the item log, with today's reason "Rendered by JavaScript: …" (D8).
   recommendation is at most a notice (D1). *Consequence:* the rule is a test over the catalogue's
   sources (D24), not a reviewer's memory.
 - **P3 — One fact, one finding.** A fact already reported under one code is not reported again
-  under a new one. *Consequence:* the self-reference arm leaves `HREFLANG_INVALID` (D14).
-  `LINKS_TO_REDIRECTS` skips links `INTERNAL_LINK_VARIANTS` already reports (D29). The
-  sitemap/canonical extension is already built (D15).
+  under a new one. Where two checks meet on one fact, the more specific keeps it and the other
+  steps aside (answers "not applicable"), the repository's rule (`PAGE_ANALYSIS_MODULE.md:349-354`,
+  PREVIEW_IMAGE_IS_LOGO over PREVIEW_IMAGE_TOO_SMALL). *Consequence:*
+  - the self-reference arm leaves `HREFLANG_INVALID` (D14);
+  - `CANONICAL_MISMATCH` steps aside for `CANONICAL_TO_HTTP` (D32) and for
+    `CANONICAL_TARGET_BROKEN` (D34);
+  - `CANONICAL_CHANGED` is dropped, because every state it could report is already reported
+    (D33);
+  - the outbound checks skip what `DEVELOPMENT_HOST_REFERENCES`, `INTERNAL_LINK_VARIANTS` and
+    `HREFLANG_INVALID` report (D29, D36);
+  - the sitemap/canonical extension is already built (D15) and keeps naming canonical
+    contradictions whichever canonical check carries them (D37);
+  - every step-aside has a spec case named for the check it defers to (§10.13).
 - **P4 — What was not checked is said.** No finding and no pass implies a link, an alternate or a
   target the crawl did not check (D6). *Consequence:* outcomes are raw facts with an explicit
   `unchecked` kind. A page whose links could not be checked is "not applicable", never "passed".
@@ -134,45 +157,17 @@ skipped in the item log, with today's reason "Rendered by JavaScript: …" (D8).
 
 ## 3. Data model
 
-Two tables change: `pages` and `page_speed`. No table is added. `seo_issues.code` and
-`site_checks.code` are `varchar(64)`, so the new codes need no migration.
+One table changes: `page_speed`. No table is added. `seo_issues.code` and `site_checks.code`
+are `varchar(64)`, so the new codes need no migration.
 
-### 3.1 `pages` — the declared canonical (migration `0015`, generated)
+### 3.1 `pages` — unchanged (D33)
 
-```ts
-// be/src/persistence/schema/tables/pages/pages.schema.ts — two columns and one CHECK added
-import { boolean } from 'drizzle-orm/pg-core'; // beside the existing imports
+The `pages.canonical_url` / `canonical_recorded` columns that D7 introduced are not built.
+`CANONICAL_CHANGED`, their only reader, was dropped (D33), and a column nobody reads is the
+defect D2 of the prior plan rejected. `pages.schema.ts` and its comment at `:52-55` stay as
+they are.
 
-    // The canonical the page declared at its last crawl: the first one, <head> before the
-    // Link header, fragment removed (D7). Null with canonical_recorded = true: it declared none.
-    canonicalUrl: varchar('canonical_url', { length: 2048 }),
-    // Whether the last crawl recorded the canonical at all. False on every row last crawled
-    // before migration 0015, where a null canonical_url means "not known", never "declared
-    // none". CANONICAL_CHANGED cannot tell the two apart without it, and an inferred value
-    // would report a change on every page's first crawl after the migration (D7).
-    canonicalRecorded: boolean('canonical_recorded').notNull().default(false),
-
-  // …in the table options:
-    // A canonical is never stored as known by a crawl that did not record it.
-    check(
-      'pages_canonical_only_when_recorded',
-      sql`${t.canonicalUrl} is null or ${t.canonicalRecorded}`,
-    ),
-```
-
-The comment at `pages.schema.ts:52-55` ("this row holds no canonical, no Open Graph and no
-JSON-LD") is corrected to "no Open Graph and no JSON-LD, and of the canonical only the one it
-declared".
-
-**Nullability.** `canonical_recorded = false`: unknown, so CANONICAL_CHANGED is not applicable.
-`true` with `canonical_url` null: the page declared no canonical. `true` with a URL: that URL.
-A declared canonical longer than 2 048 characters is stored as `recorded = false` rather than
-truncated (D27). A truncated URL would compare as a change on the next crawl.
-
-**Migration `0015`** must contain exactly two `ADD COLUMN` statements and one `ADD CONSTRAINT …
-CHECK`, and nothing else. There is no backfill (D7).
-
-### 3.2 `page_speed` — one row per page and strategy (migrations `0016`, `0017`, generated)
+### 3.2 `page_speed` — one row per page and strategy (two generated migrations, `0015` and `0016` as the tree stands today)
 
 ```ts
 // packages/contracts/src/domain/page-speed/psi-strategy.enum.ts — new
@@ -192,7 +187,7 @@ export const pageSpeed = pgTable(
     // The device the answer is for. Page and strategy together are the key: a second row
     // for the same pair would be a second answer to one question, which is what
     // "how fast is this page on this device" must never have (D9).
-    strategy: psiStrategyEnum('strategy').notNull(), // 0016 adds it with .default('mobile'); 0017 drops the default (D22)
+    strategy: psiStrategyEnum('strategy').notNull(), // the first migration adds it with .default('mobile'); the second drops the default (D22)
     // …every other column and CHECK unchanged…
   },
   (t) => [
@@ -204,12 +199,15 @@ export const pageSpeed = pgTable(
 
 The two-step generation (D22):
 
-1. **`0016`.** The schema declares `strategy … .notNull().default('mobile')` and the composite
+drizzle-kit numbers the files; with `0014` the latest today, they are `0015` and `0016`, and
+the names below follow that.
+
+1. **`0015`.** The schema declares `strategy … .notNull().default('mobile')` and the composite
    key, and `pnpm db:generate` writes the migration. Read the SQL. It must create
    `psi_strategy_enum`, add the column NOT NULL DEFAULT 'mobile' (which fills every existing row
    with `mobile`, D9), drop the old single-column primary key and add the composite one, and do
    nothing else.
-2. **`0017`.** The schema drops `.default('mobile')` and `pnpm db:generate` writes the second
+2. **`0016`.** The schema drops `.default('mobile')` and `pnpm db:generate` writes the second
    migration. Read the SQL. It must hold exactly `ALTER COLUMN "strategy" DROP DEFAULT`.
 
 The default is dropped so that an insert which forgets the strategy is refused. Otherwise it would
@@ -233,8 +231,8 @@ row, and a row is still one whole measurement.
 | I3 | Every new code, page or speed, has its sentence on the frontend | `DESCRIBE: Record<TSeoIssueCode, …>` (existing, `describeIssue.ts:44`) — a missing key does not compile |
 | I4 | A page whose hreflang set omits itself is reported once, under `HREFLANG_NO_SELF_REFERENCE`, never also under `HREFLANG_INVALID` | `HREFLANG_INVALID` no longer computes `selfReferenced`; two specs assert each side (D14) |
 | I5 | A post skipped as client-rendered stays a skipped item and never becomes a page; the site check reads a flag, never the reason text | `ISelectedItem.clientRendered: boolean` and `IFetchedEntry.clientRendered: boolean` (new, required); the skip path in `post-selection.service.ts:186-194` is unchanged apart from setting it |
-| I6 | A canonical is never stored as known by a crawl that did not record it | CHECK `pages_canonical_only_when_recorded` |
-| I7 | A row crawled before 0015, or a page seen for the first time, never yields `CANONICAL_CHANGED` | `IPreviousCrawl.canonical: { recorded: false } \| { recorded: true; url: string \| null }` — the check reads `recorded` before `url`, and the type makes "unknown" distinct from "none" |
+| I6 | A canonical that is the page's own http:// twin is `CANONICAL_TO_HTTP`'s alone; an http canonical naming any other address is `CANONICAL_MISMATCH`'s alone | one predicate, `isHttpTwin(canonical, finalUrl)` (`_shared/http-twin.ts`), read by both checks. `CANONICAL_TO_HTTP` is not applicable unless it holds, and `CANONICAL_MISMATCH` is not applicable when it does (D32) |
+| I7 | When a page's canonical target is broken, `CANONICAL_MISMATCH` steps aside for `CANONICAL_TARGET_BROKEN` | one predicate, `canonicalTargetProblemOf(page)` (new, `_shared/canonical-target.ts`), read by both checks. `CANONICAL_MISMATCH` reads `linkStatuses` for it from phase 3 on (D34) |
 | I8 | Every outbound request of a crawl happens before its transaction | the new `outbound` stage is not `opensTransaction`; `assertRunPipeline` (existing, `run-pipeline.ts:31`) refuses any other order |
 | I9 | One crawl checks at most 300 link URLs and reads at most 30 HTML documents. At most 8 requests are in flight, at most 2 per host. Each request has 5 s, no retry and at most 5 redirect hops. The stage stops at 60 s | `OUTBOUND_CHECK_LIMITS` (new, `crawl/constants/outbound-checks.constant.ts`) is read by `OutboundChecksService`, and its spec drives each bound with a fake transport and a fake clock |
 | I10 | No URL is requested that its host's robots.txt disallows; each host's robots.txt is fetched at most once per crawl | `HostRobotsCache` (new) is keyed by origin. The run's own origin is answered by the run's `RobotsPolicy`, never re-fetched |
@@ -244,7 +242,7 @@ row, and a row is still one whole measurement.
 | I14 | A status-only request reads no body and frees its connection | `SiteHttpClient.checkLink` asks with `maxBytes: 0, overflow: 'truncate'`; `readCapped` destroys the stream at the first chunk (`undici-http-transport.ts:101-107`) |
 | I15 | Outbound checking never fails, delays past its deadline, or changes the outcome of a run | `OutboundChecksService` turns every `RemoteApiError` into an outcome per URL, as `SiteProbeService.ask` does. The stage deadline is an `AbortSignal.any([run, timeout])` |
 | I16 | At most one `page_speed` row per page and strategy, gone with its page | PK `(page_id, strategy)`; FK `ON DELETE cascade` |
-| I17 | A `page_speed` row cannot be inserted without a strategy | `strategy` NOT NULL with no default after 0017 |
+| I17 | A `page_speed` row cannot be inserted without a strategy | `strategy` NOT NULL with no default after the second migration of §3.2 |
 | I18 | A measurement replaces only its own strategy's findings | `replacePageSpeedFindingsForWorker(tx, pageId, strategy, rows)` deletes `code in PAGE_SPEED_CODES_BY_STRATEGY[strategy]`; rows typed by strategy |
 | I19 | Every pageSpeed code declares exactly one strategy; no crawl code declares one | `ISeoIssueDefinition` becomes a union: `owner: 'crawl'` with `strategy?: never`, `owner: 'pageSpeed'` with a required `strategy: TPsiStrategy` (typecheck); the strategy sets are derived from it |
 | I20 | Badge ⇔ issue holds per strategy: a metric outside the good band yields exactly its strategy's one code | `cwvIssuesOf(strategy, measurement)` reads `CWV_ISSUE_CODES[strategy][metric][band]`; the band comes from `cwvBandOf` (existing) |
@@ -252,6 +250,8 @@ row, and a row is still one whole measurement.
 | I22 | No read multiplies a page by its strategies | the list's `left join page_speed` adds `and ps.strategy = 'mobile'`; the detail reads both into a `Record`; the report joins the strategy of each code |
 | I23 | A check stays enabled only while every live firing in its field audit is correct | **not pinned by a test** — a reader judges each firing against the live page (D12). The tally is recorded in `PAGE_ANALYSIS_MODULE.md`, and the phase does not close without it |
 | I24 | Every query over a user's data stays scoped to that user | no new route; `findPreviousCrawlsForWorker` stays client-scoped (`pages.repository.ts:98-112`); the isolation matrix is unchanged (ISO-005) |
+| I25 | No new check reports a fact an older check reports: a development host is `DEVELOPMENT_HOST_REFERENCES`'s, an invalid hreflang code and a canonical naming another URL on an hreflang page are `HREFLANG_INVALID`'s, an http-twin canonical is `CANONICAL_TO_HTTP`'s | each new check reads the older check's own predicate: `isDevelopmentHost` for og:url, canonical targets and alternates, and `isOwnDevelopmentHost` for content links, exactly as `development-host-references.check.ts:35-43` splits them; the hreflang code validator moved to `_shared/hreflang-code.ts`; `isHttpTwin`. The new check then answers not applicable or skips the item. One spec case per deference, named for the older check (§10.13, D36) |
+| I26 | A sitemap entry whose page names another canonical is named by `SITEMAP_LISTS_NON_INDEXABLE` whichever canonical check carries the fact | `contradictionOf` (`sitemap-checks.ts:29-49`) reads `CANONICAL_MISMATCH`, `CANONICAL_TO_HTTP` and `CANONICAL_TARGET_BROKEN` findings (D37) |
 
 ---
 
@@ -287,10 +287,14 @@ export interface IImageDeliveryMeasurement extends ISeoMeasurement {
 - `seo/seo-issue-catalogue.constant.ts`:
   - `ISeoIssueDefinition` becomes a union (I19). The name is kept, so the dozens of
     `satisfies Record<string, ISeoIssueDefinition>` readers do not move.
-  - Eleven crawl entries are added: `CANONICAL_TO_HTTP`, `OG_URL_MISMATCH`,
+  - Ten crawl entries are added: `CANONICAL_TO_HTTP`, `OG_URL_MISMATCH`,
     `HREFLANG_NO_SELF_REFERENCE`, `TITLE_YEAR_OUTDATED`, `META_DESCRIPTION_REPEATS_TITLE`,
-    `BREADCRUMB_MISSING`, `CANONICAL_CHANGED`, `CANONICAL_TARGET_BROKEN`, `BROKEN_LINKS`,
-    `LINKS_TO_REDIRECTS`, `HREFLANG_NOT_RECIPROCAL`.
+    `BREADCRUMB_MISSING`, `CANONICAL_TARGET_BROKEN`, `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
+    `HREFLANG_NOT_RECIPROCAL`. `CANONICAL_CHANGED` is not added (D33).
+  - `CANONICAL_MISMATCH`'s `skipReason` widens to cover its two step-asides (D32, D34): no
+    canonical, the canonical is the page's http:// twin (CANONICAL_TO_HTTP's), or its target is
+    broken (CANONICAL_TARGET_BROKEN's). There is one `skipReason` per code, so the sentence names
+    all three.
   - Seven pageSpeed entries are added: `CWV_{LCP,INP,CLS}_{NEEDS_IMPROVEMENT,POOR}_DESKTOP` with
     `strategy: 'desktop'`, and `IMAGE_DELIVERY_INEFFICIENT` with `strategy: 'mobile'` and
     `min: 102_400`. The six existing CWV entries gain `strategy: 'mobile'`.
@@ -366,8 +370,7 @@ backend sends against a stricter schema is a thrown parse and an empty screen
 - `services/crawl-run-executor/crawl-run-executor.service.ts`:
   - the new stage;
   - `analyse()` passes `outbound` and `target.timeZone` into each analysis input, and
-    `clientRendered` into each `IFetchedEntry`;
-  - `toRunPage` carries `canonicalUrl`.
+    `clientRendered` into each `IFetchedEntry`.
 - `services/post-selection/post-selection.service.ts`: the JS skip sets `clientRendered: true`. The
   `reason` string is unchanged. Every other item sets `false`.
 - `interfaces/crawled-page.interface.ts`: `ISelectedItem.clientRendered: boolean`.
@@ -402,9 +405,8 @@ backend sends against a stricter schema is a thrown parse and an empty screen
 - `services/checks/check.interface.ts`:
   - `ICheckInput` gains `linkStatuses: IOutboundFacts` (D4's name, holding both maps) and
     `timeZone: string` (D18).
-  - `IPreviousCrawl` gains `canonical` (I7).
-  - `make-check-input.ts` defaults are empty maps, `'America/Toronto'` and
-    `{ recorded: false }`. An empty map makes every outbound check not applicable, so the
+  - `IPreviousCrawl` is unchanged (D33).
+  - `make-check-input.ts` defaults are empty maps and `'America/Toronto'`. An empty map makes every outbound check not applicable, so the
     recorded-corpus test in `checks.registry.spec.ts:386-434` keeps its bounds.
 - `services/checks/_shared/link-verdict.ts` — **new**: `EXTERNAL_BROKEN_STATUSES` and
   `linkVerdictOf(outcome, internal)` (§10.1).
@@ -415,8 +417,27 @@ backend sends against a stricter schema is a thrown parse and an empty screen
   `{ noindex, canonical, alternates }`, built from `robots-directives.ts` and
   `declaredCanonicals`. The crawl calls it for in-run pages and fetched documents alike, so both
   are judged by one function.
-- Eleven new check directories (`<code-kebab>/<code-kebab>.check.ts` + `.check.spec.ts`) are
+- Ten new check directories (`<code-kebab>/<code-kebab>.check.ts` + `.check.spec.ts`) are
   registered in `checks.registry.ts`.
+- `services/checks/_shared/http-twin.ts` — `isHttpTwin` (already written by the phase 1
+  implementation): read by `CANONICAL_TO_HTTP`, `CANONICAL_MISMATCH` and `CANONICAL_TARGET_BROKEN`
+  (D32, D36).
+- `services/checks/_shared/canonical-target.ts` — **new** in phase 3:
+  `canonicalTargetProblemOf(page)` → the target's problem (`redirects`, `status`, `noindex`,
+  `chain`) or null. It is read by `CANONICAL_TARGET_BROKEN` to fail and by `CANONICAL_MISMATCH`
+  to step aside (D34), so the two cannot disagree about whether the target is broken.
+- `services/checks/_shared/hreflang-code.ts` — **new** in phase 3: the language/region
+  validator (`problemWith`, today private at `hreflang-invalid.check.ts:71-100`) moves here
+  unchanged, so `HREFLANG_NOT_RECIPROCAL` skips exactly the alternates `HREFLANG_INVALID`
+  reports (D36).
+- `canonical-mismatch.check.ts` steps aside for the http twin (phase 1, D32) and for a broken
+  target (phase 3, D34). `og-url-mismatch.check.ts` steps aside for a development host (D36).
+  Each new check reads the same predicate `DEVELOPMENT_HOST_REFERENCES` applies to that kind of
+  address (`development-host-references.check.ts:35-43`): `isDevelopmentHost` for what names the
+  page itself (og:url, the canonical target, hreflang alternates), `isOwnDevelopmentHost` for
+  content links.
+- `services/site-checks/sitemap-checks.ts` `contradictionOf` also reads `CANONICAL_TO_HTTP`
+  (phase 1) and `CANONICAL_TARGET_BROKEN` (phase 3) findings (D37).
 - `hreflang-invalid.check.ts` loses its self-reference arm and its comment's "reciprocity is
   deliberately not checked" (D14; phase 3 replaces that sentence with a pointer to
   `HREFLANG_NOT_RECIPROCAL`).
@@ -431,10 +452,7 @@ backend sends against a stricter schema is a thrown parse and an empty screen
 
 **Pages module:**
 
-- `pages.repository.ts`: `upsertManyForWorker` writes `canonical_url` and
-  `canonical_recorded = true` (or `false` under D27). `findPreviousCrawlsForWorker` selects both.
-- `crawl-results.service.ts`: `IRunPage.canonicalUrl: string | null`; `previousCrawlsForWorker`
-  shapes `canonical`.
+- `pages.repository.ts` and `crawl-results.service.ts`: unchanged (D33).
 - `page-speed.repository.ts`: every method takes or returns `strategy`.
   - `enqueueForWorker(tx, pageIds, staleBefore)` upserts both strategies with
     `on conflict (page_id, strategy)`.
@@ -544,6 +562,12 @@ Statuses 401, 403, 429, 999, 5xx and timeouts on external links are unknown, nev
 (D25). The internal 4xx/5xx row follows D3 literally. Open question O3 names the one place where
 this might cost precision.
 
+**What the link checks skip before any verdict** (D29, D36). Both `BROKEN_LINKS` and
+`LINKS_TO_REDIRECTS` drop a link whose host is this site's development host
+(`isOwnDevelopmentHost`, `DEVELOPMENT_HOST_REFERENCES`'s fact). `LINKS_TO_REDIRECTS` also drops
+a link `variantsOf` reports (`INTERNAL_LINK_VARIANTS`'s fact). A skipped link counts in neither
+N nor M of "Checked N of M".
+
 ### 10.2 Which links are checked, under the budget (D6)
 
 1. Take the run's pages in sitemap order. For each page, take `parsed.links` in document order and
@@ -592,9 +616,14 @@ in priority order up to 30. Anything after that is `unchecked: budget`. robots.t
 `page` is filled only for a 200 HTML answer, through `documentFactsOf`.
 
 **The check.** `CANONICAL_TARGET_BROKEN` judges a page's first declared canonical when it is not
-the page itself:
+the page itself. The rules are `canonicalTargetProblemOf(page)` (`_shared/canonical-target.ts`),
+which `CANONICAL_MISMATCH` reads too (D34):
 
 - no such canonical → not applicable;
+- the canonical is the page's http:// twin (`isHttpTwin`) → not applicable, it is
+  `CANONICAL_TO_HTTP`'s (D36);
+- the target's host is a development host (`isDevelopmentHost`) → not applicable, it is
+  `DEVELOPMENT_HOST_REFERENCES`'s (D36);
 - target not checked, or an inconclusive failure → not applicable ("could not be read within the
   crawl's budget");
 - the target redirected → **fails** (`redirects`, quoting the hops);
@@ -606,35 +635,52 @@ the page itself:
 
 Every failure quotes the page's own declaration (`quoteCanonical`) and what the target answered.
 
+**`CANONICAL_MISMATCH` steps aside** (D34): when `canonicalTargetProblemOf(page)` returns a
+problem, `CANONICAL_MISMATCH` answers not applicable. The broken target is the more specific
+finding, and a page told both "your canonical points elsewhere" and "your canonical points at a
+broken page" is told one fact twice. When the target was not read (budget, robots, no answer),
+`CANONICAL_TARGET_BROKEN` is not applicable and `CANONICAL_MISMATCH` judges as it does today, so
+the canonical fact is never lost to a budget.
+
 ### 10.6 `HREFLANG_NOT_RECIPROCAL` (D2)
 
-For a page with alternates, each alternate other than itself and `x-default` is looked up in
+Not applicable when the page has no alternates, or when its first declared canonical names
+another URL: that page has declared itself a duplicate and left its own hreflang set, which is
+`HREFLANG_INVALID`'s canonical-elsewhere arm (D36).
+
+Otherwise each alternate other than itself and `x-default` is first filtered, then looked up in
 `documents`:
 
+- an alternate whose code `HREFLANG_INVALID` reports (the validator in `_shared/hreflang-code.ts`)
+  → skipped, `HREFLANG_INVALID`'s (D36);
+- an alternate on a development host (`isDevelopmentHost`) → skipped,
+  `DEVELOPMENT_HOST_REFERENCES`'s (D36);
 - not checked, failed, redirected, or not a 200 HTML answer → excluded (unknown; another code's
   business);
 - a 200 answer whose `alternates` contains no `href` that is `sameDocument` with this page's
   `finalUrl` → non-reciprocal.
 
 The check fails when one or more alternates are non-reciprocal, quoting each. It is not
-applicable with no alternates, or when none could be checked. The evidence adds "Checked K of A
+applicable when none could be checked. The evidence adds "Checked K of A
 alternates" when K < A.
 
 ### 10.7 The page-scoped markup checks
 
 | Code | Not applicable when | Fails when |
 | --- | --- | --- |
-| `CANONICAL_TO_HTTP` | no declared canonical, or the page is served over `http:` (NOT_HTTPS's) | `finalUrl` is `https:` and the first declared canonical's protocol is `http:` |
-| `OG_URL_MISMATCH` | no `og:url` | `og:url`, resolved against the page, is not `sameDocument` with the first declared canonical, or with `finalUrl` when none is declared |
+| `CANONICAL_TO_HTTP` | no declared canonical; the page is served over `http:` (NOT_HTTPS's); or the http canonical names a different address (CANONICAL_MISMATCH's) | the first declared canonical is the page's own http:// twin: `isHttpTwin(canonical, finalUrl)`, i.e. the same document once its scheme is https (D32) |
+| `CANONICAL_MISMATCH` (changed) | as today, plus: the canonical is the page's http:// twin (CANONICAL_TO_HTTP's, D32); and from phase 3, the target is broken (CANONICAL_TARGET_BROKEN's, D34) | as today |
+| `OG_URL_MISMATCH` | no `og:url`, or og:url names a development host (`isDevelopmentHost`, DEVELOPMENT_HOST_REFERENCES's, D36) | `og:url`, resolved against the page, is not `sameDocument` with the first declared canonical, or with `finalUrl` when none is declared |
 | `HREFLANG_NO_SELF_REFERENCE` | no alternates | no alternate's `href` is `sameDocument` with `finalUrl` (moved from `hreflang-invalid.check.ts:128-130`) |
 | `META_DESCRIPTION_REPEATS_TITLE` | no title or no description | `normalise(description) === normalise(titleWithoutBrand)`, or `=== normalise(title)`. `normalise` = NFKC, lower case, punctuation removed, whitespace collapsed. `titleWithoutBrand` = the title's first part split on `\s[|•·–—-]\s` (the same split `post-selection.service.ts:171` uses) |
 | `BREADCRUMB_MISSING` | never (always judged) | neither `parsed.jsonLd.types` nor `parsed.microdata.types` contains `BreadcrumbList`. The extractor reads `@graph` (`extract-page.ts`), so Yoast's graph breadcrumbs count. RDFa is not read (open question O7) |
 | `TITLE_YEAR_OUTDATED` | no title | §10.8 |
 
-`CANONICAL_TO_HTTP` and `CANONICAL_MISMATCH` both fire on an HTTP canonical that names the page's
-own address over plain HTTP: one says "another URL", the other "plain HTTP". Both statements are
-true. Open question O4 keeps it that way unless the field audit shows a reader taking it as one
-finding counted twice.
+An http canonical is reported once (D32, superseding O4): the page's own http:// twin by
+`CANONICAL_TO_HTTP` alone, any other http address by `CANONICAL_MISMATCH` alone.
+
+`META_DESCRIPTION_REPEATS_TITLE` and `META_DESCRIPTION_LENGTH` both stay, though a copied title
+is nearly always under 70 characters: length and content are two facts (D35).
 
 ### 10.8 `TITLE_YEAR_OUTDATED` (open question O1)
 
@@ -652,15 +698,23 @@ finding counted twice.
   SEO in 2008" fires (a known risk, O1). "2024 vs 2025 results" does not fire: neither year is at
   the end or after a preposition.
 
-### 10.9 `CANONICAL_CHANGED` (D7)
+### 10.9 `CANONICAL_CHANGED` — dropped (D33)
 
-- not applicable when `previous` is null or `previous.canonical.recorded === false`;
-- `now = declaredCanonicals(page)[0]?.url ?? null` (fragment already removed by the extractor and
-  by `headerCanonicals`);
-- the check fails when `previous.canonical.url` and `now` differ: one null and the other not, or
-  both URLs and not `sameDocument`.
+Every state a changed canonical leaves behind is already reported:
 
-Evidence: "Canonical at the crawl of <day>: <before or 'none'>. Now: <after or 'none'>."
+- self → other is `CANONICAL_MISMATCH`;
+- removal is `CANONICAL_MISSING`;
+- other → other is `CANONICAL_MISMATCH`.
+
+Without duplicating them, `CANONICAL_CHANGED` could fire only on other → self, which is a fix,
+not a defect. No algorithm, no storage.
+
+**The sitemap's canonical contradiction (D15, D37).** `SITEMAP_LISTS_NON_INDEXABLE`'s
+`contradictionOf` (`sitemap-checks.ts:29-49`) names an entry "names <url> as canonical" when the
+entry's page carries `CANONICAL_MISMATCH`, `CANONICAL_TO_HTTP` (phase 1) or
+`CANONICAL_TARGET_BROKEN` (phase 3), reading the canonical from that finding's details. Without
+D37, the step-asides of D32 and D34 would silently drop those entries from a check that reports
+them today.
 
 ### 10.10 `CONTENT_NEEDS_JAVASCRIPT` (site, D8)
 
@@ -700,6 +754,39 @@ which deletes only `PAGE_SPEED_CODES_BY_STRATEGY[strategy]`.
 - **Absence**: `extractMeasurement` (`extract-measurement.ts:77`) is untouched. A renamed audit
   removes the image finding and nothing else.
 
+### 10.13 Overlap with existing checks — the step-asides, and the pairs that do not overlap
+
+The rule is the repository's (`PAGE_ANALYSIS_MODULE.md:349-354`): where two checks meet on one
+fact, the more specific keeps it and the other answers not applicable. Each row is pinned by a
+spec case named for the check deferred to (§13 I6, I7, I25).
+
+| New / changed check | Steps aside for | When | Decision |
+| --- | --- | --- | --- |
+| `CANONICAL_MISMATCH` | `CANONICAL_TO_HTTP` | the canonical is the page's http:// twin | D32 |
+| `CANONICAL_TO_HTTP` | `CANONICAL_MISMATCH` | the http canonical names another address | D32 |
+| `CANONICAL_MISMATCH` | `CANONICAL_TARGET_BROKEN` | the target is broken | D34 |
+| `CANONICAL_TARGET_BROKEN` | `CANONICAL_TO_HTTP` | the canonical is the http twin | D36 |
+| `CANONICAL_TARGET_BROKEN` | `DEVELOPMENT_HOST_REFERENCES` | the target is a development host | D36 |
+| `OG_URL_MISMATCH` | `DEVELOPMENT_HOST_REFERENCES` | og:url is a development host | D36 |
+| `BROKEN_LINKS`, `LINKS_TO_REDIRECTS` | `DEVELOPMENT_HOST_REFERENCES` | the link is this site's development host (skipped) | D36 |
+| `LINKS_TO_REDIRECTS` | `INTERNAL_LINK_VARIANTS` | the link is a scheme/host/tracking variant (skipped) | D29 |
+| `HREFLANG_NOT_RECIPROCAL` | `HREFLANG_INVALID` | an alternate's code is invalid (skipped); the canonical names another URL (whole check) | D36 |
+| `HREFLANG_NOT_RECIPROCAL` | `DEVELOPMENT_HOST_REFERENCES` | an alternate is a development host (skipped) | D36 |
+| `HREFLANG_NO_SELF_REFERENCE` | — (`HREFLANG_INVALID` loses the arm instead) | — | D14 |
+
+**Checked and found not to duplicate** (each pair was read against the other's rule):
+
+- `BREADCRUMB_MISSING` / `BREADCRUMB_INVALID`: exclusive. One fires only when no BreadcrumbList is
+  declared, the other is not applicable then.
+- `TITLE_YEAR_OUTDATED` / `DATES_INCONSISTENT`: the title's year against the calendar, versus the
+  URL's year against the markup's dates. Different sources, different facts.
+- `CONTENT_NEEDS_JAVASCRIPT`: such a post is never analysed (D8), so no page check can report it.
+- `IMAGE_DELIVERY_INEFFICIENT` / `LCP_IMAGE_LAZY_LOADED` and the CWV codes: an opportunity
+  (bytes Lighthouse says could be saved), versus a markup cause of LCP and a measured outcome.
+- Desktop / mobile CWV: different device data from different PageSpeed answers.
+- `META_DESCRIPTION_REPEATS_TITLE` / `META_DESCRIPTION_LENGTH`: content versus length, both kept
+  by the user's choice (D35).
+
 ---
 
 ## 11. Scenario walkthroughs
@@ -722,7 +809,12 @@ collects 412 unique content links, of which 9 are run pages (built from the run,
    for the 404 only. The 403 is unknown. Post 7's evidence ends "Checked 38 of 40 links; the rest
    were not checked: 2 over the crawl's link budget".
 7. Post 9 also gets `BROKEN_LINKS` (nxdomain). Post 2 gets `CANONICAL_TARGET_BROKEN`: chain.
-8. Everything is written in the one finalize transaction, with the pages' new `canonical_url`.
+   Its `CANONICAL_MISMATCH` steps aside (D34). If post 2 is a sitemap entry,
+   `SITEMAP_LISTS_NON_INDEXABLE` still names it, reading the canonical from the
+   `CANONICAL_TARGET_BROKEN` finding (D37).
+8. A post linking to `staging.a.example/draft/` gets neither `BROKEN_LINKS` nor
+   `LINKS_TO_REDIRECTS` for it, whatever it answers. It is `DEVELOPMENT_HOST_REFERENCES`'s (D36).
+9. Everything is written in the one finalize transaction.
 
 **B — desktop measured for the first time.** A page crawled last week has one `page_speed` row,
 `mobile`, `done`.
@@ -736,17 +828,17 @@ collects 412 unique content links, of which 9 are run pages (built from the run,
 4. The detail's Speed block on Desktop shows green cards. On Mobile it still shows the red LCP.
 5. The pages list row is unchanged and still has one row for the page (I22).
 
-**C — a canonical moves.** A page last crawled before migration 0015 has
-`canonical_recorded = false`.
+**C — an http canonical, reported once.** Two posts of an https site, both sitemap entries.
 
-1. Crawl 1 after the migration: `CANONICAL_CHANGED` is not applicable (I7). The row now stores
-   `/post/` with `recorded = true`.
-2. The site's SEO plugin is misconfigured and the page now declares `/category/post/`.
-3. Crawl 2: `CANONICAL_CHANGED` fails with "Canonical at the crawl of Oct 12: https://a.example/post/.
-   Now: https://a.example/category/post/". `CANONICAL_MISMATCH` also fires, which is true.
-   Crawl 2's `SITEMAP_LISTS_NON_INDEXABLE` names the entry "names https://a.example/category/post/ as
-   canonical" (D15).
-4. Crawl 3 with the same canonical: `CANONICAL_CHANGED` passes. The change was reported once.
+1. Post 1 declares `http://a.example/post-1/`, its own address over plain HTTP. It gets
+   `CANONICAL_TO_HTTP`. `CANONICAL_MISMATCH` is not applicable, with the skip reason naming
+   `CANONICAL_TO_HTTP` (D32).
+2. Post 2 declares `http://a.example/other/`, another address. It gets `CANONICAL_MISMATCH`.
+   `CANONICAL_TO_HTTP` is not applicable (D32).
+3. A plugin later changes post 2's canonical to `/category/post-2/`. The next crawl reports what
+   is true now, `CANONICAL_MISMATCH`, and nothing about the change (D33).
+4. `SITEMAP_LISTS_NON_INDEXABLE` names both entries "names <url> as canonical": post 1 through
+   the `CANONICAL_TO_HTTP` finding (D37), post 2 through `CANONICAL_MISMATCH` (D15).
 
 ---
 
@@ -791,8 +883,8 @@ collects 412 unique content links, of which 9 are run pages (built from the run,
 | I3 | `pnpm --filter fe typecheck` over `DESCRIBE`; `describeIssue.test.ts` → one case per new code |
 | I4 | `hreflang-invalid.check.spec.ts` → "passes a valid set that omits this page — that is HREFLANG_NO_SELF_REFERENCE's"; `hreflang-no-self-reference.check.spec.ts` (new) → "fails a set that never names this page" |
 | I5 | `post-selection.service.spec.ts` → "a client-rendered post stays skipped_listing, is no page, and carries clientRendered"; `site-checks.registry.spec.ts` → "counts the flag, not the reason text" |
-| I6 | `be/src/modules/pages/repositories/pages/pages.repository.int-spec.ts` → "refuses a canonical url on a row that did not record it" |
-| I7 | `canonical-changed.check.spec.ts` (new) → "is not applicable for a page crawled before canonicals were recorded", "…for a first crawl"; `pages.repository.int-spec.ts` → "a pre-migration row reads back as not recorded" |
+| I6 | `canonical-to-http.check.spec.ts` → "is not applicable to an http canonical naming another address — that is CANONICAL_MISMATCH's"; `canonical-mismatch.check.spec.ts` → "is not applicable to the page's own http twin — that is CANONICAL_TO_HTTP's" |
+| I7 | `canonical-mismatch.check.spec.ts` → "is not applicable when the target is broken — that is CANONICAL_TARGET_BROKEN's" and "judges as before when the target was not read"; `canonical-target.spec.ts` (new) for the shared predicate |
 | I8 | `run-pipeline.spec.ts` (existing assertion) + `crawl-run-executor.service.spec.ts` → "makes every outbound request before the transaction opens" (transaction runner spy ordering) |
 | I9 | `outbound-checks.service.spec.ts` (new) → "checks at most 300 link URLs and marks the rest unchecked: budget", "reads at most 30 documents, canonical targets first", "never has more than 8 in flight, nor more than 2 for one host", "stops at the deadline and marks the rest unchecked: deadline", "asks each URL once, without retry" |
 | I10 | same spec → "fetches each external host's robots.txt once", "never requests a disallowed URL", "treats an unreachable robots.txt as disallowing the host" |
@@ -810,6 +902,8 @@ collects 412 unique content links, of which 9 are run pages (built from the run,
 | I22 | `page-list.repository.int-spec.ts` → "lists a page once when both strategies are stored"; `issue-report.repository.int-spec.ts` → "returns each finding once when both strategies are stored"; the list statement-count case still passes |
 | I23 | **not pinned by a test**: a reader judges every firing against the live page (D12). The phase's acceptance includes the tally in `PAGE_ANALYSIS_MODULE.md`, found by `git grep -n "Field audit of the Ahrefs-gap checks" be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md` |
 | I24 | `be/test/e2e/isolation-matrix.e2e-spec.ts` static case "covers every route that takes an id or a clientId" (existing; unchanged route set) |
+| I25 | one case per §10.13 row, each named for the check deferred to: `og-url-mismatch.check.spec.ts` → "is not applicable to a development-host og:url — that is DEVELOPMENT_HOST_REFERENCES's"; `broken-links.check.spec.ts` and `links-to-redirects.check.spec.ts` → "skips a link to this site's development host — that is DEVELOPMENT_HOST_REFERENCES's"; `links-to-redirects.check.spec.ts` → "skips a link INTERNAL_LINK_VARIANTS reports"; `hreflang-not-reciprocal.check.spec.ts` → "skips an alternate whose code HREFLANG_INVALID reports", "skips a development-host alternate — that is DEVELOPMENT_HOST_REFERENCES's", "is not applicable when the canonical names another URL — that is HREFLANG_INVALID's"; `canonical-target-broken.check.spec.ts` → "is not applicable to the http twin — that is CANONICAL_TO_HTTP's", "is not applicable to a development-host target — that is DEVELOPMENT_HOST_REFERENCES's" |
+| I26 | `site-checks.registry.spec.ts` → "names an entry whose page names another URL as canonical" (CANONICAL_MISMATCH, D15), "names an entry whose canonical is its http twin" (CANONICAL_TO_HTTP, phase 1), "names an entry whose canonical target is broken" (CANONICAL_TARGET_BROKEN, phase 3) |
 
 ---
 
@@ -836,7 +930,9 @@ makes it fail.
 
 - One `.check.spec.ts` per new crawl code, written from the markup of a real page wherever one is
   known. Each spec has a fails case, a pass case and a not-applicable case. Each fails first on
-  the missing module.
+  the missing module. Each step-aside of §10.13 has its own case, named for the older check
+  (I25). That case fails if the deference is removed, because the older check's fact would then
+  fire under the new code too.
 - `link-verdict.spec.ts`, `remote-failure-kind.spec.ts`, `document-facts.spec.ts`,
   `host-robots-cache.spec.ts`.
 - `outbound-checks.service.spec.ts`: `FixtureHttpTransport` plus a fake clock, mocks at the
@@ -850,7 +946,6 @@ makes it fail.
 
 **Integration / DB (`*.int-spec.ts`, real Postgres).** Each covers what only the database decides:
 
-- `pages.repository.int-spec.ts`: the CHECK; a pre-migration row reading back as not recorded;
 - `page-speed.repository.int-spec.ts`: the composite PK; NOT NULL without default; cascade; the
   per-strategy enqueue and claim; the 24 h boundary per strategy;
 - `seo-issues.repository.int-spec.ts`: strategy-scoped deletes;
@@ -862,7 +957,8 @@ makes it fail.
 
 - `crawl.e2e-spec.ts`: a crawl over fixtures whose post links to one recorded 404 and one
   recorded 301 stores `BROKEN_LINKS` and `LINKS_TO_REDIRECTS` on that page and nothing else new.
-  The second crawl stores `canonical_url`. The run log carries the outbound timing.
+  A canonical naming a recorded 301 stores `CANONICAL_TARGET_BROKEN` and not
+  `CANONICAL_MISMATCH` (D34). The run log carries the outbound timing.
 - `page-speed.e2e-spec.ts`: both strategies queued and measured; badge ⇔ issue per strategy; the
   list unchanged; the detail carries `pageSpeedByStrategy`.
 - `pages.e2e-spec.ts`: the detail shape.
@@ -887,7 +983,7 @@ makes it fail.
 **Typecheck / lint.** I2, I3, I17 (the column type), I19. The ESLint rule of I13.
 `satisfies z.ZodType<…>` on the changed detail schema.
 
-**Field audit protocol (D12).** It is used by phases 1, 2, 3 and 5.
+**Field audit protocol (D12).** It is used by phases 1, 3 and 5.
 
 1. Stack: `docker compose up -d --build`. Sign in as the demo user (`curl -c c.txt …/api/auth/sign-in`).
 2. Clients: add every audit site as a client. Use the UI, or
@@ -944,12 +1040,16 @@ makes it fail.
 
 **Order of the changes.**
 
-- markup-gap-checks → canonical-change-tracking → crawl-outbound-checks.
+- markup-gap-checks → crawl-outbound-checks.
 - desktop-core-web-vitals → image-delivery-finding.
-- Phase 3 depends on phase 1. Both edit `hreflang-invalid.check.ts`, and phase 3 reads the
-  `timeZone`/input plumbing phase 1 adds to `ICheckInput`.
-- Phase 2 depends on nothing in phase 1. It is placed second because phase 3's
-  `CANONICAL_TARGET_BROKEN` reads better beside a canonical the crawl already remembers.
+- Phase 2 no longer exists (D33). The number is kept so every "3a…6" reference in the plan and
+  in the changes' `tasks.md` stays true.
+- Phase 3 depends on phase 1, for four reasons:
+  - both edit `hreflang-invalid.check.ts`;
+  - phase 3 reads the input plumbing phase 1 adds to `ICheckInput`;
+  - `CANONICAL_TARGET_BROKEN` defers to `CANONICAL_TO_HTTP` through phase 1's `isHttpTwin`
+    (D36);
+  - `CANONICAL_MISMATCH`'s second step-aside (D34) builds on its first (D32).
 - Phase 5 depends on phase 4: the strategy-scoped replace and the catalogue's `strategy`.
 - Phases 4–5 do not depend on phases 1–3 and may run before them. The user decides.
 - Phase 6 (harvest and archive) depends on all.
@@ -958,8 +1058,10 @@ makes it fail.
 
 ### Phase 1 — Findings read from one page's markup (change `markup-gap-checks`)
 
-After it, five page checks and one site check from the HTML the crawl already reads are in the
-product. `HREFLANG_INVALID` no longer reports the self-reference, and the inclusion bar is a test.
+After it, six page checks and one site check from the HTML the crawl already reads are in the
+product. `HREFLANG_INVALID` no longer reports the self-reference, and `CANONICAL_MISMATCH` steps
+aside for the http twin. The sitemap check keeps naming canonical contradictions (D15, D37). The
+inclusion bar is a test.
 
 #### 1a. The inclusion bar is executed
 
@@ -992,17 +1094,28 @@ product. `HREFLANG_INVALID` no longer reports the self-reference, and the inclus
    - the `DESCRIBE` sentence in `fe/src/Core/Helpers/DescribeIssue/describeIssue.ts`, with a case
      in `describeIssue.test.ts`.
 
-   One code per commit.
-2. **Pre-conditions.** 1a. D2, D16.
+   One code per commit. With `CANONICAL_TO_HTTP`'s commit:
+   - `_shared/http-twin.ts` (`isHttpTwin`);
+   - `canonical-mismatch.check.ts` steps aside for the twin, and the `CANONICAL_MISMATCH`
+     `skipReason` names it (D32).
+
+   With `OG_URL_MISMATCH`'s commit, the development-host step-aside (D36).
+2. **Pre-conditions.** 1a. D2, D16, D32, D35, D36.
 3. **TDD points.** Before, per code: the spec's fail / pass / not-applicable cases from §10.7.
    They fail with no module, and then `pnpm typecheck` fails on `TCheckRegistry` once the
    catalogue entry exists without its check, which is the point.
-   - `CANONICAL_TO_HTTP`: "fails an https page whose canonical is http://", "passes an https
-     canonical", "is not applicable on a page served over http".
+   - `CANONICAL_TO_HTTP`: "fails an https page whose canonical is its own http:// twin", "passes
+     an https canonical", "is not applicable on a page served over http", "is not applicable to an
+     http canonical naming another address — that is CANONICAL_MISMATCH's".
+   - `CANONICAL_MISMATCH` (existing spec, new case): "is not applicable to the page's own http
+     twin — that is CANONICAL_TO_HTTP's". It fails before the change, because the twin is not the
+     same document today.
    - `OG_URL_MISMATCH`: "fails og:url naming another page", "compares with the canonical when
-     one is declared", "is not applicable without og:url".
+     one is declared", "is not applicable without og:url", "is not applicable to a
+     development-host og:url — that is DEVELOPMENT_HOST_REFERENCES's".
    - `META_DESCRIPTION_REPEATS_TITLE`: "fails a description equal to the title without its brand
-     suffix", "passes a description that adds words".
+     suffix", "passes a description that adds words". `META_DESCRIPTION_LENGTH` is unchanged, and
+     both may fire on one page (D35).
    - `BREADCRUMB_MISSING`: "passes a Microdata BreadcrumbList", "passes a BreadcrumbList inside
      @graph", "fails a page declaring none".
 4. **Acceptance.**
@@ -1015,6 +1128,9 @@ product. `HREFLANG_INVALID` no longer reports the self-reference, and the inclus
      (`:386-434`) recomputes its denominator bounds from the catalogue, so a new check that is
      wrongly always not-applicable fails its lower bound.
    - `ChecksSection.test.tsx` lists the new codes.
+   - `CANONICAL_MISMATCH`'s step-aside would drop http-twin entries from
+     `SITEMAP_LISTS_NON_INDEXABLE`. Sub-phase 1g closes that, and phase 1 does not close without
+     it.
    - The README's "sixty-one checks"-type counts are re-read: `git grep -n -E
      "sixty-one|61 checks|50 page checks" -- README.md be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`.
 6. **Rollback.** Revert the code's commit. A stored finding under a reverted code would fail the
@@ -1111,23 +1227,55 @@ product. `HREFLANG_INVALID` no longer reports the self-reference, and the inclus
 6. **Rollback.** Revert.
 7. **Commit points.** `feat(site-checks): posts that render their content with JavaScript`.
 
+#### 1g. The sitemap keeps naming canonical contradictions (moved from the dropped phase 2)
+
+Written after 1b and before 1f, because it depends on `CANONICAL_TO_HTTP` existing. Its letter
+follows 1f only so the existing references stay true.
+
+1. **Deliverables.**
+   - `site-checks.registry.spec.ts` → "names an entry whose page names another URL as
+     canonical" (D15, the existing `CANONICAL_MISMATCH` branch at `sitemap-checks.ts:45-47`).
+   - `site-checks.registry.spec.ts` → "names an entry whose canonical is its http twin" (D37).
+   - `sitemap-checks.ts` `contradictionOf` reads a `CANONICAL_TO_HTTP` finding as it reads
+     `CANONICAL_MISMATCH`.
+   - The `SITEMAP_LISTS_NON_INDEXABLE` explanation is re-read and stays true as written: it says
+     "name another URL as canonical", and the http twin is another URL.
+2. **Pre-conditions.** 1b (`CANONICAL_TO_HTTP` and the `CANONICAL_MISMATCH` step-aside). D15,
+   D32, D37.
+3. **TDD points.**
+   - After: the D15 case passes on first run, because the branch exists. What makes it fail is
+     deleting the branch at `sitemap-checks.ts:45-47`. Do that locally once and watch it fail,
+     then restore.
+   - Before: the http-twin case fails after 1b. The twin page carries `CANONICAL_TO_HTTP`, not
+     `CANONICAL_MISMATCH`, and `contradictionOf` does not read it yet.
+4. **Acceptance.** `pnpm --filter be test:ci -- site-checks`; `pnpm lint && pnpm typecheck &&
+   pnpm test`.
+5. **Regression guard.** The other `SITEMAP_LISTS_NON_INDEXABLE` cases (`:218-264`) stay green.
+6. **Rollback.** Revert both commits together with 1b's step-aside. Reverting this alone would
+   silently drop http-twin entries from the sitemap check.
+7. **Commit points.** `test(site-checks): the sitemap's canonical contradiction is pinned` ·
+   `fix(site-checks): an http-twin canonical still contradicts the sitemap`.
+
 #### 1f. Field audit of phase 1, and its record
 
 1. **Deliverables.**
-   - The tally (§14 protocol) for the six codes. Each wrong firing gets a fix with a spec from the
-     site's markup, or `enabled: false`.
+   - The tally (§14 protocol) for the six page codes and `CONTENT_NEEDS_JAVASCRIPT`, plus every
+     `CANONICAL_MISMATCH` the twin step-aside removed, read to confirm it was a twin. Each wrong
+     firing gets a fix with a spec from the site's markup, or `enabled: false`.
    - `PAGE_ANALYSIS_MODULE.md`: the tally, and the "What was considered and rejected" additions
-     of D2's list with their reasons.
+     of D2's list with their reasons. `CANONICAL_CHANGED` is added there with D33's reason.
+   - The §10.13 table, and the list of pairs checked and found not to duplicate, go into the
+     module's overlap paragraph (`PAGE_ANALYSIS_MODULE.md:349-354`).
    - The stale sentence at `PAGE_ANALYSIS_MODULE.md:367-369` ("the catalogue — page and run
      scopes only — does not have yet") is replaced by a pointer to the site catalogue, which
      holds `SOFT_404` and the host checks.
    - The stale "Core Web Vitals … stay out" sentence at `:358-360` is corrected to "measured by
      PageSpeed, never from HTML timing".
-2. **Pre-conditions.** 1a–1e. D12. A running stack with network access.
+2. **Pre-conditions.** 1a–1e and 1g. D12. A running stack with network access.
 3. **TDD points.** Each wrong firing is turned into a failing spec from that site's markup before
    the fix.
 4. **Acceptance.**
-   - the §14 queries for the six codes;
+   - the §14 queries for the seven codes;
    - `git grep -n "Field audit of the Ahrefs-gap checks" be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`
      prints the heading, and the tally under it shows 0 wrong for every enabled code;
    - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`;
@@ -1140,87 +1288,23 @@ product. `HREFLANG_INVALID` no longer reports the self-reference, and the inclus
    - `fix(page-analysis): <code> <what the audit found>` (one per defect, only if found)
    - `docs(page-analysis): the markup checks, audited on live sites; what was rejected and why`
 
-### Phase 2 — The crawl remembers a page's canonical (change `canonical-change-tracking`)
+### Phase 2 — dropped (D33)
 
-After it, every crawl stores each page's declared canonical. The next crawl reports a change.
-`SITEMAP_LISTS_NON_INDEXABLE`'s canonical branch is pinned.
+This phase once stored each page's canonical (`pages.canonical_url`, `canonical_recorded`) and
+added `CANONICAL_CHANGED`. Both are dropped. Every state a changed canonical leaves behind is
+already reported by `CANONICAL_MISMATCH` or `CANONICAL_MISSING`, so the check could only ever
+fire on a fix (D33). Its one surviving piece, the test pinning the sitemap's canonical branch
+(D15), moved to sub-phase 1g.
 
-#### 2a. The canonical, stored with whether it was recorded
-
-1. **Deliverables.**
-   - `pages.schema.ts` (§3.1) and the generated `be/drizzle/0015_*.sql` with its snapshot.
-   - `pages.repository.ts` (upsert and previous read), `crawl-results.service.ts`.
-   - `crawl-run-executor.service.ts` (`toRunPage`).
-   - `check.interface.ts` (`IPreviousCrawl.canonical`) and `make-check-input.ts`.
-2. **Pre-conditions.** Phase 1 closed or not (independent). D7, D27.
-3. **TDD points.**
-   - Before: `pages.repository.int-spec.ts` → "refuses a canonical url on a row that did not
-     record it", "writes the declared canonical and marks it recorded", "a row written before the
-     migration reads back as not recorded", "a canonical longer than 2048 is stored as not
-     recorded". They fail with no columns.
-4. **Acceptance.**
-   - `pnpm db:generate`, then read `be/drizzle/0015_*.sql`: two `ADD COLUMN`, one `CHECK`,
-     nothing else; `pnpm db:migrate`.
-   - `pnpm --filter be test:db -- pages crawl`.
-   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
-5. **Regression guard.**
-   - The migration applies over the seeded volume: `docker compose up -d --build`, then
-     `docker compose exec postgres psql -U tracker -d seo_tracker -c "select
-     canonical_recorded, count(*) from pages group by 1"` shows only `f` before the next crawl.
-   - ANALYSIS-007 ("a re-crawl refreshes its own analysis") stays green in
-     `crawl-results.service.spec.ts`.
-6. **Rollback.** Not by editing the migration: remove the columns from the schema and
-   `pnpm db:generate` a forward `DROP COLUMN` migration. The data is a memory a crawl rebuilds.
-7. **Commit points.** `feat(db): a page remembers the canonical it declared, and whether that is
-   known`.
-
-#### 2b. `CANONICAL_CHANGED`
-
-1. **Deliverables.** `canonical-changed/` check and spec (new); the catalogue entry; the
-   `DESCRIBE` sentence.
-2. **Pre-conditions.** 2a.
-3. **TDD points.** Before: §10.9's cases, including both I7 cases, "fails none → url", "fails url →
-   none", "passes the same URL with a trailing slash difference". They fail with no module.
-4. **Acceptance.**
-   - `pnpm --filter be test:ci -- canonical-changed`
-   - `pnpm --filter be test:db -- crawl`: in `crawl.e2e-spec.ts`, "a second crawl after the
-     canonical changed stores CANONICAL_CHANGED, a third does not" (override between crawls).
-   - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
-5. **Regression guard.** `DATE_BUMPED_WITHOUT_CHANGES` reads the same `previous` and must stay
-   green: `pnpm --filter be test:ci -- date-bumped`.
-6. **Rollback.** Revert, or `enabled: false` if crawled.
-7. **Commit points.** `feat(page-analysis): a canonical that changed since the last crawl`.
-
-#### 2c. The sitemap's canonical contradiction, pinned
-
-1. **Deliverables.** `site-checks.registry.spec.ts` → "names an entry whose page names another
-   URL as canonical". The code is unchanged (`sitemap-checks.ts:45-47`, D15).
-2. **Pre-conditions.** none.
-3. **TDD points.** After. The branch exists, so the test passes on first run. What makes it fail
-   is deleting the `CANONICAL_MISMATCH` branch at `sitemap-checks.ts:45-47`. Do that locally once
-   and watch it fail, then restore.
-4. **Acceptance.** `pnpm --filter be test:ci -- site-checks`.
-5. **Regression guard.** none; test only.
-6. **Rollback.** Revert.
-7. **Commit points.** `test(site-checks): the sitemap's canonical contradiction is pinned`.
-
-#### 2d. Field audit of `CANONICAL_CHANGED`
-
-1. **Deliverables.** The tally for `CANONICAL_CHANGED` over two crawls of each audit site, the
-   second at least a day after the first. If it fires nowhere, the tally says "proven by the
-   specs alone", as the 2026-10-09 audit did for its silent checks.
-2. **Pre-conditions.** 2a–2c. D12.
-3. **TDD points.** As 1f.
-4. **Acceptance.** The §14 query for `CANONICAL_CHANGED`, the tally line under the audit heading,
-   and `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
-5. **Regression guard.** As 1f.
-6. **Rollback.** As 1f.
-7. **Commit points.** `docs(page-analysis): CANONICAL_CHANGED, audited over two crawls`.
+The change `canonical-change-tracking` is deleted (`git rm -r
+openspec/changes/canonical-change-tracking`). No migration is generated for `pages`. The
+number 2 is kept so the later phase and sub-phase references stay true. No phase depends on it.
 
 ### Phase 3 — Links, canonical targets and hreflang answers, checked in the crawl (change `crawl-outbound-checks`)
 
 After it, a crawl makes at most 300 status requests and 30 document reads in its own stage, all
-before the transaction. Four checks read what came back.
+before the transaction. Four checks read what came back, each stepping aside where an older
+check reports the fact (§10.13). `CANONICAL_MISMATCH` steps aside for a broken target (D34).
 
 #### 3a. A request for a status reads no body; a missing domain is named
 
@@ -1299,13 +1383,15 @@ before the transaction. Four checks read what came back.
    - `broken-links/`, `links-to-redirects/` checks and specs.
    - The catalogue entries. The `BROKEN_LINKS` explanation states D3's rule.
    - `DESCRIBE` sentences.
-2. **Pre-conditions.** 3b. D3, D19, D25, D29.
+2. **Pre-conditions.** 3b. D3, D19, D25, D29, D36.
 3. **TDD points.**
    - Before, `link-verdict.spec.ts`: §10.1's table as `it.each`, and the explanation tie (I12).
    - Before, `broken-links.check.spec.ts`: I11's two cases, "fails an internal 500", "fails an
-     external 410", "passes an external 403".
+     external 410", "passes an external 403", "skips a link to this site's development host —
+     that is DEVELOPMENT_HOST_REFERENCES's".
    - Before, `links-to-redirects.check.spec.ts`: "fails an internal link that redirects", "skips
-     a link INTERNAL_LINK_VARIANTS reports", "ignores an external redirect".
+     a link INTERNAL_LINK_VARIANTS reports", "skips a link to this site's development host — that
+     is DEVELOPMENT_HOST_REFERENCES's", "ignores an external redirect".
    - All fail with no module.
    - `internal-link-variants.check.spec.ts` stays green after the move.
 4. **Acceptance.**
@@ -1322,31 +1408,57 @@ before the transaction. Four checks read what came back.
 
 #### 3d. `CANONICAL_TARGET_BROKEN`
 
-1. **Deliverables.** `canonical-target-broken/` check and spec; the catalogue entry; `DESCRIBE`.
-2. **Pre-conditions.** 3b. D2, D11, D17.
-3. **TDD points.** Before: §10.5's six outcomes, each from an `IDocumentFacts` fixture. One case
-   is built from a run page's own facts. They fail with no module.
+1. **Deliverables.**
+   - `_shared/canonical-target.ts` (`canonicalTargetProblemOf`) and its spec.
+   - `canonical-target-broken/` check and spec; the catalogue entry; `DESCRIBE`.
+   - `canonical-mismatch.check.ts` steps aside when `canonicalTargetProblemOf` returns a problem
+     (D34). Its `skipReason` names the broken target too.
+   - `sitemap-checks.ts` `contradictionOf` reads a `CANONICAL_TARGET_BROKEN` finding (D37).
+2. **Pre-conditions.** 3b, 1b (`isHttpTwin`), 1g. D2, D11, D17, D34, D36, D37.
+3. **TDD points.**
+   - Before: §10.5's outcomes, each from an `IDocumentFacts` fixture. One case is built from a
+     run page's own facts. Also "is not applicable to the http twin — that is
+     CANONICAL_TO_HTTP's" and "is not applicable to a development-host target — that is
+     DEVELOPMENT_HOST_REFERENCES's". They fail with no module.
+   - Before, `canonical-mismatch.check.spec.ts`: "is not applicable when the target is broken —
+     that is CANONICAL_TARGET_BROKEN's" fails, because CANONICAL_MISMATCH fails today.
+     "Judges as before when the target was not read" passes, and guards the budget case.
+   - Before, `site-checks.registry.spec.ts`: "names an entry whose canonical target is broken"
+     fails once the step-aside lands, because the entry carries `CANONICAL_TARGET_BROKEN` and no
+     `CANONICAL_MISMATCH`.
 4. **Acceptance.**
-   - `pnpm --filter be test:ci -- canonical-target-broken`
+   - `pnpm --filter be test:ci -- canonical-target canonical-mismatch site-checks`
    - `pnpm --filter be test:db -- crawl`: the e2e case "a canonical naming a recorded 301 stores
-     CANONICAL_TARGET_BROKEN".
+     CANONICAL_TARGET_BROKEN and not CANONICAL_MISMATCH".
    - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
-5. **Regression guard.** `CANONICAL_MISMATCH`, `CANONICAL_CONFLICT`: their specs in full.
-6. **Rollback.** Revert, or `enabled: false`.
+5. **Regression guard.** `CANONICAL_MISMATCH`, `CANONICAL_CONFLICT`, `CANONICAL_TO_HTTP`: their
+   specs in full. `checks.registry.spec.ts`'s corpus test runs with empty facts, where every
+   target is unread, so `CANONICAL_MISMATCH` must judge there exactly as before.
+6. **Rollback.** Revert the step-aside, the sitemap read and the check together, or
+   `enabled: false` on the check together with reverting the step-aside.
 7. **Commit points.** `feat(page-analysis): a canonical whose target redirects, is broken,
-   noindexed or canonicalised again`.
+   noindexed or canonicalised again` · `feat(page-analysis): a canonical mismatch steps aside for
+   a broken target`.
 
 #### 3e. `HREFLANG_NOT_RECIPROCAL`
 
 1. **Deliverables.**
    - `hreflang-not-reciprocal/` check and spec; the catalogue entry; `DESCRIBE`.
+   - `_shared/hreflang-code.ts`: `problemWith` moved out of `hreflang-invalid.check.ts:71-100`
+     unchanged.
    - `hreflang-invalid.check.ts`'s comment and the catalogue comment at
      `seo-issue-catalogue.constant.ts:847-852` now point at the new code instead of saying
      reciprocity is not checked.
-2. **Pre-conditions.** 3b, 1d. D2, D11.
-3. **TDD points.** Before: §10.6's cases, "fails an alternate that answers 200 and does not name
-   this page", "does not judge a redirected alternate", "is not applicable when no alternate could
-   be read". They fail with no module.
+2. **Pre-conditions.** 3b, 1d. D2, D11, D36.
+3. **TDD points.** Before: §10.6's cases, all failing with no module:
+   - "fails an alternate that answers 200 and does not name this page";
+   - "does not judge a redirected alternate";
+   - "is not applicable when no alternate could be read";
+   - "skips an alternate whose code HREFLANG_INVALID reports";
+   - "skips a development-host alternate — that is DEVELOPMENT_HOST_REFERENCES's";
+   - "is not applicable when the canonical names another URL — that is HREFLANG_INVALID's".
+
+   `hreflang-invalid.check.spec.ts` stays green after the move.
 4. **Acceptance.**
    - `pnpm --filter be test:ci -- hreflang`
    - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
@@ -1357,7 +1469,8 @@ before the transaction. Four checks read what came back.
 #### 3f. Field audit of phase 3, and the measured cost
 
 1. **Deliverables.**
-   - The tally for the four codes.
+   - The tally for the four codes, plus each `CANONICAL_MISMATCH` the broken-target step-aside
+     removed, read to confirm the target was broken.
    - The outbound timing (median, slowest) in `CRAWL_MODULE.md`, with the stage, budgets and
      robots-per-host rule.
 2. **Pre-conditions.** 3a–3e. D12.
@@ -1415,7 +1528,7 @@ and desktop findings count as issues. The list stays mobile.
 #### 4b. One row per page and strategy
 
 1. **Deliverables.**
-   - `page-speed.schema.ts` (§3.2) and the generated `0016_*.sql` and `0017_*.sql`.
+   - `page-speed.schema.ts` (§3.2) and the two generated migrations (`0015_*.sql`, `0016_*.sql`).
    - `page-speed.repository.ts` and its int-spec; `seo-issues.repository.ts` and its int-spec.
    - `page-speed-queue.service.ts`, `page-speed-results.service.ts` and their specs.
    - `page-list.repository.ts`, `page-detail.repository.ts`, `page-speed-read.ts`.
@@ -1435,8 +1548,8 @@ and desktop findings count as issues. The list stays mobile.
      second run queues none".
    - All fail with no column.
 4. **Acceptance.**
-   - `pnpm db:generate` and read `0016_*.sql` (enum, column with default, PK swap, nothing else).
-     Edit the schema to drop the default. `pnpm db:generate` and read `0017_*.sql` (`DROP
+   - `pnpm db:generate` and read `0015_*.sql` (enum, column with default, PK swap, nothing else).
+     Edit the schema to drop the default. `pnpm db:generate` and read `0016_*.sql` (`DROP
      DEFAULT` only). `pnpm db:migrate`.
    - `pnpm --filter be test:db -- page-speed seo-issues page-list issue-report seed-runner`.
    - `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
@@ -1598,7 +1711,7 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 
 1. **Deliverables.**
    - The harvest of §18 into the owning documents.
-   - Each of the five changes archived (`/opsx:archive`), its headings rewritten into the `[ID]`
+   - Each of the four changes archived (`/opsx:archive`), its headings rewritten into the `[ID]`
      form, and its MODIFIED blocks folded into `specs/` by hand.
    - Deposits.
    - This plan moved to `docs/_plans-archive/` with its header.
@@ -1614,7 +1727,7 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 6. **Rollback.** An archive is reversed by moving the change back and restoring `specs/` from git.
 7. **Commit points.**
    - `docs: harvest the Ahrefs-gap checks into their owners`
-   - `docs(openspec): archive the five changes and deposit their requirements`
+   - `docs(openspec): archive the four changes and deposit their requirements`
    - `docs(plans): archive ahrefs-gap-checks`
 
 ---
@@ -1635,6 +1748,8 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 | R10 | PSI quota exhausted by the doubled calls | `PAGE_SPEED_MODULE.md` measured calls per crawl (4e). The 429 pause degrades rather than fails |
 | R11 | The parallel worktree `.claude/worktrees/geo-content-checks` edits the same catalogue | VERIFY its state before 1b. Merge conflicts in `seo-issue-catalogue.constant.ts` are resolved by keeping both entries and re-running the contracts tests |
 | R12 | The MODIFIED blocks do not fold against `[ID]`-form specs by tool | Phase 6 folds them by hand. `openspec validate --specs` checks the result |
+| R13 | A step-aside makes an older check stop reporting a fact it reported before, with nothing reporting it instead (a canonical contradiction lost from the sitemap check) | §10.13 lists every step-aside with the check that keeps the fact. D37 and I26 cover the one older reader (`SITEMAP_LISTS_NON_INDEXABLE`) that reads `CANONICAL_MISMATCH` findings. Before 1b and 3d close: `git grep -n "CANONICAL_MISMATCH" be/src fe/src --` lists every other reader, each re-read |
+| R14 | The catalogue grew since this plan was written (another session's `NO_IMAGES`, `NO_EXTERNAL_SOURCES`, `NO_SUBHEADINGS`, …), so a new check may meet one of them on a fact not listed in §10.13 | Before each new check's commit, read its rule against every catalogue entry touching the same element. A meeting found then gets a §10.13 row, a step-aside case and an `AMENDED` line |
 
 ---
 
@@ -1643,7 +1758,7 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 | Workspace | Changes | Ships with |
 | --- | --- | --- |
 | `packages/contracts` | inclusion bar; 11 crawl, 7 pageSpeed and 1 site entries; strategy enum and union; `CWV_ISSUE_CODES` per strategy; image-delivery details; `IPageDetail.pageSpeedByStrategy` | the backend writer and the frontend sentence or schema, in the same commit |
-| `be` | checks; site check; outbound stage; `SiteHttpClient` methods; failure kind; ESLint block; `pages` and `page_speed` migrations 0015–0017; per-strategy queue, replace and reads; PSI strategy; image delivery | — |
+| `be` | checks; site check; outbound stage; `SiteHttpClient` methods; failure kind; ESLint block; two `page_speed` migrations (no `pages` migration, D33); per-strategy queue, replace and reads; PSI strategy; image delivery | — |
 | `fe` | `DESCRIBE` sentences; `PageSchemas` variants and detail schema; Speed block switch; one sentence in Issues | the contracts change it parses |
 | docker | none. Outbound requests go through the existing transport; no new env var | — |
 | CI | none. `pnpm test:db` already runs int and e2e specs; no test reaches the network (§14 fixtures) | — |
@@ -1676,6 +1791,9 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
     filenames (with O5's resolution), srcset/modern formats from markup, x-default, the
     Lighthouse SEO category, and the WAF probe with an AI-bot user agent;
   - why `HREFLANG_INVALID` lost its self-reference arm (D14);
+  - `CANONICAL_CHANGED` in "What was considered and rejected", with D33's reason;
+  - the step-asides of §10.13, and the pairs checked and found not to duplicate, in the
+    module's overlap paragraph (`:349-354`);
   - why the link rule stops at 404/410/NXDOMAIN externally (D3);
   - the stale sentences fixed (1f);
   - the ANALYSIS-002 deposit line's count ("sixty-one") updated.
@@ -1685,15 +1803,17 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 - `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`: strategy per row (D9), the two-step migration
   (D22), the desktop drain time and calls (4e), `IMAGE_DELIVERY_INEFFICIENT` and why absence is
   no error (D10, P8), and the live audit id (5a).
-- `be/src/modules/pages/PAGES_MODULE.md`: `canonical_url` / `canonical_recorded` (D7, D27); the
-  list reads mobile, the detail both (D21); the per-strategy seed backfill (D20).
-- `docs/decisions.md`: D1–D30 condensed with their measurements.
-- OpenSpec: after archive, the requirements of the five deltas are deposited:
-  - ANALYSIS-014…027 into `PAGE_ANALYSIS_MODULE.md`;
+- `be/src/modules/pages/PAGES_MODULE.md`: the list reads mobile, the detail both (D21); the
+  per-strategy seed backfill (D20).
+- `docs/decisions.md`: D1–D37 condensed with their measurements.
+- OpenSpec: after archive, the requirements of the four changes' deltas are deposited:
+  - ANALYSIS-014…021, 023…027 into `PAGE_ANALYSIS_MODULE.md` (ANALYSIS-022 was allocated to the
+    dropped `CANONICAL_CHANGED` and is never reused);
   - CRAWL-011…013 into `CRAWL_MODULE.md`;
   - REMOTE-005 into `practices/be/remote-api-core/SKILL.md`, beside REMOTE-002/003, where those
     already live (`page-speed-measurement` task 8.3);
-  - PAGES-015 and the modified PAGES-014 into `PAGES_MODULE.md`;
+  - the modified PAGES-014 into `PAGES_MODULE.md` (PAGES-015 was allocated to the dropped
+    change and is never reused);
   - SPEED-014/015 and the modified SPEED ids into `PAGE_SPEED_MODULE.md`;
   - the modified SEED-006 beside SEED-003;
   - PAGEDETAIL-011 (modified) where the prior plan's archive header placed the frontend ids
@@ -1714,8 +1834,10 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
 - **Desktop columns in the same `page_speed` row.** D9: that breaks the whole-or-absent CHECK and
   the shared attempts.
 - **A desktop badge on the pages list.** D21.
-- **Backfilling the canonical or desktop queue by migration.** D7, D13: migrations are never
-  hand-written, and an inferred canonical would invent changes.
+- **Backfilling the desktop queue by migration.** D13: migrations are never hand-written.
+- **`CANONICAL_CHANGED` and storing each page's canonical.** D33: every state a changed canonical
+  leaves is already reported by `CANONICAL_MISMATCH` or `CANONICAL_MISSING`. Without
+  duplicating them the check could fire only on a fix (other → self).
 - **Everything D2 rejected:** empty alt, staleness by age, link and image counts, generic
   filenames, markup-guessed image formats, x-default, the Lighthouse SEO category, the AI-bot WAF
   probe. The reasons are in §20 D2 and, after harvest, in `PAGE_ANALYSIS_MODULE.md`.
@@ -1740,9 +1862,9 @@ stores `IMAGE_DELIVERY_INEFFICIENT`.
   written. *Reopens on* any internal `BROKEN_LINKS` or `CANONICAL_TARGET_BROKEN` firing on a
   401/402/403/429/challenge that the audit judges wrong. The fix would be the sitemap check's
   refusal set, recorded as a new decision.
-- **O4. `CANONICAL_TO_HTTP` beside `CANONICAL_MISMATCH`.** Both fire on an http canonical, and
-  both statements are true. *Default:* both stay. *Reopens on* the field audit or the user
-  judging the pair one finding counted twice.
+- **O4 — RESOLVED 2026-10-11 by D32 (superseded).** `CANONICAL_TO_HTTP` beside
+  `CANONICAL_MISMATCH`. The default "both fire on an http canonical" is replaced: the http twin
+  is `CANONICAL_TO_HTTP`'s alone, any other http address `CANONICAL_MISMATCH`'s alone.
 - **O5 — RESOLVED 2026-10-11 by D31: keep.** `IMAGE_FILENAMES_GENERIC` and D2's rejected "generic image filenames". The check exists
   (`seo-issue-catalogue.constant.ts:678-693`, `checks.registry.ts:109`). It already excludes the
   CDN- and platform-hashed names D2 gives as the reason, and reports only camera and placeholder
@@ -1822,3 +1944,15 @@ D29. (derived from P3 and `internal-link-variants.check.ts:14-31`; to be confirm
 D30. (derived from D6, which sets the budget but not the order) When a crawl's content links exceed 300, the first 300 unique URLs are taken in pages' sitemap order, then each page's document order. Neither internal nor external links are favoured, so two crawls of an unchanged site check the same links.
 
 D31. (2026-10-11, the user) D14–D29 are confirmed as written; their "to be confirmed" marks are superseded by this line. O5 and O8 are resolved as "keep": `IMAGE_FILENAMES_GENERIC` and `IMAGES_NOT_INDEXABLE` stay enabled, and D2's rejections are recorded as rejecting the broader Ahrefs forms (any non-descriptive filename; formats guessed from markup), not these checks. Work proceeds on the current branch `feat/issue-report-and-pagespeed`, starting with phase 1.
+
+D32. (2026-10-11, the user: no new check may duplicate an existing one) CANONICAL_TO_HTTP fires only when the first declared canonical is the page's own http:// twin (same document once its scheme is https), and in exactly that case CANONICAL_MISMATCH is not applicable. An http canonical naming a different address is CANONICAL_MISMATCH's alone (CANONICAL_TO_HTTP not applicable). Supersedes O4. (Implemented by the main session in phase 1.)
+
+D33. (2026-10-11, the user) CANONICAL_CHANGED is dropped and with it the whole of phase 2 and the change `canonical-change-tracking` (no pages.canonical_url/canonical_recorded migration, no IPreviousCrawl.canonical). Why: the current state is already reported — self→other by CANONICAL_MISMATCH, removal by CANONICAL_MISSING, other→other by CANONICAL_MISMATCH — so without duplicating them it could fire only on other→self, which is a fix, not a defect. Supersedes D7 and D27. Recorded in the rejected list with this reason. The D15 test (SITEMAP_LISTS_NON_INDEXABLE's canonical branch, old 2c) moves into phase 1 (`markup-gap-checks`, sub-phase 1g). The ids PAGES-015 and ANALYSIS-022, allocated in the dropped delta, are not reused.
+
+D34. (2026-10-11, the user) When CANONICAL_TARGET_BROKEN fails, CANONICAL_MISMATCH steps aside (not applicable) for that page: the target being broken is the more specific finding. Both read the same outbound facts, so CANONICAL_MISMATCH gets access to them in phase 3, through the one shared predicate `canonicalTargetProblemOf`. A test pins it.
+
+D35. (2026-10-11, the user's explicit choice) META_DESCRIPTION_REPEATS_TITLE and META_DESCRIPTION_LENGTH both stay even though a copied title is nearly always under 70 characters: length and content are two facts.
+
+D36. (2026-10-11, derived and applied by review at the user's request) A new check steps aside where an older one reports the same fact. OG_URL_MISMATCH is not applicable when og:url names a development host (DEVELOPMENT_HOST_REFERENCES's). BROKEN_LINKS and LINKS_TO_REDIRECTS skip links to a development host (DEVELOPMENT_HOST_REFERENCES's), in addition to D29's variant skip. HREFLANG_NOT_RECIPROCAL skips alternates whose code HREFLANG_INVALID reports or whose host is a development host, and is not applicable when the page's canonical names another URL (HREFLANG_INVALID's canonical-elsewhere arm). CANONICAL_TARGET_BROKEN is not applicable when the canonical is the page's http twin (CANONICAL_TO_HTTP's, D32) and when the target is a development host. Each has a spec case named for the older check it defers to. Checked and found NOT to duplicate: BREADCRUMB_MISSING/BREADCRUMB_INVALID (exclusive); TITLE_YEAR_OUTDATED/DATES_INCONSISTENT (title year vs URL year); CONTENT_NEEDS_JAVASCRIPT (the post is never analysed); IMAGE_DELIVERY_INEFFICIENT vs LCP_IMAGE_LAZY_LOADED/CWV (opportunity vs measurement); desktop vs mobile CWV (different device data).
+
+D37. (2026-10-11, derived by the planner from D32, D34 and `sitemap-checks.ts:45-47`; **to be confirmed**) SITEMAP_LISTS_NON_INDEXABLE names an entry "names <url> as canonical" from a CANONICAL_TO_HTTP or CANONICAL_TARGET_BROKEN finding as well as from CANONICAL_MISMATCH. Why: today it reads CANONICAL_MISMATCH alone, and D32 and D34 make CANONICAL_MISMATCH step aside for exactly those pages, so without this the sitemap check would silently stop reporting entries it reports today. That would be a lost fact, not a removed duplicate. Rejected: leaving the sitemap check as is (it would lose findings); computing the canonical in the site check from the page (a second copy of the canonical rules, free to drift).

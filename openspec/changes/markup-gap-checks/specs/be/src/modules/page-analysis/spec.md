@@ -15,25 +15,41 @@ against every entry of both catalogues by a test, never by review alone.
 - **WHEN** an entry cites an Ahrefs article and a Google Search Central page and is a warning
 - **THEN** the test passes
 
-### Requirement: ANALYSIS-015 — a canonical that points to plain HTTP from an HTTPS page is reported
+### Requirement: ANALYSIS-015 — a canonical naming the page's own http:// twin is reported once, as that
 
-A page served over HTTPS whose first declared canonical — `<head>` before the Link header — uses
-`http:` MUST be reported as `CANONICAL_TO_HTTP`, a warning, quoting the declaration. A page with
-no canonical, or one served over plain HTTP, MUST NOT be judged by this check.
+A page served over HTTPS whose first declared canonical — `<head>` before the Link header — is the
+page's own address over plain HTTP (the same document once its scheme is https) MUST be reported
+as `CANONICAL_TO_HTTP`, a warning, quoting the declaration, and in exactly that case
+`CANONICAL_MISMATCH` MUST be not applicable. An http canonical naming a different address MUST
+be `CANONICAL_MISMATCH`'s alone, with `CANONICAL_TO_HTTP` not applicable. A page with no
+canonical, or one served over plain HTTP, MUST NOT be judged by `CANONICAL_TO_HTTP`. Both checks
+MUST decide "the http twin" with one shared predicate.
 
 #### Scenario: an HTTPS post naming its HTTP twin
 - **WHEN** `https://a.example/post/` declares `<link rel="canonical" href="http://a.example/post/">`
-- **THEN** `CANONICAL_TO_HTTP` is reported with the declaration as evidence
+- **THEN** `CANONICAL_TO_HTTP` is reported with the declaration as evidence, and
+  `CANONICAL_MISMATCH` is not applicable
+
+#### Scenario: an http canonical naming another page
+- **WHEN** `https://a.example/post/` declares `http://a.example/other/` as its canonical
+- **THEN** `CANONICAL_MISMATCH` is reported, and `CANONICAL_TO_HTTP` is not applicable
 
 #### Scenario: a page served over HTTP
 - **WHEN** the page itself is served at `http://a.example/post/`
-- **THEN** the check is not applicable
+- **THEN** `CANONICAL_TO_HTTP` is not applicable
 
 ### Requirement: ANALYSIS-016 — og:url that names another URL than the page's canonical is reported
 
 A page whose `og:url`, resolved against the page, is not the same document as its first declared
 canonical — or as the URL it was served at when it declares none — MUST be reported as
-`OG_URL_MISMATCH`, a notice. A page without `og:url` MUST NOT be judged by this check.
+`OG_URL_MISMATCH`, a notice. A page without `og:url`, or whose `og:url` names a development,
+staging or preview host, MUST NOT be judged by this check: the latter is
+`DEVELOPMENT_HOST_REFERENCES`'s finding, decided by the same predicate that check uses for what
+names the page itself.
+
+#### Scenario: a staging og:url
+- **WHEN** a post's og:url is `https://staging.a.example/post/`
+- **THEN** `OG_URL_MISMATCH` is not applicable, and `DEVELOPMENT_HOST_REFERENCES` reports it
 
 #### Scenario: a template that writes the home page into og:url
 - **WHEN** a post's canonical is `https://a.example/post/` and its og:url is `https://a.example/`
@@ -48,7 +64,12 @@ canonical — or as the URL it was served at when it declares none — MUST be r
 A page whose meta description, normalised (NFKC, lower case, punctuation removed, whitespace
 collapsed), equals its title — whole or without the brand suffix after ` | `, ` – `, ` — ` or
 ` - ` — MUST be reported as `META_DESCRIPTION_REPEATS_TITLE`, a notice. A page lacking either
-MUST NOT be judged by this check.
+MUST NOT be judged by this check. `META_DESCRIPTION_LENGTH` MUST still judge the same description:
+content and length are two facts, and a copied title being short does not make them one.
+
+#### Scenario: a copied title that is also short
+- **WHEN** the description is a 40-character copy of the title
+- **THEN** both `META_DESCRIPTION_REPEATS_TITLE` and `META_DESCRIPTION_LENGTH` are reported
 
 #### Scenario: a CMS that copies the title
 - **WHEN** the title is "Link building guide | Acme" and the description "Link building guide."
@@ -124,3 +145,24 @@ NOT read the skip reason's text.
 #### Scenario: the reason text is reworded
 - **WHEN** the skip reason's wording changes and the flag is set
 - **THEN** the site check still counts the post
+
+### Requirement: ANALYSIS-023 — a sitemap entry whose page names another canonical is a sitemap contradiction, whichever check carries it
+
+`SITEMAP_LISTS_NON_INDEXABLE` MUST count, among the fetched sitemap entries, a page that names
+another URL as its canonical, and MUST quote that canonical as the entry's reason, beside
+redirects, errors, noindex, robots disallows and soft 404s. It MUST do so whichever canonical
+finding carries the fact — `CANONICAL_MISMATCH`, or `CANONICAL_TO_HTTP` for the page's own
+http:// twin — so that a check stepping aside for a more specific one never removes the entry
+from the sitemap check.
+
+(The id was allocated in the dropped change `canonical-change-tracking` and moves here unchanged.
+ANALYSIS-022, allocated beside it to the dropped `CANONICAL_CHANGED`, is not reused.)
+
+#### Scenario: a listed post canonicalised elsewhere
+- **WHEN** a fetched sitemap entry's page carries `CANONICAL_MISMATCH` naming `https://a.example/b/`
+- **THEN** the site check's evidence lists the entry with "names https://a.example/b/ as canonical"
+
+#### Scenario: a listed post naming its http twin
+- **WHEN** a fetched sitemap entry's page carries `CANONICAL_TO_HTTP` naming `http://a.example/b/`
+  and no `CANONICAL_MISMATCH`
+- **THEN** the site check's evidence lists the entry with "names http://a.example/b/ as canonical"

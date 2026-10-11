@@ -25,7 +25,9 @@ or absent" CHECK and the shared attempt counter.
 - Database:
   - `psi_strategy_enum`;
   - `page_speed.strategy` NOT NULL, primary key `(page_id, strategy)`;
-  - migration `0016` fills existing rows with `mobile`, and `0017` drops the default (plan D22).
+  - the first of two generated migrations fills existing rows with `mobile`, and the second
+    drops the default (plan D22). They are `0015` and `0016` as the tree stands, since the
+    dropped `canonical-change-tracking` generates none (plan D33).
   Both are generated. There is no queue backfill (D13).
 - `be/src/modules/pages`:
   - enqueue, claim, complete and replace per strategy;
@@ -58,7 +60,7 @@ accepts them against the `[ID]`-form base.
 Paths affected:
 
 - `packages/contracts/src/domain/{page-speed,seo,pages}/**`;
-- `be/src/persistence/schema/tables/page-speed/**` and `be/drizzle/0016_*`, `0017_*`;
+- `be/src/persistence/schema/tables/page-speed/**` and `be/drizzle/0015_*`, `0016_*`;
 - `be/src/modules/{pages,page-speed,issue-report}/**`;
 - `be/src/seed/**`;
 - `be/test/{e2e,fixtures}/**`;

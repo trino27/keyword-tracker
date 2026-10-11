@@ -47,6 +47,10 @@ Each code gets one commit containing:
 
   Then the check per plan §10.7. Verify: `pnpm --filter be test:ci -- canonical-to-http &&
   pnpm --filter fe test:ci -- describeIssue && pnpm typecheck`.
+  AMENDED during implementation: plan D32 (the user, 2026-10-11) narrows "fails an https page
+  whose canonical is http://" to the page's own http:// twin. An http canonical naming another
+  address is CANONICAL_MISMATCH's alone. The narrowing and CANONICAL_MISMATCH's step-aside are
+  task 2.7.
 - [x] 2.2 `OG_URL_MISMATCH` (notice, ogp.me). Write first:
   - "fails og:url naming another page";
   - "compares with the canonical when one is declared";
@@ -54,6 +58,8 @@ Each code gets one commit containing:
   - "is not applicable without og:url".
 
   Then the check. Verify: `pnpm --filter be test:ci -- og-url-mismatch && pnpm typecheck`.
+  AMENDED during implementation: plan D36 (2026-10-11) adds a step-aside for a development-host
+  og:url, which is DEVELOPMENT_HOST_REFERENCES's. That is task 2.8.
 - [x] 2.3 `META_DESCRIPTION_REPEATS_TITLE` (notice; Ahrefs source, VERIFY the URL as cited).
   Write first:
   - "fails a description equal to the title without its brand suffix";
@@ -79,9 +85,34 @@ Each code gets one commit containing:
 - [ ] 2.5 Re-read the catalogue-size claims. Verify: `git grep -n -E "sixty-one|61 checks|50 page
   checks" -- README.md be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`, and note in the
   harvest list each line to correct.
-- [ ] 2.6 Phase acceptance for 1b. Verify: `pnpm --filter be test:ci -- src/modules/page-analysis
-  && pnpm --filter @app/contracts test:ci && pnpm --filter fe test:ci -- describeIssue PageSchemas
-  ChecksSection && pnpm lint && pnpm typecheck && pnpm test`.
+- [ ] 2.6 Phase acceptance for 1b, run after 2.7–2.9. Verify: `pnpm --filter be test:ci --
+  src/modules/page-analysis && pnpm --filter @app/contracts test:ci && pnpm --filter fe test:ci --
+  describeIssue PageSchemas ChecksSection && pnpm lint && pnpm typecheck && pnpm test`.
+- [ ] 2.7 The http twin is reported once (plan D32) — ANALYSIS-015.
+  - Write first:
+    - `canonical-to-http.check.spec.ts` → "fails an https page whose canonical is its own
+      http:// twin", "is not applicable to an http canonical naming another address — that is
+      CANONICAL_MISMATCH's";
+    - `canonical-mismatch.check.spec.ts` → "is not applicable to the page's own http twin — that
+      is CANONICAL_TO_HTTP's", which fails today because the twin is not the same document.
+  - Then `_shared/http-twin.ts` (`isHttpTwin`), read by both checks. `CANONICAL_TO_HTTP` is not
+    applicable unless the predicate holds, and `CANONICAL_MISMATCH` is not applicable when it
+    does. `CANONICAL_MISMATCH`'s catalogue `skipReason` names both its reasons to skip.
+
+  Verify: `pnpm --filter be test:ci -- canonical && pnpm --filter @app/contracts test:ci`.
+  Before closing, `git grep -n "CANONICAL_MISMATCH" be/src fe/src` lists every reader of
+  that code's findings. Each is re-read; the sitemap check is task 5a.
+- [ ] 2.8 `OG_URL_MISMATCH` steps aside for a development host (plan D36) — ANALYSIS-016. Write
+  first in `og-url-mismatch.check.spec.ts`: "is not applicable to a development-host og:url —
+  that is DEVELOPMENT_HOST_REFERENCES's", using `staging.a.example`. Then the check reads
+  `isDevelopmentHost`, the predicate `development-host-references.check.ts:35-39` applies to
+  what names the page itself. Verify: `pnpm --filter be test:ci -- og-url-mismatch
+  development-host-references`.
+- [ ] 2.9 `META_DESCRIPTION_REPEATS_TITLE` and `META_DESCRIPTION_LENGTH` both judge a copied
+  short title (plan D35) — ANALYSIS-017. Add `checks.registry.spec.ts` → "a 40-character copy of
+  the title fails both META_DESCRIPTION_REPEATS_TITLE and META_DESCRIPTION_LENGTH". It passes on
+  first run. What makes it fail is a step-aside added later between the two, which D35 forbids.
+  Verify: `pnpm --filter be test:ci -- checks.registry`.
 
 ## 3. A title still selling last year, in the owner's year (1c) — ANALYSIS-019
 
@@ -165,12 +196,33 @@ Each code gets one commit containing:
 - [ ] 5.4 Commit: `feat(site-checks): posts that render their content with JavaScript`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
 
+## 5a. The sitemap keeps naming canonical contradictions (1g) — ANALYSIS-023
+
+Moved here from the dropped `canonical-change-tracking` (plan D33). It is done after task 2.7
+and before 6.
+
+- [ ] 5a.1 The behaviour is already built for `CANONICAL_MISMATCH`: `sitemap-checks.ts:45-47`, and
+  the catalogue explanation already names it (plan D15). Add `site-checks.registry.spec.ts` →
+  "names an entry whose page names another URL as canonical". It passes on its first run. Delete
+  the branch at `sitemap-checks.ts:45-47` locally once, watch the test fail, then restore the
+  branch. Close this task as `VERIFIED, NOT BUILT`, naming the test. Verify: `pnpm --filter be
+  test:ci -- site-checks`.
+- [ ] 5a.2 Write first `site-checks.registry.spec.ts` → "names an entry whose canonical is its
+  http twin" (an entry whose page carries `CANONICAL_TO_HTTP` and no `CANONICAL_MISMATCH`). It
+  fails after 2.7: `contradictionOf` reads `CANONICAL_MISMATCH` alone. Then `contradictionOf`
+  reads a `CANONICAL_TO_HTTP` finding's canonical as it reads `CANONICAL_MISMATCH`'s (plan D37,
+  derived, not yet confirmed by the user). Verify: `pnpm --filter be test:ci -- site-checks`.
+- [ ] 5a.3 Commits: `test(site-checks): the sitemap's canonical contradiction is pinned` ·
+  `fix(site-checks): an http-twin canonical still contradicts the sitemap`. Verify:
+  `pnpm lint && pnpm typecheck && pnpm test`.
+
 ## 6. Field audit of the markup checks, and its record (1f) — plan D12
 
 - [ ] 6.1 Run the plan §14 field-audit protocol on the docker stack for `CANONICAL_TO_HTTP`,
   `OG_URL_MISMATCH`, `HREFLANG_NO_SELF_REFERENCE`, `TITLE_YEAR_OUTDATED`,
   `META_DESCRIPTION_REPEATS_TITLE`, `BREADCRUMB_MISSING` and `CONTENT_NEEDS_JAVASCRIPT`. Read
-  every firing against the live page. VERIFY: where the 2026-10-09 site list is; if it is not in
+  every firing against the live page. Also read every `CANONICAL_MISMATCH` the twin step-aside
+  removed, to confirm each was a twin. VERIFY: where the 2026-10-09 site list is; if it is not in
   the repository, list the sites used in the tally. Verify: the §14 queries print every firing,
   and each is judged.
 - [ ] 6.2 For each wrong firing: write first a spec from that site's markup that fails, then fix
@@ -179,8 +231,12 @@ Each code gets one commit containing:
 - [ ] 6.3 Update `PAGE_ANALYSIS_MODULE.md`:
   - the section "Field audit of the Ahrefs-gap checks (<date>)" with fired / correct / wrong per
     code, 0 wrong for every enabled code;
-  - "What was considered and rejected" gains plan D2's rejected list with its reasons, and plan
-    O5 and O8's resolutions;
+  - "What was considered and rejected" gains plan D2's rejected list with its reasons, plan O5
+    and O8's resolutions, and `CANONICAL_CHANGED` with plan D33's reason;
+  - the overlap paragraph (`:349-354`) gains plan §10.13: the step-asides (D32, D34, D36), and the
+    pairs checked and found not to duplicate (BREADCRUMB_MISSING/BREADCRUMB_INVALID,
+    TITLE_YEAR_OUTDATED/DATES_INCONSISTENT, CONTENT_NEEDS_JAVASCRIPT,
+    META_DESCRIPTION_REPEATS_TITLE/META_DESCRIPTION_LENGTH per D35);
   - the stale sentence at `:367-369` points at the site catalogue;
   - the "Core Web Vitals … stay out" sentence at `:358-360` says they are measured by PageSpeed,
     never from an HTML timing.
@@ -194,6 +250,6 @@ Each code gets one commit containing:
 
 - [ ] 7.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
 - [ ] 7.2 Archive and deposit belong to plan phase 6. Harvest first (plan §18), then archive,
-  rewrite the headings into the `[ID]` form, and deposit ANALYSIS-014…021 into
-  `PAGE_ANALYSIS_MODULE.md`. Verify: `pnpm exec openspec validate --specs && git grep -n -E
-  "invariant: ANALYSIS-0(1[4-9]|2[01])" -- '*.md'`.
+  rewrite the headings into the `[ID]` form, and deposit ANALYSIS-014…021 and ANALYSIS-023 into
+  `PAGE_ANALYSIS_MODULE.md` (ANALYSIS-022 is never used, plan D33). Verify: `pnpm exec openspec
+  validate --specs && git grep -n -E "invariant: ANALYSIS-0(1[4-9]|2[013])" -- '*.md'`.

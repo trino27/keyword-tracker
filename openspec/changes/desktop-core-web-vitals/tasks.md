@@ -63,9 +63,10 @@ This change depends on no other change of the plan. `image-delivery-finding` dep
   issue-report seed-runner` fails on those.
 - [ ] 2.2 Edit `be/src/persistence/schema/tables/page-speed/page-speed.schema.ts` per plan §3.2,
   with `.default('mobile')` on `strategy` and the comment naming the strategy. Run
-  `pnpm db:generate` and READ `be/drizzle/0016_*.sql`: `CREATE TYPE psi_strategy_enum`, `ADD
-  COLUMN "strategy" … NOT NULL DEFAULT 'mobile'`, the primary-key swap, nothing else. Then drop
-  `.default('mobile')`, run `pnpm db:generate`, and READ `0017_*.sql`: `ALTER COLUMN "strategy"
+  `pnpm db:generate` and READ the new file (`be/drizzle/0015_*.sql` while `0014` is the latest):
+  `CREATE TYPE psi_strategy_enum`, `ADD COLUMN "strategy" … NOT NULL DEFAULT 'mobile'`, the
+  primary-key swap, nothing else. Then drop `.default('mobile')`, run `pnpm db:generate`, and
+  READ the next file (`0016_*.sql`): `ALTER COLUMN "strategy"
   DROP DEFAULT` only. Then `pnpm db:migrate`. Never edit either file. VERIFY: drizzle-kit
   generates the composite key without a prompt; if it prompts, answer for the honest change and
   record it here with `AMENDED during implementation:`. Verify: both files read as stated, and

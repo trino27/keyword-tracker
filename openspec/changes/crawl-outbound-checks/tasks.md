@@ -127,7 +127,10 @@ it green.
   - "is not applicable when no link could be checked";
   - "fails an internal 500";
   - "fails an external 410";
-  - "passes an external 403".
+  - "passes an external 403";
+  - "skips a link to this site's development host — that is DEVELOPMENT_HOST_REFERENCES's"
+    (plan D36; the check reads `isOwnDevelopmentHost`, the predicate
+    `development-host-references.check.ts:40-43` applies to content links).
 
   It fails: no module. Then the check, registered, and its `DESCRIBE` sentence. Verify:
   `pnpm --filter be test:ci -- broken-links && pnpm --filter fe test:ci -- describeIssue &&
@@ -135,6 +138,8 @@ it green.
 - [ ] 3.5 Write first `links-to-redirects/links-to-redirects.check.spec.ts`:
   - "fails an internal link that redirects";
   - "skips a link INTERNAL_LINK_VARIANTS reports";
+  - "skips a link to this site's development host — that is DEVELOPMENT_HOST_REFERENCES's" (plan
+    D36);
   - "ignores an external redirect";
   - "is not applicable without checked internal links".
 
@@ -160,15 +165,38 @@ it green.
   - "fails a noindexed target";
   - "fails a chain";
   - "passes a healthy target";
-  - "judges a run page from its own facts".
+  - "judges a run page from its own facts";
+  - "is not applicable to the http twin — that is CANONICAL_TO_HTTP's" (plan D36, through
+    `isHttpTwin` from `markup-gap-checks`);
+  - "is not applicable to a development-host target — that is DEVELOPMENT_HOST_REFERENCES's"
+    (plan D36, `isDevelopmentHost`).
 
-  It fails: no module. Verify: `pnpm --filter be test:ci -- canonical-target-broken` fails.
+  It fails: no module. The rules live in `_shared/canonical-target.ts`
+  (`canonicalTargetProblemOf`) with its own spec. Verify: `pnpm --filter be test:ci --
+  canonical-target` fails.
 - [ ] 4.2 Add the check, registered; the catalogue entry (warning, Google canonicalization
   source); `DESCRIBE`; and the e2e case in `crawl.e2e-spec.ts`, "a canonical naming a recorded 301
-  stores CANONICAL_TARGET_BROKEN". Verify: `pnpm --filter be test:ci -- canonical-target-broken
-  canonical-mismatch canonical-conflict && pnpm --filter be test:db -- crawl`.
-- [ ] 4.3 Commit: `feat(page-analysis): a canonical whose target redirects, is broken, noindexed
-  or canonicalised again`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+  stores CANONICAL_TARGET_BROKEN and not CANONICAL_MISMATCH". Verify: `pnpm --filter be test:ci
+  -- canonical-target-broken canonical-conflict && pnpm --filter be test:db -- crawl`.
+- [ ] 4.3 `CANONICAL_MISMATCH` steps aside for a broken target (plan D34) — ANALYSIS-026.
+  - Write first in `canonical-mismatch.check.spec.ts`:
+    - "is not applicable when the target is broken — that is CANONICAL_TARGET_BROKEN's". It
+      fails: CANONICAL_MISMATCH fails today.
+    - "judges as before when the target was not read". It passes, and guards the budget case.
+  - Then `canonical-mismatch.check.ts` reads `linkStatuses` through `canonicalTargetProblemOf`
+    and answers not applicable when it returns a problem. Its catalogue `skipReason` names the
+    broken target beside its other reasons.
+
+  Verify: `pnpm --filter be test:ci -- canonical-mismatch canonical-target checks.registry`. The
+  corpus test runs with empty facts, where every target is unread, so it must be unchanged.
+- [ ] 4.4 The sitemap keeps the entry (plan D37, derived, not yet confirmed by the user) —
+  ANALYSIS-026. Write first `site-checks.registry.spec.ts` → "names an entry whose canonical
+  target is broken" (the page carries `CANONICAL_TARGET_BROKEN` and no `CANONICAL_MISMATCH`). It
+  fails after 4.3. Then `contradictionOf` (`sitemap-checks.ts`) reads the
+  `CANONICAL_TARGET_BROKEN` finding's canonical. Verify: `pnpm --filter be test:ci -- site-checks`.
+- [ ] 4.5 Commits: `feat(page-analysis): a canonical whose target redirects, is broken, noindexed
+  or canonicalised again` · `feat(page-analysis): a canonical mismatch steps aside for a broken
+  target`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
 
 ## 5. `HREFLANG_NOT_RECIPROCAL` (3e) — ANALYSIS-027
 
@@ -177,11 +205,17 @@ it green.
   - "passes an alternate that names this page with a trailing-slash difference";
   - "does not judge a redirected alternate";
   - "skips x-default";
-  - "is not applicable when no alternate could be read".
+  - "is not applicable when no alternate could be read";
+  - "skips an alternate whose code HREFLANG_INVALID reports" (plan D36);
+  - "skips a development-host alternate — that is DEVELOPMENT_HOST_REFERENCES's" (plan D36,
+    `isDevelopmentHost`);
+  - "is not applicable when the canonical names another URL — that is HREFLANG_INVALID's" (plan
+    D36).
 
   It fails: no module. Verify: `pnpm --filter be test:ci -- hreflang-not-reciprocal` fails.
-- [ ] 5.2 Add the check, registered; the catalogue entry (warning, Google localized-versions
-  source); `DESCRIBE`. Point the comments at `hreflang-invalid.check.ts:102-115` and
+- [ ] 5.2 Move `problemWith` from `hreflang-invalid.check.ts:71-100` to `_shared/hreflang-code.ts`,
+  unchanged, so both checks read one validator. Add the check, registered; the catalogue entry
+  (warning, Google localized-versions source); `DESCRIBE`. Point the comments at `hreflang-invalid.check.ts:102-115` and
   `seo-issue-catalogue.constant.ts:847-852` at the new code, replacing "reciprocity is
   deliberately not checked". Verify: `pnpm --filter be test:ci -- hreflang && pnpm typecheck`.
 - [ ] 5.3 Commit: `feat(page-analysis): hreflang alternates that do not link back`. Verify:
@@ -195,7 +229,9 @@ it green.
 - [ ] 6.2 Run the plan §14 protocol for `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
   `CANONICAL_TARGET_BROKEN` and `HREFLANG_NOT_RECIPROCAL`. Read every firing against the live URL:
   open the link, follow the target, view the alternate's source. A firing on an internal
-  401/402/403/429 or challenge is the plan's O3 trigger; record it as such. Verify: the §14
+  401/402/403/429 or challenge is the plan's O3 trigger; record it as such. Also read every
+  `CANONICAL_MISMATCH` the broken-target step-aside removed, to confirm each target was broken
+  (plan D34). Verify: the §14
   queries print every firing, and each is judged.
 - [ ] 6.3 For each wrong firing, write first a failing spec from that site, then the fix, or
   `enabled: false`. One `fix(page-analysis): …` commit each. Verify: `pnpm --filter be test:ci --
