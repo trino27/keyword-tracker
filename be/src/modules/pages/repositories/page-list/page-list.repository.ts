@@ -119,7 +119,8 @@ export class PageListRepository {
              ${PAGE_SPEED_COLUMNS}
       from current_pages p
       join clients c on c.id = p.client_id
-      -- One primary-key probe per listed page; never part of the order below.
+      -- One primary-key probe per listed page. Lighthouse's counts take part in the
+      -- order below; its Core Web Vitals never do.
       left join page_speed ps on ps.page_id = p.id
       -- Worst first: the score exists so a user can triage a portfolio, and an order that
       -- buries the worst page of the second client under the best page of the first
@@ -131,8 +132,12 @@ export class PageListRepository {
       --   p.id last — unique, so the order is TOTAL. Without it two pages with the same
       --     score have no defined relative order and the planner may answer offset 0 and
       --     offset 20 differently, so rows repeat and vanish between pages.
-      order by (p.checks_applicable - p.checks_failed)::numeric / p.checks_applicable asc,
-               p.checks_failed desc,
+      -- The sums are pageScoreOf's (PAGES-009): the crawl's counters plus Lighthouse's
+      -- judged list and failed count, which add nothing before the page is measured.
+      order by (p.checks_applicable + coalesce(cardinality(ps.lighthouse_judged), 0)
+                - p.checks_failed - coalesce(ps.lighthouse_failed, 0))::numeric
+               / (p.checks_applicable + coalesce(cardinality(ps.lighthouse_judged), 0)) asc,
+               p.checks_failed + coalesce(ps.lighthouse_failed, 0) desc,
                c.name, c.id, p.sitemap_position, p.id
       limit ${limit} offset ${offset}
     `);

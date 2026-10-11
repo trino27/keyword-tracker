@@ -34,6 +34,13 @@ export interface ICurrentPageRecord {
   /** Null together when the page's last crawl predates per-check recording. */
   checksJudged: TSeoIssueCode[] | null;
   checksNotApplicable: TSeoIssueCode[] | null;
+  /**
+   * Lighthouse's record from the page's measurement, null together when the page was
+   * never measured with Lighthouse's categories. Read here, not in `PAGE_SPEED_COLUMNS`:
+   * only the detail lists checks, so only the detail carries the lists.
+   */
+  lighthouseJudged: TSeoIssueCode[] | null;
+  lighthouseNotApplicable: TSeoIssueCode[] | null;
   crawledAt: Date;
   clientId: number;
   clientName: string;
@@ -73,6 +80,8 @@ interface IPageRow extends Record<string, unknown>, IPageSpeedColumns {
   checks_failed: number;
   checks_judged: string[] | null;
   checks_not_applicable: string[] | null;
+  lighthouse_judged: string[] | null;
+  lighthouse_not_applicable: string[] | null;
   crawled_at: string | Date;
   client_id: string;
   client_name: string;
@@ -104,6 +113,7 @@ export class PageDetailRepository {
              p.word_count, p.http_status, p.response_ms,
              p.checks_applicable, p.checks_failed,
              p.checks_judged, p.checks_not_applicable, p.crawled_at,
+             ps.lighthouse_judged, ps.lighthouse_not_applicable,
              c.id as client_id, c.name as client_name, c.website_url as client_website_url,
              (select count(*) from pages sib
                where sib.client_id = p.client_id
@@ -139,6 +149,10 @@ export class PageDetailRepository {
       // is the one place a stored code becomes a catalogue code.
       checksJudged: (row.checks_judged ?? null) as TSeoIssueCode[] | null,
       checksNotApplicable: (row.checks_not_applicable ?? null) as
+        TSeoIssueCode[] | null,
+      lighthouseJudged: (row.lighthouse_judged ?? null) as
+        TSeoIssueCode[] | null,
+      lighthouseNotApplicable: (row.lighthouse_not_applicable ?? null) as
         TSeoIssueCode[] | null,
       crawledAt: new Date(row.crawled_at),
       clientId: Number(row.client_id),

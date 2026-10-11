@@ -6,6 +6,7 @@ import {
   type IPageDetail,
   type IPageIssueCounts,
   type IPageListResponse,
+  type IPageScore,
 } from '@app/contracts';
 import { escapeLike } from '@core/utils/escape-like/escape-like';
 import { PageSpeedAvailabilityService } from '@infrastructure/config/page-speed-settings/page-speed-availability/page-speed-availability.service';
@@ -15,6 +16,7 @@ import { normalizeText } from '@modules/page-analysis/services/text/normalize-te
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
 import { PageNotFoundException } from '../../exceptions/pages.exceptions';
 import { PageDetailRepository } from '../../repositories/page-detail/page-detail.repository';
+import type { IPageSpeedRow } from '../../repositories/page-speed/page-speed-read';
 import {
   PageListRepository,
   type IPageKeywordRow,
@@ -122,7 +124,7 @@ export class PageReadService {
           client: { id: row.clientId, name: row.clientName },
           keywords,
           bestPosition: pickBestPosition(keywords),
-          score: pageScoreOf(row.checksApplicable, row.checksFailed),
+          score: scoreOf(row),
           // A page nobody shares a finding with says zero, not nothing.
           issues: issuesByPage.get(row.id) ?? {
             total: 0,
@@ -153,6 +155,7 @@ export class PageReadService {
       this.clients.getClient(scope, page.clientId),
     ]);
     const keywords = keywordRows.map(toKeywordPosition);
+    const issueCodes = issues.map(({ code }) => code);
 
     return {
       page: {
@@ -176,12 +179,21 @@ export class PageReadService {
       },
       keywords,
       bestPosition: pickBestPosition(keywords),
-      score: pageScoreOf(page.checksApplicable, page.checksFailed),
-      checks: composePageChecks(
-        page.checksJudged,
-        page.checksNotApplicable,
-        issues.map(({ code }) => code),
-      ),
+      score: scoreOf(page),
+      checksByOwner: {
+        crawl: composePageChecks(
+          'crawl',
+          page.checksJudged,
+          page.checksNotApplicable,
+          issueCodes,
+        ),
+        lighthouse: composePageChecks(
+          'lighthouse',
+          page.lighthouseJudged,
+          page.lighthouseNotApplicable,
+          issueCodes,
+        ),
+      },
       issues: [...issues].sort(
         (a, b) =>
           SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),
@@ -191,4 +203,23 @@ export class PageReadService {
       pageSpeedAvailability: this.pageSpeed.current(),
     };
   }
+}
+
+/**
+ * The page's score over every scored owner: the crawl's stored counters, and Lighthouse's
+ * judged list and failed count from the measurement — absent until it has been measured
+ * with Lighthouse's categories (lighthouse-checks D9).
+ */
+function scoreOf(page: {
+  checksApplicable: number;
+  checksFailed: number;
+  pageSpeed: IPageSpeedRow | null;
+}): IPageScore {
+  const applicable = page.pageSpeed?.lighthouseApplicable ?? null;
+  const failed = page.pageSpeed?.lighthouseFailed ?? null;
+  return pageScoreOf({
+    crawl: { applicable: page.checksApplicable, failed: page.checksFailed },
+    lighthouse:
+      applicable === null || failed === null ? null : { applicable, failed },
+  });
 }

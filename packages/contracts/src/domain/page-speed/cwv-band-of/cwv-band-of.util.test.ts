@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cwvBandOf } from './cwv-band-of.util';
+import { cwvBandOf, fieldBandOf } from './cwv-band-of.util';
 
 describe('cwvBandOf', () => {
   /** Google publishes both thresholds as inclusive: 2.5 s is still good, 4 s still needs work. */
@@ -19,5 +19,18 @@ describe('cwvBandOf', () => {
     ['cls', 0.2501, 'poor'],
   ] as const)('%s %d is %s', (metric, value, band) => {
     expect(cwvBandOf(metric, value)).toBe(band);
+  });
+});
+
+describe('fieldBandOf', () => {
+  /** TTFB is no Core Web Vital, but Google publishes its bands the same way: 0.8 s and 1.8 s. */
+  it.each([
+    ['ttfb', 800, 'good'],
+    ['ttfb', 801, 'needsImprovement'],
+    ['ttfb', 1800, 'needsImprovement'],
+    ['ttfb', 1801, 'poor'],
+    ['lcp', 2501, 'needsImprovement'],
+  ] as const)('%s %d is %s', (metric, value, band) => {
+    expect(fieldBandOf(metric, value)).toBe(band);
   });
 });

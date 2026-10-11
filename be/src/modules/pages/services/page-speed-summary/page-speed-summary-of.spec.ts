@@ -12,6 +12,21 @@ const MEASURED: IPageSpeedRow = {
   clsSource: 'lab',
   performanceScore: 61,
   measuredAt: new Date('2026-10-09T12:00:00Z'),
+  ttfbMs: null,
+  ttfbSource: null,
+  lcpGoodShare: null,
+  lcpPoorShare: null,
+  inpGoodShare: null,
+  inpPoorShare: null,
+  clsGoodShare: null,
+  clsPoorShare: null,
+  ttfbGoodShare: null,
+  ttfbPoorShare: null,
+  lcpBreakdown: null,
+  seoScore: null,
+  accessibilityScore: null,
+  lighthouseApplicable: null,
+  lighthouseFailed: null,
 };
 
 const NEVER_MEASURED: IPageSpeedRow = {
@@ -38,12 +53,58 @@ describe('pageSpeedSummaryOf', () => {
       lastError: null,
       measurement: {
         measuredAt: '2026-10-09T12:00:00.000Z',
-        lcp: { value: 3100, band: 'needsImprovement', source: 'url' },
-        inp: { value: 180, band: 'good', source: 'origin' },
-        cls: { value: 0.3, band: 'poor', source: 'lab' },
+        lcp: {
+          value: 3100,
+          band: 'needsImprovement',
+          source: 'url',
+          share: null,
+        },
+        inp: { value: 180, band: 'good', source: 'origin', share: null },
+        cls: { value: 0.3, band: 'poor', source: 'lab', share: null },
         performanceScore: 61,
+        ttfb: null,
+        lcpBreakdown: null,
+        seoScore: null,
+        accessibilityScore: null,
       },
     });
+  });
+
+  /** PAGES-017: the diagnostics travel with the measurement they came in. */
+  it('carries the field TTFB with its own bands, each share, the breakdown and the category scores', () => {
+    const breakdown = {
+      element: { selector: 'main img', snippet: '<img alt="">' },
+      phases: [{ phase: 'timeToFirstByte' as const, ms: 6 }],
+    };
+    const measurement = pageSpeedSummaryOf({
+      ...MEASURED,
+      ttfbMs: 620,
+      ttfbSource: 'url',
+      ttfbGoodShare: 0.8,
+      ttfbPoorShare: 0.06,
+      lcpGoodShare: 0.68,
+      lcpPoorShare: 0.11,
+      lcpBreakdown: breakdown,
+      seoScore: 92,
+      accessibilityScore: 78,
+    })?.measurement;
+
+    expect(measurement?.ttfb).toEqual({
+      value: 620,
+      band: 'good',
+      source: 'url',
+      share: { good: 0.8, poor: 0.06 },
+    });
+    expect(measurement?.lcp.share).toEqual({ good: 0.68, poor: 0.11 });
+    expect(measurement?.lcpBreakdown).toEqual(breakdown);
+    expect(measurement).toMatchObject({ seoScore: 92, accessibilityScore: 78 });
+  });
+
+  it("bands a TTFB of 1.9 s poor, by its own thresholds and not LCP's", () => {
+    expect(
+      pageSpeedSummaryOf({ ...MEASURED, ttfbMs: 1900, ttfbSource: 'origin' })
+        ?.measurement?.ttfb?.band,
+    ).toBe('poor');
   });
 
   it('a never-measured page has a null measurement', () => {

@@ -1,9 +1,10 @@
 import { sql } from 'drizzle-orm';
-import type { TCrawlRunStatus } from '@app/contracts';
+import { LIGHTHOUSE_ISSUE_CODES, type TCrawlRunStatus } from '@app/contracts';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
 import { keywords } from '@persistence/schema/tables/keywords/keywords.schema';
 import { pageKeywords } from '@persistence/schema/tables/page-keywords/page-keywords.schema';
+import { pageSpeed } from '@persistence/schema/tables/page-speed/page-speed.schema';
 import { pages } from '@persistence/schema/tables/pages/pages.schema';
 import { rankSnapshots } from '@persistence/schema/tables/rank-snapshots/rank-snapshots.schema';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
@@ -168,6 +169,49 @@ describe('PageListRepository (postgres)', () => {
       'https://site.example/bad/',
       'https://site.example/good/',
     ]);
+  });
+
+  /**
+   * PAGES-009: the list orders by the score the row shows, Lighthouse's checks included.
+   * B is 90 on the crawl alone but 80 with Lighthouse's 25 audits (36 of 45); A is 88 and
+   * has not been measured, so it stays 88 and comes after B.
+   */
+  it("orders by the score summed over the crawl and Lighthouse's checks", async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    await addPage(client.id, run.id, 'https://site.example/a/', 0, {
+      checksApplicable: 25,
+      checksFailed: 3,
+    });
+    const b = await addPage(client.id, run.id, 'https://site.example/b/', 1, {
+      checksApplicable: 20,
+      checksFailed: 2,
+    });
+    await testDb.db.insert(pageSpeed).values({
+      pageId: b.id,
+      status: 'done',
+      lcpMs: 2000,
+      lcpSource: 'lab',
+      cls: 0,
+      clsSource: 'lab',
+      performanceScore: 90,
+      measuredAt: new Date(),
+      lighthouseJudged: LIGHTHOUSE_ISSUE_CODES.slice(0, 25),
+      lighthouseNotApplicable: [],
+      lighthouseFailed: 7,
+    });
+
+    const rows = await slice(user.id);
+
+    expect(rows.map((row) => row.url)).toEqual([
+      'https://site.example/b/',
+      'https://site.example/a/',
+    ]);
+    expect(rows[0].pageSpeed).toMatchObject({
+      lighthouseApplicable: 25,
+      lighthouseFailed: 7,
+    });
   });
 
   it('compares scores as fractions, not as integer division', async () => {

@@ -176,7 +176,10 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
       .set('Cookie', cookie)
       .expect(200);
 
-    const checks = detail.body.checks as { code: string; status: string }[];
+    const checks = detail.body.checksByOwner.crawl as {
+      code: string;
+      status: string;
+    }[];
     expect(checks.map(({ code }) => code)).toEqual(ACTIVE_ISSUE_CODES);
 
     const count = (status: string) =>

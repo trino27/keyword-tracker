@@ -3,16 +3,22 @@
 Owns `pages`, `keywords`, `page_keywords`, `seo_issues`, `rank_snapshots` and `page_speed`;
 serves the pages list, the page detail and the position history.
 
-- **Two writers of `seo_issues`, each replacing only its own codes.** The catalogue names an
-  `owner` per code: the crawl's replace (`replaceCrawlFindingsForWorker`) deletes crawl codes
-  only, the PageSpeed worker's (`replacePageSpeedFindingsForWorker`) speed codes only — so a
-  re-crawl never erases a measurement's findings. Pinned by `seo-issues.repository.int-spec.ts`.
+- **Three owners of `seo_issues` codes, each replace taking only its own.** The catalogue is a
+  registry of owners (`ISSUE_CATALOGUES`): the crawl's replace (`replaceCrawlFindingsForWorker`)
+  deletes crawl codes only, the PageSpeed worker's two replaces Core Web Vitals codes
+  (`replacePageSpeedFindingsForWorker`) and Lighthouse codes
+  (`replaceLighthouseFindingsForWorker`) only — so a re-crawl never erases a measurement's
+  findings, nor a measurement the crawl's. Pinned by `seo-issues.repository.int-spec.ts`.
 - **`page_speed` is the PageSpeed queue and the cache of the last good measurement**, one row
   per page; see `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. The list and the detail join it
   by primary key and carry a `pageSpeed` summary (bands derived at read time) and the
-  `pageSpeedAvailability` state, from `PageSpeedAvailabilityService`. A speed finding counts among the page's issues by severity and in
-  its code's client-wide spread like any other, and never enters the score, the checks list or
-  the order: those read only `checks_applicable` / `checks_failed`, which only the crawl writes.
+  `pageSpeedAvailability` state, from `PageSpeedAvailabilityService`. A Core Web Vitals finding counts among the page's issues by
+  severity and in its code's client-wide spread like any other, and never enters the score, the
+  checks list or the order. A Lighthouse finding counts in all of them: the score and the order
+  sum the crawl's `checks_applicable` / `checks_failed` with the measurement's
+  `cardinality(lighthouse_judged)` / `lighthouse_failed` (`pageScoreOf` over the scored owners),
+  and the detail lists each scored owner's checks with its own null (`checksByOwner`) — a
+  Lighthouse finding repeating a crawl one is counted on both sides (lighthouse-checks D9, D11).
 
 - **Current = on the client's latest succeeded/partial run** — one SQL fragment,
   `CURRENT_RUN_STATUSES_SQL` (`be/src/persistence/sql/current-run-statuses.ts`), for the list,
@@ -123,7 +129,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/pages/spec.md`.
 
 <!-- invariant: PAGES-013 -->
 
-**A speed finding counts among a page's issues — by severity and in the detail — and never moves its score, its counters or its place in the list.** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "a speed finding counts among the issues and leaves the score and the order unchanged" and "a measured page has its speed findings in the detail". The client-wide spread of a speed code is not asserted on its own: it is the one statement over every code that PAGES-011's pins hold.
+**A Core Web Vitals finding counts among a page's issues — by severity and in the detail — and never moves its score, its counters or its place in the list. A Lighthouse finding does all three: `be/test/e2e/page-speed.e2e-spec.ts` -> "a Lighthouse finding counts among the issues, in the spread and in the score", `page-list.repository.int-spec.ts` -> "orders by the score summed over the crawl and Lighthouse's checks".** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "a speed finding counts among the issues and leaves the score and the order unchanged" and "a measured page has its speed findings in the detail". The client-wide spread of a speed code is not asserted on its own: it is the one statement over every code that PAGES-011's pins hold.
 
 <!-- invariant: PAGES-014 -->
 

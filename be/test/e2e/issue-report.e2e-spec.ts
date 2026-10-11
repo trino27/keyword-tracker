@@ -76,16 +76,15 @@ describe('issue report (e2e)', () => {
     ).body as IReport;
 
   /** Crawls yoast and measures every page with Google's whole-site figures. */
-  async function crawledAndMeasured(): Promise<number> {
+  async function crawledAndMeasured(
+    answer = 'origin-only.json',
+  ): Promise<number> {
     const { id } = await addClient('yoast.com');
     await app.get(CrawlWorker).runOnce();
     const rows = await testDb.db
       .select({ finalUrl: pages.finalUrl })
       .from(pages);
-    const body = readFileSync(
-      join(FIXTURES_ROOT, 'pagespeed', 'origin-only.json'),
-      'utf8',
-    );
+    const body = readFileSync(join(FIXTURES_ROOT, 'pagespeed', answer), 'utf8');
     for (const { finalUrl } of rows)
       transport.override(PsiClient.requestUrl(finalUrl), {
         status: 200,
@@ -136,6 +135,21 @@ describe('issue report (e2e)', () => {
         location: { kind: 'allPages', pageCount: 15 },
       }),
     ]);
+  });
+
+  /** REPORT-005: Lighthouse's findings stay at their pages; only speed is whole-site. */
+  it('reports a Lighthouse finding at each page it is on, never as a whole-site row', async () => {
+    const clientId = await crawledAndMeasured('lighthouse-url-field.json');
+
+    const report = await reportOf(clientId);
+    const robots = report.issues.filter(({ code }) => code === 'LH_ROBOTS_TXT');
+
+    expect(robots).toHaveLength(15);
+    for (const finding of robots)
+      expect(finding).toMatchObject({
+        severity: 'notice',
+        location: { kind: 'page' },
+      });
   });
 
   it('a client with no finished crawl has generatedFrom null and no issues', async () => {

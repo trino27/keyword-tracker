@@ -172,7 +172,10 @@ list's counts, the page's issues and the report read one table. Each catalogue c
 one writer that owns it, and each writer replaces only its own codes: a re-crawl never erases a
 measurement's findings. Speed never enters the SEO score — Lighthouse keeps SEO and Performance
 apart, Search Console reports Core Web Vitals on their own — so the formula and the list's order
-are unchanged; the page shows a separate Speed block. A poor value is Important, not Critical:
+are unchanged by it; the page shows a separate Speed block. Lighthouse's SEO and accessibility
+audits are another matter: they are checks, and since `lighthouse-checks` they count in the score
+beside ours — a page's score moves once, when its first measurement with those categories lands,
+and where both judge the same thing both verdicts count and the screen shows them on one row. A poor value is Important, not Critical:
 Critical is kept for a page that drops out of search, and a slow site must not bury a `noindex`.
 
 **When Google fails, nothing measured is lost.** One request, 90 s, no retry inside the call. A

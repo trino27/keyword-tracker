@@ -117,7 +117,9 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   **Reading a badge:** green, yellow, red are Google's good / needs improvement / poor bands at
   the 75th percentile (LCP 2.5 s / 4 s, INP 200 / 500 ms, CLS 0.1 / 0.25); grey is no data; the
   tooltip says whose experience the value is. Speed never moves the SEO score — the way
-  Lighthouse keeps SEO and Performance apart — but every non-green badge is an issue.
+  Lighthouse keeps SEO and Performance apart — but every non-green badge is an issue. The same
+  PageSpeed call brings Lighthouse's SEO and accessibility audits: those ARE checks, listed
+  beside ours on the page and counted in its score.
 - **Isolation:** every query is scoped by the session's user in the query itself, and a foreign id
   answers exactly like a missing one — an e2e matrix proves it per route. Sessions are server-side
   opaque cookies, passwords scrypt; outbound HTTP refuses private and loopback addresses.

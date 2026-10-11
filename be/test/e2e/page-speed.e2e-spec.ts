@@ -80,8 +80,13 @@ async function drain(app: NestExpressApplication): Promise<number> {
 
 interface IListItem {
   id: number;
-  score: { value: number };
-  issues: { total: number; notice: number };
+  score: {
+    value: number;
+    applicable: number;
+    failed: number;
+    byOwner: { lighthouse: { applicable: number; failed: number } | null };
+  };
+  issues: { total: number; notice: number; warning: number };
   pageSpeed: {
     status: string;
     measurement: Record<
@@ -152,11 +157,13 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
           details: { value: 212, max: 200, source: 'url' },
         }),
       );
-      // A speed code is never a check.
+      // A speed code is never a check, for any owner.
       expect(
-        (detail.checks as { code: string }[]).some(({ code }) =>
-          code.startsWith('CWV_'),
-        ),
+        Object.values(
+          detail.checksByOwner as Record<string, { code: string }[] | null>,
+        )
+          .flatMap((checks) => checks ?? [])
+          .some(({ code }) => code.startsWith('CWV_')),
       ).toBe(false);
       const [row] = await testDb.db
         .select()
@@ -186,6 +193,54 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         expect(item.issues.total).toBe(before[i].issues.total + 2);
         expect(item.issues.notice).toBe(before[i].issues.notice + 2);
       });
+    });
+
+    /**
+     * PAGES-016: a Lighthouse finding counts like a crawl finding — among the issues, in
+     * the client-wide spread and in the score — and its record is listed as checks.
+     */
+    it('a Lighthouse finding counts among the issues, in the spread and in the score', async () => {
+      const [pageId] = await crawlYoast(s);
+      const before = await listOf(s);
+      await answerEveryPage(s.transport, 200, 'lighthouse-url-field.json');
+
+      await drain(s.app);
+      const after = await listOf(s);
+
+      after.forEach((item) => {
+        const was = before.find(({ id }) => id === item.id)!;
+        // The recorded answer: LCP and INP need improvement (two notices); Lighthouse
+        // fails robots-txt (a notice), color-contrast and link-name (two warnings).
+        expect(item.issues.total).toBe(was.issues.total + 5);
+        expect(item.issues.notice).toBe(was.issues.notice + 3);
+        expect(item.issues.warning).toBe(was.issues.warning + 2);
+        const lighthouse = item.score.byOwner.lighthouse!;
+        expect(lighthouse.failed).toBe(3);
+        expect(item.score.applicable).toBe(
+          was.score.applicable + lighthouse.applicable,
+        );
+        expect(item.score.failed).toBe(was.score.failed + 3);
+      });
+
+      const detail = (
+        await request(s.app.getHttpServer())
+          .get(`/api/pages/${pageId}`)
+          .set('Cookie', s.cookie)
+          .expect(200)
+      ).body as {
+        issues: { code: string; pagesAffected: number }[];
+        checksByOwner: {
+          lighthouse: { code: string; status: string }[] | null;
+        };
+      };
+      expect(detail.issues).toContainEqual(
+        expect.objectContaining({ code: 'LH_ROBOTS_TXT', pagesAffected: 15 }),
+      );
+      expect(
+        detail.checksByOwner.lighthouse?.find(
+          ({ code }) => code === 'LH_ROBOTS_TXT',
+        )?.status,
+      ).toBe('failed');
     });
 
     /** Plan I16: a coloured badge and its finding can never disagree. */
