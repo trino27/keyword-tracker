@@ -112,4 +112,22 @@ describe('AUTHOR_MARKUP_INCOMPLETE', () => {
       ),
     ).toEqual(NOT_APPLICABLE);
   });
+
+  // habr.com, 2026-10: a nameless Person is the only author the page has, which is
+  // AUTHOR_MISSING's finding; this check does not say it again.
+  it('leaves a page that names no author at all to AUTHOR_MISSING', () => {
+    expect(
+      AUTHOR_MARKUP_INCOMPLETE_CHECK.evaluate(
+        makeCheckInput({
+          parsed: {
+            authors: [],
+            articleMarkup: {
+              ...makeCheckInput().parsed.articleMarkup!,
+              authors: [person({ name: null, urls: [] })],
+            },
+          },
+        }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
 });

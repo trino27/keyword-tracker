@@ -39,10 +39,11 @@ export const DATES_INCONSISTENT_CHECK = defineCheck(
     const { datePublished, dateModified } = parsed;
     if (!datePublished) return NOT_APPLICABLE;
     const published = Date.parse(datePublished);
+    // A date that does not read as one has nothing to contradict: its form is
+    // ARTICLE_DATE_FORMAT_INVALID's finding, and reporting it here too said it twice.
+    if (Number.isNaN(published)) return NOT_APPLICABLE;
     const contradictions: string[] = [];
-    if (Number.isNaN(published)) {
-      contradictions.push(`datePublished "${datePublished}" is not a date`);
-    } else {
+    {
       const modified = dateModified ? Date.parse(dateModified) : NaN;
       if (!Number.isNaN(modified) && modified < published - MODIFIED_SLACK_MS)
         contradictions.push(

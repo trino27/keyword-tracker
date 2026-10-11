@@ -71,7 +71,10 @@ export const AUTHOR_MARKUP_INCOMPLETE_CHECK = defineCheck(
   'AUTHOR_MARKUP_INCOMPLETE',
   ({ parsed }) => {
     const authors = parsed.articleMarkup?.authors ?? [];
-    if (authors.length === 0) return NOT_APPLICABLE;
+    // Nothing on the page names the author: AUTHOR_MISSING's finding, which a nameless
+    // Person in the markup (habr.com, 2026-10) would otherwise report a second time.
+    if (authors.length === 0 || parsed.authors.length === 0)
+      return NOT_APPLICABLE;
     const problems = authors.flatMap(problemsOf);
     return problems.length === 0
       ? PASS

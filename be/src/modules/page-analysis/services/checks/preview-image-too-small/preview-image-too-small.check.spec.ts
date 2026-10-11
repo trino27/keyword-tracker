@@ -38,4 +38,20 @@ describe('PREVIEW_IMAGE_TOO_SMALL', () => {
       verdict({ url: URL, status: 200, width: null, height: null }),
     ).toEqual(NOT_APPLICABLE);
   });
+
+  // A small logo is PREVIEW_IMAGE_IS_LOGO's finding; the size would say it twice.
+  it('leaves the site logo to PREVIEW_IMAGE_IS_LOGO', () => {
+    expect(
+      PREVIEW_IMAGE_TOO_SMALL_CHECK.evaluate(
+        makeCheckInput({
+          previewImage: {
+            url: 'https://a.example/brand/logo.png',
+            status: 200,
+            width: 400,
+            height: 400,
+          },
+        }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
 });

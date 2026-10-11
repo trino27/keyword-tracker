@@ -226,7 +226,10 @@ export interface IParsedPage {
    * identifies as the author: a class name like "author-box" is a theme's guess.
    */
   authors: string[];
-  /** The article's declared dates as written (JSON-LD first, then `article:*` meta). */
+  /**
+   * The article's declared dates as written: JSON-LD first, then `article:*` meta, then
+   * Microdata. Both date checks read these, so a date is judged once whatever declares it.
+   */
   datePublished: string | null;
   dateModified: string | null;
   /**

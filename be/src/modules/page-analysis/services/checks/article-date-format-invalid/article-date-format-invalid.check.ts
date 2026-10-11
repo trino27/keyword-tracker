@@ -19,18 +19,19 @@ function problemOf(value: string): string | null {
 }
 
 /**
- * The article markup's datePublished and dateModified, as written, against Google's
+ * The article's declared datePublished and dateModified, as written, against Google's
  * "ISO 8601 format, with timezone". A date without a time passes: the date is required
  * and the time is not.
  */
 export const ARTICLE_DATE_FORMAT_INVALID_CHECK = defineCheck(
   'ARTICLE_DATE_FORMAT_INVALID',
   ({ parsed }) => {
-    const markup = parsed.articleMarkup;
+    // The values DATES_INCONSISTENT compares — JSON-LD, then article:* meta, then
+    // Microdata — so the one finds a date's form wrong and the other its content.
     const dates = (
       [
-        ['datePublished', markup?.datePublished ?? null],
-        ['dateModified', markup?.dateModified ?? null],
+        ['datePublished', parsed.datePublished],
+        ['dateModified', parsed.dateModified],
       ] as [string, string | null][]
     ).filter((entry): entry is [string, string] => entry[1] !== null);
     if (dates.length === 0) return NOT_APPLICABLE;

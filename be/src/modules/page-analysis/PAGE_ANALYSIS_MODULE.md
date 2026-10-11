@@ -346,6 +346,13 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   no finding. Live: 1 of 30, blog.cloudflare.com's 99×96 favicon.ico); `SITE_NAME_NOT_DECLARED`
   (no WebSite name — 17 of 30); `SITE_NAME_INCONSISTENT` (WebSite name against og:site_name,
   neither among the alternate names — 1: blog.google, "News from Google" and "blog.google").
+  None reports what an older check already does. Where two could meet on one fact, the
+  newer one steps aside, as STRUCTURED_DATA_INCOMPLETE does for STRUCTURED_DATA_MISSING: a
+  date that does not read as one is ARTICLE_DATE_FORMAT_INVALID's alone (DATES_INCONSISTENT
+  is not applicable to it, and both read the same declared dates — JSON-LD, `article:*`
+  meta, Microdata); a page naming no author at all is AUTHOR_MISSING's alone (habr's
+  nameless Person); a logo used as the page image is PREVIEW_IMAGE_IS_LOGO's alone, never
+  also too small. STRUCTURED_DATA_MISSING and STRUCTURED_DATA_INCOMPLETE read Microdata too.
   Not built, for want of HTML that answers it or a line Google draws: CSS background images,
   keyword stuffing in titles and alt text (see the keyword-stuffing note above), meta
   descriptions written as keyword lists, title against h1, content hidden in tabs, interstitials,

@@ -69,4 +69,17 @@ describe('STRUCTURED_DATA_MISSING', () => {
       ),
     ).toEqual(PASSES);
   });
+
+  it('passes an article declared in Microdata, which Google reads too', () => {
+    expect(
+      STRUCTURED_DATA_MISSING_CHECK.evaluate(
+        makeCheckInput({
+          parsed: {
+            jsonLd: { types: [], keywords: [], articleFields: [] },
+            microdata: { types: ['BlogPosting'], articleFields: ['headline'] },
+          },
+        }),
+      ),
+    ).toEqual(PASSES);
+  });
 });

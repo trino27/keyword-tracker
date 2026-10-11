@@ -135,8 +135,9 @@ describe('evaluateChecks', () => {
               // No links to another page of the site, so neither link check that
               // reads them has anything to judge.
               links: [],
-              // And no date to contradict.
+              // And no date to contradict, or whose form to read.
               datePublished: null,
+              dateModified: null,
               // And no featured image to be lazy.
               featuredImage: null,
               // And too short a text to be asked for sections, images or sources.
@@ -277,7 +278,7 @@ describe('evaluateChecks', () => {
         redirected: true,
         redirects: [{ url: `https://a.example/${path}-old/`, status: 302 }],
         previewImage: {
-          url: 'https://a.example/logo.png',
+          url: 'https://a.example/small.jpg',
           status: 200,
           width: 600,
           height: 60,
@@ -367,6 +368,12 @@ describe('evaluateChecks', () => {
         featuredImage: null,
         links: [],
         jsonLd: { types: ['Article'], keywords: [], articleFields: [] },
+        // A time with no zone, and an author written as a bare string.
+        datePublished: '2026-10-03T09:00:00',
+        articleMarkup: {
+          ...makeCheckInput().parsed.articleMarkup!,
+          authors: [{ name: 'Gazeta', type: null, urls: [], asText: true }],
+        },
       },
     });
 

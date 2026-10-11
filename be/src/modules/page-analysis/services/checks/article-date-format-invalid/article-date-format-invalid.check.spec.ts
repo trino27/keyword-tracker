@@ -12,15 +12,7 @@ const verdict = (
   dateModified: string | null = null,
 ) =>
   ARTICLE_DATE_FORMAT_INVALID_CHECK.evaluate(
-    makeCheckInput({
-      parsed: {
-        articleMarkup: {
-          ...makeCheckInput().parsed.articleMarkup!,
-          datePublished,
-          dateModified,
-        },
-      },
-    }),
+    makeCheckInput({ parsed: { datePublished, dateModified } }),
   );
 
 describe('ARTICLE_DATE_FORMAT_INVALID', () => {
@@ -56,7 +48,7 @@ describe('ARTICLE_DATE_FORMAT_INVALID', () => {
     );
   });
 
-  it('cannot be judged without a date in the markup', () => {
+  it('cannot be judged without a declared date', () => {
     expect(verdict(null, null)).toEqual(NOT_APPLICABLE);
   });
 });

@@ -69,4 +69,24 @@ describe('STRUCTURED_DATA_INCOMPLETE', () => {
       ),
     ).toEqual(PASSES);
   });
+
+  it('reads the Microdata article when there is no JSON-LD one', () => {
+    expect(
+      STRUCTURED_DATA_INCOMPLETE_CHECK.evaluate(
+        makeCheckInput({
+          parsed: {
+            jsonLd: { types: [], keywords: [], articleFields: [] },
+            microdata: {
+              types: ['BlogPosting'],
+              articleFields: ['headline', 'datePublished'],
+            },
+          },
+        }),
+      ),
+    ).toEqual(
+      failsWith({
+        missing: ['image', 'dateModified', 'author', 'publisher'],
+      }),
+    );
+  });
 });

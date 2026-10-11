@@ -996,15 +996,15 @@ export const SEO_ISSUE_CATALOGUE = {
     plain: {
       what: 'The image chosen to represent this page is too small for Discover',
       why: 'Google Discover asks for images at least 1,200 pixels wide. A smaller one can only appear as a thumbnail, and large-image cards draw more clicks.',
-      fix: 'The editor can set a featured image at least 1,200 pixels wide in the CMS; ask your developer if the SEO plugin or theme declares a resized copy instead of the original.',
+      fix: 'The editor can set a featured image at least 1,200 pixels wide in the CMS; ask your developer if the SEO plugin or theme points to a resized copy instead of the original.',
     },
     hint: 'Use a representative image at least 1,200 px wide for og:image and the article markup.',
     explanation:
-      "The widest image the page declares for itself — in og:image:width, or as the width of an ImageObject in its article markup — is under 1,200 pixels. Google's Discover guidance asks for images at least 1,200 px wide, specified through og:image or schema.org markup, and its Article guidance asks for high-resolution images. Only declared sizes are read: the image files are not downloaded, so a page is judged only when every image it names declares its width, or one of them is wide enough.",
+      "The image the page names for itself — og:image, or else the first image of its article markup — is under 1,200 pixels wide. Google's Discover guidance asks for images at least 1,200 px wide, specified through og:image or schema.org markup, and its Article guidance asks for high-resolution images. The width is read from the file itself, which the crawl fetches the start of: the sizes a page declares are often not the image's (a theme names a resized copy, or declares the wrong width). A site logo used as the image is reported by PREVIEW_IMAGE_IS_LOGO instead, not twice.",
     sources: [SOURCE.discover, SOURCE.articleMarkup],
     min: 1_200,
     skipReason:
-      'The page names an image of no declared size, which may be the wide one Google needs.',
+      'The page names no image of its own, its file could not be read, or it is the site logo.',
   },
   PREVIEW_IMAGE_IS_LOGO: {
     owner: 'crawl',
@@ -1293,7 +1293,8 @@ export const SEO_ISSUE_CATALOGUE = {
     explanation:
       "The page's dates cannot all be true: the article was modified before it was published, it was published after the day it was crawled, or its URL carries a year the markup does not. Google asks for dates that are consistent, accurate and not in the future, and uses them for the date it shows beside the result — given a contradiction, it has to pick one, and may pick the wrong one.",
     sources: [SOURCE.bylineDates, SOURCE.articleMarkup],
-    skipReason: 'The page declares no publication date.',
+    skipReason:
+      'The page declares no publication date, or one that does not read as a date (ARTICLE_DATE_FORMAT_INVALID reports that).',
   },
   STRUCTURED_DATA_MISSING: {
     // The hint speaks about eligibility, never about a violation: Google requires no
@@ -1346,7 +1347,8 @@ export const SEO_ISSUE_CATALOGUE = {
     explanation:
       "Google's Article guidance asks, for each author: a @type of Person or Organization, a url (or sameAs) leading to a page that identifies them, only the name in name — no 'By', no job title, no publisher — and one author entry per author, never several names merged into one. The check reads the article's author as its markup states it, following an @id reference into the graph, and reports each departure: an author given as a bare string, one with no type or a type other than Person or Organization, no url or sameAs, a url that is the site's home page rather than a page about the author, or a name that reads as several people or carries a prefix.",
     sources: [SOURCE.articleMarkup],
-    skipReason: 'The article markup names no author.',
+    skipReason:
+      'The article markup names no author, or nothing on the page does (AUTHOR_MISSING reports that).',
   },
   ARTICLE_DATE_FORMAT_INVALID: {
     owner: 'crawl',
@@ -1359,9 +1361,9 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'Write datePublished and dateModified in ISO 8601, with a time zone wherever a time is given.',
     explanation:
-      "Google's Article guidance asks for datePublished and dateModified in ISO 8601 format with timezone information, and notes that without a time zone it reads the time in Googlebot's own. The check reports a date in the article markup that is not ISO 8601 at all — 03/10/2026, October 3, 2026 — and one that gives a time of day without an offset or Z. A date with no time (2026-10-03) passes: Google's byline guidance says the date is required and the time is not.",
+      "Google's Article guidance asks for datePublished and dateModified in ISO 8601 format with timezone information, and notes that without a time zone it reads the time in Googlebot's own. The check reads the dates the page declares — in its article markup, JSON-LD or Microdata, or its article:published_time and article:modified_time — and reports one that is not ISO 8601 at all — 03/10/2026, October 3, 2026 — and one that gives a time of day without an offset or Z. A date with no time (2026-10-03) passes: Google's byline guidance says the date is required and the time is not.",
     sources: [SOURCE.articleMarkup, SOURCE.bylineDates],
-    skipReason: 'The article markup declares no date.',
+    skipReason: 'The page declares no publication or modification date.',
   },
   ARTICLE_HEADLINE_MISMATCH: {
     owner: 'crawl',

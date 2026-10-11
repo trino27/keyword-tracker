@@ -382,10 +382,14 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     authors: [...authors, ...authorsInMarkup($, baseUrl)],
     datePublished:
       dates.published ??
-      orNull(metaContent($, 'property', 'article:published_time')),
+      orNull(metaContent($, 'property', 'article:published_time')) ??
+      microdata.article?.datePublished ??
+      null,
     dateModified:
       dates.modified ??
-      orNull(metaContent($, 'property', 'article:modified_time')),
+      orNull(metaContent($, 'property', 'article:modified_time')) ??
+      microdata.article?.dateModified ??
+      null,
     contentHash: createHash('sha256').update(mainText).digest('hex'),
     charsetDeclarationEnd: charsetDeclarationEndOf(html),
     renderBlockingScripts: $('head script[src]')

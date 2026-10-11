@@ -42,11 +42,6 @@ describe('DATES_INCONSISTENT', () => {
       dated('2024-05-02', null, '/2023/05/post/'),
       'The URL says 2023; datePublished says 2024 (2024-05-02)',
     ],
-    [
-      'a publication date that is no date',
-      dated('last spring'),
-      'datePublished "last spring" is not a date',
-    ],
   ])('fails %s, quoting the contradiction', (_, page, quote) => {
     const verdict = DATES_INCONSISTENT_CHECK.evaluate(page);
 
@@ -87,6 +82,13 @@ describe('DATES_INCONSISTENT', () => {
 
   it('cannot be judged without a publication date', () => {
     expect(DATES_INCONSISTENT_CHECK.evaluate(dated(null))).toEqual(
+      NOT_APPLICABLE,
+    );
+  });
+
+  // Its form is ARTICLE_DATE_FORMAT_INVALID's finding; reporting it here too said it twice.
+  it('cannot compare a publication date that is no date', () => {
+    expect(DATES_INCONSISTENT_CHECK.evaluate(dated('last spring'))).toEqual(
       NOT_APPLICABLE,
     );
   });
