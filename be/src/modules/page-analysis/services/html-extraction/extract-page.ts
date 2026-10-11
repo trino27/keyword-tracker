@@ -1259,7 +1259,7 @@ function structuredDataOf(
           ),
           datePublished: dateOf(articleNode.datePublished),
           dateModified: dateOf(articleNode.dateModified),
-          authors: authorsOf(articleNode.author, nodesById),
+          authors: authorsOf(articleNode.author, nodesById, baseUrl),
           images: imagesOf(articleNode.image, nodesById, baseUrl),
         }
       : null,

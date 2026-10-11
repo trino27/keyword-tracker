@@ -46,6 +46,21 @@ describe('extractPage: the article as its markup states it', () => {
     ]);
   });
 
+  it("resolves an author's url against the page, as Microdata's is", () => {
+    const parsed = page(
+      jsonLd({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: 'A post',
+        author: { '@type': 'Person', name: 'Jane', url: '/' },
+      }),
+    );
+
+    expect(parsed.articleMarkup!.authors[0].urls).toEqual([
+      'https://a.example/',
+    ]);
+  });
+
   it('reads every step of a BreadcrumbList (semrush)', () => {
     const parsed = recorded(
       'semrush/blog/ai-marketing/index.html',

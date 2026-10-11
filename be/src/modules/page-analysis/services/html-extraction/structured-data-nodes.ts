@@ -65,9 +65,17 @@ function numberOf(value: unknown): number | null {
 const firstOf = (value: unknown): unknown =>
   Array.isArray(value) ? value[0] : value;
 
-/** Every author the value names, in the form it names them. */
-export function authorsOf(value: unknown, byId: TNodesById): IMarkupAuthor[] {
-  if (Array.isArray(value)) return value.flatMap((v) => authorsOf(v, byId));
+/**
+ * Every author the value names, in the form it names them; its urls resolved against the
+ * page, as Microdata's are — `"url": "/"` is the site's home page, not the text "/".
+ */
+export function authorsOf(
+  value: unknown,
+  byId: TNodesById,
+  baseUrl: string,
+): IMarkupAuthor[] {
+  if (Array.isArray(value))
+    return value.flatMap((v) => authorsOf(v, byId, baseUrl));
   if (typeof value === 'string')
     return collapse(value)
       ? [{ name: collapse(value), type: null, urls: [], asText: true }]
@@ -80,7 +88,7 @@ export function authorsOf(value: unknown, byId: TNodesById): IMarkupAuthor[] {
       type: typesOf(node)[0] ?? null,
       urls: [node.url, node.sameAs]
         .flat()
-        .map(textOf)
+        .map((url) => urlOf(url, baseUrl))
         .filter((url): url is string => url !== null),
       asText: false,
     },
