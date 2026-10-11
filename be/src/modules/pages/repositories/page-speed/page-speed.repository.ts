@@ -92,9 +92,9 @@ export class PageSpeedRepository {
    *
    * Fair, not first-in-first-out: the user served longest ago goes first, then, within
    * that user, the client served longest ago, then — within that client — its mobile rows
-   * before its desktop rows, then the oldest row. "Served" is the latest claim of any of
-   * their rows on either device (a claim stamps `updated_at`; a queued row is not
-   * served), so one user's backlog of hundreds of pages takes turns with a client added
+   * before its desktop rows, then the oldest row. "Served" is the latest write to any of
+   * their rows on either device that is not queued — a claim, or the outcome or release
+   * that followed one, each stamping `updated_at` — so one user's backlog of hundreds of pages takes turns with a client added
    * a minute ago instead of standing in front of it. Mobile goes first because it feeds
    * the score, the list's badges and Lighthouse's verdicts; the enum's declaration order
    * is what sorts it.
@@ -130,12 +130,20 @@ export class PageSpeedRepository {
         group by sp.client_id, sc.user_id
       ),
       next as (
+        -- The claimable test again, on the row being locked: a row another slot claimed
+        -- and committed after this statement's snapshot is locked at its NEWEST version,
+        -- and Postgres re-checks only this level's conditions on it — not the materialised
+        -- due. Without them that row would be claimed twice, the second time as attempt
+        -- n + 2.
         select q.page_id, q.strategy from page_speed q
         join due d on d.page_id = q.page_id and d.strategy = q.strategy
         left join served cs on cs.client_id = d.client_id
         left join (
           select user_id, max(served_at) as served_at from served group by user_id
         ) us on us.user_id = d.user_id
+        where ((q.status = 'queued' and q.next_attempt_at <= now())
+               or (q.status = 'running' and q.locked_until < now()))
+          and q.attempts < ${PAGE_SPEED_MAX_ATTEMPTS}
         order by us.served_at nulls first, cs.served_at nulls first,
                  d.strategy, d.next_attempt_at, d.page_id
         for update of q skip locked

@@ -111,7 +111,9 @@ export const pageSpeed = pgTable(
   (t) => [
     // A second row for one page and device would be a second answer to one question.
     primaryKey({ name: 'page_speed_pk', columns: [t.pageId, t.strategy] }),
-    // The claim's ORDER BY next_attempt_at over claimable rows.
+    // The claim's scan of claimable rows by next_attempt_at. Since the queue is fair, it
+    // orders by who was served first; the partial index still keeps done and failed
+    // rows — most of the table — out of that scan.
     index('page_speed_claim_idx')
       .on(t.nextAttemptAt)
       .where(sql`${t.status} in ('queued', 'running')`),

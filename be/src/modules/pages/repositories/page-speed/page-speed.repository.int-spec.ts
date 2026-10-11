@@ -564,6 +564,26 @@ describe('PageSpeedRepository', () => {
       );
     });
 
+    it('one row claimed by many slots at once is claimed exactly once', async () => {
+      const { pageId } = await currentPage();
+      await enqueue([pageId]);
+
+      const claims = await Promise.all(
+        Array.from({ length: 8 }, () =>
+          repository.claimNextForWorker(LEASE_MS),
+        ),
+      );
+
+      expect(claims.filter(Boolean)).toEqual([
+        expect.objectContaining({ pageId, attempt: 1 }),
+      ]);
+      const [row] = await testDb.db
+        .select({ attempts: pageSpeed.attempts })
+        .from(pageSpeed)
+        .where(eq(pageSpeed.pageId, pageId));
+      expect(row.attempts).toBe(1);
+    });
+
     it("never claims a page its client's current run no longer has", async () => {
       const dropped = await currentPage();
       await enqueue([dropped.pageId]);
