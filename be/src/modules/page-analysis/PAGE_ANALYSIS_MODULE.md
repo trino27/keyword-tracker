@@ -7,7 +7,7 @@ registry is typed over `TCrawlIssueCode`, so a check for a speed code — or a c
 one — does not compile. The six `CWV_*` codes are written by the PageSpeed worker from Google's
 measurement and are never in `checks_judged`, the score or the checks list. Each entry also
 carries `plain` — what / why / fix for a marketer — beside the technical label, hint and
-explanation; `issue-plain-copy.test.ts` holds all 65 entries (page, speed and site) to it.
+explanation; `issue-plain-copy.test.ts` holds all 69 entries (page, speed and site) to it.
 The speed codes therefore have no `<code>.check.spec.ts`: they are pinned where they are written,
 by `be/src/modules/page-speed/services/cwv-issues/cwv-issues-of.spec.ts`. The five HTML Core Web
 Vitals risk checks below stay crawl checks at notice — measured speed did not replace them — and
@@ -82,8 +82,9 @@ files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Twenty-seven of the fifty checks always apply; twenty-three are conditional. Nineteen of
-  those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
+  Twenty-seven of the fifty-four checks always apply; twenty-seven are conditional.
+  Twenty-three of those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the
+  field existing, H1_LENGTH on there being an h1,
   CANONICAL_MISMATCH, CANONICAL_CONFLICT and CANONICAL_RELATIVE on there being a canonical,
   STRUCTURED_DATA_INVALID on there being any JSON-LD, DATES_INCONSISTENT on a publication
   date,
@@ -94,9 +95,10 @@ files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
   site, ROBOTS_BLOCKS_GOOGLEBOT and ROBOTS_BLOCKS_AI_SEARCH on the robots.txt governing the
   page's host, ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a
   host, DATE_BUMPED_WITHOUT_CHANGES on an earlier crawl having recorded the page,
-  LCP_IMAGE_LAZY_LOADED on the page showing a featured image — and four are
+  LCP_IMAGE_LAZY_LOADED on the page showing a featured image, NO_SUBHEADINGS, NO_IMAGES and
+  NO_EXTERNAL_SOURCES on the text running to THIN_CONTENT's 300 words — and four are
   run-scoped, skipped when the run holds one page or the page has no value to compare. So
-  `27 <= checks_applicable <= 50`, which
+  `27 <= checks_applicable <= 54`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -169,7 +171,8 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
 - **Five checks from Google's ranking guidance (2026-10-09).** `SNIPPET_RESTRICTED` reads the
   same robots declarations as NOINDEX for `nosnippet` and `max-snippet:0`, which Google applies
   to its AI features as well as to the snippet. `ROBOTS_BLOCKS_AI_SEARCH` asks robots.txt about
-  the SEARCH crawlers of AI assistants (OAI-SearchBot, PerplexityBot, bingbot) and never the
+  the SEARCH crawlers of AI assistants (OAI-SearchBot, PerplexityBot, bingbot; Claude-SearchBot
+  since 2026-10-11, which Anthropic says governs visibility in Claude's search) and never the
   training ones, whose closing costs no visibility. `AUTHOR_MISSING` is the "who" of Google's
   helpful-content questions, counted only where the markup identifies an author.
   `DATE_BUMPED_WITHOUT_CHANGES` compares the page with the client's previous crawl — the main
@@ -299,6 +302,26 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   `HREFLANG_INVALID`, `META_REFRESH` (lefigaro's and indianexpress's refreshes reload the
   page and rightly pass), `NOINDEX`, `ROBOTS_BLOCKS_GOOGLEBOT`, `SNIPPET_RESTRICTED`,
   `TITLE_MISSING`, `UNCRAWLABLE_LINKS`, `ROBOTS_TXT_TRUNCATED`, `SITEMAP_LISTS_OTHER_HOST_VARIANTS`.
+- **Four content checks from an agency's audit guidance (2026-10-11).** Asked for by the user
+  after reading Productive Shop's enterprise audit checklist, content audit and AI-search
+  study, and added knowing that three of them rest on no first-party rule — which each
+  entry's explanation says, with the industry page among its sources. All four are notices.
+  `H1_LENGTH` measures the content's first h1 (the document's only as a fallback, so a logo
+  in an `<h1>` is never measured) against the checklist's 15–70 characters; Google publishes
+  no length and says heading structure does not matter to Search. `NO_SUBHEADINGS` is a long
+  text under no `<h2>`–`<h6>`, backed by the starter guide's "provide headings to help users
+  navigate". `NO_IMAGES` is a long text with no `<img>` and no featured image, backed by the
+  starter guide's "add images to your site"; the AI-search image counts are industry
+  correlation and are called that. `NO_EXTERNAL_SOURCES` is a long text whose content links
+  never leave the site's organisation (its subdomains and parent domain count as the site),
+  backed by the helpful-content guidance's "clear sourcing". The last three judge only a text
+  of THIN_CONTENT's 300 words or more, read from the same catalogue constant, because a short
+  note needs no sections, picture or citation. Measured on the 43 recorded posts before being
+  believed: they fire 2, 0, 1 and 1 times — a 76-character semrush question as its h1, yoast's
+  `/seo-blog/` listing ("SEO blog", 8 characters; 41 links, all its own), and a 447-word yoast
+  post from 2007 that never shows its og:image. Each was read against the page and is real.
+  Asked for and not built: images without width and height, rejected above; and "content not
+  updated in N months", whose threshold no source gives.
 - **What was considered and rejected.** `ORPHAN_PAGE` — "does anything link here" — cannot be
   answered by a crawl that visits the URLs a sitemap lists: the evidence is on pages this crawler
   never fetches, and the extractor removes the nav and the related-posts rail that carry most
@@ -351,7 +374,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per crawl-owned code and none for a speed code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per crawl-owned code", "has no check for a pageSpeed-owned code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The fifty checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+**The fifty-four checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".
