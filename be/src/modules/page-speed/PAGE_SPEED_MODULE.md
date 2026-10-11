@@ -72,8 +72,11 @@ worker it would exit under mid-call.
 source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree. Speed never
   enters the SEO score.
 - **Lighthouse's verdicts** (`extractLighthouse`, lighthouse-checks). The same answer carries
-  Lighthouse 13's SEO and accessibility categories; every audit Lighthouse SCORES in them (weight
-  above 0 — 66 in 13.5.0) is an `LH_*` catalogue code, looked up by the audit id the answer uses:
+  Lighthouse 13's SEO and accessibility categories. Every audit Lighthouse SCORES in them (weight
+  above 0 — 66 in 13.5.0) has an `LH_*` catalogue code, but only the ones it weighs in SEO are
+  checks (`ACTIVE_LIGHTHOUSE_CODES`): the accessibility audits are retired (D24), and of that
+  category only its score is kept, as an overview. Each active code is looked up by the audit id
+  the answer uses:
 
   | the audit in the answer                | recorded                                      |
   | -------------------------------------- | --------------------------------------------- |
@@ -125,9 +128,11 @@ source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree.
   page is re-measured — at the next crawl, for any measurement at least 24 h old. The catalogue's
   CWV bounds read the same constants (`seo-issue-catalogue.test.ts` holds them equal), so the two
   can only drift in time, never in value.
-- **Quota.** One call per current page per crawl at most, and none for a page measured in the last
-  24 h. The real per-crawl cost and latency are NOT measured yet — the work was done without a key,
-  against synthesized answers; a 429 degrades to a shared pause, never to failed pages. A spent
+- **Quota.** One call per current page and device per crawl at most — two per page, mobile and
+  desktop — and none for a device measured in the last 24 h. Measured live on 2026-10-11 (above):
+  4–5 measurements a minute, so a 15-post crawl takes 6–7 minutes to measure — 30 calls,
+  against the 25 000 a day Google documents as the API's default (this project's own quota was
+  not read from the Cloud console). A 429 degrades to a shared pause, never to failed pages. A spent
   DAILY quota (Google names a per-day limit, or `dailyLimitExceeded` / `quotaExceeded`) pauses
   for an hour instead of a minute: asking again every minute would ask all day for nothing.
 - **What the screens say** comes from one `PageSpeedAvailabilityService`

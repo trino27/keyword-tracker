@@ -8,7 +8,11 @@ export const PSI_ENDPOINT =
  */
 export const PAGE_SPEED_REQUEST_TIMEOUT_MS = 90_000;
 
-/** A performance-only answer is a few hundred KiB; this leaves room and still bounds it. */
+/**
+ * Bounds one whole answer — mobile asks for three categories, desktop for performance
+ * alone — with room to spare. An answer past it fails the page PSI_REJECTED: it is no
+ * answer this app can read.
+ */
 export const PAGE_SPEED_MAX_BYTES = 8 * 1024 * 1024;
 
 /** Longer than the timeout plus one transaction, so a live attempt is never reclaimed. */
