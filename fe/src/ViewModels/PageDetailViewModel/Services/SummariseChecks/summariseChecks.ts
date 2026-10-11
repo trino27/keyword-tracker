@@ -1,6 +1,5 @@
 import {
 	ACTIVE_ISSUE_CODES,
-	LIGHTHOUSE_CATALOGUE,
 	LIGHTHOUSE_ISSUE_CODES,
 	SEO_ISSUE_CATALOGUE,
 	counterpartGroupOf,
@@ -13,6 +12,7 @@ import {
 	type TScoredIssueOwner,
 	type TSeoIssueCode,
 } from "@app/contracts";
+import { CHECK_TOPICS, CHECK_TOPIC_OF, type TCheckTopicId } from "@Core/Constants/checkTopics";
 
 /** One check of one owner, as a cell shows it. */
 export interface ICheckCell {
@@ -31,10 +31,12 @@ export interface ICheckRow {
 	disagree: boolean;
 }
 
+/** One chapter of checks (`CHECK_TOPICS`), as the Info tab names it. */
 export interface ICheckSection {
-	/** Null for the first section, our checks with Lighthouse's beside them. */
-	heading: string | null;
+	heading: string;
 	rows: ICheckRow[];
+	/** Rows in this chapter with at least one failed check, of either owner. */
+	failed: number;
 }
 
 export interface IChecksColumn {
@@ -94,11 +96,12 @@ type TCheck = { code: TSeoIssueCode; status: TCheckStatus };
 /**
  * The checks section in two columns, ours and Lighthouse's (PAGEDETAIL-009).
  *
- * A row is a counterpart group (`ISSUE_COUNTERPARTS`) or a code no other owner checks.
- * Our rows come first, in the order the backend sent them, each with Lighthouse's verdict
- * beside it where Lighthouse judges the same thing; then Lighthouse's own, SEO before
- * accessibility, failures first. Nothing is derived here: every status is the one the
- * backend composed, and an owner with no record shows a line, never invented cells.
+ * A row is a counterpart group (`ISSUE_COUNTERPARTS`) or a code no other owner checks;
+ * where Lighthouse judges what we judge, its verdict sits beside ours on one row. Rows
+ * are grouped into the chapters of `CHECK_TOPICS` — the Info tab's, in its order — a
+ * group under the chapter of our code, failures first within each. Nothing is derived
+ * here: every status is the one the backend composed, and an owner with no record shows a
+ * line, never invented cells.
  *
  * "Judged" counts passed AND failed: it is the score's denominator, which is what each
  * subtitle exists to make legible beside the number in the KPI card.
@@ -136,38 +139,30 @@ export function summariseChecks(byOwner: TChecksByOwner, context: IChecksContext
 		return { key, cells: { crawl, lighthouse }, disagree: disagree(crawl, lighthouse) };
 	};
 
-	const ours: ICheckRow[] = [];
+	// Every row once: our codes in the order the backend sent them, a counterpart group on
+	// the row of its first code, then the Lighthouse codes no check of ours shares.
+	const rows: { topic: TCheckTopicId; row: ICheckRow }[] = [];
 	const placed = new Set<ICounterpartGroup>();
 	const crawlOrder = byOwner.crawl?.map(({ code }) => code) ?? ACTIVE_ISSUE_CODES;
 	for (const code of crawlOrder) {
 		const group = counterpartGroupOf(code);
 		if (group && placed.has(group)) continue;
 		if (group) placed.add(group);
-		ours.push(rowOf(code, group, code));
+		rows.push({ topic: CHECK_TOPIC_OF[code], row: rowOf(code, group, code) });
 	}
+	for (const code of LIGHTHOUSE_ISSUE_CODES)
+		if (counterpartGroupOf(code) === null)
+			rows.push({ topic: CHECK_TOPIC_OF[code], row: rowOf(code, null, code) });
 
-	const alone = LIGHTHOUSE_ISSUE_CODES.filter((code) => counterpartGroupOf(code) === null);
-	const lighthouseSection = (heading: string, codes: TLighthouseIssueCode[]): ICheckSection => ({
-		heading,
-		rows: codes
-			.map((code) => rowOf(code, null, code))
-			// Stable: failures first, the catalogue's order kept within each kind.
-			.sort((a, b) => Number(isFailed(b)) - Number(isFailed(a))),
-	});
-
-	const sections = [
-		{ heading: null, rows: ours },
-		lighthouseSection(
-			"Lighthouse · SEO",
-			alone.filter((code) => "seo" in LIGHTHOUSE_CATALOGUE[code].weights),
-		),
-		lighthouseSection(
-			"Lighthouse · Accessibility",
-			alone.filter((code) => !("seo" in LIGHTHOUSE_CATALOGUE[code].weights)),
-		),
-	]
-		.map((section) => ({ ...section, rows: section.rows.filter(hasCells) }))
-		.filter((section) => section.rows.length > 0);
+	// The chapters the Info tab teaches, in its reading order, so a check sits under the
+	// same heading on both screens. Failures lead each chapter; the order is kept within.
+	const sections = CHECK_TOPICS.map(({ id, title }) => {
+		const inTopic = rows
+			.filter(({ topic, row }) => topic === id && hasCells(row))
+			.map(({ row }) => row)
+			.sort((a, b) => Number(isFailed(b)) - Number(isFailed(a)));
+		return { heading: title, rows: inTopic, failed: inTopic.filter(isFailed).length };
+	}).filter((section) => section.rows.length > 0);
 
 	return {
 		columns: {

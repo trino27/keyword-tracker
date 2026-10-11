@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
 	ACTIVE_ISSUE_CODES,
-	LIGHTHOUSE_CATALOGUE,
 	LIGHTHOUSE_ISSUE_CODES,
 	type TCheckStatus,
 	type TChecksByOwner,
 } from "@app/contracts";
+import { CHECK_TOPICS, CHECK_TOPIC_OF } from "@Core/Constants/checkTopics";
 import { summariseChecks, type IChecksContext } from "./summariseChecks";
 
 type TStatuses = Partial<Record<string, TCheckStatus>>;
@@ -50,20 +50,61 @@ const GATHERED = [
  * added without anything being wrong.
  */
 const CRAWL = ACTIVE_ISSUE_CODES.length;
+
+/** The chapter heading a code sits under, as `CHECK_TOPICS` names it today. */
+const headingOf = (code: keyof typeof CHECK_TOPIC_OF) =>
+	CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF[code])!.title;
 const LIGHTHOUSE = LIGHTHOUSE_ISSUE_CODES.length;
 
 describe("summariseChecks", () => {
-	it("leads with our checks in the order the backend sent them, each labelled from the catalogue", () => {
-		const [first] = summarise({}).sections;
+	/** The Info tab's chapters, in its order, so a check sits under one heading on both screens. */
+	it("groups every row under its chapter, in the Info tab's order", () => {
+		const { sections } = summarise({});
+		const order: string[] = CHECK_TOPICS.map(({ title }) => title);
 
-		expect(first.heading).toBeNull();
-		expect(first.rows[0].cells.crawl).toEqual([
+		expect(sections[0].heading).toBe("Titles");
+		expect(sections[0].rows[0].cells.crawl).toEqual([
 			{ code: "TITLE_MISSING", label: "Title is missing", status: "passed", reason: null },
 		]);
-		// A group stands where its first code would, and gathers the rest of its codes.
-		expect(first.rows.map((row) => row.cells.crawl[0].code)).toEqual(
-			ACTIVE_ISSUE_CODES.filter((code) => !GATHERED.includes(code)),
+		expect(sections.map(({ heading }) => order.indexOf(heading))).toEqual(
+			[...sections.map(({ heading }) => order.indexOf(heading))].sort((a, b) => a - b),
 		);
+		for (const section of sections)
+			for (const row of section.rows) {
+				const lead = row.cells.crawl[0]?.code ?? row.cells.lighthouse[0].code;
+				const topic = CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF[lead])!;
+				expect({ lead, heading: section.heading }).toEqual({ lead, heading: topic.title });
+			}
+	});
+
+	it("keeps the backend's order within a chapter, a group on the row of its first code", () => {
+		const ours = summarise({}).sections.flatMap((section) =>
+			section.rows
+				.filter((row) => row.cells.crawl.length > 0)
+				.map((row) => row.cells.crawl[0].code),
+		);
+
+		expect([...ours].sort()).toEqual(
+			ACTIVE_ISSUE_CODES.filter((code) => !GATHERED.includes(code)).sort(),
+		);
+		const headings = summarise({}).sections.find(({ heading }) => heading === "Headings")!;
+		expect(
+			headings.rows.map((row) => row.cells.crawl[0]?.code ?? row.cells.lighthouse[0].code),
+		).toEqual(
+			[...ACTIVE_ISSUE_CODES, ...LIGHTHOUSE_ISSUE_CODES].filter(
+				(code) =>
+					CHECK_TOPIC_OF[code] === "headings" && !["LH_HEADING_ORDER"].includes(code),
+			),
+		);
+	});
+
+	it("leads a chapter with its failures, and counts them", () => {
+		const titles = summarise({ crawl: crawl({ TITLE_LENGTH: "failed" }) }).sections.find(
+			({ heading }) => heading === "Titles",
+		)!;
+
+		expect(titles.rows[0].cells.crawl[0].code).toBe("TITLE_LENGTH");
+		expect(titles.failed).toBe(1);
 	});
 
 	/** PAGEDETAIL-009: one row per counterpart group, each owner's codes in its own cell. */
@@ -80,23 +121,18 @@ describe("summariseChecks", () => {
 		expect(row.cells.lighthouse.map(({ code }) => code)).toEqual(["LH_CANONICAL"]);
 	});
 
-	it("follows our rows with Lighthouse's own, SEO before accessibility, failures first", () => {
+	it("puts each Lighthouse-only audit under its own chapter, failures first", () => {
 		const { sections } = summarise({
 			lighthouse: lighthouse({ LH_TABINDEX: "failed", LH_HTTP_STATUS_CODE: "failed" }),
 		});
+		const chapterOf = (code: "LH_TABINDEX" | "LH_HTTP_STATUS_CODE") =>
+			sections.find(({ heading }) => heading === headingOf(code))!;
 
-		expect(sections.map(({ heading }) => heading)).toEqual([
-			null,
-			"Lighthouse · SEO",
-			"Lighthouse · Accessibility",
-		]);
-		expect(sections[1].rows[0].cells.lighthouse[0].code).toBe("LH_HTTP_STATUS_CODE");
-		expect(sections[2].rows[0].cells.lighthouse[0].code).toBe("LH_TABINDEX");
-		for (const row of sections[2].rows) {
-			expect(row.cells.crawl).toEqual([]);
-			const code = row.cells.lighthouse[0].code as keyof typeof LIGHTHOUSE_CATALOGUE;
-			expect(LIGHTHOUSE_CATALOGUE[code].weights).not.toHaveProperty("seo");
-		}
+		expect(chapterOf("LH_HTTP_STATUS_CODE").rows[0].cells.lighthouse[0].code).toBe(
+			"LH_HTTP_STATUS_CODE",
+		);
+		expect(chapterOf("LH_TABINDEX").rows[0].cells.lighthouse[0].code).toBe("LH_TABINDEX");
+		for (const row of chapterOf("LH_TABINDEX").rows) expect(row.cells.crawl).toEqual([]);
 	});
 
 	it("lists every check of both owners exactly once", () => {
@@ -183,7 +219,9 @@ describe("summariseChecks", () => {
 		);
 
 		expect(summary.columns.lighthouse).toMatchObject({ empty: line, judgedAt: null });
-		expect(summary.sections.map(({ heading }) => heading)).toEqual([null]);
+		expect(summary.sections.map(({ heading }) => heading)).not.toContain(
+			headingOf("LH_TABINDEX"),
+		);
 		expect(rowWith(summary, "CANONICAL_RELATIVE")?.cells.lighthouse).toEqual([]);
 	});
 

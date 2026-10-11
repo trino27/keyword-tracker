@@ -55,9 +55,16 @@ The page detail MUST show a checks section with two columns: "Our checks" and "L
   status;
 - an owner with no code in the row leaves its cell empty.
 
-**Order.** Rows that hold a crawl code come first, in catalogue order. Then come the
-Lighthouse-only rows, under the headings "Lighthouse · SEO" and "Lighthouse · Accessibility",
-failures first within each heading.
+**Order.** Every row MUST sit under a chapter heading, the chapters and their order being the
+ones the Info tab teaches (`CHECK_TOPICS`, one chapter per code by `CHECK_TOPIC_OF`). A
+counterpart group sits under the chapter of its crawl code; a Lighthouse-only row under its
+own Lighthouse chapter. Within a chapter, rows with a failure come first, and the order the
+backend sent is kept otherwise. Each heading MUST say how many of its rows failed.
+
+AMENDED during implementation: this said our rows came first as one unheaded list, and only
+Lighthouse's were split, into "Lighthouse · SEO" and "Lighthouse · Accessibility". The user asked
+for every check to be grouped. The chapters are the Info tab's, so a check reads under the same
+heading on both screens.
 
 **Statuses and reasons.** The screen MUST NOT derive a status itself:
 - a check that could not be judged MUST be shown with the reason its catalogue entry declares;
@@ -97,6 +104,11 @@ showing a status Lighthouse never reported would be a false statement.
   not-measured line once in its column, and closes with "Details for the 2 failed checks are in
   SEO issues below."
 
+#### Scenario: chapters
+
+- **WHEN** the crawl failed `TITLE_LENGTH` and nothing else
+- **THEN** "Titles" is the first chapter, its heading says 1 failed, and the title-length row leads it
+
 #### Scenario: the canonical group
 
 - **WHEN** the crawl passed all five canonical checks and Lighthouse failed `canonical`
@@ -106,7 +118,7 @@ showing a status Lighthouse never reported would be a false statement.
 #### Scenario: a Lighthouse-only accessibility failure
 
 - **WHEN** Lighthouse failed `color-contrast` and passed `button-name`
-- **THEN** both appear under "Lighthouse · Accessibility" with `color-contrast` first and an empty
+- **THEN** both appear under their Lighthouse chapter with `color-contrast` first and an empty
   "Our checks" cell
 
 #### Scenario: a page with nothing failing

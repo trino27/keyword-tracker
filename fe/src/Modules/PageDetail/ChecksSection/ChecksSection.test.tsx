@@ -6,6 +6,7 @@ import {
 	type TCheckStatus,
 	type TChecksByOwner,
 } from "@app/contracts";
+import { CHECK_TOPICS, CHECK_TOPIC_OF } from "@Core/Constants/checkTopics";
 import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProviders";
 import { ChecksSection } from "./ChecksSection";
 
@@ -82,7 +83,11 @@ describe("ChecksSection", () => {
 	it("lists a Lighthouse-only failure first under its heading, with no cell of ours", async () => {
 		render({ lighthouse: lighthouse({ LH_COLOR_CONTRAST: "failed" }) });
 
-		expect(await screen.findByText("Lighthouse · Accessibility")).toBeInTheDocument();
+		expect(
+			await screen.findByText(
+				CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF.LH_COLOR_CONTRAST)!.title,
+			),
+		).toBeInTheDocument();
 		const failed = screen.getByText("Text with too little contrast");
 		expect(failed).toHaveAttribute("data-status", "failed");
 		// Nothing of ours judges contrast, so there is nothing to disagree with.

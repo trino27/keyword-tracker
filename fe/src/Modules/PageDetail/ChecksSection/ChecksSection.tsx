@@ -68,17 +68,22 @@ export function ChecksSection({ checksByOwner, context, timeZone }: IChecksSecti
 						))}
 					</SimpleGrid>
 					{sections.map((section) => (
-						<Stack key={section.heading ?? "ours"} gap="xs">
-							{section.heading && (
-								<Divider
-									label={
+						<Stack key={section.heading} gap="xs">
+							<Divider
+								label={
+									<Group gap={6} wrap="nowrap">
 										<Text size="sm" fw={600}>
 											{section.heading}
 										</Text>
-									}
-									labelPosition="left"
-								/>
-							)}
+										{section.failed > 0 && (
+											<Text size="xs" c="red">
+												{`${section.failed} failed`}
+											</Text>
+										)}
+									</Group>
+								}
+								labelPosition="left"
+							/>
 							{section.rows.map((row) => (
 								<SimpleGrid
 									key={row.key}
