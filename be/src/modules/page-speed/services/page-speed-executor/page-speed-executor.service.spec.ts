@@ -304,6 +304,24 @@ describe('PageSpeedExecutorService', () => {
     });
   });
 
+  it('a mobile measurement stores the image finding beside its CWV findings', async () => {
+    const { run, results } = setup(answer(200, 'image-delivery-failing.json'));
+
+    await run();
+
+    const [, completion] = results.completeForWorker.mock.calls[0] as [
+      unknown,
+      { speedFindings: { code: string; details: Record<string, unknown> }[] },
+    ];
+    const image = completion.speedFindings.find(
+      ({ code }) => code === 'IMAGE_DELIVERY_INEFFICIENT',
+    );
+    expect(image?.details).toMatchObject({ value: 162_175, min: 102_400 });
+    expect(
+      completion.speedFindings.some(({ code }) => code.startsWith('CWV_')),
+    ).toBe(true);
+  });
+
   /**
    * Lighthouse speaks for mobile alone (lighthouse-checks D16): a desktop claim writes its
    * own Core Web Vitals codes and no Lighthouse record, whatever the answer holds.

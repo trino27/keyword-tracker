@@ -15,7 +15,7 @@ import {
   classifyPsiResponse,
   type TPsiCallResult,
 } from '../classify-psi-response/classify-psi-response';
-import { cwvIssuesOf } from '../cwv-issues/cwv-issues-of';
+import type { IExtractedImageDelivery } from '../extract-image-delivery/extract-image-delivery';
 import type { IPageSpeedMeasurementWrite } from '@modules/pages/interfaces/page-speed.interface';
 import type { ILighthouseRecord } from '../extract-lighthouse/extract-lighthouse';
 import type {
@@ -25,6 +25,7 @@ import type {
 import { PsiClient } from '../psi-client/psi-client';
 import { PageSpeedRateLimiter } from '../rate-limiter/page-speed-rate-limiter';
 import { retryDelayMs } from '../retry-delay/retry-delay';
+import { speedIssuesOf } from '../speed-issues/speed-issues-of';
 
 /**
  * One claimed row from request to write (plan §9):
@@ -219,6 +220,7 @@ function completionOf(
     measurement: IExtractedMeasurement;
     diagnostics: IExtractedDiagnostics;
     lighthouse: ILighthouseRecord | null;
+    imageDelivery: IExtractedImageDelivery | null;
   },
   measuredAt: Date,
 ): TPageSpeedCompletion {
@@ -233,12 +235,19 @@ function completionOf(
         seoScore: null,
         accessibilityScore: null,
       },
-      speedFindings: cwvIssuesOf('desktop', outcome.measurement),
+      speedFindings: speedIssuesOf({
+        strategy: 'desktop',
+        measurement: outcome.measurement,
+      }),
     };
   return {
     strategy: 'mobile',
     measurement: toWrite(outcome, measuredAt),
-    speedFindings: cwvIssuesOf('mobile', outcome.measurement),
+    speedFindings: speedIssuesOf({
+      strategy: 'mobile',
+      measurement: outcome.measurement,
+      imageDelivery: outcome.imageDelivery,
+    }),
     lighthouseFindings: outcome.lighthouse?.findings ?? [],
   };
 }

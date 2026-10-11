@@ -89,4 +89,54 @@ describe('collapseOriginFindings', () => {
       'page',
     ]);
   });
+
+  /**
+   * D47: only a Core Web Vitals finding can be the site's. Image delivery is a lab estimate
+   * about one page's images and always stays at its page; a desktop CWV finding from the
+   * site's data folds into its own row, beside the mobile one.
+   */
+  it('keeps IMAGE_DELIVERY_INEFFICIENT at its page, and folds origin-sourced desktop CWV codes into one row each', () => {
+    const image = (id: number): IPageFinding => ({
+      issue: {
+        code: 'IMAGE_DELIVERY_INEFFICIENT',
+        severity: 'notice',
+        details: {
+          value: 200_000,
+          min: 102_400,
+          images: [
+            { url: 'https://a.example/hero.jpg', savingsBytes: 200_000 },
+          ],
+        },
+      },
+      page: page(id),
+      measuredAt: new Date('2026-10-09T12:00:00Z'),
+    });
+    const desktop = (id: number): IPageFinding => ({
+      issue: {
+        code: 'CWV_INP_NEEDS_IMPROVEMENT_DESKTOP',
+        severity: 'notice',
+        details: { value: 260, max: 200, source: 'origin' },
+      },
+      page: page(id),
+      measuredAt: new Date('2026-10-09T12:00:00Z'),
+    });
+
+    const rows = collapseOriginFindings([
+      image(1),
+      image(2),
+      desktop(1),
+      desktop(2),
+      speed(1, 'origin'),
+      speed(2, 'origin'),
+    ]);
+
+    expect(
+      rows.map(({ code, location }) => [code, location.kind]).sort(),
+    ).toEqual([
+      ['CWV_INP_NEEDS_IMPROVEMENT', 'allPages'],
+      ['CWV_INP_NEEDS_IMPROVEMENT_DESKTOP', 'allPages'],
+      ['IMAGE_DELIVERY_INEFFICIENT', 'page'],
+      ['IMAGE_DELIVERY_INEFFICIENT', 'page'],
+    ]);
+  });
 });

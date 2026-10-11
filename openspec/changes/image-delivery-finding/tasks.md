@@ -50,7 +50,7 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
 
 ## 2. The finding (5b) — SPEED-015
 
-- [ ] 2.1 Write first `be/src/modules/page-speed/services/extract-image-delivery/extract-image-delivery.spec.ts`,
+- [x] 2.1 Write first `be/src/modules/page-speed/services/extract-image-delivery/extract-image-delivery.spec.ts`,
   reading the two recorded files from disk:
   - "reads the failing audit's savings and images, largest first, at most 10";
   - "is null for an answer without the audit";
@@ -60,10 +60,14 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
 
   It fails: there is no module. Verify: `pnpm --filter be test:ci -- extract-image-delivery`
   fails.
-- [ ] 2.2 Write `extract-image-delivery.ts`: its own zod schema over exactly the paths 1.1 found.
+  Done: it failed on the missing module. A fifth case pins the passing audit as `{ failing: false,
+  savingsBytes: 0, images: [] }`.
+- [x] 2.2 Write `extract-image-delivery.ts`: its own zod schema over exactly the paths 1.1 found.
   `extract-measurement.ts` stays untouched (P8). Verify: `pnpm --filter be test:ci --
   extract-image-delivery extract-measurement`.
-- [ ] 2.3 Contracts (`packages/contracts/src/domain/`):
+  Done: its own schema over `image-delivery-insight` (`score`, `details.debugData.wastedBytes`,
+  `details.items[].url/wastedBytes`); `extract-measurement.ts` untouched.
+- [x] 2.3 Contracts (`packages/contracts/src/domain/`):
   - `page-speed/image-delivery-measurement.interface.ts` (new);
   - `seo/catalogue/page-speed/page-speed-catalogue.constant.ts`: the `IMAGE_DELIVERY_INEFFICIENT`
     entry, `strategy: 'mobile'`, severity notice, `min: 102_400`, `plain`, `hint`, an
@@ -78,7 +82,12 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
   are scored, the Core Web Vitals are not" adds "IMAGE_DELIVERY_INEFFICIENT is a pageSpeed code"
   (plan D50). `issue-plain-copy.test.ts` holds its copy to the limits. Verify:
   `pnpm --filter @app/contracts test:ci && pnpm typecheck`.
-- [ ] 2.4 Write first:
+  Done. The Lighthouse source is the audit's own "Learn more" link,
+  developer.chrome.com/docs/performance/insights/image-delivery (answered 200), beside About
+  PageSpeed Insights. "Names the device in every CWV label" now iterates the CWV leaves only,
+  because the image label is not a CWV label. `CWV_CODES` (the flattened leaves) joined
+  `cwv-issue-codes.constant.ts` so the report's fold and the frontend schema read one list.
+- [x] 2.4 Write first:
   - `be/src/modules/page-speed/services/speed-issues/speed-issues-of.spec.ts`: "raises
     IMAGE_DELIVERY_INEFFICIENT at 102 400 bytes, not 102 399"; "not for a passing audit with
     savings"; "keeps the CWV findings of cwvIssuesOf unchanged"; "the desktop overload returns
@@ -92,12 +101,16 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
   overloads, plan §10.11), `classifyPsiResponse` calling `extractImageDelivery` beside the other
   extractors (plan D46), and the executor calling `speedIssuesOf` in place of `cwvIssuesOf`.
   Verify: `pnpm --filter be test:ci -- src/modules/page-speed`.
-- [ ] 2.5 Write first in
+  Done: the specs failed on the missing module and on `imageDelivery` absent from the outcome.
+- [x] 2.5 Write first in
   `be/src/modules/issue-report/services/collapse-origin-findings/collapse-origin-findings.spec.ts`:
   "keeps IMAGE_DELIVERY_INEFFICIENT at its page, and folds origin-sourced desktop CWV codes into
   one row each". Then `isSpeed` becomes `isCwv` over `TCwvIssueCode`. Verify: `pnpm --filter be
   test:ci -- src/modules/issue-report`.
-- [ ] 2.6 Write first in `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts`: "parses an
+  Done. Honest note: the new case would have passed before the change, because image delivery
+  has no `source` and was never folded. The change is the type: `isCwv` narrows to
+  `TCwvSeoIssue`, and the `allPages` row no longer admits it.
+- [x] 2.6 Write first in `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts`: "parses an
   image-delivery finding; refuses one with 11 images". The existing loop at `:153` (every
   `PAGE_SPEED_ISSUE_CODES` parsed with CWV details) fails once the entry exists; rewrite it over
   `CWV_ISSUE_CODES`' leaves. Write first in `describeIssue.test.ts`: "says how many KiB and how
@@ -105,12 +118,22 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
   `IssueReportSchemas.ts`' `allPagesRowSchema` over `TCwvSeoIssue`, and the sentence. Verify:
   `pnpm --filter fe test:ci -- PageSchemas describeIssue IssueReport && pnpm --filter fe
   typecheck`.
-- [ ] 2.7 Check that a speed finding still never moves the score, with this code among them.
+  Done. The `:153` loop the plan named no longer exists in that form (it checks that
+  `pageCheckSchema` refuses speed codes, which still holds). Two more Records over every code
+  needed the entry: `checkTopics.ts` ("speed") and the Info guide (`groups/imageDelivery.ts`,
+  a new file, so as not to collide with another session's edits of the other groups).
+- [x] 2.7 Check that a speed finding still never moves the score, with this code among them.
   Verify: `pnpm --filter be test:db -- page-speed issue-report`, where "a speed finding counts
   among the issues and leaves the score and the order unchanged" has an image-delivery finding
   in its fixture.
-- [ ] 2.8 Commit: `feat(page-speed): images Lighthouse says could be 100 KiB lighter`. Verify:
+  Done. AMENDED during implementation: a new e2e case answers every mobile page with
+  `image-delivery-failing.json`. It finds the finding in the detail, the crawl's share of every
+  page's score unchanged, the score owned by crawl and Lighthouse only, and Lighthouse's failures
+  equal to its own `LH_*` findings. The existing "a speed finding counts …" case keeps its
+  CWV-only answer.
+- [x] 2.8 Commit: `feat(page-speed): images Lighthouse says could be 100 KiB lighter`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+  Done: contracts 794, be 1380, fe 446, db/e2e 226 green; lint and typecheck clean.
 
 ## 3. Field audit of the image finding (5c) — plan D12
 

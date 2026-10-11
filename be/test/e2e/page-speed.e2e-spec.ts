@@ -117,7 +117,10 @@ interface IListItem {
     value: number;
     applicable: number;
     failed: number;
-    byOwner: { lighthouse: { applicable: number; failed: number } | null };
+    byOwner: {
+      crawl: { applicable: number; failed: number };
+      lighthouse: { applicable: number; failed: number } | null;
+    };
   };
   issues: { total: number; notice: number; warning: number };
   pageSpeed: {
@@ -298,6 +301,53 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         expect(item.issues.total).toBe(before[i].issues.total + 4);
         expect(item.issues.notice).toBe(before[i].issues.notice + 4);
       });
+    });
+
+    /**
+     * D50: image delivery is a speed finding — among the issues, never in the score. The
+     * answer also carries Lighthouse's own verdicts, which do count; so the check is that
+     * the crawl's share is untouched, the score has no speed owner, and Lighthouse's
+     * failures are exactly its own findings.
+     */
+    it('an image-delivery finding counts among the issues and never in the score', async () => {
+      const [pageId] = await crawlYoast(s);
+      const before = await listOf(s);
+      await answerEveryPage(s.transport, 200, 'image-delivery-failing.json');
+
+      await drain(s.app);
+      const after = await listOf(s);
+
+      // Lighthouse's verdicts move the order, so pages are matched by id.
+      const crawlShare = (items: IListItem[]) =>
+        Object.fromEntries(
+          items.map(({ id, score }) => [id, score.byOwner.crawl]),
+        );
+      expect(crawlShare(after)).toEqual(crawlShare(before));
+      const detail = (
+        await request(s.app.getHttpServer())
+          .get(`/api/pages/${pageId}`)
+          .set('Cookie', s.cookie)
+          .expect(200)
+      ).body as {
+        issues: { code: string; details: unknown }[];
+        score: { byOwner: Record<string, { failed: number } | null> };
+      };
+      expect(Object.keys(detail.score.byOwner).sort()).toEqual([
+        'crawl',
+        'lighthouse',
+      ]);
+      expect(detail.score.byOwner.lighthouse?.failed).toBe(
+        detail.issues.filter(({ code }) => code.startsWith('LH_')).length,
+      );
+      expect(detail.issues).toContainEqual(
+        expect.objectContaining({
+          code: 'IMAGE_DELIVERY_INEFFICIENT',
+          details: expect.objectContaining({
+            value: 162_175,
+            min: 102_400,
+          }) as unknown,
+        }),
+      );
     });
 
     /**

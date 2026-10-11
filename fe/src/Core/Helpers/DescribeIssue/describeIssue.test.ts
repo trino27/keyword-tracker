@@ -48,6 +48,19 @@ describe("describeIssue", () => {
 		).toBe("LCP on desktop is 2.9 s for this page's real visitors; good is 2.5 s or less.");
 	});
 
+	it("says how many KiB and how many images", () => {
+		expect(
+			describeIssue("IMAGE_DELIVERY_INEFFICIENT", {
+				value: 162_175,
+				min: 102_400,
+				images: Array.from({ length: 8 }, (_, i) => ({
+					url: `https://a.example/${i}.jpg`,
+					savingsBytes: 20_000,
+				})),
+			}),
+		).toBe("Images could be about 158 KiB smaller (Lighthouse, mobile); 8 images listed.");
+	});
+
 	it("tells a data-nosnippet wrapper from a robots rule", () => {
 		expect(
 			describeIssue("SNIPPET_RESTRICTED", { source: "markup", rule: "data-nosnippet" }),

@@ -194,6 +194,21 @@ describe('classifyPsiResponse', () => {
     });
   });
 
+  /** D46: image delivery rides on the measurement, and its absence costs nothing. */
+  it('an answer without the image audit is still measured', () => {
+    expect(classify(answer(200, 'url-field.json'))).toMatchObject({
+      kind: 'measured',
+      imageDelivery: null,
+    });
+  });
+
+  it('carries the image delivery of a failing answer', () => {
+    expect(classify(answer(200, 'image-delivery-failing.json'))).toMatchObject({
+      kind: 'measured',
+      imageDelivery: { failing: true, savingsBytes: 162_175 },
+    });
+  });
+
   it('a 200 with nothing to measure says so', () => {
     expect(classify(raw(200, '{"loadingExperience":{}}'))).toEqual({
       kind: 'permanent',

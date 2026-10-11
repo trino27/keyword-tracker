@@ -10,6 +10,7 @@ import type { ISeoMeasurement } from './seo-measurement.interface.js';
 import type { TSeoIssueSeverity } from './seo-issue-severity.enum.js';
 import type { TCwvIssueCode } from '../page-speed/cwv-issue-codes.constant.js';
 import type { ICwvMeasurement } from '../page-speed/cwv-measurement.interface.js';
+import type { IImageDeliveryMeasurement } from '../page-speed/image-delivery-measurement.interface.js';
 import type { TPsiStrategy } from '../page-speed/psi-strategy.enum.js';
 
 /**
@@ -19,9 +20,11 @@ import type { TPsiStrategy } from '../page-speed/psi-strategy.enum.js';
 export type TIssueDetails<TCode extends TSeoIssueCode> =
   TCode extends TCwvIssueCode
     ? ICwvMeasurement
-    : TCode extends TMeasuredIssueCode
-      ? ISeoMeasurement
-      : Record<string, unknown>;
+    : TCode extends 'IMAGE_DELIVERY_INEFFICIENT'
+      ? IImageDeliveryMeasurement
+      : TCode extends TMeasuredIssueCode
+        ? ISeoMeasurement
+        : Record<string, unknown>;
 
 type TIssueOver<TCodes extends TSeoIssueCode> = {
   [K in TCodes]: {

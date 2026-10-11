@@ -89,6 +89,27 @@ describe("seoIssueSchema", () => {
 	});
 });
 
+describe("the image-delivery finding", () => {
+	const finding = (images: number) => ({
+		code: "IMAGE_DELIVERY_INEFFICIENT",
+		severity: "notice",
+		details: {
+			value: 162_175,
+			min: 102_400,
+			images: Array.from({ length: images }, (_, i) => ({
+				url: `https://a.example/${i}.jpg`,
+				savingsBytes: 20_000 - i,
+			})),
+		},
+	});
+
+	/** At most ten images travel with it; more is contract drift, not a longer list. */
+	it("parses an image-delivery finding; refuses one with 11 images", () => {
+		expect(seoIssueSchema.parse(finding(8)).details).toEqual(finding(8).details);
+		expect(seoIssueSchema.safeParse(finding(11)).success).toBe(false);
+	});
+});
+
 describe("the PageSpeed summary", () => {
 	const SUMMARY = {
 		status: "done",

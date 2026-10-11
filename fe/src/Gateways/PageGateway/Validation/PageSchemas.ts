@@ -10,7 +10,7 @@ import {
 	PAGE_SPEED_ERROR_CODES,
 	PAGE_SPEED_STATUSES,
 	MEASURED_ISSUE_CODES,
-	PAGE_SPEED_ISSUE_CODES,
+	CWV_CODES,
 	SEO_ISSUE_SEVERITIES,
 	type IBestPosition,
 	type IKeywordPosition,
@@ -29,7 +29,8 @@ import {
 	type TLighthouseIssueCode,
 	type TPageSpeedErrorCode,
 	type TMeasuredIssueCode,
-	type TPageSpeedSeoIssue as TContractPageSpeedSeoIssue,
+	type IImageDeliveryMeasurement,
+	type TCwvSeoIssue,
 	type TPsiStrategy,
 	type TSeoIssue as TContractSeoIssue,
 } from "@app/contracts";
@@ -182,13 +183,25 @@ const plainDetailsSchema = z.record(z.string(), z.unknown());
 const isMeasured = (code: TCrawlIssueCode): code is TMeasuredIssueCode =>
 	(MEASURED_ISSUE_CODES as readonly TCrawlIssueCode[]).includes(code);
 
-const speedVariants = PAGE_SPEED_ISSUE_CODES.map((code) =>
+const speedVariants = CWV_CODES.map((code) =>
 	z.object({
 		code: z.literal(code),
 		severity: z.enum(SEO_ISSUE_SEVERITIES),
 		details: cwvMeasurementSchema,
 	}),
 );
+
+/** Lighthouse's estimate of the bytes the page's images could lose, and up to ten of them. */
+const imageDeliverySchema = measurementSchema.extend({
+	min: z.number(),
+	images: z.array(z.object({ url: z.string(), savingsBytes: z.number() })).max(10),
+}) satisfies z.ZodType<IImageDeliveryMeasurement>;
+
+const imageDeliveryVariant = z.object({
+	code: z.literal("IMAGE_DELIVERY_INEFFICIENT"),
+	severity: z.enum(SEO_ISSUE_SEVERITIES),
+	details: imageDeliverySchema,
+});
 
 const measuredVariants = MEASURED_ISSUE_CODES.map((code) =>
 	z.object({
@@ -248,22 +261,27 @@ const lighthouseVariants = LIGHTHOUSE_ISSUE_CODES.map((code) =>
 type TIssueVariant =
 	| (typeof measuredVariants)[number]
 	| (typeof speedVariants)[number]
+	| typeof imageDeliveryVariant
 	| (typeof plainVariants)[number]
 	| (typeof lighthouseVariants)[number];
 
 export const seoIssueSchema = z.discriminatedUnion("code", [
 	...measuredVariants,
 	...speedVariants,
+	imageDeliveryVariant,
 	...plainVariants,
 	...lighthouseVariants,
 ] as [TIssueVariant, ...TIssueVariant[]]) satisfies z.ZodType<TContractSeoIssue>;
 
-/** A speed finding alone — what a report's whole-site row is. */
+/**
+ * A Core Web Vitals finding alone — what a report's whole-site row is. Image delivery is a
+ * speed finding too, but a lab estimate about one page, and never a whole-site row.
+ */
 type TSpeedVariant = (typeof speedVariants)[number];
 export const pageSpeedIssueSchema = z.discriminatedUnion(
 	"code",
 	speedVariants as [TSpeedVariant, ...TSpeedVariant[]],
-) satisfies z.ZodType<TContractPageSpeedSeoIssue>;
+) satisfies z.ZodType<TCwvSeoIssue>;
 
 /** The detail's issues carry the spread; the list's issue counts carry a total instead. */
 export const detailIssueSchema = z.intersection(

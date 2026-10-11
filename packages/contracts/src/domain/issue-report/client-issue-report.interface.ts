@@ -1,8 +1,5 @@
 import type { IPageSpeedAvailability } from '../page-speed/page-speed-availability.interface.js';
-import type {
-  TPageSpeedSeoIssue,
-  TSeoIssue,
-} from '../seo/seo-issue.interface.js';
+import type { TCwvSeoIssue, TSeoIssue } from '../seo/seo-issue.interface.js';
 import type { TSeoIssueSeverity } from '../seo/seo-issue-severity.enum.js';
 import type { TSiteCheckCode } from '../site/site-check-catalogue.constant.js';
 
@@ -34,7 +31,9 @@ export type TReportLocation = IPageLocation | IAllPagesLocation | ISiteLocation;
  */
 export type TReportIssue =
   | (TSeoIssue & { location: IPageLocation })
-  | (TPageSpeedSeoIssue & { location: IAllPagesLocation })
+  // Only a Core Web Vitals finding can be the whole site's: it alone may come from the
+  // site's data. Image delivery is a lab estimate about one page, always shown at it.
+  | (TCwvSeoIssue & { location: IAllPagesLocation })
   | {
       code: TSiteCheckCode;
       severity: TSeoIssueSeverity;

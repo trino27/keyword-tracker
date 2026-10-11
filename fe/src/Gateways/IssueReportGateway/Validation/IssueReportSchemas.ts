@@ -5,7 +5,7 @@ import {
 	type IAllPagesLocation,
 	type IClientIssueReport,
 	type IPageLocation,
-	type TPageSpeedSeoIssue,
+	type TCwvSeoIssue,
 	type TReportIssue as TContractReportIssue,
 	type TSeoIssue,
 	type TSiteCheckCode,
@@ -38,7 +38,7 @@ const pageRowSchema = z.intersection(
 const allPagesRowSchema = z.intersection(
 	pageSpeedIssueSchema,
 	z.object({ location: allPagesLocationSchema }),
-) satisfies z.ZodType<TPageSpeedSeoIssue & { location: IAllPagesLocation }>;
+) satisfies z.ZodType<TCwvSeoIssue & { location: IAllPagesLocation }>;
 
 const siteRowSchema = z.object({
 	code: z.enum(SITE_CHECK_CODES as [TSiteCheckCode, ...TSiteCheckCode[]]),

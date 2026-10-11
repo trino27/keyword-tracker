@@ -57,3 +57,11 @@ export type TCwvIssueCode = {
     >];
   }[TCwvMetric];
 }[TPsiStrategy];
+
+/**
+ * Every Core Web Vitals code of either device, in strategy, metric and band order — the
+ * leaves above, flattened once so no reader rebuilds them.
+ */
+export const CWV_CODES = Object.values(CWV_ISSUE_CODES).flatMap((byMetric) =>
+  Object.values(byMetric).flatMap((byBand) => Object.values(byBand)),
+) as readonly TCwvIssueCode[];

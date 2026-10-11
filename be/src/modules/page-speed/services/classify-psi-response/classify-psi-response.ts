@@ -3,6 +3,10 @@ import type { TPageSpeedErrorCode } from '@app/contracts';
 import { RemoteApiError } from '@infrastructure/remote-api/remote-api.errors';
 import { PAGE_SPEED_DEFAULT_PAUSE_MS } from '../../constants/page-speed-worker.constant';
 import {
+  extractImageDelivery,
+  type IExtractedImageDelivery,
+} from '../extract-image-delivery/extract-image-delivery';
+import {
   extractLighthouse,
   type ILighthouseRecord,
 } from '../extract-lighthouse/extract-lighthouse';
@@ -22,6 +26,11 @@ export type TPsiOutcome =
       diagnostics: IExtractedDiagnostics;
       /** Null when the answer has neither Lighthouse category (D20). */
       lighthouse: ILighthouseRecord | null;
+      /**
+       * Lighthouse's image-delivery audit; null when the answer has none or it does not
+       * parse. Never a condition of `measured` (plan D46).
+       */
+      imageDelivery: IExtractedImageDelivery | null;
     }
   /** Google did not answer usefully this time: try the page again later. */
   | { kind: 'transient'; error: 'PSI_UNAVAILABLE' }
@@ -172,6 +181,7 @@ export function classifyPsiResponse(
         measurement,
         diagnostics,
         lighthouse: extractLighthouse(json),
+        imageDelivery: extractImageDelivery(json),
       };
     if (lighthouseCode)
       return (

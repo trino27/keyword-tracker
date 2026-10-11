@@ -82,7 +82,7 @@ describe('the catalogue split by owner', () => {
     expect(overlap).toEqual([]);
   });
 
-  it('gives the PageSpeed worker exactly the twelve Core Web Vitals codes, six per strategy', () => {
+  it('gives the PageSpeed worker exactly the twelve Core Web Vitals codes, six per strategy, and image delivery', () => {
     expect([...PAGE_SPEED_ISSUE_CODES].sort()).toEqual([
       'CWV_CLS_NEEDS_IMPROVEMENT',
       'CWV_CLS_NEEDS_IMPROVEMENT_DESKTOP',
@@ -96,6 +96,7 @@ describe('the catalogue split by owner', () => {
       'CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP',
       'CWV_LCP_POOR',
       'CWV_LCP_POOR_DESKTOP',
+      'IMAGE_DELIVERY_INEFFICIENT',
     ]);
   });
 
@@ -103,13 +104,14 @@ describe('the catalogue split by owner', () => {
    * Each strategy's replace deletes its own codes only, so a speed code in both lists would
    * be erased by the other device's measurement, and one in neither would never be cleared.
    */
-  it('splits the speed codes by strategy: six CWV codes each', () => {
+  it("splits the speed codes by strategy: six CWV codes each, and image delivery is mobile's", () => {
     for (const strategy of PSI_STRATEGIES) {
       const leaves = CWV_METRICS.flatMap((metric) =>
         Object.values(CWV_ISSUE_CODES[strategy][metric]),
       );
+      const extra = strategy === 'mobile' ? ['IMAGE_DELIVERY_INEFFICIENT'] : [];
       expect([...PAGE_SPEED_CODES_BY_STRATEGY[strategy]].sort()).toEqual(
-        [...leaves].sort(),
+        [...leaves, ...extra].sort(),
       );
       for (const code of PAGE_SPEED_CODES_BY_STRATEGY[strategy])
         expect({ code, strategy: SEO_ISSUE_CATALOGUE[code].strategy }).toEqual({
@@ -168,10 +170,29 @@ describe('the catalogue split by owner', () => {
   /** D48: two codes of one metric must not read as one name where a label stands alone. */
   it('names the device in every CWV label', () => {
     for (const strategy of PSI_STRATEGIES)
-      for (const code of PAGE_SPEED_CODES_BY_STRATEGY[strategy])
-        expect(SEO_ISSUE_CATALOGUE[code].label).toMatch(
-          new RegExp(` on ${strategy}$`),
-        );
+      for (const metric of CWV_METRICS)
+        for (const code of Object.values(CWV_ISSUE_CODES[strategy][metric]))
+          expect(SEO_ISSUE_CATALOGUE[code].label).toMatch(
+            new RegExp(` on ${strategy}$`),
+          );
+  });
+
+  /**
+   * D50: Lighthouse computes it, but it is a speed opportunity, not a check — so it sits
+   * with the Core Web Vitals, unscored, and its bar is the catalogue's own `min`.
+   */
+  it('IMAGE_DELIVERY_INEFFICIENT is a pageSpeed code: unscored, mobile, an Improvement at 100 KiB', () => {
+    expect(SEO_ISSUE_CATALOGUE.IMAGE_DELIVERY_INEFFICIENT).toMatchObject({
+      owner: 'pageSpeed',
+      strategy: 'mobile',
+      severity: 'notice',
+      min: 102_400,
+    });
+    expect(
+      (LIGHTHOUSE_ISSUE_CODES as string[]).includes(
+        'IMAGE_DELIVERY_INEFFICIENT',
+      ),
+    ).toBe(false);
   });
 });
 

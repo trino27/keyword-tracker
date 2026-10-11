@@ -271,6 +271,11 @@ const DESCRIBE: Record<
 	CWV_INP_POOR_DESKTOP: (d) => speed("desktop", "inp", "poor", d),
 	CWV_CLS_NEEDS_IMPROVEMENT_DESKTOP: (d) => speed("desktop", "cls", "needsImprovement", d),
 	CWV_CLS_POOR_DESKTOP: (d) => speed("desktop", "cls", "poor", d),
+	IMAGE_DELIVERY_INEFFICIENT: (d) => {
+		const kib = typeof d.value === "number" ? Math.round(d.value / 1024) : "?";
+		const images = Array.isArray(d.images) ? d.images.length : 0;
+		return `Images could be about ${kib} KiB smaller (Lighthouse, mobile); ${images} ${images === 1 ? "image" : "images"} listed.`;
+	},
 };
 
 const isLighthouse = (code: TSeoIssueCode): code is TLighthouseIssueCode =>

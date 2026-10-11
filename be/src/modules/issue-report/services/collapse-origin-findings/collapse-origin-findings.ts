@@ -1,6 +1,6 @@
 import {
-  PAGE_SPEED_ISSUE_CODES,
-  type TPageSpeedSeoIssue,
+  CWV_CODES,
+  type TCwvSeoIssue,
   type TReportIssue,
   type TSeoIssue,
 } from '@app/contracts';
@@ -8,11 +8,16 @@ import type { IPageFinding } from '../../interfaces/page-finding.interface';
 
 export type { IPageFinding };
 
-const isSpeed = (issue: TSeoIssue): issue is TPageSpeedSeoIssue =>
-  (PAGE_SPEED_ISSUE_CODES as readonly string[]).includes(issue.code);
+const CWV = new Set<string>(CWV_CODES);
 
 /**
- * Page findings as report rows, with every speed finding whose value is the WHOLE SITE's
+ * A Core Web Vitals finding: the only kind whose value may be the site's. Image delivery
+ * is a speed finding too, but a lab estimate about one page, and stays at it (plan D47).
+ */
+const isCwv = (issue: TSeoIssue): issue is TCwvSeoIssue => CWV.has(issue.code);
+
+/**
+ * Page findings as report rows, with every Core Web Vitals finding whose value is the WHOLE SITE's
  * folded into one row per code (plan D8): "INP needs improvement — whole site (15 pages)"
  * once, rather than the same sentence on fifteen pages. The row keeps the details of the
  * most recently measured page in the group. URL- and lab-sourced findings stay per page,
@@ -26,7 +31,7 @@ export function collapseOriginFindings(
 
   for (const finding of findings) {
     const { issue } = finding;
-    if (isSpeed(issue) && issue.details.source === 'origin') {
+    if (isCwv(issue) && issue.details.source === 'origin') {
       const group = origin.get(issue.code) ?? [];
       group.push(finding);
       origin.set(issue.code, group);
@@ -42,7 +47,7 @@ export function collapseOriginFindings(
         b.page.id - a.page.id,
     )[0];
     rows.push({
-      ...(latest.issue as TPageSpeedSeoIssue),
+      ...(latest.issue as TCwvSeoIssue),
       location: { kind: 'allPages', pageCount: group.length },
     });
   }

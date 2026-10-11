@@ -3,7 +3,7 @@ import { ISSUE_SOURCES as SOURCE } from '../crawl/crawl-catalogue.constant.js';
 import type { IPageSpeedIssueDefinition } from '../issue-definition.interface.js';
 
 /**
- * The Core Web Vitals findings the PageSpeed worker writes: one code per device, metric and
+ * The findings the PageSpeed worker writes. The Core Web Vitals findings: one code per device, metric and
  * band outside good, each bounded by the threshold its band begins above. A desktop code
  * has its mobile twin's severity, bound and sources; its copy speaks of computers. They
  * count among a page's issues and never in its score.
@@ -188,5 +188,26 @@ export const PAGE_SPEED_CATALOGUE = {
       "Cumulative Layout Shift (CLS) scores how much visible content jumps around while the page is open. More than 0.25 at the 75th percentile of desktop visits is Google's poor band. The usual causes are images and embeds without width and height, ads and banners injected above the content, and web fonts that reflow the text. The value comes from PageSpeed Insights — real visitors to this page, to the whole site, or one lab test. Google weighs page experience after relevance, so the main cost is readers who click the wrong thing or lose their place.",
     sources: [SOURCE.cls, SOURCE.pageSpeedInsights, SOURCE.pageExperience],
     max: CWV_THRESHOLDS.cls.poor,
+  },
+  IMAGE_DELIVERY_INEFFICIENT: {
+    strategy: 'mobile',
+    severity: 'notice',
+    label: 'Images could be much lighter',
+    plain: {
+      what: 'The page sends images far heavier than it needs to',
+      why: "Google's Lighthouse test on a phone estimates the page's images could be at least 100 KB smaller. Heavy images slow the page for visitors on mobile data, and the biggest image often decides how fast the page appears.",
+      fix: 'Ask your developer to serve the listed images resized to the space they fill, compressed, and in a modern format such as WebP or AVIF.',
+    },
+    hint: 'Serve the listed images at the size they are shown, compressed, in WebP or AVIF.',
+    explanation:
+      "Lighthouse's \"Improve image delivery\" audit, run by PageSpeed Insights in its mobile lab test, estimates how many bytes the page's images could lose by being compressed better, served in a modern format such as WebP or AVIF, or sized to the space they fill on the screen. The finding appears when the audit fails and its estimate reaches 100 KiB; it lists up to ten images, the largest saving first. It is a lab estimate from one test on a simulated phone, not a measurement of real visitors, and like every speed finding it never moves the SEO score. Lighter images matter most when one of them is the page's largest element, because then they set its Largest Contentful Paint.",
+    sources: [
+      {
+        title: 'Chrome for Developers: Improve image delivery',
+        url: 'https://developer.chrome.com/docs/performance/insights/image-delivery',
+      },
+      SOURCE.pageSpeedInsights,
+    ],
+    min: 102_400,
   },
 } as const satisfies Record<string, IPageSpeedIssueDefinition>;
