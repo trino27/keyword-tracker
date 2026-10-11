@@ -35,6 +35,11 @@ export interface ISelectedItem {
   status: TCrawlItemStatus;
   reason: string | null;
   httpStatus: number | null;
+  /**
+   * Skipped because its content is drawn by JavaScript: the HTML is an empty shell. A
+   * structured fact, so the site check counts the flag and never parses `reason`.
+   */
+  clientRendered: boolean;
   page: ICrawledPage | null;
 }
 

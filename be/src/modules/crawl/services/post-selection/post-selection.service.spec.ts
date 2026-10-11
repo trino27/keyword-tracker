@@ -264,6 +264,7 @@ describe('PostSelectionService', () => {
     expect(items[0]).toMatchObject({
       status: 'skipped_listing',
       reason: 'Too little content to analyse (4 words)',
+      clientRendered: false,
     });
   });
 
@@ -280,10 +281,13 @@ describe('PostSelectionService', () => {
       },
     });
 
-    const { items } = await select([`${ORIGIN}/posts/spa/`]);
+    const { items, pages } = await select([`${ORIGIN}/posts/spa/`]);
 
+    // Still a skip and no page; the flag is what the site check counts (plan D8).
+    expect(pages).toHaveLength(0);
     expect(items[0]).toMatchObject({
       status: 'skipped_listing',
+      clientRendered: true,
       reason: expect.stringMatching(
         /^Rendered by JavaScript: the HTML itself holds \d+ words/,
       ),

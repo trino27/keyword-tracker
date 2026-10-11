@@ -64,7 +64,13 @@ const skip = (
   status: ISelectedItem['status'],
   reason: string,
   httpStatus: number | null = null,
-): TItemWithoutPosition => ({ status, reason, httpStatus, page: null });
+): TItemWithoutPosition => ({
+  status,
+  reason,
+  httpStatus,
+  clientRendered: false,
+  page: null,
+});
 
 /**
  * "The first 15 posts in sitemap order" (§10.2): entries are considered position by
@@ -184,19 +190,23 @@ export class PostSelectionService {
     // Last, because it needs the parse: a page with nothing to read is not a post,
     // whatever its markup claims about itself.
     if (parsed.wordCount < MIN_POST_WORD_COUNT)
-      return skip(
-        'skipped_listing',
-        parsed.clientRendered
-          ? `Rendered by JavaScript: the HTML itself holds ${parsed.wordCount} words, ` +
-              'which is all a crawler that runs no scripts will ever read'
-          : `Too little content to analyse (${parsed.wordCount} words)`,
-        response.status,
-      );
+      return {
+        ...skip(
+          'skipped_listing',
+          parsed.clientRendered
+            ? `Rendered by JavaScript: the HTML itself holds ${parsed.wordCount} words, ` +
+                'which is all a crawler that runs no scripts will ever read'
+            : `Too little content to analyse (${parsed.wordCount} words)`,
+          response.status,
+        ),
+        clientRendered: parsed.clientRendered,
+      };
 
     return {
       status: 'crawled',
       reason: null,
       httpStatus: response.status,
+      clientRendered: false,
       page: {
         sitemapPosition,
         url,

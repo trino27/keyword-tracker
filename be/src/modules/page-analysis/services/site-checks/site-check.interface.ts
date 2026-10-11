@@ -40,6 +40,8 @@ export interface IFetchedEntry {
   status: TCrawlItemStatus;
   httpStatus: number | null;
   reason: string | null;
+  /** Skipped as an empty shell whose content JavaScript draws (plan D8). */
+  clientRendered: boolean;
   /** The crawled page's findings, by code, when the entry became a page. */
   page: {
     finalUrl: string;

@@ -3,6 +3,7 @@ import {
   SITE_CHECK_CODES,
   type ISiteCheckResult,
 } from '@app/contracts';
+import { contentNeedsJavascript } from './content-checks';
 import {
   faviconInvalid,
   siteNameInconsistent,
@@ -42,6 +43,7 @@ export const SITE_CHECKS: TSiteCheckRegistry = {
   FAVICON_INVALID: faviconInvalid,
   SITE_NAME_NOT_DECLARED: siteNameNotDeclared,
   SITE_NAME_INCONSISTENT: siteNameInconsistent,
+  CONTENT_NEEDS_JAVASCRIPT: contentNeedsJavascript,
 };
 
 /**

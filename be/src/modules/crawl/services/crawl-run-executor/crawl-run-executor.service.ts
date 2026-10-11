@@ -267,6 +267,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
         status: item.status,
         httpStatus: item.httpStatus,
         reason: item.reason,
+        clientRendered: item.clientRendered,
         page: item.page
           ? {
               finalUrl: item.page.finalUrl,

@@ -51,6 +51,7 @@ const crawledItem = (position: number): ISelectedItem => {
     status: 'crawled',
     reason: null,
     httpStatus: 200,
+    clientRendered: false,
     page,
   };
 };
@@ -174,6 +175,7 @@ describe('outcomeOf', () => {
     status: 'failed',
     reason,
     httpStatus,
+    clientRendered: false,
     page: null,
   });
 

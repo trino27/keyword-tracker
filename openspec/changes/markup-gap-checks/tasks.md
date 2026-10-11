@@ -175,7 +175,7 @@ Each code gets one commit containing:
 
 ## 5. Posts that need JavaScript, said once per site (1e) — ANALYSIS-021
 
-- [ ] 5.1 Write first:
+- [x] 5.1 Write first:
   - `be/src/modules/crawl/services/post-selection/post-selection.service.spec.ts` → "a
     client-rendered post stays skipped_listing, is no page, and carries clientRendered";
   - `be/src/modules/page-analysis/services/site-checks/site-checks.registry.spec.ts` → "reports
@@ -184,7 +184,7 @@ Each code gets one commit containing:
 
   They fail: no field. Verify: `pnpm --filter be test:ci -- post-selection site-checks` fails on
   those.
-- [ ] 5.2 Changes:
+- [x] 5.2 Changes:
   - `ISelectedItem.clientRendered: boolean` (`crawled-page.interface.ts`), set `true` only at the
     client-rendered skip (`post-selection.service.ts:186-194`, reason text unchanged) and `false`
     everywhere else;
@@ -196,9 +196,9 @@ Each code gets one commit containing:
 
   Verify: `pnpm --filter be test:ci -- src/modules/crawl src/modules/page-analysis &&
   pnpm --filter @app/contracts test:ci`.
-- [ ] 5.3 Check that the run log and the skip reasons are unchanged. Verify: `pnpm --filter be
+- [x] 5.3 Check that the run log and the skip reasons are unchanged. Verify: `pnpm --filter be
   test:db -- crawl`.
-- [ ] 5.4 Commit: `feat(site-checks): posts that render their content with JavaScript`. Verify:
+- [x] 5.4 Commit: `feat(site-checks): posts that render their content with JavaScript`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
 
 ## 5a. The sitemap keeps naming canonical contradictions (1g) — ANALYSIS-023
