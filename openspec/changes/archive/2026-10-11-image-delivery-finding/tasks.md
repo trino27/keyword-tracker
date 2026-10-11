@@ -137,28 +137,35 @@ belongs to plan phase 6. Groups 1–3 are the plan's sub-phases 5a–5c.
 
 ## 3. Field audit of the image finding (5c) — plan D12
 
-- [ ] 3.1 On the stack with a key, re-crawl the audit sites, or a subset with images. Verify:
+- [x] 3.1 On the stack with a key, re-crawl the audit sites, or a subset with images. Verify:
   `docker compose exec postgres psql -U tracker -d seo_tracker -c "select p.final_url,
   i.details_json from seo_issues i join pages p on p.id = i.page_id where i.code =
   'IMAGE_DELIVERY_INEFFICIENT'"` prints every firing.
-- [ ] 3.2 Compare each firing with pagespeed.web.dev's "Improve image delivery" on Mobile for the
+  Done 2026-10-11 on the stack at f0a44f7 (with 4664d77): another session re-crawled nine
+  clients and re-queued their mobile rows. 104 mobile measurements, 32 firings.
+- [x] 3.2 Compare each firing with pagespeed.web.dev's "Improve image delivery" on Mobile for the
   same URL, and judge it. For each wrong firing, write first a failing spec from that answer, then
   the fix. If the code cannot be made exact, retire it by removing the image arm from
   `speedIssuesOf` and keeping the entry, the details type and the schema variant, so stored
   findings still parse. `enabled: false` retires crawl codes only (`ACTIVE_ISSUE_CODES`,
   `issue-catalogues.constant.ts:168-170`). Verify: `pnpm --filter be test:ci -- speed-issues
   extract-image-delivery`.
-- [ ] 3.3 Record the tally under "Field audit of the Ahrefs-gap checks" in
+  Done: each firing was compared with a fresh PSI mobile answer for the same URL. 32 / 0 wrong:
+  31 with identical savings, one 438 781 → 377 418 bytes, still over the bar. No fix needed.
+- [x] 3.3 Record the tally under "Field audit of the Ahrefs-gap checks" in
   `be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`. Record the live audit id, the failing
   rule, "absence is no error" and why the code is pageSpeed's and not Lighthouse's in
   `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. Commit: `docs(page-speed): image delivery,
   audited against PageSpeed's own report`. Verify: `git grep -n "IMAGE_DELIVERY_INEFFICIENT" --
   be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md be/src/modules/page-speed/PAGE_SPEED_MODULE.md`.
+  Done: ad100a7, plus the PAGE_SPEED_MODULE facts in the same commit.
 
 ## 4. Change acceptance
 
-- [ ] 4.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db && docker compose up
+- [x] 4.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db && docker compose up
   -d --build && curl -fsS http://localhost:8080/api/health`.
+  Done: the full run at 4664d77 (contracts 794, be 1380, fe 446, db/e2e 226, lint and
+  typecheck clean); later commits are docs only. The stack runs it and answers health.
 - [ ] 4.2 Archive and deposit belong to plan phase 6. Deposit SPEED-015 into
   `PAGE_SPEED_MODULE.md`. Verify: `pnpm exec openspec validate --specs && git grep -n "invariant:
   SPEED-015" -- '*.md'`.
