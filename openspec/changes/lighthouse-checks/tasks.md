@@ -192,7 +192,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 4. Storage — SPEED-017, SPEED-018, SPEED-019
 
-- [ ] 4.1 Write first in `be/src/modules/pages/repositories/page-speed/page-speed.repository.int-spec.ts`:
+- [x] 4.1 Write first in `be/src/modules/pages/repositories/page-speed/page-speed.repository.int-spec.ts`:
   - "refuses Lighthouse lists set one without the other";
   - "refuses a code in both Lighthouse lists";
   - "refuses a failed count above the judged list's size";
@@ -202,7 +202,25 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   - "a measurement without the new columns is still accepted".
 
   They fail: there are no columns. Verify: `pnpm --filter be test:db -- page-speed` fails on them.
-- [ ] 4.2 Edit `be/src/persistence/schema/tables/page-speed/page-speed.schema.ts`:
+
+  AMENDED during implementation:
+  - **No red run.** The cases were written before the schema, but they were not run red
+    separately: the int-spec cannot compile against columns that do not exist, so the
+    failure is a type error, not the constraint.
+  - **More cases than listed.** Each of the 13 refusal cases names the constraint it must
+    trip:
+    - lists set apart, overlapping or duplicated;
+    - a failed count above the list;
+    - verdicts without a measurement;
+    - an SEO score over 100;
+    - TTFB without its source, or with `lab` as its source;
+    - shares over 1, a share without its pair, shares on a lab metric or an absent one.
+
+    Plus "accepts a whole measurement with every new part, and one without any".
+  - **A found hole.** `null in ('url','origin')` is null, and a CHECK passes null. So the
+    "field only" check coalesces it to false; without that, "shares on an absent TTFB" was
+    accepted.
+- [x] 4.2 Edit `be/src/persistence/schema/tables/page-speed/page-speed.schema.ts`:
   - columns, all nullable:
     - `lighthouse_judged`, `lighthouse_not_applicable`, `lighthouse_failed`;
     - `seo_score`, `accessibility_score`;
@@ -216,7 +234,19 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   If `desktop-core-web-vitals` landed first, its migrations come before this one and its
   `strategy` CHECK is added here (D16). Verify: the SQL reads as stated, and
   `pnpm --filter be test:db -- page-speed` passes.
-- [ ] 4.3 Commit: `feat(db): page_speed stores Lighthouse verdicts, field TTFB, visit shares and
+
+  Done: `be/drizzle/0015_modern_wrecker.sql` was read, and holds 16 `ADD COLUMN` and 12
+  `ADD CONSTRAINT` and nothing else. `page-speed.repository` int-spec: 39 passed. Migrated
+  into this worktree's own databases (`seo_tracker_lighthouse`, `_test`), so agents on other
+  branches are not affected. The `ILcpBreakdown` type and `LCP_PHASES` were added to
+  contracts here for the column's `$type`.
+
+  AMENDED during implementation: the design said the breakdown's zod schema lives in
+  `@app/contracts`. Contracts has no zod dependency, and the repository mirrors wire shapes
+  as zod on each side instead (`skills/be-canonical-fe-mirror`). So the TYPE lives in
+  contracts, and each side writes its own schema against it: the backend extractor, and the
+  frontend gateway.
+- [x] 4.3 Commit: `feat(db): page_speed stores Lighthouse verdicts, field TTFB, visit shares and
   the LCP breakdown`.
 
 ## 5. The worker reads and writes it — SPEED-016, SPEED-017, SPEED-018, SPEED-019
