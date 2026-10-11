@@ -1,4 +1,10 @@
-import type { TSeoIssueCode, TSiteCheckCode } from "@app/contracts";
+import {
+	LIGHTHOUSE_ISSUE_CODES,
+	SEO_ISSUE_CATALOGUE,
+	type TLighthouseIssueCode,
+	type TSeoIssueCode,
+	type TSiteCheckCode,
+} from "@app/contracts";
 
 /** Every code the guide explains: a page check, a speed finding or a site check. */
 export type TGuideCode = TSeoIssueCode | TSiteCheckCode;
@@ -113,34 +119,117 @@ export const CHECK_TOPICS = [
 
 export type TCheckTopicId = (typeof CHECK_TOPICS)[number]["id"];
 
-/** A snippet of what the check wants to see, as it appears in the page, a header or a file. */
-export interface ICheckExample {
-	/** What the markup, header or file looks like when the check passes. */
-	good: string;
-	/** What it looks like when the check fails, where showing it teaches something. */
-	bad?: string;
-	/** How the snippet reads: page markup, an HTTP exchange, robots.txt, JSON-LD, a sitemap, or prose. */
-	lang: "html" | "http" | "robots" | "json" | "xml" | "text";
-}
+/**
+ * The chapter every code belongs to — the one grouping the Info guide and the page's checks
+ * both use, so the two screens never file a check differently. Every code but Lighthouse's
+ * is listed here, typed so that a code added to a catalogue without its chapter does not
+ * compile; Lighthouse's follow from the audit itself: SEO when Lighthouse weighs it in its
+ * SEO category, accessibility otherwise.
+ */
+const LISTED_TOPIC_OF = {
+	THIN_CONTENT: "content",
+	AUTHOR_MISSING: "content",
+	DATE_BUMPED_WITHOUT_CHANGES: "content",
+	NEAR_DUPLICATE_CONTENT: "content",
+	KEYWORD_CANNIBALISATION: "content",
+	NO_EXTERNAL_SOURCES: "content",
+	CANONICAL_MISSING: "canonical",
+	CANONICAL_MISMATCH: "canonical",
+	CANONICAL_TO_HTTP: "canonical",
+	CANONICAL_CONFLICT: "canonical",
+	CANONICAL_TARGET_BROKEN: "canonical",
+	DEVELOPMENT_HOST_REFERENCES: "canonical",
+	CANONICAL_RELATIVE: "canonical",
+	NOINDEX: "indexing",
+	SNIPPET_RESTRICTED: "indexing",
+	IMAGE_PREVIEW_NOT_LARGE: "indexing",
+	ROBOTS_BLOCKS_GOOGLEBOT: "indexing",
+	ROBOTS_BLOCKS_RESOURCES: "indexing",
+	ROBOTS_BLOCKS_AI_SEARCH: "indexing",
+	NO_INTERNAL_LINKS: "links",
+	INTERNAL_LINKS_NOFOLLOW: "links",
+	INTERNAL_LINK_VARIANTS: "links",
+	BROKEN_LINKS: "links",
+	LINKS_TO_REDIRECTS: "links",
+	LINKS_WITHOUT_TEXT: "links",
+	UNCRAWLABLE_LINKS: "links",
+	IMAGES_MISSING_ALT: "media",
+	NO_IMAGES: "media",
+	IMAGES_NOT_INDEXABLE: "media",
+	IMAGE_FILENAMES_GENERIC: "media",
+	VIDEO_WITHOUT_METADATA: "media",
+	LANG_MISSING: "international",
+	HREFLANG_INVALID: "international",
+	HREFLANG_NO_SELF_REFERENCE: "international",
+	HREFLANG_NOT_RECIPROCAL: "international",
+	VIEWPORT_MISSING: "international",
+	CHARSET_MISSING_OR_LATE: "international",
+	OG_TAGS_MISSING: "sharing",
+	OG_URL_MISMATCH: "sharing",
+	PREVIEW_IMAGE_TOO_SMALL: "sharing",
+	PREVIEW_IMAGE_IS_LOGO: "sharing",
+	NOT_HTTPS: "security",
+	MIXED_CONTENT: "security",
+	REDIRECTED: "security",
+	META_REFRESH: "security",
+	LARGE_PAGE: "performance",
+	LCP_IMAGE_LAZY_LOADED: "performance",
+	RENDER_BLOCKING_SCRIPTS: "performance",
+	FONT_PRELOAD_WITHOUT_CROSSORIGIN: "performance",
+	BFCACHE_BLOCKED_BY_NO_STORE: "performance",
+	DOM_SIZE_LARGE: "performance",
+	HTML_NOT_COMPRESSED: "performance",
+	CWV_LCP_NEEDS_IMPROVEMENT: "speed",
+	CWV_LCP_POOR: "speed",
+	CWV_INP_NEEDS_IMPROVEMENT: "speed",
+	CWV_INP_POOR: "speed",
+	CWV_CLS_NEEDS_IMPROVEMENT: "speed",
+	CWV_CLS_POOR: "speed",
+	ROBOTS_TXT_TRUNCATED: "siteRobots",
+	ROBOTS_TXT_UNSUPPORTED_RULES: "siteRobots",
+	ROBOTS_GOOGLEBOT_GROUP_DROPS_RULES: "siteRobots",
+	SITEMAP_LISTS_NON_INDEXABLE: "siteSitemap",
+	SITEMAP_LISTS_OTHER_HOST_VARIANTS: "siteSitemap",
+	SITEMAP_LASTMOD_UNRELIABLE: "siteSitemap",
+	HOST_VARIANT_SERVES_CONTENT: "siteHost",
+	HOST_REDIRECT_CHAIN: "siteHost",
+	SOFT_404: "siteHost",
+	CONTENT_NEEDS_JAVASCRIPT: "siteHost",
+	STRUCTURED_DATA_INVALID: "structuredData",
+	DATES_INCONSISTENT: "structuredData",
+	STRUCTURED_DATA_MISSING: "structuredData",
+	STRUCTURED_DATA_INCOMPLETE: "structuredData",
+	AUTHOR_MARKUP_INCOMPLETE: "structuredData",
+	ARTICLE_DATE_FORMAT_INVALID: "structuredData",
+	ARTICLE_HEADLINE_MISMATCH: "structuredData",
+	BREADCRUMB_MISSING: "structuredData",
+	BREADCRUMB_INVALID: "structuredData",
+	FAVICON_INVALID: "siteIdentity",
+	SITE_NAME_NOT_DECLARED: "siteIdentity",
+	SITE_NAME_INCONSISTENT: "siteIdentity",
+	TITLE_MISSING: "titles",
+	TITLE_LENGTH: "titles",
+	TITLE_SCRIPT_MISMATCH: "titles",
+	TITLE_YEAR_OUTDATED: "titles",
+	TITLE_DUPLICATE: "titles",
+	META_DESCRIPTION_MISSING: "descriptions",
+	META_DESCRIPTION_LENGTH: "descriptions",
+	META_DESCRIPTION_REPEATS_TITLE: "descriptions",
+	META_DESCRIPTION_DUPLICATE: "descriptions",
+	H1_MISSING: "headings",
+	H1_MULTIPLE: "headings",
+	HEADING_SKIP: "headings",
+	NO_SUBHEADINGS: "headings",
+} as const satisfies Record<Exclude<TGuideCode, TLighthouseIssueCode>, TCheckTopicId>;
 
-/** Everything the guide says about one check beyond what the catalogue already holds. */
-export interface ICheckCriteria {
-	topic: TCheckTopicId;
-	/** What a page (or site) has to be like for the check to pass. */
-	passes: string;
-	/** Exactly what makes the check fail. */
-	fails: string;
-	/**
-	 * What a page gains when the check passes — the consequence in search, for readers or for
-	 * the site. What failing costs is the catalogue's `plain.why`, so it is not repeated here.
-	 */
-	ifPasses: string;
-	example: ICheckExample;
-	/** What the tracker's code actually does to reach its verdict — read from the check, not guessed. */
-	howChecked: string;
-	/** How a person confirms the verdict on the live site, step by step, with tools anyone can use. */
-	manualCheck: readonly string[];
-}
+const LIGHTHOUSE_TOPIC_OF = Object.fromEntries(
+	LIGHTHOUSE_ISSUE_CODES.map((code) => [
+		code,
+		"seo" in SEO_ISSUE_CATALOGUE[code].weights ? "lighthouseSeo" : "accessibility",
+	]),
+) as Record<TLighthouseIssueCode, TCheckTopicId>;
 
-export const seconds = (ms: number) => `${ms / 1000} s`;
-export const thousands = (value: number) => value.toLocaleString("en-US");
+export const CHECK_TOPIC_OF: Record<TGuideCode, TCheckTopicId> = {
+	...LISTED_TOPIC_OF,
+	...LIGHTHOUSE_TOPIC_OF,
+};

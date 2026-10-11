@@ -1,5 +1,6 @@
 import { SEO_ISSUE_CATALOGUE } from "@app/contracts";
-import { thousands, type ICheckCriteria, type TGuideCode } from "../checkTopics";
+import { type TGuideCode } from "@Core/Constants/checkTopics";
+import { thousands, type ICheckCriteria } from "../criteriaShape";
 
 const C = SEO_ISSUE_CATALOGUE;
 
@@ -7,7 +8,6 @@ const C = SEO_ISSUE_CATALOGUE;
 export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 	// ── HTTPS and redirects ──────────────────────────────────────────────────────────
 	NOT_HTTPS: {
-		topic: "security",
 		passes: "The page is served over HTTPS.",
 		fails: "The page is served over plain HTTP.",
 		ifPasses:
@@ -26,7 +26,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	MIXED_CONTENT: {
-		topic: "security",
 		passes: "An HTTPS page loads every resource over HTTPS.",
 		fails: "An HTTPS page loads some scripts, styles, frames or images over plain HTTP.",
 		ifPasses:
@@ -45,7 +44,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	REDIRECTED: {
-		topic: "security",
 		passes: "The sitemap URL answers directly, without redirecting.",
 		fails: "The URL the sitemap lists redirects to another address.",
 		ifPasses:
@@ -64,7 +62,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	META_REFRESH: {
-		topic: "security",
 		passes: "The page does not move readers on with a meta refresh.",
 		fails: 'The page contains <meta http-equiv="refresh"> pointing elsewhere.',
 		ifPasses:
@@ -85,7 +82,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 
 	// ── Speed risks in the HTML ──────────────────────────────────────────────────────
 	LARGE_PAGE: {
-		topic: "performance",
 		passes: `The HTML is at most ${thousands(C.LARGE_PAGE.max)} bytes (1 MB) — half of what Googlebot reads.`,
 		fails: `The HTML is over ${thousands(C.LARGE_PAGE.max)} bytes.`,
 		ifPasses:
@@ -102,7 +98,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	LCP_IMAGE_LAZY_LOADED: {
-		topic: "performance",
 		passes: "The featured image at the top of the post loads eagerly.",
 		fails: 'The featured image at the top of the post is marked loading="lazy".',
 		ifPasses:
@@ -121,7 +116,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	RENDER_BLOCKING_SCRIPTS: {
-		topic: "performance",
 		passes: "Every external script in <head> is async, defer, a module, or not JavaScript at all.",
 		fails: "One or more external classic scripts in <head> — not modules — have neither async nor defer.",
 		ifPasses:
@@ -140,7 +134,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	FONT_PRELOAD_WITHOUT_CROSSORIGIN: {
-		topic: "performance",
 		passes: "Every font preload carries the crossorigin attribute.",
 		fails: 'A <link rel="preload" as="font"> has no crossorigin, so the font downloads twice.',
 		ifPasses:
@@ -159,7 +152,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	BFCACHE_BLOCKED_BY_NO_STORE: {
-		topic: "performance",
 		passes: "The page is not served with Cache-Control: no-store.",
 		fails: "The page is served with Cache-Control: no-store, so Back reloads it instead of restoring it.",
 		ifPasses:
@@ -177,7 +169,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	DOM_SIZE_LARGE: {
-		topic: "performance",
 		passes: `The HTML holds at most ${thousands(C.DOM_SIZE_LARGE.max)} elements.`,
 		fails: `The HTML holds more than ${thousands(C.DOM_SIZE_LARGE.max)} elements.`,
 		ifPasses:
@@ -194,7 +185,6 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 		],
 	},
 	HTML_NOT_COMPRESSED: {
-		topic: "performance",
 		passes: "Asked for gzip, deflate or br, the server answers compressed.",
 		fails: "The server answers the HTML uncompressed although compression was offered.",
 		ifPasses:

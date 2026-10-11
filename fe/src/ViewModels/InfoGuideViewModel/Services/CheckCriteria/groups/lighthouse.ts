@@ -1,5 +1,5 @@
 import { SEO_ISSUE_CATALOGUE, type TLighthouseIssueCode } from "@app/contracts";
-import type { ICheckCriteria } from "../checkTopics";
+import type { ICheckCriteria } from "../criteriaShape";
 
 /** What is particular to one Lighthouse audit; how it is checked is the same for all. */
 interface ILighthouseSpec {
@@ -24,7 +24,6 @@ function lighthouseCriteria(code: TLighthouseIssueCode, spec: ILighthouseSpec): 
 	);
 	const inCategories = categories.join(" and ");
 	return {
-		topic: "seo" in weights ? "lighthouseSeo" : "accessibility",
 		passes: spec.passes,
 		fails: spec.fails,
 		ifPasses: spec.ifPasses,

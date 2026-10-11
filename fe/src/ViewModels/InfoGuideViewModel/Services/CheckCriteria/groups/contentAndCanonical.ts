@@ -1,5 +1,6 @@
 import { SEO_ISSUE_CATALOGUE } from "@app/contracts";
-import type { ICheckCriteria, TGuideCode } from "../checkTopics";
+import type { TGuideCode } from "@Core/Constants/checkTopics";
+import type { ICheckCriteria } from "../criteriaShape";
 
 const C = SEO_ISSUE_CATALOGUE;
 
@@ -7,7 +8,6 @@ const C = SEO_ISSUE_CATALOGUE;
 export const CONTENT_AND_CANONICAL_CRITERIA = {
 	// ── Content quality ──────────────────────────────────────────────────────────────
 	THIN_CONTENT: {
-		topic: "content",
 		passes: `The main content has at least ${C.THIN_CONTENT.min} words.`,
 		fails: `The main content has fewer than ${C.THIN_CONTENT.min} words — a heuristic, not a Google rule.`,
 		ifPasses:
@@ -26,7 +26,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	AUTHOR_MISSING: {
-		topic: "content",
 		passes: 'Something on the page says who wrote it: article markup, <meta name="author">, rel="author" or a marked-up byline.',
 		fails: "Nothing on the page names an author.",
 		ifPasses:
@@ -50,7 +49,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	DATE_BUMPED_WITHOUT_CHANGES: {
-		topic: "content",
 		passes: "Since the previous crawl the modification date stayed the same, or the text changed with it.",
 		fails: "The declared modification date moved while the main text stayed word-for-word the same.",
 		ifPasses:
@@ -76,7 +74,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	NEAR_DUPLICATE_CONTENT: {
-		topic: "content",
 		passes: "No other crawled page repeats most of this page's main text.",
 		fails: "Most of the main text appears, nearly word for word, on another page of the crawl.",
 		ifPasses:
@@ -95,7 +92,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	KEYWORD_CANNIBALISATION: {
-		topic: "content",
 		passes: "No other crawled page leads with the same top keyword.",
 		fails: "Two or more crawled pages have the same top keyword — a sign they may compete for one query, not proof.",
 		ifPasses:
@@ -120,7 +116,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	NO_EXTERNAL_SOURCES: {
-		topic: "content",
 		passes: "A long text links to at least one other website.",
 		fails: `The main text runs to ${C.THIN_CONTENT.min} words or more and none of its links leaves the site.`,
 		ifPasses:
@@ -140,7 +135,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 
 	// ── Canonical URLs ───────────────────────────────────────────────────────────────
 	CANONICAL_MISSING: {
-		topic: "canonical",
 		passes: 'The page declares a canonical — <link rel="canonical"> in <head>, or a Link header.',
 		fails: "No canonical is declared (one written in <body> does not count — Google ignores it).",
 		ifPasses:
@@ -168,7 +162,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	CANONICAL_MISMATCH: {
-		topic: "canonical",
 		passes: "The canonical names this very page.",
 		fails: "The canonical names a different URL, so Google will usually index that one instead.",
 		ifPasses:
@@ -193,7 +186,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	CANONICAL_TO_HTTP: {
-		topic: "canonical",
 		// Corrected: any https:// canonical passes this check; one naming another page is CANONICAL_MISMATCH's.
 		passes: "An HTTPS page's canonical is an https:// address.",
 		fails: "The page is served over HTTPS but declares its own http:// address as canonical.",
@@ -213,7 +205,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	CANONICAL_CONFLICT: {
-		topic: "canonical",
 		passes: "Every canonical the page declares names the same URL.",
 		fails: "Two canonical tags, or a tag and a Link header, name different URLs.",
 		ifPasses:
@@ -238,7 +229,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	CANONICAL_TARGET_BROKEN: {
-		topic: "canonical",
 		// Corrected: a target with no canonical of its own passes, as does any answer below 400 without a redirect,
 		// and only a missing domain or a redirect loop counts as unreachable — a timeout is not judged.
 		passes: "The page the canonical names answers without a redirect or an error, is indexable and names no other URL as its canonical — or the canonical names this page itself.",
@@ -270,7 +260,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	DEVELOPMENT_HOST_REFERENCES: {
-		topic: "canonical",
 		passes: "Nothing on the page points at a development or staging address.",
 		// Corrected: what names the page itself fails for any IP address and any staging/preview host; content links
 		// and loaded files fail only for this site's own development addresses.
@@ -298,7 +287,6 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 		],
 	},
 	CANONICAL_RELATIVE: {
-		topic: "canonical",
 		passes: "The canonical is a full URL with scheme and host.",
 		fails: 'The canonical is written as a path, such as href="/post/".',
 		ifPasses:

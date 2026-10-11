@@ -18,11 +18,12 @@ import {
 } from "@app/contracts";
 import { CHECK_CRITERIA } from "../CheckCriteria/checkCriteria";
 import {
+	CHECK_TOPIC_OF,
 	CHECK_TOPICS,
-	type ICheckExample,
 	type TCheckTopicId,
 	type TGuideCode,
-} from "../CheckCriteria/checkTopics";
+} from "@Core/Constants/checkTopics";
+import type { ICheckExample } from "../CheckCriteria/criteriaShape";
 
 /**
  * What a check reads, which decides whether it counts in the page score: one page, the
@@ -183,7 +184,7 @@ export function buildCheckGuide(): ICheckGuideTopic[] {
 	return CHECK_TOPICS.map((topic) => ({
 		...topic,
 		entries: entries
-			.filter((entry) => CHECK_CRITERIA[entry.code].topic === topic.id)
+			.filter((entry) => CHECK_TOPIC_OF[entry.code] === topic.id)
 			.sort(
 				(a, b) =>
 					SEO_ISSUE_SEVERITIES.indexOf(a.severity) -

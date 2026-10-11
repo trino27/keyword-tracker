@@ -1,9 +1,9 @@
-import type { ICheckCriteria, TGuideCode } from "../checkTopics";
+import type { TGuideCode } from "@Core/Constants/checkTopics";
+import type { ICheckCriteria } from "../criteriaShape";
 
 /** The page's structured data (article, dates, author, breadcrumbs) and the site's name and icon. */
 export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 	STRUCTURED_DATA_INVALID: {
-		topic: "structuredData",
 		passes: "Every JSON-LD block on the page is valid JSON.",
 		fails: "A JSON-LD block cannot be parsed — a trailing comma, an unescaped quote, an empty template variable.",
 		ifPasses:
@@ -30,7 +30,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	DATES_INCONSISTENT: {
-		topic: "structuredData",
 		passes: "The page's dates agree with each other and with the calendar.",
 		fails: "Modified before published, published in the future, or a year in the URL that the markup does not match.",
 		ifPasses:
@@ -57,7 +56,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	STRUCTURED_DATA_MISSING: {
-		topic: "structuredData",
 		passes: "The page declares an article type — Article, BlogPosting, NewsArticle, TechArticle, ScholarlyArticle, Report or LiveBlogPosting — in JSON-LD or Microdata.",
 		fails: "No article structured data is declared.",
 		ifPasses:
@@ -84,7 +82,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	STRUCTURED_DATA_INCOMPLETE: {
-		topic: "structuredData",
 		passes: "The article markup has headline, image, datePublished, dateModified, author and publisher.",
 		fails: "One or more of those recommended properties is missing.",
 		ifPasses:
@@ -122,7 +119,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	AUTHOR_MARKUP_INCOMPLETE: {
-		topic: "structuredData",
 		passes: "Each author is a Person or Organization with a name only and a url or sameAs to a page about them.",
 		fails: 'An author is a bare string, has no or the wrong @type, no url, a url to the home page, or a name like "By Jane, Editor".',
 		ifPasses:
@@ -154,7 +150,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	ARTICLE_DATE_FORMAT_INVALID: {
-		topic: "structuredData",
 		passes: "Dates are ISO 8601 — 2026-10-03, or 2026-10-03T09:00:00+02:00 with a time.",
 		fails: 'A date is not ISO 8601 ("03/10/2026"), or gives a time of day without a time zone.',
 		ifPasses:
@@ -184,7 +179,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	ARTICLE_HEADLINE_MISMATCH: {
-		topic: "structuredData",
 		passes: "The markup's headline shares at least half its words with the <title> or the <h1>.",
 		fails: "The headline shares fewer than half its words with both — usually a template printing the site name.",
 		ifPasses:
@@ -215,7 +209,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	BREADCRUMB_MISSING: {
-		topic: "structuredData",
 		passes: "The page declares a BreadcrumbList in JSON-LD or Microdata.",
 		fails: "No BreadcrumbList is declared.",
 		ifPasses:
@@ -242,7 +235,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	BREADCRUMB_INVALID: {
-		topic: "structuredData",
 		passes: "Every JSON-LD trail has ListItems, each with an integer position and a name, and an item URL on every step but the last. A trail of a single step is not judged.",
 		fails: "A step lacks its position, name or item URL, or a BreadcrumbList has no ListItem at all.",
 		ifPasses:
@@ -278,7 +270,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	FAVICON_INVALID: {
-		topic: "siteIdentity",
 		passes: "The home page declares — or /favicon.ico serves — a square icon of at least 8×8 px in a format Google reads (not SVG-only), crawlable by Googlebot-Image.",
 		fails: "The icon is missing, blocked, unreadable, not square, too small or only SVG, and /favicon.ico is no usable icon either.",
 		ifPasses:
@@ -304,7 +295,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	SITE_NAME_NOT_DECLARED: {
-		topic: "siteIdentity",
 		passes: "The home page has WebSite structured data with a name.",
 		fails: "The home page declares no WebSite name.",
 		ifPasses:
@@ -326,7 +316,6 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 		],
 	},
 	SITE_NAME_INCONSISTENT: {
-		topic: "siteIdentity",
 		passes: "The WebSite name and og:site_name agree, or one is listed as an alternateName.",
 		fails: "The two names differ and neither is listed as an alternate.",
 		ifPasses:

@@ -1,5 +1,6 @@
 import { SEO_ISSUE_CATALOGUE } from "@app/contracts";
-import { thousands, type ICheckCriteria, type TGuideCode } from "../checkTopics";
+import { type TGuideCode } from "@Core/Constants/checkTopics";
+import { thousands, type ICheckCriteria } from "../criteriaShape";
 
 const C = SEO_ISSUE_CATALOGUE;
 
@@ -7,7 +8,6 @@ const C = SEO_ISSUE_CATALOGUE;
 export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 	// ── Images and video ─────────────────────────────────────────────────────────────
 	IMAGES_MISSING_ALT: {
-		topic: "media",
 		passes: 'Every image has an alt attribute (alt="" is right for decorative images).',
 		fails: "One or more images have no alt attribute at all.",
 		ifPasses:
@@ -26,7 +26,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	NO_IMAGES: {
-		topic: "media",
 		passes: "A long text has an image, a frame, a video or a featured image.",
 		fails: `The main text runs to ${C.THIN_CONTENT.min} words or more with no image, video or featured image.`,
 		ifPasses:
@@ -43,7 +42,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	IMAGES_NOT_INDEXABLE: {
-		topic: "media",
 		passes: "Every <img> has a src (a srcset beside it is fine).",
 		fails: "An <img> has a srcset and no src, so crawlers may not find the image.",
 		ifPasses:
@@ -61,7 +59,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	IMAGE_FILENAMES_GENERIC: {
-		topic: "media",
 		passes: "Image files have names a person chose, or names a CDN generated.",
 		fails: "Image files keep a camera or placeholder name — IMG_1234, DSC01234, Screenshot 2026-…, image1, untitled.",
 		ifPasses:
@@ -79,7 +76,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	VIDEO_WITHOUT_METADATA: {
-		topic: "media",
 		passes: "An embedded video is described by VideoObject markup or og:video.",
 		fails: "The page embeds a playable video and declares neither VideoObject nor og:video.",
 		ifPasses:
@@ -99,7 +95,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 
 	// ── Language, mobile and encoding ────────────────────────────────────────────────
 	LANG_MISSING: {
-		topic: "international",
 		passes: 'The <html> element declares the page\'s language, e.g. lang="en".',
 		fails: "There is no lang attribute on <html>.",
 		ifPasses:
@@ -117,7 +112,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	HREFLANG_INVALID: {
-		topic: "international",
 		passes: "Every hreflang value is a valid ISO 639-1 language code, optionally with an ISO 3166-1 region, and the page names itself as canonical.",
 		fails: 'An hreflang value is malformed — "ua" for Ukrainian, "jp" for Japanese, "en-UK" for Britain — or a page with hreflang names another URL as its canonical.',
 		ifPasses:
@@ -136,7 +130,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	HREFLANG_NO_SELF_REFERENCE: {
-		topic: "international",
 		passes: "The hreflang set lists this page as well as its other language versions.",
 		fails: "The page lists other language versions but not itself.",
 		ifPasses:
@@ -154,7 +147,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	HREFLANG_NOT_RECIPROCAL: {
-		topic: "international",
 		passes: "Every language version the page names links back to it in its own hreflang.",
 		fails: "A language version that answered 200 lists no hreflang link back to this page.",
 		ifPasses:
@@ -172,7 +164,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	VIEWPORT_MISSING: {
-		topic: "international",
 		passes: 'The page has <meta name="viewport" content="width=device-width, initial-scale=1">.',
 		fails: "There is no viewport tag, so phones lay the page out at desktop width and shrink it.",
 		ifPasses:
@@ -190,7 +181,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	CHARSET_MISSING_OR_LATE: {
-		topic: "international",
 		passes: "The Content-Type header or a <meta charset> within the first 1,024 bytes says how the text is encoded.",
 		fails: "Neither the header nor the first 1,024 bytes declare the encoding.",
 		ifPasses:
@@ -210,7 +200,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 
 	// ── Social previews ──────────────────────────────────────────────────────────────
 	OG_TAGS_MISSING: {
-		topic: "sharing",
 		passes: "The page has og:title, og:description and og:image.",
 		fails: "One or more of those three is missing, so each platform guesses that part of the preview.",
 		ifPasses:
@@ -228,7 +217,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	OG_URL_MISMATCH: {
-		topic: "sharing",
 		passes: "og:url names this page's own address (a trailing slash is not a difference).",
 		fails: "og:url names a different address than the one the page is served at.",
 		ifPasses:
@@ -246,7 +234,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	PREVIEW_IMAGE_TOO_SMALL: {
-		topic: "sharing",
 		passes: `The page's own image is at least ${thousands(C.PREVIEW_IMAGE_TOO_SMALL.min)} px wide, read from the file itself.`,
 		fails: `The og:image (or article image) is narrower than ${thousands(C.PREVIEW_IMAGE_TOO_SMALL.min)} px.`,
 		ifPasses:
@@ -263,7 +250,6 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	PREVIEW_IMAGE_IS_LOGO: {
-		topic: "sharing",
 		passes: "The page's own image is something other than the site logo.",
 		fails: "The og:image or article image is the site's logo — the usual fallback for a post without a featured image.",
 		ifPasses:

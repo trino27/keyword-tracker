@@ -1,5 +1,6 @@
 import { CWV_THRESHOLDS } from "@app/contracts";
-import { seconds, type ICheckCriteria, type TGuideCode } from "../checkTopics";
+import { type TGuideCode } from "@Core/Constants/checkTopics";
+import { seconds, type ICheckCriteria } from "../criteriaShape";
 
 const { lcp, inp, cls } = CWV_THRESHOLDS;
 
@@ -21,7 +22,6 @@ const CONSOLE_STEP =
 export const SPEED_AND_SITE_CRITERIA = {
 	// ── Core Web Vitals findings ─────────────────────────────────────────────────────
 	CWV_LCP_NEEDS_IMPROVEMENT: {
-		topic: "speed",
 		passes: `LCP is ${seconds(lcp.good)} or less (good), or above ${seconds(lcp.poor)} (then the Poor finding replaces this one).`,
 		fails: `LCP is above ${seconds(lcp.good)} and at most ${seconds(lcp.poor)}.`,
 		ifPasses:
@@ -40,7 +40,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	CWV_LCP_POOR: {
-		topic: "speed",
 		passes: `LCP is ${seconds(lcp.poor)} or less.`,
 		fails: `LCP is above ${seconds(lcp.poor)}.`,
 		ifPasses:
@@ -58,7 +57,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	CWV_INP_NEEDS_IMPROVEMENT: {
-		topic: "speed",
 		passes: `INP is ${inp.good} ms or less (good), or above ${inp.poor} ms (then the Poor finding replaces this one).`,
 		fails: `INP is above ${inp.good} ms and at most ${inp.poor} ms.`,
 		ifPasses:
@@ -76,7 +74,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	CWV_INP_POOR: {
-		topic: "speed",
 		passes: `INP is ${inp.poor} ms or less.`,
 		fails: `INP is above ${inp.poor} ms.`,
 		ifPasses: "Visitors who tap do not wait half a second or more for anything to happen.",
@@ -93,7 +90,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	CWV_CLS_NEEDS_IMPROVEMENT: {
-		topic: "speed",
 		passes: `CLS is ${cls.good} or less (good), or above ${cls.poor} (then the Poor finding replaces this one).`,
 		fails: `CLS is above ${cls.good} and at most ${cls.poor}.`,
 		ifPasses:
@@ -112,7 +108,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	CWV_CLS_POOR: {
-		topic: "speed",
 		passes: `CLS is ${cls.poor} or less.`,
 		fails: `CLS is above ${cls.poor}.`,
 		ifPasses: "The page does not jump enough to make readers mis-tap or lose their place.",
@@ -131,7 +126,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 
 	// ── Site: robots.txt ─────────────────────────────────────────────────────────────
 	ROBOTS_TXT_TRUNCATED: {
-		topic: "siteRobots",
 		passes: "robots.txt is at most 500 KiB.",
 		fails: "robots.txt is larger than 500 KiB, so Google ignores everything after that point.",
 		ifPasses: "Every rule in the file is one Google actually reads.",
@@ -148,7 +142,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	ROBOTS_TXT_UNSUPPORTED_RULES: {
-		topic: "siteRobots",
 		passes: "robots.txt uses only rules Google supports.",
 		fails: "robots.txt contains noindex:, nofollow: or host: lines, which Google ignores.",
 		ifPasses:
@@ -166,7 +159,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	ROBOTS_GOOGLEBOT_GROUP_DROPS_RULES: {
-		topic: "siteRobots",
 		passes: "The Googlebot group repeats every path the general (*) group disallows.",
 		fails: "The general group disallows paths the Googlebot group does not — and Google follows only its own group.",
 		ifPasses: "Areas closed to every crawler are closed to Googlebot too.",
@@ -185,7 +177,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 
 	// ── Site: sitemap ────────────────────────────────────────────────────────────────
 	SITEMAP_LISTS_NON_INDEXABLE: {
-		topic: "siteSitemap",
 		passes: "Every fetched sitemap entry answers 200, is indexable and names itself as canonical.",
 		fails: "Some fetched entries redirect, answer an error, are noindex, or name another URL as canonical.",
 		ifPasses:
@@ -204,7 +195,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	SITEMAP_LISTS_OTHER_HOST_VARIANTS: {
-		topic: "siteSitemap",
 		passes: "Sitemap URLs use the scheme and host the site serves its pages at.",
 		fails: "Entries use http:// on an https site, or the other www variant.",
 		ifPasses:
@@ -222,7 +212,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	SITEMAP_LASTMOD_UNRELIABLE: {
-		topic: "siteSitemap",
 		passes: "lastmod dates vary and match when the pages say they last changed.",
 		fails: "Every entry has the same date, dates are the sitemap's generation time, or they are older than the pages' own modified dates.",
 		ifPasses:
@@ -242,7 +231,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 
 	// ── Site: host and server ────────────────────────────────────────────────────────
 	HOST_VARIANT_SERVES_CONTENT: {
-		topic: "siteHost",
 		passes: "Every other address of the site (http/https, www/non-www) redirects to the one the site uses.",
 		fails: "A second address answers 200 with the site instead of redirecting.",
 		ifPasses: "Each page exists at one address, so links and signals all count for that one.",
@@ -259,7 +247,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	HOST_REDIRECT_CHAIN: {
-		topic: "siteHost",
 		passes: "Other addresses reach the final one in at most two permanent (301/308) hops.",
 		fails: "Three or more hops, a temporary 302/303/307 on the way, or a redirect to somewhere else entirely.",
 		ifPasses: "Readers and crawlers reach the site in one or two fast, permanent steps.",
@@ -276,7 +263,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	SOFT_404: {
-		topic: "siteHost",
 		passes: "An address that cannot exist answers 404 or 410.",
 		fails: 'A made-up address answers 200 — a "soft 404".',
 		ifPasses:
@@ -294,7 +280,6 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 	CONTENT_NEEDS_JAVASCRIPT: {
-		topic: "siteHost",
 		passes: "Posts arrive with their text in the HTML.",
 		fails: "Some posts arrive as an empty JavaScript shell, with text drawn only in the browser.",
 		ifPasses:

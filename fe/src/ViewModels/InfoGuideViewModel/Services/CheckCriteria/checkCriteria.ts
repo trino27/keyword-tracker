@@ -1,4 +1,5 @@
-import type { ICheckCriteria, TGuideCode } from "./checkTopics";
+import type { TGuideCode } from "@Core/Constants/checkTopics";
+import type { ICheckCriteria } from "./criteriaShape";
 import { CONTENT_AND_CANONICAL_CRITERIA } from "./groups/contentAndCanonical";
 import { INDEXING_AND_LINKS_CRITERIA } from "./groups/indexingAndLinks";
 import { LIGHTHOUSE_CRITERIA } from "./groups/lighthouse";

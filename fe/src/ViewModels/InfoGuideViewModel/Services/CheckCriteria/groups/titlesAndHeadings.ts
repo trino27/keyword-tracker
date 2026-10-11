@@ -1,12 +1,12 @@
 import { SEO_ISSUE_CATALOGUE } from "@app/contracts";
-import type { ICheckCriteria, TGuideCode } from "../checkTopics";
+import type { TGuideCode } from "@Core/Constants/checkTopics";
+import type { ICheckCriteria } from "../criteriaShape";
 
 const C = SEO_ISSUE_CATALOGUE;
 
 /** The search result's headline and snippet, and the page's outline of headings. */
 export const TITLES_AND_HEADINGS_CRITERIA = {
 	TITLE_MISSING: {
-		topic: "titles",
 		passes: "The page has a non-empty <title> in its <head>.",
 		fails: "There is no <title>, or it is empty.",
 		ifPasses:
@@ -25,7 +25,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	TITLE_LENGTH: {
-		topic: "titles",
 		passes: `The title is ${C.TITLE_LENGTH.min}–${C.TITLE_LENGTH.max} characters long.`,
 		fails: `The title is shorter than ${C.TITLE_LENGTH.min} or longer than ${C.TITLE_LENGTH.max} characters.`,
 		ifPasses:
@@ -43,7 +42,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	TITLE_SCRIPT_MISMATCH: {
-		topic: "titles",
 		passes: "The title has at least one word in the writing system of the page's text (a Latin brand name beside it is fine).",
 		fails: "The title has no letter of the page's script — for example an English title over a Russian article.",
 		ifPasses:
@@ -62,7 +60,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	TITLE_YEAR_OUTDATED: {
-		topic: "titles",
 		passes: 'The title offers no past year as its date: no earlier year ends it or follows "in" or "for".',
 		fails: 'The title, read without the site name after its separator, ends with a year, or says "in 2023" / "for 2023", and that year has already passed.',
 		ifPasses:
@@ -81,7 +78,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	TITLE_DUPLICATE: {
-		topic: "titles",
 		passes: "No other page of the same crawl has this title, ignoring case and punctuation; a translation of the page does not count.",
 		fails: "Another crawled page of the site in the same language has the same <title>, ignoring case and punctuation.",
 		ifPasses:
@@ -100,7 +96,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	META_DESCRIPTION_MISSING: {
-		topic: "descriptions",
 		passes: 'The page has a non-empty <meta name="description">.',
 		fails: "There is no meta description, or it is empty.",
 		ifPasses:
@@ -119,7 +114,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	META_DESCRIPTION_LENGTH: {
-		topic: "descriptions",
 		passes: `The description is ${C.META_DESCRIPTION_LENGTH.min}–${C.META_DESCRIPTION_LENGTH.max} characters long.`,
 		fails: `The description is shorter than ${C.META_DESCRIPTION_LENGTH.min} or longer than ${C.META_DESCRIPTION_LENGTH.max} characters.`,
 		ifPasses:
@@ -137,7 +131,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	META_DESCRIPTION_REPEATS_TITLE: {
-		topic: "descriptions",
 		passes: "The description adds something the title does not say.",
 		fails: "The description is the same text as the title, ignoring case, punctuation and the site name.",
 		ifPasses:
@@ -156,7 +149,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	META_DESCRIPTION_DUPLICATE: {
-		topic: "descriptions",
 		passes: "No other page of the same crawl has this description, ignoring case and punctuation; a translation of the page does not count.",
 		fails: "Another crawled page of the site in the same language has the same meta description, ignoring case and punctuation.",
 		ifPasses:
@@ -175,7 +167,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	H1_MISSING: {
-		topic: "headings",
 		passes: "The page has an <h1> with text in it that is not hidden from readers.",
 		fails: "There is no <h1> with text — often the title is styled as a <div> or an <h2>, or the only <h1> is empty or hidden.",
 		ifPasses:
@@ -194,7 +185,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	H1_MULTIPLE: {
-		topic: "headings",
 		passes: "The page has no more than one <h1>.",
 		fails: "The page has two or more <h1> elements.",
 		ifPasses:
@@ -213,7 +203,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	HEADING_SKIP: {
-		topic: "headings",
 		passes: "Each heading goes at most one level deeper than the one before it.",
 		fails: "The outline jumps a level — for example from <h2> straight to <h4>.",
 		ifPasses:
@@ -232,7 +221,6 @@ export const TITLES_AND_HEADINGS_CRITERIA = {
 		],
 	},
 	NO_SUBHEADINGS: {
-		topic: "headings",
 		passes: "A long text is broken up by at least one <h2>–<h6>.",
 		fails: `The main text runs to ${C.THIN_CONTENT.min} words or more with no heading below the title.`,
 		ifPasses:

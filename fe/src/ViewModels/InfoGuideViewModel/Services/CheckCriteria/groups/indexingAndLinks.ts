@@ -1,10 +1,10 @@
-import type { ICheckCriteria, TGuideCode } from "../checkTopics";
+import type { TGuideCode } from "@Core/Constants/checkTopics";
+import type { ICheckCriteria } from "../criteriaShape";
 
 /** Whether Google may crawl, index and quote the page (robots rules), and the links in its text. */
 export const INDEXING_AND_LINKS_CRITERIA = {
 	// ── Indexing and robots rules ────────────────────────────────────────────────────
 	NOINDEX: {
-		topic: "indexing",
 		passes: "No robots meta tag or X-Robots-Tag header tells Google to leave the page out.",
 		fails: "A robots/googlebot meta tag or an X-Robots-Tag header says noindex (or none, which includes it), or an unavailable_after date has passed.",
 		ifPasses:
@@ -27,7 +27,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	SNIPPET_RESTRICTED: {
-		topic: "indexing",
 		passes: "Google may show text from the page under its result and in AI features.",
 		fails: "A nosnippet or max-snippet:0 rule is set, or data-nosnippet wraps most of the article.",
 		ifPasses:
@@ -54,7 +53,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	IMAGE_PREVIEW_NOT_LARGE: {
-		topic: "indexing",
 		passes: "A robots meta tag or header sets max-image-preview:large.",
 		fails: "max-image-preview is absent, standard or none — or any declaration restricts it below large.",
 		ifPasses:
@@ -75,7 +73,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	ROBOTS_BLOCKS_GOOGLEBOT: {
-		topic: "indexing",
 		passes: "robots.txt lets Googlebot fetch this URL.",
 		fails: "The robots.txt group that applies to Googlebot disallows this URL.",
 		ifPasses:
@@ -103,7 +100,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	ROBOTS_BLOCKS_RESOURCES: {
-		topic: "indexing",
 		passes: "Googlebot may fetch every script and stylesheet the page loads from the site.",
 		fails: "robots.txt forbids Googlebot a script or stylesheet the page needs to render.",
 		ifPasses:
@@ -127,7 +123,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	ROBOTS_BLOCKS_AI_SEARCH: {
-		topic: "indexing",
 		passes: "OAI-SearchBot, PerplexityBot, Claude-SearchBot and Bingbot may all fetch the page.",
 		fails: "robots.txt blocks one or more of those AI-search crawlers. Training crawlers (GPTBot, ClaudeBot, Google-Extended) are not judged.",
 		ifPasses:
@@ -158,7 +153,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 
 	// ── Links ────────────────────────────────────────────────────────────────────────
 	NO_INTERNAL_LINKS: {
-		topic: "links",
 		passes: "The article's own text links to at least one other page of the site.",
 		fails: "The text links nowhere on the site. Navigation, footer, related-post rails and table-of-contents links do not count.",
 		ifPasses:
@@ -187,7 +181,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	INTERNAL_LINKS_NOFOLLOW: {
-		topic: "links",
 		passes: 'Links to the site\'s own pages carry no rel="nofollow".',
 		fails: 'One or more links to the site\'s own pages are marked rel="nofollow".',
 		ifPasses:
@@ -210,7 +203,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	INTERNAL_LINK_VARIANTS: {
-		topic: "links",
 		passes: "Internal links use the same scheme and host the page is served at, with no tracking parameters.",
 		fails: "Internal links go through http://, the other www variant, or URLs with tracking or session parameters.",
 		ifPasses:
@@ -236,7 +228,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	BROKEN_LINKS: {
-		topic: "links",
 		passes: "Every content link that was checked leads to a working page.",
 		fails: "A link to this site answers 4xx (other than 401, 402, 403 or 429) or 5xx, or loops, or a link to another site answers 404/410 or its domain does not exist. Anti-bot answers (401, 403, 429, 5xx, timeouts) from other sites are never counted.",
 		ifPasses:
@@ -256,7 +247,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	LINKS_TO_REDIRECTS: {
-		topic: "links",
 		passes: "Links to this site point straight at the final address.",
 		fails: "A content link to this site answers with a redirect before reaching the page.",
 		ifPasses:
@@ -284,7 +274,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	LINKS_WITHOUT_TEXT: {
-		topic: "links",
 		passes: "Every content link to this site has text, a title, an image with alt, an aria-label or screen-reader text.",
 		fails: "A content link to this site has no text at all — an icon or an image without alt. Links to other sites are not judged.",
 		ifPasses:
@@ -310,7 +299,6 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 		],
 	},
 	UNCRAWLABLE_LINKS: {
-		topic: "links",
 		passes: "Every link that leads to a page is an <a> whose href is a real web address.",
 		fails: 'A link navigates by onclick with no href, by a javascript: href, or by a "#/route" fragment.',
 		ifPasses:
