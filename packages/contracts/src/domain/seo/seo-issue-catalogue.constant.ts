@@ -687,7 +687,7 @@ export const SEO_ISSUE_CATALOGUE = {
       fix: 'The writer or editor can add at least one relevant image in the CMS — a chart, screenshot or diagram — near the text it illustrates, with alt text.',
     },
     hint: 'Add at least one relevant image near the text it illustrates.',
-    explanation: `The main content runs to ${LONG_TEXT_WORDS} words or more, holds no <img>, and the page shows no featured image either. Google's SEO Starter Guide asks sites to add high-quality images near relevant text, because many people search visually and an image can be how a page is found for the first time. Productive Shop's study of pages appearing in AI Overviews reports that they tend to carry more images — about five on an average blog post — which is a correlation in industry data, not a rule any search engine states. Images drawn by CSS, inline SVG and video embeds are not seen by this check.`,
+    explanation: `The main content runs to ${LONG_TEXT_WORDS} words or more, holds no <img>, frame or video, and the page shows no featured image either. Google's SEO Starter Guide asks sites to add high-quality images near relevant text, because many people search visually and an image can be how a page is found for the first time. Productive Shop's study of pages appearing in AI Overviews reports that they tend to carry more images — about five on an average blog post — which is a correlation in industry data, not a rule any search engine states. An embedded demo or video player counts as the post's visuals; images drawn by CSS or inline SVG are not seen by this check.`,
     sources: [
       SOURCE.starterGuide,
       SOURCE.images,

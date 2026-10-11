@@ -79,6 +79,7 @@ export function makeCheckInput(
           markup: '<img src="a.png" alt="A chart" width="800" height="450">',
         },
       ],
+      embeds: 0,
       resourceUrls: ['https://a.example/a.png'],
       // One link on the site and one source off it, so neither link check fails.
       links: [

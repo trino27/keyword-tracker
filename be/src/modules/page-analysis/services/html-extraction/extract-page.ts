@@ -114,6 +114,16 @@ const APP_MOUNT_POINTS =
 const LINK_SCHEMES = new Set(['http:', 'https:']);
 
 /**
+ * What a frame leaves behind in the main content. A frame is never text, so it is removed
+ * with the rest of NEVER_CONTENT — but it is a demo or a player the reader sees, so it
+ * leaves this empty marker, counted as an embed once the furniture around it is gone.
+ */
+const FRAME_MARKER = 'seo-frame';
+
+/** What shows the reader something other than text and pictures: a demo, a player, a chart. */
+const EMBED_SELECTOR = `${FRAME_MARKER}, video, embed, object`;
+
+/**
  * A `javascript:` URL that does nothing — the link is a control whose click a script
  * handles elsewhere, the "Войти" and "Добавить" buttons of cossa.ru. Leads to no page.
  */
@@ -332,6 +342,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
         .get()
         .find((text) => text.length > 0) ?? null,
     images,
+    embeds: main.find(EMBED_SELECTOR).length,
     resourceUrls: urlsOf($, RESOURCE_ATTRIBUTES, baseUrl),
     links,
     nofollowLinks,
@@ -535,6 +546,7 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
           ? $('article').first()
           : $('body').first())));
   const main = candidate.clone();
+  main.find('iframe').replaceWith(`<${FRAME_MARKER}></${FRAME_MARKER}>`);
   main.find(NEVER_CONTENT).remove();
   const total = wordsIn($, main);
   // Document order, so a wrapper is judged before what it wraps: keeping a wrapper

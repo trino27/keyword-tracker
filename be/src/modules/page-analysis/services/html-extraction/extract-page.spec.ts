@@ -49,6 +49,23 @@ describe('extractPage', () => {
     expect(parsed.jsonLd.types).toContain('CollectionPage');
   });
 
+  // css-tricks: five CodePen demos are frames, and no <img>. A frame in the sidebar is
+  // furniture, not the post's.
+  it("counts the content's frames and videos as embeds, not the sidebar's", () => {
+    const parsed = page(
+      '<main><h1>Random in CSS</h1><p>Text.</p>' +
+        '<iframe src="https://codepen.io/anon/embed/x">See the Pen</iframe>' +
+        '<video src="/demo.mp4"></video></main>' +
+        '<aside><iframe src="https://ads.example/frame"></iframe></aside>',
+    );
+
+    expect(parsed.embeds).toBe(2);
+    // The marker a frame leaves is not text: the count is the page's without its frames.
+    expect(parsed.wordCount).toBe(
+      page('<main><h1>Random in CSS</h1><p>Text.</p></main>').wordCount,
+    );
+  });
+
   it('reads main content without nav, header, footer and aside', () => {
     const parsed = page(
       `<header><h1>Site name</h1></header><nav><p>Menu words here</p></nav>

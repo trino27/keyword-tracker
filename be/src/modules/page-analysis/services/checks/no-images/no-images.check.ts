@@ -5,13 +5,20 @@ import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 /**
  * An `<img>` in the main content passes, and so does the featured image wherever the
  * theme puts it: a hero above the article is outside the content the extractor keeps,
- * and a post that opens with one is not a post without images.
+ * and a post that opens with one is not a post without images. So does an embed — a
+ * CodePen demo or a video player shows the reader more than a picture would; on
+ * css-tricks a post with five live demos and no `<img>` was reported as imageless.
  *
  * Not applicable to a short post, which can stand without a picture.
  */
 export const NO_IMAGES_CHECK = defineCheck('NO_IMAGES', ({ parsed }) => {
   if (!isLongText(parsed)) return NOT_APPLICABLE;
-  if (parsed.images.length > 0 || parsed.featuredImage !== null) return PASS;
+  if (
+    parsed.images.length > 0 ||
+    parsed.embeds > 0 ||
+    parsed.featuredImage !== null
+  )
+    return PASS;
   const ogImage = parsed.openGraph['og:image'];
   return fails({
     words: parsed.wordCount,

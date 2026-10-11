@@ -35,6 +35,13 @@ describe('NO_IMAGES', () => {
     ).toEqual(PASSES);
   });
 
+  // css-tricks: five live CodePen demos and no <img> is not a post without visuals.
+  it('passes a post whose visuals are embeds — a demo, a video', () => {
+    expect(
+      NO_IMAGES_CHECK.evaluate(imageless({ parsed: { embeds: 2 } })),
+    ).toEqual(PASSES);
+  });
+
   it('fails a long post with no image, quoting the og:image it does not show', () => {
     const verdict = NO_IMAGES_CHECK.evaluate(imageless());
 

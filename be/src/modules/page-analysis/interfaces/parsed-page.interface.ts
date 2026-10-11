@@ -72,6 +72,11 @@ export interface IParsedPage {
   firstParagraph: string | null;
   images: IPageImage[];
   /**
+   * Frames, videos and plugin objects in the main content — a CodePen demo, a YouTube
+   * player, an embedded chart. Visual content a post shows instead of an `<img>`.
+   */
+  embeds: number;
+  /**
    * Absolute URLs of everything the DOCUMENT loads — images, scripts, stylesheets,
    * frames, media. The whole document and not the main content: a tracking script in
    * `<head>` fetched over plain HTTP breaks the padlock exactly as a body image does.
