@@ -355,7 +355,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 6. Reading: score, checks per owner, summary — PAGES-009, PAGES-012, PAGES-016, PAGES-017, REPORT-005
 
-- [ ] 6.1 Write first in `packages/contracts/src/domain/pages/page-score/page-score.util.test.ts`:
+- [x] 6.1 Write first in `packages/contracts/src/domain/pages/page-score/page-score.util.test.ts`:
   - "sums every scored owner";
   - "an absent owner contributes nothing and is reported absent";
   - "16/2 crawl and 20/3 Lighthouse score 86".
@@ -371,13 +371,13 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   - `IPageDetail.checksByOwner` replaces `checks` (**BREAKING**, ships with the FE in group 7).
 
   Verify: `pnpm --filter @app/contracts test:ci`.
-- [ ] 6.2 Write first in `be/src/modules/pages/repositories/page-list/page-list.repository.int-spec.ts`:
+- [x] 6.2 Write first in `be/src/modules/pages/repositories/page-list/page-list.repository.int-spec.ts`:
   "orders by the score summed over crawl and Lighthouse". Use the PAGES-009 scenario: B (90
   crawl-only, 80 with Lighthouse) comes before A (88). It fails on today's ORDER BY. Then change
   `page-list.repository.ts:134` to sum `p.checks_*` with `coalesce(cardinality(ps.lighthouse_judged), 0)`
   and `coalesce(ps.lighthouse_failed, 0)`, still `::numeric`. The tie-breakers stay. Verify:
   `pnpm --filter be test:db -- page-list`.
-- [ ] 6.3 Write first in `compose-page-checks.spec.ts` and `page-read.service.spec.ts`:
+- [x] 6.3 Write first in `compose-page-checks.spec.ts` and `page-read.service.spec.ts`:
   - "composes each scored owner from its own lists";
   - "Lighthouse null while the crawl is present, and the reverse";
   - "an errored Lighthouse code is not recorded";
@@ -391,7 +391,17 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   - `page-speed-summary-of.ts` maps the new summary fields with `fieldBandOf`.
 
   Verify: `pnpm --filter be test:ci -- src/modules/pages`.
-- [ ] 6.4 Write first in `be/test/e2e/page-speed.e2e-spec.ts`:
+
+  AMENDED during implementation:
+  - **Where the lists are read.** The detail reads Lighthouse's two lists in its own query
+    (`ps.lighthouse_judged`, `ps.lighthouse_not_applicable` on `findCurrentPage`). They are
+    kept out of `PAGE_SPEED_COLUMNS`, so the list never carries 66 codes per row: it gets
+    `cardinality(lighthouse_judged)` and `lighthouse_failed` instead.
+  - **Stored breakdown.** It is read through a zod schema in `page-speed-read.ts`, so a
+    shape written under an older Lighthouse reads as none.
+  - **Active codes.** `composePageChecks(owner, …)` lists every Lighthouse code as active,
+    because Lighthouse retires an audit by no longer reporting it.
+- [x] 6.4 Write first in `be/test/e2e/page-speed.e2e-spec.ts`:
   - "a Lighthouse finding counts in the issue counts, the spread and the score" (PAGES-016);
   - in the issue-report int-spec: "returns a Lighthouse finding at its page beside the crawl
     finding it repeats" (REPORT-005).
@@ -400,7 +410,15 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   both pass without code changes, close the build half as `VERIFIED, NOT BUILT` and keep the
   tests. Verify: `pnpm --filter be test:e2e -- page-speed && pnpm --filter be test:db --
   issue-report`.
-- [ ] 6.5 Update:
+
+  VERIFIED, NOT BUILT (the build half): both new tests passed on the first run with no code
+  change, because the issue counts, the client-wide spread and the report read `seo_issues`
+  with no owner filter. They stay as the pins:
+  - `page-speed.e2e-spec.ts` -> "a Lighthouse finding counts among the issues, in the spread
+    and in the score";
+  - `issue-report.e2e-spec.ts` -> "reports a Lighthouse finding at each page it is on, never as
+    a whole-site row".
+- [x] 6.5 Update:
   - `be/src/modules/pages/PAGES_MODULE.md`: two scored writers, the score per owner, the list
     order;
   - `docs/decisions.md`: the "speed never enters the score" entry keeps Core Web Vitals out and
@@ -409,7 +427,16 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
   Verify: `git grep -n "never enters the score\|never moves the SEO score"` reads true in every
   hit.
-- [ ] 6.6 Commit: `feat(pages): Lighthouse verdicts in the score and in the checks, per owner`.
+
+  Done:
+  - `PAGES_MODULE.md`: three owners, the score per owner, `checksByOwner`, the pinning
+    line;
+  - `docs/decisions.md`;
+  - `README.md`.
+
+  Every remaining hit of the grep speaks of Core Web Vitals only. Results: BE 1215 unit
+  tests, 200 db and e2e tests, lint clean.
+- [x] 6.6 Commit: `feat(pages): Lighthouse verdicts in the score and in the checks, per owner`.
 
 ## 7. The page detail — PAGEDETAIL-009, PAGEDETAIL-012, PAGEDETAIL-013
 
