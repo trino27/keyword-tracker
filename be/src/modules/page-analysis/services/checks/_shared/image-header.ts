@@ -9,6 +9,13 @@ export interface IImageHeader {
 const startsWith = (bytes: Uint8Array, ...prefix: number[]) =>
   prefix.every((byte, index) => bytes[index] === byte);
 
+/**
+ * ASCII at a byte offset, read from the bytes themselves: decoding first would let a
+ * size field that happens to be valid UTF-8 fold into one character and shift the rest.
+ */
+const asciiAt = (bytes: Uint8Array, at: number, ascii: string) =>
+  [...ascii].every((char, index) => bytes[at + index] === char.charCodeAt(0));
+
 const u16be = (b: Uint8Array, at: number) => (b[at] << 8) | b[at + 1];
 const u16le = (b: Uint8Array, at: number) => b[at] | (b[at + 1] << 8);
 const u32be = (b: Uint8Array, at: number) =>
@@ -104,11 +111,7 @@ export function readImageHeader(bytes: Uint8Array): IImageHeader | null {
     return { format: 'tiff', width: null, height: null };
   if (b[0] === 0x50 && b[1] >= 0x31 && b[1] <= 0x36)
     return { format: 'ppm', width: null, height: null };
-  const text = new TextDecoder()
-    .decode(b.slice(0, 512))
-    .trimStart()
-    .toLowerCase();
-  if (startsWith(b, 0x52, 0x49, 0x46, 0x46) && text.slice(8, 12) === 'webp') {
+  if (asciiAt(b, 0, 'RIFF') && asciiAt(b, 8, 'WEBP')) {
     const size = webpSize(b);
     return {
       format: 'webp',
@@ -116,9 +119,18 @@ export function readImageHeader(bytes: Uint8Array): IImageHeader | null {
       height: size?.height ?? null,
     };
   }
-  if (text.slice(4, 12).startsWith('ftypavi'))
+  if (asciiAt(b, 4, 'ftypavi'))
     return { format: 'avif', width: null, height: null };
-  if (/^(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*<svg/.test(text))
+  const text = new TextDecoder()
+    .decode(b.slice(0, 512))
+    .trimStart()
+    .toLowerCase();
+  // Illustrator and Inkscape exports may declare the SVG doctype before the root.
+  if (
+    /^(?:<\?xml[^>]*>\s*)?(?:(?:<!--[\s\S]*?-->|<!doctype svg[^>]*>)\s*)*<svg/.test(
+      text,
+    )
+  )
     return { format: 'svg', width: null, height: null };
   if (/^<!doctype html|^<html|^<head|^<body/.test(text))
     return { format: 'html', width: null, height: null };

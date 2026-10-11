@@ -53,9 +53,34 @@ describe('readImageHeader', () => {
     ['RIFF\u0000\u0000\u0000\u0000WEBPVP8 ', 'webp'],
     ['<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg">', 'svg'],
     ['<!DOCTYPE html><html><body>Not found', 'html'],
+    [
+      '<?xml version="1.0"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n<svg>',
+      'svg',
+    ],
   ])('names the format of %j', (head, format) => {
     expect(readImageHeader(text(head))).toEqual({
       format,
+      width: null,
+      height: null,
+    });
+  });
+
+  it('names a WebP whose size bytes read as UTF-8', () => {
+    // C3 A9 is "é" in UTF-8: decoded first, the size would fold into one character.
+    const webp = Uint8Array.from([
+      ...[0x52, 0x49, 0x46, 0x46, 0xc3, 0xa9, 0x01, 0x00],
+      ...[0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x20],
+    ]);
+    expect(readImageHeader(webp)?.format).toBe('webp');
+  });
+
+  it('names an AVIF by its ftyp brand', () => {
+    const avif = Uint8Array.from([
+      ...[0x00, 0x00, 0x00, 0x20],
+      ...[...'ftypavif'].map((char) => char.charCodeAt(0)),
+    ]);
+    expect(readImageHeader(avif)).toEqual({
+      format: 'avif',
       width: null,
       height: null,
     });
