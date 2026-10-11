@@ -13,9 +13,13 @@ export type { IPageFinding };
  * device, so its two bands' codes are one row's.
  */
 const METRIC_OF = new Map<string, string>(
-  Object.entries(CWV_ISSUE_CODES).flatMap(([strategy, byMetric]) =>
+  Object.entries<Record<string, Record<string, string>>>(
+    CWV_ISSUE_CODES,
+  ).flatMap(([strategy, byMetric]) =>
     Object.entries(byMetric).flatMap(([metric, byBand]) =>
-      Object.values(byBand).map((code) => [code, `${strategy}:${metric}`]),
+      Object.values(byBand).map(
+        (code) => [code, `${strategy}:${metric}`] as const,
+      ),
     ),
   ),
 );
