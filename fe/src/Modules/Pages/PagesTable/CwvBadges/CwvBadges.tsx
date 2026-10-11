@@ -88,6 +88,9 @@ export function CwvBadges({ pageSpeed, availability, timeZone }: ICwvBadgesProps
 									role="img"
 									aria-label={sentence}
 									tabIndex={0}
+									// A badge's label clips, so it would shrink in a squeezed column to
+									// "L…"; at its own width the table makes room for all three.
+									style={{ flexShrink: 0 }}
 								>
 									{CWV_METRIC_NAME[metric]}
 								</Badge>
