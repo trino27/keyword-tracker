@@ -10,20 +10,29 @@ explained in plain words, grouped by issue or by page and filtered in memory.
 ### Requirement [ISSUESUI-001]: the report shows the client the URL names, else every client grouped by client
 
 The Issues screen MUST read its client from the URL. Without one it MUST show every client of the
-user, one section per client ordered by name, each headed by the client's name and site, its crawl
-date and its count of findings under the current filters, with the same grouping and filters inside
-each section; the client's name MUST narrow the report to that client. It MUST offer every client
-of the user in a selector whose empty choice reads "All clients". A client the API answers as not
-found MUST show a not-found state with a link to Clients and no data; a user with no clients MUST
-be offered Add client.
+user, with the same filters for all. By issue it MUST be one list of problems across the clients,
+each card counting every client's affected pages and listing them under the client's name and site;
+a client not in the list — loading, failed (with Try again), without a finished crawl, or with
+nothing found — MUST be named once above it. By page each client MUST be a folded item ordered by
+name, headed by the client's name, site, crawl date and count of findings under the filters, opening
+onto its pages, with an "Only this client" action that narrows the report to it. It MUST offer every
+client of the user in a selector whose empty choice reads "All clients". A client the API answers as
+not found MUST show a not-found state with a link to Clients and no data; a user with no clients
+MUST be offered Add client.
 
-Modified after `client-issue-report` (plan D31): the screen opened on the first client by name; the
-user asked for all clients, grouped by client.
+Modified after `client-issue-report` (plan D31, then D34): the screen opened on the first client by
+name; the user asked for all clients — first as one section per client, then grouped inside each
+issue card by issue, and folded per client by page.
 
-#### Scenario: opening Issues from the navigation for the first time
-- **WHEN** a user with clients "Semrush" and "Yoast" opens `/issues`
-- **THEN** a "Semrush" section and then a "Yoast" section are shown, each with its own findings,
+#### Scenario: one problem on two clients, by issue
+- **WHEN** a user whose clients "Semrush" and "Yoast" both have pages without a title opens `/issues`
+- **THEN** one "no title" card is shown, listing Semrush's pages and Yoast's pages under each name,
   and the URL names no client
+
+#### Scenario: by page
+- **WHEN** the same user opens `/issues?group=page`
+- **THEN** a folded "Semrush" item and a folded "Yoast" item are shown; opening one lists that
+  client's pages and their problems
 
 #### Scenario: another user's client id
 - **WHEN** user B opens `/issues?clientId=<A's client>`

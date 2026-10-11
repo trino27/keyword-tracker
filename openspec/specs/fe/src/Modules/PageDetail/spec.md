@@ -135,7 +135,8 @@ in the URL; changing the range twice quickly MUST show the second range's data.
 
 The chart MUST plot one line per visible keyword with an inverted Y axis from 1 to 100 and dates on
 the X axis in the user's zone; keyword chips MUST toggle lines and act as the legend; an empty range
-MUST say there are no positions in it.
+MUST say there are no positions in it. The history's title MUST name where the positions come from
+in brackets — "Position history (simulated)" while every position is simulated (plan D35).
 
 #### Scenario: hiding a keyword
 - **WHEN** the user toggles off a keyword chip
