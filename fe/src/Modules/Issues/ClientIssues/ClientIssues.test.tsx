@@ -101,7 +101,7 @@ describe("ClientIssues", () => {
 			["no findings", ready({ ...REPORT, issues: [] }), "No issues on the latest crawl."],
 			[
 				"a client deleted meanwhile",
-				{ status: "notFound", report: null, error: null, requestId: 1 },
+				{ status: "notFound" as const, report: null, error: null, requestId: 1 },
 				"This client is no longer available.",
 			],
 		])("says %s in one line", async (_, entry, line) => {
