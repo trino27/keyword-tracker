@@ -91,6 +91,19 @@ export function IssuesScreen() {
 		? pageSpeedAvailabilityCopy[anyReport.pageSpeedAvailability.state]
 		: null;
 
+	// A client id in the URL that is no longer the user's: the selector names it as the
+	// body does, rather than falling back to "All clients" above a "not found".
+	const missingClient =
+		clientId !== undefined &&
+		clientsStatus === "ready" &&
+		!sortedClients.some((client) => client.id === clientId);
+	const clientOptions = [
+		...sortedClients.map((client) => ({ value: String(client.id), label: client.name })),
+		...(missingClient
+			? [{ value: String(clientId), label: "Client not found", disabled: true }]
+			: []),
+	];
+
 	const clientsView =
 		clientsStatus === "error"
 			? "error"
@@ -109,10 +122,7 @@ export function IssuesScreen() {
 					<Select
 						aria-label="Client"
 						placeholder="All clients"
-						data={sortedClients.map((client) => ({
-							value: String(client.id),
-							label: client.name,
-						}))}
+						data={clientOptions}
 						value={search.clientId === undefined ? null : String(search.clientId)}
 						onChange={(value) =>
 							update({

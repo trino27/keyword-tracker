@@ -39,7 +39,9 @@ export function reportViewOf(input: IReportViewInput): TReportView {
 	if (input.status === "error")
 		return { kind: "error", message: input.error ?? "Could not load the report." };
 	if (input.status === "notFound") return { kind: "notFound" };
-	if (input.status !== "ready" || !input.report) return { kind: "loading" };
+	// A report read again stays in view meanwhile; only a first read shows the skeleton.
+	if (!input.report || (input.status !== "ready" && input.status !== "loading"))
+		return { kind: "loading" };
 	const { report } = input;
 	if (report.generatedFrom === null) return { kind: "noRun", report };
 	if (report.issues.length === 0) return { kind: "empty", report };

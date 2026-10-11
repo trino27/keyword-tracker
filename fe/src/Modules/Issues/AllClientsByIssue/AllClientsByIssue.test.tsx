@@ -75,6 +75,23 @@ describe("AllClientsByIssue", () => {
 		expect(await screen.findByText("No finished crawl yet: Ahrefs.")).toBeInTheDocument();
 	});
 
+	it("keeps a client's last report listed while it is read again", async () => {
+		show({ 7: { ...report(7, [TITLE(1)]), status: "loading" }, 8: report(8, []) });
+
+		expect(await screen.findByRole("link", { name: "Post 1" })).toBeInTheDocument();
+		expect(screen.queryByText(/Still loading/)).not.toBeInTheDocument();
+	});
+
+	it("names a client no longer found apart from the ones never crawled", async () => {
+		show({
+			7: report(7, [TITLE(1)]),
+			8: { status: "notFound", report: null, error: null, requestId: 1 },
+		});
+
+		expect(await screen.findByText("No longer found: Ahrefs.")).toBeInTheDocument();
+		expect(screen.queryByText(/No finished crawl yet/)).not.toBeInTheDocument();
+	});
+
 	it("names a client whose latest crawl found nothing, beside the others' problems", async () => {
 		show({ 7: report(7, [TITLE(1)]), 8: report(8, []) });
 

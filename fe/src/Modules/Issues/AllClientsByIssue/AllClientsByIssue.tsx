@@ -26,9 +26,13 @@ interface IAllClientsByIssueProps {
 
 const names = (clients: IReportClient[]) => clients.map(({ name }) => name).join(", ");
 
+/** A report to show: the one just read, or the last one while it is read again. */
+const shownReport = (entry: IClientReport) =>
+	entry.status === "ready" || entry.status === "loading" ? entry.report : null;
+
 /** A finished crawl's report is there: its rows can be listed. */
 const isCrawled = ({ entry }: { entry: IClientReport }) =>
-	entry.status === "ready" && Boolean(entry.report?.generatedFrom);
+	Boolean(shownReport(entry)?.generatedFrom);
 
 /**
  * "All clients" by issue (plan D34): one list of problems for every client, worst and
@@ -46,28 +50,30 @@ export function AllClientsByIssue({
 		() =>
 			clients.map((client) => {
 				const entry = byClient[client.id] ?? PENDING_REPORT;
-				const issues =
-					entry.status === "ready" && entry.report
-						? filterReport(entry.report.issues, {
-								levels: search.levels,
-								type: search.type,
-								pageId: search.pageId,
-								query: search.q,
-							})
-						: [];
+				const report = shownReport(entry);
+				const issues = report
+					? filterReport(report.issues, {
+							levels: search.levels,
+							type: search.type,
+							pageId: search.pageId,
+							query: search.q,
+						})
+					: [];
 				return { client, entry, issues };
 			}),
 		[clients, byClient, search.levels, search.type, search.pageId, search.q],
 	);
 
 	const ready = states.filter(isCrawled);
-	const loading = states.filter(({ entry }) => entry.status === "loading");
+	const loading = states.filter(({ entry }) => entry.status === "loading" && !entry.report);
 	const failed = states.filter(({ entry }) => entry.status === "error");
-	const notCrawled = states.filter(
-		({ entry }) =>
-			entry.status === "notFound" ||
-			(entry.status === "ready" && !entry.report?.generatedFrom),
-	);
+	// Deleted since the list was read: not "never crawled", which would send the reader to
+	// wait for a crawl that will not come.
+	const gone = states.filter(({ entry }) => entry.status === "notFound");
+	const notCrawled = states.filter(({ entry }) => {
+		const report = shownReport(entry);
+		return report !== null && !report.generatedFrom;
+	});
 	const clean = ready.filter(({ entry }) => entry.report?.issues.length === 0);
 
 	const groups = useMemo(
@@ -106,6 +112,11 @@ export function AllClientsByIssue({
 			{loading.length > 0 && (
 				<Text size="sm" c="dimmed" aria-busy="true">
 					Still loading: {names(loading.map(({ client }) => client))}.
+				</Text>
+			)}
+			{gone.length > 0 && (
+				<Text size="sm" c="dimmed">
+					No longer found: {names(gone.map(({ client }) => client))}.
 				</Text>
 			)}
 			{notCrawled.length > 0 && (

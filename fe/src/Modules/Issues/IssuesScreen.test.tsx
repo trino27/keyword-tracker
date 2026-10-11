@@ -286,6 +286,12 @@ describe("IssuesScreen", () => {
 		await renderAt("/issues?clientId=999");
 
 		expect(await screen.findByText(/This client/)).toBeInTheDocument();
+		// The selector agrees with the body instead of reading "All clients".
+		await waitFor(() =>
+			expect(screen.getByRole("combobox", { name: "Client" })).toHaveValue(
+				"Client not found",
+			),
+		);
 	});
 
 	it("offers to add a client when there are none", async () => {

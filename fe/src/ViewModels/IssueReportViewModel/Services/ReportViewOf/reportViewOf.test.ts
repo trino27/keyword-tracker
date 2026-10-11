@@ -58,4 +58,8 @@ describe("reportViewOf", () => {
 	it("is loading until the report for the client has arrived", () => {
 		expect(reportViewOf(input({ status: "loading", report: null })).kind).toBe("loading");
 	});
+
+	it("keeps the last report in view while it is read again", () => {
+		expect(reportViewOf(input({ status: "loading" })).kind).toBe("ready");
+	});
 });
