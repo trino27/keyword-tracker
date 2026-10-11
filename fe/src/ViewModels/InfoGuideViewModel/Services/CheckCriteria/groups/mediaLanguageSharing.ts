@@ -112,8 +112,8 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 		],
 	},
 	HREFLANG_INVALID: {
-		passes: "Every hreflang value is a valid ISO 639-1 language code, optionally with an ISO 3166-1 region, and the page names itself as canonical.",
-		fails: 'An hreflang value is malformed — "ua" for Ukrainian, "jp" for Japanese, "en-UK" for Britain — or a page with hreflang names another URL as its canonical.',
+		passes: "Every hreflang in <head> is a valid ISO 639-1 language code, optionally with an ISO 3166-1 region, with a full https:// address, and the page names itself as canonical.",
+		fails: 'An hreflang value is malformed or unsupported — "ua" for Ukrainian, "jp" for Japanese, "en-UK" for Britain, "es-419" for Latin America — an address is relative, an hreflang sits outside <head>, or a page with hreflang names another URL as its canonical.',
 		ifPasses:
 			"Google can use the annotations to show readers the language or regional version meant for them.",
 		example: {
@@ -122,7 +122,7 @@ export const MEDIA_LANGUAGE_SHARING_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'Each <link rel="alternate" hreflang> value is checked for structure and for existence: the language part must be a real two-letter ISO 639-1 language and an optional region a real ISO 3166-1 country (x-default is allowed). Country codes written as languages (ua, kz, jp…) and UK for the United Kingdom are named with the code that was meant. It also fails when the page declares hreflang but its canonical points to another URL, which takes the page out of its own set. A page with no hreflang is not judged.',
+			'Each <link rel="alternate" hreflang> value is checked for structure and for existence, by the rule Google states: "Only language codes listed in ISO 639-1 and region codes listed in ISO 3166-1 Alpha 2 are supported". The language part must be a real two-letter ISO 639-1 language, then optionally a four-letter script (zh-Hant) and a real two-letter country (x-default is allowed). Three-letter languages such as fil, numeric regions such as es-419, codes no country holds (ZZ, XA–XZ) and anything after the country fail, though they are valid in other standards. Country codes written as languages (ua, kz, jp…) and UK for the United Kingdom are named with the code that was meant. It also fails an alternate URL written without https:// (Google requires full addresses), an hreflang link outside <head> (Google reads them only there), and a page that declares hreflang but whose canonical points to another URL, which takes the page out of its own set. A page with no hreflang is not judged.',
 		manualCheck: [
 			"Press Ctrl+U and search for hreflang; list the values.",
 			"Check each one: language first (uk = Ukrainian, ja = Japanese, kk = Kazakh), then an optional country (GB, not UK).",

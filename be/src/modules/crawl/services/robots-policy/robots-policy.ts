@@ -4,6 +4,9 @@ import type { IRobotsRules } from '@modules/page-analysis/interfaces/robots-rule
 
 type TRobot = ReturnType<typeof robotsParser>;
 
+/** The records Google reads; every other line is ignored, comments and all. */
+const RULE_LINE = /^\s*(?:user-agent|allow|disallow)\s*:/i;
+
 /**
  * What robots.txt allows this crawler. A missing or unreadable robots.txt allows
  * everything — the convention every crawler follows, and the only workable one: most
@@ -13,12 +16,25 @@ export class RobotsPolicy implements IRobotsRules {
   private constructor(
     private readonly robot: TRobot | null,
     private readonly lines: readonly string[] = [],
+    private readonly sitemapUrls: readonly string[] = [],
   ) {}
 
+  /**
+   * The rules are read from the file with every line that is not `user-agent`, `allow` or
+   * `disallow` blanked. Google ignores such lines, so a `Sitemap:` or `Crawl-delay:`
+   * between two `User-agent:` lines leaves them one group; robots-parser ends the group
+   * there, and the first agent loses the rules written below. Blanking keeps the line
+   * numbers the findings quote. `Sitemap:` lines are read from the file as written.
+   */
   static parse(robotsUrl: string, text: string): RobotsPolicy {
+    const lines = text.split(/\r\n|\r|\n/);
+    const rulesOnly = lines
+      .map((line) => (RULE_LINE.test(line) ? line : ''))
+      .join('\n');
     return new RobotsPolicy(
-      robotsParser(robotsUrl, text),
-      text.split(/\r\n|\r|\n/),
+      robotsParser(robotsUrl, rulesOnly),
+      lines,
+      robotsParser(robotsUrl, text).getSitemaps(),
     );
   }
 
@@ -48,6 +64,6 @@ export class RobotsPolicy implements IRobotsRules {
 
   /** `Sitemap:` lines, in file order. */
   sitemaps(): string[] {
-    return this.robot?.getSitemaps() ?? [];
+    return [...this.sitemapUrls];
   }
 }

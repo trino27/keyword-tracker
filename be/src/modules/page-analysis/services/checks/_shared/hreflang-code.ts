@@ -4,11 +4,26 @@
  */
 const X_DEFAULT = 'x-default';
 
-/** ISO 639 is two or three letters. BCP 47 allows four to eight; hreflang does not. */
-const LANGUAGE_SUBTAG = /^[a-z]{2,3}$/i;
+/**
+ * Google: "Only language codes listed in ISO 639-1 and region codes listed in ISO 3166-1
+ * Alpha 2 are supported; other codes that aren't listed in those standards, such as
+ * es-419, aren't supported." A script (ISO 15924) may sit between them, as in zh-Hant-TW.
+ * So an hreflang is two letters, then optionally four, then optionally two — nothing more.
+ */
+const ISO_639_1 = /^[a-z]{2}$/i;
+const ISO_15924 = /^[a-z]{4}$/i;
+const ISO_3166_ALPHA_2 = /^[a-z]{2}$/i;
 
-/** A region subtag: ISO 3166-1 alpha-2, or a UN M.49 number. */
-const REGION_SUBTAG = /^(?:[a-z]{2}|\d{3})$/i;
+/** ISO 639-2/3: a language, but not one Google supports. */
+const LONGER_LANGUAGE = /^[a-z]{3}$/i;
+/** A UN M.49 area such as 419 (Latin America): valid BCP 47, unsupported by Google. */
+const UN_M49_REGION = /^\d{3}$/;
+
+/**
+ * ISO 3166-1 alpha-2 codes no country holds: ZZ (unknown) and the user-assigned AA,
+ * QM–QZ and XA–XZ, which `Intl` names ("Pseudo-Accents") though no hreflang can target.
+ */
+const USER_ASSIGNED_REGION = /^(?:AA|ZZ|Q[M-Z]|X[A-Z])$/i;
 
 /**
  * Two-letter codes ICU resolves to a place but ISO 3166-1 does not assign to a country:
@@ -71,19 +86,25 @@ export function problemWith(lang: string): string | null {
   } catch {
     return 'not a language code';
   }
-  if (
-    !LANGUAGE_SUBTAG.test(language) ||
-    !LANGUAGES.of(language.toLowerCase())
-  ) {
+  if (LONGER_LANGUAGE.test(language) && LANGUAGES.of(language.toLowerCase()))
+    return `"${language}" is not an ISO 639-1 code; Google supports only two-letter language codes`;
+  if (!ISO_639_1.test(language) || !LANGUAGES.of(language.toLowerCase())) {
     const meant = LIKELY_MEANT[language.toLowerCase()];
     return meant
       ? `"${language}" is a country code; the language is "${meant}"`
       : `"${language}" is not a language code`;
   }
-  const region = rest.find((part) => REGION_SUBTAG.test(part));
+  const subtags = [...rest];
+  if (subtags[0] !== undefined && ISO_15924.test(subtags[0])) subtags.shift();
+  const [region, ...extra] = subtags;
+  if (region !== undefined && UN_M49_REGION.test(region))
+    return `"${region}" is a UN M.49 region; Google supports only two-letter ISO 3166-1 country codes`;
+  if (region !== undefined && !ISO_3166_ALPHA_2.test(region))
+    return `"${region}" is neither a script nor a country code; hreflang takes a language, an optional script and an optional country`;
   if (
-    region &&
+    region !== undefined &&
     (RESERVED_REGIONS.has(region.toUpperCase()) ||
+      USER_ASSIGNED_REGION.test(region) ||
       !REGIONS.of(region.toUpperCase()))
   ) {
     const meant = LIKELY_MEANT[region.toUpperCase()];
@@ -91,5 +112,7 @@ export function problemWith(lang: string): string | null {
       ? `"${region}" is not a country code; the United Kingdom is "${meant}"`
       : `"${region}" is not a country code`;
   }
+  if (extra.length > 0)
+    return `"${extra.join('-')}" follows the country; hreflang takes a language, an optional script and an optional country`;
   return null;
 }

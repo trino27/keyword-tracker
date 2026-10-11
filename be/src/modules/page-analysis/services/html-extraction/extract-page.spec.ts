@@ -446,8 +446,23 @@ describe('extractPage', () => {
           '<link rel="alternate" href="/feed/" type="application/rss+xml">',
       ).alternates,
     ).toEqual([
-      { lang: 'en', href: 'https://a.example/post/' },
+      { lang: 'en', href: 'https://a.example/post/', relativeHref: '/post/' },
       { lang: 'en_US', href: 'https://a.example/us/' },
+    ]);
+  });
+
+  /** Google reads hreflang only in <head>; one in <body> is kept apart, to be reported. */
+  it('keeps hreflang written outside <head> apart from the alternates', () => {
+    const parsed = page(
+      '<link rel="alternate" hreflang="fr" href="https://a.example/fr/">',
+      '<link rel="alternate" hreflang="en" href="https://a.example/post/">',
+    );
+
+    expect(parsed.alternates).toEqual([
+      { lang: 'en', href: 'https://a.example/post/' },
+    ]);
+    expect(parsed.alternatesOutsideHead).toEqual([
+      { lang: 'fr', href: 'https://a.example/fr/' },
     ]);
   });
 

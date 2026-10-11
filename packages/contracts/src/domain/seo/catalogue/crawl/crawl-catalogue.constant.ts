@@ -1005,11 +1005,10 @@ export const CRAWL_CATALOGUE = {
   },
   HREFLANG_INVALID: {
     // Also fails a page that declares hreflang while its canonical names another URL: the
-    // page then calls itself a duplicate and drops out of its own set.
-    // Reciprocity — does the page named back link here — is the other half of Google's
-    // requirement and is deliberately not checked: it needs the other document, which
-    // is usually on another site and never in this crawl. What is checked is what one
-    // page can answer about itself.
+    // page then calls itself a duplicate and drops out of its own set. Reciprocity — does
+    // the page named back link here — is HREFLANG_NOT_RECIPROCAL's, read from the other
+    // documents by the crawl's outbound stage. What is checked here is what one page can
+    // answer about itself.
     severity: 'notice',
     label: 'Hreflang is malformed',
     passLabel: 'Hreflang is well formed',
@@ -1020,7 +1019,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'A hreflang with an invalid language code is ignored.',
     explanation:
-      'hreflang links tell Google which URL to show readers of each language or region. Google requires each value to be a valid ISO 639-1 language code, optionally followed by an ISO 3166-1 region; annotations that break this rule may be ignored, and readers shown the wrong language version. The usual slips are country codes written for languages — ua for Ukrainian (uk), kz for Kazakh (kk), jp for Japanese (ja) — and UK for the United Kingdom (GB). A page whose canonical names another URL declares itself a duplicate, which takes it out of its own hreflang set. A set that leaves out this page is reported as its own finding.',
+      'hreflang links tell Google which URL to show readers of each language or region. Google supports only ISO 639-1 language codes, optionally followed by an ISO 3166-1 alpha-2 region (a script such as Hant may sit between), and names es-419 among the codes it does not support; annotations that break this rule may be ignored, and readers shown the wrong language version. The usual slips are country codes written for languages — ua for Ukrainian (uk), kz for Kazakh (kk), jp for Japanese (ja) — and UK for the United Kingdom (GB). Google also requires full addresses with https:// and reads hreflang only in <head>. A page whose canonical names another URL declares itself a duplicate, which takes it out of its own hreflang set. A set that leaves out this page is reported as its own finding.',
     sources: [SOURCE.hreflang],
     skipReason: 'The page declares no hreflang.',
   },

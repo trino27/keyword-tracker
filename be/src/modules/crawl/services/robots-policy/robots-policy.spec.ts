@@ -65,6 +65,24 @@ describe('RobotsPolicy', () => {
     ]);
   });
 
+  /**
+   * Google: "Rules other than allow, disallow, and user-agent are ignored by the
+   * robots.txt parser … treated as one group, and thus both user-agent a and b are
+   * affected by the disallow: / rule". robots-parser ended the group at the sitemap line.
+   */
+  it('keeps one group across a line that is not a rule, and quotes the right line', () => {
+    const policy = RobotsPolicy.parse(
+      ROBOTS_URL,
+      'user-agent: googlebot\nsitemap: https://a.example/s.xml\nschemamap: https://a.example/x\nuser-agent: b\n  disallow : /\n',
+    );
+
+    expect(policy.allows('https://a.example/post/', 'Googlebot')).toBe(false);
+    expect(policy.matchingRule('https://a.example/post/', 'Googlebot')).toBe(
+      'line 5: disallow : /',
+    );
+    expect(policy.sitemaps()).toEqual(['https://a.example/s.xml']);
+  });
+
   it('allows everything when there is no robots.txt', () => {
     const policy = RobotsPolicy.allowAll();
 

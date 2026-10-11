@@ -92,7 +92,7 @@ export const INDEXING_AND_LINKS_CRITERIA = {
 			lang: "robots",
 		},
 		howChecked:
-			'The tracker reads the site\'s robots.txt once per crawl and asks it about the page\'s final URL for the user-agent "Googlebot": the group that names Googlebot applies, or the "*" group if none does. Within the group the longest matching Allow or Disallow rule wins, and Allow wins a tie; the finding quotes the deciding line. A missing robots.txt (a 4xx answer) allows everything. The check is not applicable when the page is on a host or scheme that robots.txt does not cover.',
+			'The tracker reads the site\'s robots.txt once per crawl and asks it about the page\'s final URL for the user-agent "Googlebot": the group that names Googlebot applies, or the "*" group if none does. Lines other than User-agent, Allow and Disallow — Sitemap, Crawl-delay or unknown ones — are ignored, as Google ignores them, so they never split a group. Within the group the longest matching Allow or Disallow rule wins, and Allow wins a tie; the finding quotes the deciding line. A missing robots.txt (a 4xx answer) allows everything. The check is not applicable when the page is on a host or scheme that robots.txt does not cover.',
 		manualCheck: [
 			"Open https://example.com/robots.txt in the browser and find the User-agent: Googlebot group, or the User-agent: * group if there is none.",
 			"Compare its Disallow and Allow lines with the page's path; the longest matching rule decides.",

@@ -72,7 +72,7 @@ export const SECURITY_AND_PERFORMANCE_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The tracker reads the first <meta http-equiv="refresh"> anywhere in the HTML (http-equiv in any letter case) and looks in its content for a url= part. With a target, such as content="0; url=/new-post/", the check fails whatever the delay, and the finding quotes the tag. A refresh without a target (content="30"), which only reloads the same page, passes, as does a page without the tag. A Refresh response header is not read.',
+			'The tracker reads the first <meta http-equiv="refresh"> anywhere in the HTML (http-equiv in any letter case) and reads its content as browsers do: a delay, then optionally a semicolon or comma, then the address, with or without url= in front of it. With a target, such as content="0; url=/new-post/" or content="0; https://example.com/new-post/", the check fails whatever the delay, and the finding quotes the tag. A refresh without a target (content="30"), which only reloads the same page, passes, as does a page without the tag. A Refresh response header is not read.',
 		manualCheck: [
 			"Open View source (Ctrl+U) and search (Ctrl+F) for http-equiv.",
 			"If a refresh tag is there, check whether its content holds url= — that part makes it a redirect.",

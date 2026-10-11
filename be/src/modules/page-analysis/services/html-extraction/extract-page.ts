@@ -339,7 +339,8 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .map((_, element) => collapse($(element).attr('href') ?? ''))
       .get()
       .filter((href) => href && !HAS_SCHEME.test(href)),
-    alternates: alternatesOf($, baseUrl),
+    alternates: alternatesOf($, 'head', baseUrl),
+    alternatesOutsideHead: alternatesOf($, 'body', baseUrl),
     openGraph: openGraphOf($),
     articleTags: $('meta[property="article:tag"]')
       .map((_, element) => collapse($(element).attr('content') ?? ''))
@@ -995,12 +996,22 @@ function httpEquivContent($: CheerioAPI, value: string): string | undefined {
  * different URLs has a defect the check is there to report, and de-duplicating here would
  * hide it before the check ever saw it.
  */
-function alternatesOf($: CheerioAPI, baseUrl: string): IAlternateLink[] {
+function alternatesOf(
+  $: CheerioAPI,
+  scope: 'head' | 'body',
+  baseUrl: string,
+): IAlternateLink[] {
   const alternates: IAlternateLink[] = [];
-  $('link[rel~="alternate"][hreflang]').each((_, element) => {
+  $(`${scope} link[rel~="alternate" i][hreflang]`).each((_, element) => {
     const lang = collapse($(element).attr('hreflang') ?? '');
-    const href = absolute($(element).attr('href'), baseUrl);
-    if (lang && href) alternates.push({ lang, href });
+    const raw = collapse($(element).attr('href') ?? '');
+    const href = absolute(raw, baseUrl);
+    if (lang && href)
+      alternates.push(
+        HAS_SCHEME.test(raw)
+          ? { lang, href }
+          : { lang, href, relativeHref: raw },
+      );
   });
   return alternates;
 }

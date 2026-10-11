@@ -9,6 +9,12 @@ export interface IAlternateLink {
   lang: string;
   /** Absolute, resolved against the page, as a browser would resolve it. */
   href: string;
+  /**
+   * The href as written, when it has no scheme. Google requires alternate URLs to be
+   * "fully-qualified, including the transport method", so such a link is a defect even
+   * though a browser resolves it — quoted as written, so the author can find it.
+   */
+  relativeHref?: string;
 }
 
 export interface IPageImage {
@@ -133,7 +139,14 @@ export interface IParsedPage {
   canonicalsOutsideHead: string[];
   /** Canonical hrefs in `<head>` written as a path rather than a full URL, as written. */
   relativeCanonicals: string[];
+  /** hreflang links in `<head>`: the only place Google reads them in the HTML. */
   alternates: IAlternateLink[];
+  /**
+   * hreflang links outside `<head>`. Google: "The `<link>` tags must be inside a
+   * well-formed `<head>` section", so these are language versions the author believes
+   * the page declares and it does not.
+   */
+  alternatesOutsideHead: IAlternateLink[];
   /** `og:*` properties by name, e.g. `og:title`. */
   openGraph: Record<string, string>;
   articleTags: string[];
