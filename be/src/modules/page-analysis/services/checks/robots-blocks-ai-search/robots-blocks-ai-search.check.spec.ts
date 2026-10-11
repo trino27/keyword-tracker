@@ -36,12 +36,21 @@ describe('ROBOTS_BLOCKS_AI_SEARCH', () => {
     ]);
   });
 
+  // Anthropic: blocking Claude-SearchBot may reduce a site's visibility in Claude's search.
+  it("fails Claude's search crawler shut out", () => {
+    expect(
+      ROBOTS_BLOCKS_AI_SEARCH_CHECK.evaluate(
+        withRobots('User-agent: Claude-SearchBot\nDisallow: /post/\n'),
+      ),
+    ).toEqual(failsWith({ crawlers: ['Claude-SearchBot'] }));
+  });
+
   // Closing the training crawlers is a legitimate choice that costs no visibility.
   it('does not judge the training crawlers', () => {
     expect(
       ROBOTS_BLOCKS_AI_SEARCH_CHECK.evaluate(
         withRobots(
-          'User-agent: GPTBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n',
+          'User-agent: GPTBot\nDisallow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n',
         ),
       ),
     ).toEqual(PASSES);

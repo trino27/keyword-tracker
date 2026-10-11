@@ -311,6 +311,12 @@ export const ISSUE_SOURCES = {
       'Google Search Central: Understanding page experience in Google Search results',
     url: 'https://developers.google.com/search/docs/appearance/page-experience',
   },
+  // Backs Claude-SearchBot in ROBOTS_BLOCKS_AI_SEARCH; opened and read on 2026-10-11.
+  claudeBots: {
+    title:
+      'Claude Help Center: Does Anthropic crawl data from the web, and how can site owners block the crawler?',
+    url: 'https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler',
+  },
 } as const satisfies Record<string, ISeoIssueSource>;
 
 const SOURCE = ISSUE_SOURCES;
@@ -579,13 +585,18 @@ export const SEO_ISSUE_CATALOGUE = {
     label: 'robots.txt blocks AI search crawlers',
     plain: {
       what: 'AI search tools such as ChatGPT search are blocked from this page',
-      why: 'ChatGPT search, Perplexity and Copilot (through Bing) cannot show or cite the page in their answers. It does not affect Google Search, and blocking AI training bots is a separate, legitimate choice not judged here.',
+      why: 'ChatGPT search, Perplexity, Claude and Copilot (through Bing) cannot show or cite the page in their answers. It does not affect Google Search, and blocking AI training bots is a separate, legitimate choice not judged here.',
       fix: 'If you want to be cited by these assistants, ask your developer to allow their search crawlers in robots.txt; their training crawlers can stay blocked.',
     },
     hint: 'Allow the search crawlers of the assistants you want to be cited by; their training crawlers are a separate choice.',
     explanation:
-      'robots.txt keeps one or more search crawlers of AI assistants from this page — OAI-SearchBot (ChatGPT search), PerplexityBot, or Bingbot, whose index Copilot answers from. OpenAI documents that a site opted out of OAI-SearchBot is not shown in ChatGPT search answers, and Perplexity asks sites to allow PerplexityBot to appear in its results. This is not about training: GPTBot and Google-Extended govern training and are not judged here, because closing them is a legitimate choice that costs no visibility. It does not affect Google Search.',
-    sources: [SOURCE.openAiBots, SOURCE.perplexityBots, SOURCE.bingCrawlers],
+      "robots.txt keeps one or more search crawlers of AI assistants from this page — OAI-SearchBot (ChatGPT search), PerplexityBot, Claude-SearchBot, or Bingbot, whose index Copilot answers from. OpenAI documents that a site opted out of OAI-SearchBot is not shown in ChatGPT search answers, Perplexity asks sites to allow PerplexityBot to appear in its results, and Anthropic says blocking Claude-SearchBot may reduce a site's visibility in Claude's search results. This is not about training: GPTBot, ClaudeBot and Google-Extended govern training and are not judged here, because closing them is a legitimate choice that costs no visibility. It does not affect Google Search.",
+    sources: [
+      SOURCE.openAiBots,
+      SOURCE.perplexityBots,
+      SOURCE.claudeBots,
+      SOURCE.bingCrawlers,
+    ],
     skipReason: "The site's robots.txt does not govern this page's host.",
   },
   IMAGES_MISSING_ALT: {
