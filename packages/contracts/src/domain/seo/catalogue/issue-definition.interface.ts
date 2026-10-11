@@ -1,3 +1,4 @@
+import type { TPsiStrategy } from '../../page-speed/psi-strategy.enum.js';
 import type { IPlainCopy } from '../plain-copy.interface.js';
 import type { TSeoIssueSeverity } from '../seo-issue-severity.enum.js';
 
@@ -69,8 +70,14 @@ export interface ICrawlIssueDefinition extends ISeoIssueDefinition {
   scope?: 'run';
 }
 
-/** A Core Web Vitals band the PageSpeed worker writes from Google's measurement. */
-export type IPageSpeedIssueDefinition = ISeoIssueDefinition;
+/**
+ * A finding the PageSpeed worker writes from one device's answer. `strategy` is required:
+ * the worker's replace deletes one strategy's codes, so a code with no strategy would be
+ * deleted by neither replace — or, written as a default, by the wrong one.
+ */
+export interface IPageSpeedIssueDefinition extends ISeoIssueDefinition {
+  strategy: TPsiStrategy;
+}
 
 /** The two Lighthouse categories whose audits are catalogued. */
 export type TLighthouseCategory = 'seo' | 'accessibility';

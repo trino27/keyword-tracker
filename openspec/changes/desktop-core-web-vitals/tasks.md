@@ -14,7 +14,7 @@ runnable.
 
 ## 1. The catalogue knows two strategies (4a) — SPEED-007
 
-- [ ] 1.1 Write first in `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts`:
+- [x] 1.1 Write first in `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts`:
   - "splits the speed codes by strategy: six CWV codes each";
   - "each CWV code's max is its metric's threshold for its band, on both strategies" (the
     existing case at `:98-107`, looped over `PSI_STRATEGIES`);
@@ -22,7 +22,10 @@ runnable.
 
   They fail: there is no `PAGE_SPEED_CODES_BY_STRATEGY`, and `CWV_ISSUE_CODES` has no strategy
   level. Verify: `pnpm --filter @app/contracts test:ci` fails on those.
-- [ ] 1.2 Contracts (`packages/contracts/src/domain/`):
+  Done: they failed on the missing `psi-strategy.enum` module. Two more cases joined them: the
+  mobile-only severity case now reads `CWV_ISSUE_CODES.mobile`, and "names the device in every CWV
+  label" pins D48.
+- [x] 1.2 Contracts (`packages/contracts/src/domain/`):
   - `page-speed/psi-strategy.enum.ts` (new): `PSI_STRATEGIES = ['mobile', 'desktop'] as const`,
     its comment saying the order is the claim's order (plan §3.2, D44);
   - `seo/catalogue/issue-definition.interface.ts`: `IPageSpeedIssueDefinition extends
@@ -43,20 +46,31 @@ runnable.
   (`PAGE_ANALYSIS_MODULE.md:582`) names the old title; phase 6 corrects it. Seen failing once and
   restored: a `strategy` on one crawl entry and a pageSpeed entry without one each fail
   `pnpm typecheck` (I19). Verify: `pnpm --filter @app/contracts test:ci && pnpm typecheck`.
-- [ ] 1.3 Write first in `be/src/modules/page-speed/services/cwv-issues/cwv-issues-of.spec.ts`:
+  Done. I19 seen failing both ways: a pageSpeed entry without `strategy` (TS2741 through the
+  registry), and `strategy` on a crawl entry (TS2353, excess property). `TCwvIssueCode` lives
+  beside `CWV_ISSUE_CODES`.
+- [x] 1.3 Write first in `be/src/modules/page-speed/services/cwv-issues/cwv-issues-of.spec.ts`:
   "a desktop metric outside the good band yields its desktop code". It fails: there is no
   strategy parameter. Then `cwvIssuesOf<S>(strategy: S, measurement): TPageSpeedSeoIssueOf<S>[]`,
   with its caller (`page-speed-executor.service.ts:125`) passing `'mobile'`. Verify:
   `pnpm --filter be test:ci -- src/modules/page-speed`.
-- [ ] 1.4 Write first in `fe/src/Core/Helpers/DescribeIssue/describeIssue.test.ts`: "says 'on
+  Done: the spec failed with every code wrong; 122 page-speed specs green after.
+- [x] 1.4 Write first in `fe/src/Core/Helpers/DescribeIssue/describeIssue.test.ts`: "says 'on
   desktop' for a desktop code", "says 'on mobile' for a mobile code". They fail: no desktop code,
   no device word. Then the six sentences and the `speed` helper's device word (`:30-38`). Re-read
   every reader of a CWV label: `git grep -n -E "Contentful Paint (is|needs)|Next Paint
   (is|needs)|Layout Shift (is|needs)" -- fe/src be/src be/test`. Verify: `pnpm --filter fe
   test:ci -- describeIssue PageSchemas issueTypeOf && pnpm --filter fe typecheck`.
-- [ ] 1.5 Commit: `feat(contracts): two PageSpeed strategies, and the six desktop Core Web Vitals
+  Done. The sentence reads "LCP on mobile is 3.1 s …". No label reader exists outside the
+  catalogue. AMENDED during implementation: two more frontend tables are Records over every code
+  and needed the six desktop codes: `fe/src/Core/Constants/checkTopics.ts` (topic `speed`) and
+  the Info guide's `CheckCriteria` (`DESKTOP_CWV_CRITERIA` in `groups/speedAndSite.ts`, derived
+  from the mobile entries with the desktop measurement and "choose Desktop"). One sentence test
+  outside `describeIssue`, `IssuesByPage.test.tsx`, gained "on mobile".
+- [x] 1.5 Commit: `feat(contracts): two PageSpeed strategies, and the six desktop Core Web Vitals
   codes`. Verify: `pnpm lint && pnpm typecheck && pnpm test && docker compose up -d --build &&
   curl -fsS http://localhost:8080/api/health`.
+  Done: lint and typecheck clean; contracts 789, be 1318, fe 434 tests green.
 
 ## 2. One row per page and strategy, still measured on mobile only (4b) — SPEED-020, SPEED-002, SPEED-007, SPEED-014, PAGES-014
 

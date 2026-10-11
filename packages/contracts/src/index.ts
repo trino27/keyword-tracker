@@ -31,6 +31,7 @@ export * from './domain/page-speed/cwv-band.enum.js';
 export * from './domain/page-speed/cwv-source.enum.js';
 export * from './domain/page-speed/cwv-thresholds.constant.js';
 export * from './domain/page-speed/cwv-issue-codes.constant.js';
+export * from './domain/page-speed/psi-strategy.enum.js';
 export * from './domain/page-speed/cwv-measurement.interface.js';
 export * from './domain/page-speed/cwv-band-of/cwv-band-of.util.js';
 export * from './domain/page-speed/page-speed-availability-state.enum.js';

@@ -3,6 +3,7 @@ import {
 	LIGHTHOUSE_ISSUE_CODES,
 	type TCwvMetric,
 	type TLighthouseIssueCode,
+	type TPsiStrategy,
 	type TSeoIssueCode,
 } from "@app/contracts";
 import { CWV_METRIC_NAME, cwvSourcePhrase, formatCwvValue } from "../DescribeCwv/describeCwv";
@@ -26,8 +27,13 @@ const others = (details: TDetails, verb: string) => {
 	return count === 1 ? `Another page ${verb}s` : `${count} other pages ${verb}`;
 };
 
-/** "LCP is 3.1 s for this page's real visitors; good is 2.5 s or less." */
-const speed = (metric: TCwvMetric, band: "needsImprovement" | "poor", d: TDetails) => {
+/** "LCP on mobile is 3.1 s for this page's real visitors; good is 2.5 s or less." */
+const speed = (
+	strategy: TPsiStrategy,
+	metric: TCwvMetric,
+	band: "needsImprovement" | "poor",
+	d: TDetails,
+) => {
 	const value = typeof d.value === "number" ? formatCwvValue(metric, d.value) : "?";
 	const bound = typeof d.max === "number" ? formatCwvValue(metric, d.max) : "?";
 	const who =
@@ -35,7 +41,7 @@ const speed = (metric: TCwvMetric, band: "needsImprovement" | "poor", d: TDetail
 			? cwvSourcePhrase(d.source)
 			: "visitors";
 	const verdict = band === "poor" ? `over ${bound} is poor` : `good is ${bound} or less`;
-	return `${CWV_METRIC_NAME[metric]} is ${value} for ${who}; ${verdict}.`;
+	return `${CWV_METRIC_NAME[metric]} on ${strategy} is ${value} for ${who}; ${verdict}.`;
 };
 
 /**
@@ -253,12 +259,18 @@ const DESCRIBE: Record<
 		const count = num(d, "count");
 		return `${count} breadcrumb step${count === 1 ? " lacks" : "s lack"} a property Google requires.`;
 	},
-	CWV_LCP_NEEDS_IMPROVEMENT: (d) => speed("lcp", "needsImprovement", d),
-	CWV_LCP_POOR: (d) => speed("lcp", "poor", d),
-	CWV_INP_NEEDS_IMPROVEMENT: (d) => speed("inp", "needsImprovement", d),
-	CWV_INP_POOR: (d) => speed("inp", "poor", d),
-	CWV_CLS_NEEDS_IMPROVEMENT: (d) => speed("cls", "needsImprovement", d),
-	CWV_CLS_POOR: (d) => speed("cls", "poor", d),
+	CWV_LCP_NEEDS_IMPROVEMENT: (d) => speed("mobile", "lcp", "needsImprovement", d),
+	CWV_LCP_POOR: (d) => speed("mobile", "lcp", "poor", d),
+	CWV_INP_NEEDS_IMPROVEMENT: (d) => speed("mobile", "inp", "needsImprovement", d),
+	CWV_INP_POOR: (d) => speed("mobile", "inp", "poor", d),
+	CWV_CLS_NEEDS_IMPROVEMENT: (d) => speed("mobile", "cls", "needsImprovement", d),
+	CWV_CLS_POOR: (d) => speed("mobile", "cls", "poor", d),
+	CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP: (d) => speed("desktop", "lcp", "needsImprovement", d),
+	CWV_LCP_POOR_DESKTOP: (d) => speed("desktop", "lcp", "poor", d),
+	CWV_INP_NEEDS_IMPROVEMENT_DESKTOP: (d) => speed("desktop", "inp", "needsImprovement", d),
+	CWV_INP_POOR_DESKTOP: (d) => speed("desktop", "inp", "poor", d),
+	CWV_CLS_NEEDS_IMPROVEMENT_DESKTOP: (d) => speed("desktop", "cls", "needsImprovement", d),
+	CWV_CLS_POOR_DESKTOP: (d) => speed("desktop", "cls", "poor", d),
 };
 
 const isLighthouse = (code: TSeoIssueCode): code is TLighthouseIssueCode =>

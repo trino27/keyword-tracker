@@ -8,6 +8,7 @@ import {
   SCORED_ISSUE_OWNERS,
   issueCodesOf,
   PAGE_ISSUE_CODES,
+  PAGE_SPEED_CODES_BY_STRATEGY,
   PAGE_SPEED_ISSUE_CODES,
   RUN_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
@@ -16,6 +17,7 @@ import {
 import { CWV_ISSUE_CODES } from '../page-speed/cwv-issue-codes.constant';
 import { CWV_THRESHOLDS } from '../page-speed/cwv-thresholds.constant';
 import { CWV_METRICS } from '../page-speed/cwv-metric.enum';
+import { PSI_STRATEGIES } from '../page-speed/psi-strategy.enum';
 import { SITE_CHECK_CATALOGUE } from '../site/site-check-catalogue.constant';
 import { inclusionBarViolations } from './inclusion-bar/inclusion-bar.util';
 
@@ -80,42 +82,96 @@ describe('the catalogue split by owner', () => {
     expect(overlap).toEqual([]);
   });
 
-  it('gives the PageSpeed worker exactly the six Core Web Vitals codes', () => {
+  it('gives the PageSpeed worker exactly the twelve Core Web Vitals codes, six per strategy', () => {
     expect([...PAGE_SPEED_ISSUE_CODES].sort()).toEqual([
       'CWV_CLS_NEEDS_IMPROVEMENT',
+      'CWV_CLS_NEEDS_IMPROVEMENT_DESKTOP',
       'CWV_CLS_POOR',
+      'CWV_CLS_POOR_DESKTOP',
       'CWV_INP_NEEDS_IMPROVEMENT',
+      'CWV_INP_NEEDS_IMPROVEMENT_DESKTOP',
       'CWV_INP_POOR',
+      'CWV_INP_POOR_DESKTOP',
       'CWV_LCP_NEEDS_IMPROVEMENT',
+      'CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP',
       'CWV_LCP_POOR',
+      'CWV_LCP_POOR_DESKTOP',
     ]);
+  });
+
+  /**
+   * Each strategy's replace deletes its own codes only, so a speed code in both lists would
+   * be erased by the other device's measurement, and one in neither would never be cleared.
+   */
+  it('splits the speed codes by strategy: six CWV codes each', () => {
+    for (const strategy of PSI_STRATEGIES) {
+      const leaves = CWV_METRICS.flatMap((metric) =>
+        Object.values(CWV_ISSUE_CODES[strategy][metric]),
+      );
+      expect([...PAGE_SPEED_CODES_BY_STRATEGY[strategy]].sort()).toEqual(
+        [...leaves].sort(),
+      );
+      for (const code of PAGE_SPEED_CODES_BY_STRATEGY[strategy])
+        expect({ code, strategy: SEO_ISSUE_CATALOGUE[code].strategy }).toEqual({
+          code,
+          strategy,
+        });
+    }
+    expect(
+      [
+        ...PAGE_SPEED_CODES_BY_STRATEGY.mobile,
+        ...PAGE_SPEED_CODES_BY_STRATEGY.desktop,
+      ].sort(),
+    ).toEqual([...PAGE_SPEED_ISSUE_CODES].sort());
   });
 
   /**
    * The badge reads the thresholds, the finding reads the catalogue's bound; if they
    * drifted, a yellow badge could sit beside no finding, or a finding beside a green one.
    */
-  it("each CWV code's max is its metric's threshold for its band", () => {
-    for (const metric of CWV_METRICS) {
-      expect(
-        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].needsImprovement].max,
-      ).toBe(CWV_THRESHOLDS[metric].good);
-      expect(SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].poor].max).toBe(
-        CWV_THRESHOLDS[metric].poor,
-      );
-    }
+  it("each CWV code's max is its metric's threshold for its band, on both strategies", () => {
+    for (const strategy of PSI_STRATEGIES)
+      for (const metric of CWV_METRICS) {
+        const codes = CWV_ISSUE_CODES[strategy][metric];
+        expect(SEO_ISSUE_CATALOGUE[codes.needsImprovement].max).toBe(
+          CWV_THRESHOLDS[metric].good,
+        );
+        expect(SEO_ISSUE_CATALOGUE[codes.poor].max).toBe(
+          CWV_THRESHOLDS[metric].poor,
+        );
+      }
   });
 
   /** D10: falling out of search is Critical; a slow page shows, so it is at most Important. */
   it('makes a poor metric a warning and one that needs improvement a notice', () => {
     for (const metric of CWV_METRICS) {
-      expect(SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].poor].severity).toBe(
-        'warning',
-      );
       expect(
-        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES[metric].needsImprovement].severity,
+        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.mobile[metric].poor].severity,
+      ).toBe('warning');
+      expect(
+        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.mobile[metric].needsImprovement]
+          .severity,
       ).toBe('notice');
     }
+  });
+
+  it("gives a desktop code its mobile twin's severity", () => {
+    for (const metric of CWV_METRICS)
+      for (const band of ['needsImprovement', 'poor'] as const)
+        expect(
+          SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.desktop[metric][band]].severity,
+        ).toBe(
+          SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.mobile[metric][band]].severity,
+        );
+  });
+
+  /** D48: two codes of one metric must not read as one name where a label stands alone. */
+  it('names the device in every CWV label', () => {
+    for (const strategy of PSI_STRATEGIES)
+      for (const code of PAGE_SPEED_CODES_BY_STRATEGY[strategy])
+        expect(SEO_ISSUE_CATALOGUE[code].label).toMatch(
+          new RegExp(` on ${strategy}$`),
+        );
   });
 });
 

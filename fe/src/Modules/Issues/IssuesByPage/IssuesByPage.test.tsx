@@ -55,7 +55,7 @@ describe("IssuesByPage", () => {
 		).toBeInTheDocument();
 		expect(
 			screen.getByText(
-				"INP is 210 ms for the whole site's real visitors; good is 200 ms or less.",
+				"INP on mobile is 210 ms for the whole site's real visitors; good is 200 ms or less.",
 			),
 		).toBeInTheDocument();
 	});

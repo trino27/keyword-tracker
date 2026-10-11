@@ -5,7 +5,7 @@ import { INDEXING_AND_LINKS_CRITERIA } from "./groups/indexingAndLinks";
 import { LIGHTHOUSE_CRITERIA } from "./groups/lighthouse";
 import { MEDIA_LANGUAGE_SHARING_CRITERIA } from "./groups/mediaLanguageSharing";
 import { SECURITY_AND_PERFORMANCE_CRITERIA } from "./groups/securityAndPerformance";
-import { SPEED_AND_SITE_CRITERIA } from "./groups/speedAndSite";
+import { DESKTOP_CWV_CRITERIA, SPEED_AND_SITE_CRITERIA } from "./groups/speedAndSite";
 import { STRUCTURED_DATA_AND_IDENTITY_CRITERIA } from "./groups/structuredDataAndIdentity";
 import { TITLES_AND_HEADINGS_CRITERIA } from "./groups/titlesAndHeadings";
 
@@ -27,5 +27,6 @@ export const CHECK_CRITERIA: Record<TGuideCode, ICheckCriteria> = {
 	...SECURITY_AND_PERFORMANCE_CRITERIA,
 	...STRUCTURED_DATA_AND_IDENTITY_CRITERIA,
 	...SPEED_AND_SITE_CRITERIA,
+	...DESKTOP_CWV_CRITERIA,
 	...LIGHTHOUSE_CRITERIA,
 };

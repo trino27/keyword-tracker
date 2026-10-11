@@ -297,3 +297,27 @@ export const SPEED_AND_SITE_CRITERIA = {
 		],
 	},
 } satisfies Partial<Record<TGuideCode, ICheckCriteria>>;
+
+/** How a desktop Core Web Vitals finding is measured: the same call, asking for desktop. */
+const DESKTOP_CWV_SOURCE =
+	"After each crawl the page joins the queue a second time and is measured with Google PageSpeed Insights, desktop strategy, at most once every 24 hours; only the performance category is asked, so Lighthouse's SEO and accessibility verdicts come from the mobile measurement alone. For each metric the tracker keeps the best evidence Google returns for desktop visits: real Chrome visitors to this page over 28 days, else real visitors to the whole site, else one Lighthouse lab run.";
+
+const PSI_DESKTOP_STEP =
+	"Open PageSpeed Insights (https://pagespeed.web.dev), enter the page URL and choose Desktop.";
+
+/** A mobile finding's criteria, told for desktop: the same bands, a different measurement. */
+const onDesktop = (criteria: ICheckCriteria): ICheckCriteria => ({
+	...criteria,
+	howChecked: criteria.howChecked.replace(CWV_SOURCE, DESKTOP_CWV_SOURCE),
+	manualCheck: criteria.manualCheck.map((step) => (step === PSI_STEP ? PSI_DESKTOP_STEP : step)),
+});
+
+/** The desktop twins of the Core Web Vitals findings: same thresholds, desktop visits. */
+export const DESKTOP_CWV_CRITERIA = {
+	CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP: onDesktop(SPEED_AND_SITE_CRITERIA.CWV_LCP_NEEDS_IMPROVEMENT),
+	CWV_LCP_POOR_DESKTOP: onDesktop(SPEED_AND_SITE_CRITERIA.CWV_LCP_POOR),
+	CWV_INP_NEEDS_IMPROVEMENT_DESKTOP: onDesktop(SPEED_AND_SITE_CRITERIA.CWV_INP_NEEDS_IMPROVEMENT),
+	CWV_INP_POOR_DESKTOP: onDesktop(SPEED_AND_SITE_CRITERIA.CWV_INP_POOR),
+	CWV_CLS_NEEDS_IMPROVEMENT_DESKTOP: onDesktop(SPEED_AND_SITE_CRITERIA.CWV_CLS_NEEDS_IMPROVEMENT),
+	CWV_CLS_POOR_DESKTOP: onDesktop(SPEED_AND_SITE_CRITERIA.CWV_CLS_POOR),
+} satisfies Partial<Record<TGuideCode, ICheckCriteria>>;

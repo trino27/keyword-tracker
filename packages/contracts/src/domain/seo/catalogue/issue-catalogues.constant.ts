@@ -1,3 +1,7 @@
+import {
+  PSI_STRATEGIES,
+  type TPsiStrategy,
+} from '../../page-speed/psi-strategy.enum.js';
 import { CRAWL_CATALOGUE } from './crawl/crawl-catalogue.constant.js';
 import type {
   ICrawlIssueDefinition,
@@ -120,6 +124,27 @@ export type TLighthouseIssueCode = TIssueCodeOf<'lighthouse'>;
 export const CRAWL_ISSUE_CODES = issueCodesOf('crawl');
 export const PAGE_SPEED_ISSUE_CODES = issueCodesOf('pageSpeed');
 export const LIGHTHOUSE_ISSUE_CODES = issueCodesOf('lighthouse');
+
+/** The pageSpeed codes whose entry declares the device `S`: what that device's replace deletes. */
+export type TPageSpeedIssueCodeOf<S extends TPsiStrategy> = {
+  [
+    K in TPageSpeedIssueCode
+  ]: (typeof PAGE_SPEED_CATALOGUE)[K]['strategy'] extends S ? K : never;
+}[TPageSpeedIssueCode];
+
+/**
+ * Each device's speed codes, read from the entries' `strategy`, so a code is in exactly
+ * one list and neither can drift from the catalogue. A measurement replaces only its own
+ * device's findings: a desktop answer never erases the mobile ones, nor the other way.
+ */
+export const PAGE_SPEED_CODES_BY_STRATEGY = Object.fromEntries(
+  PSI_STRATEGIES.map((strategy) => [
+    strategy,
+    PAGE_SPEED_ISSUE_CODES.filter(
+      (code) => PAGE_SPEED_CATALOGUE[code].strategy === strategy,
+    ),
+  ]),
+) as { [S in TPsiStrategy]: TPageSpeedIssueCodeOf<S>[] };
 
 /**
  * The crawl's codes split by what a check can see. Derived from the entries, so a code is

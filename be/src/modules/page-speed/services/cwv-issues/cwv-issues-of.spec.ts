@@ -13,7 +13,7 @@ const measurement = (
 
 describe('cwvIssuesOf', () => {
   it('yields nothing for three good metrics', () => {
-    expect(cwvIssuesOf(measurement())).toEqual([]);
+    expect(cwvIssuesOf('mobile', measurement())).toEqual([]);
   });
 
   it.each([
@@ -33,6 +33,7 @@ describe('cwvIssuesOf', () => {
     'a metric outside the good band yields exactly its one code (%s %d → %s)',
     (metric, value, code) => {
       const issues = cwvIssuesOf(
+        'mobile',
         measurement({ [metric]: { value, source: 'url' } }),
       );
 
@@ -42,6 +43,7 @@ describe('cwvIssuesOf', () => {
 
   it('never yields two codes for one metric', () => {
     const issues = cwvIssuesOf(
+      'mobile',
       measurement({
         lcp: { value: 9000, source: 'lab' },
         inp: { value: 900, source: 'origin' },
@@ -58,9 +60,11 @@ describe('cwvIssuesOf', () => {
 
   it('takes severity from the catalogue: poor is a warning, needs improvement a notice', () => {
     const [poor] = cwvIssuesOf(
+      'mobile',
       measurement({ lcp: { value: 5000, source: 'url' } }),
     );
     const [middling] = cwvIssuesOf(
+      'mobile',
       measurement({ lcp: { value: 3000, source: 'url' } }),
     );
 
@@ -71,6 +75,7 @@ describe('cwvIssuesOf', () => {
   /** Source never changes the level (D10); it travels with the finding instead. */
   it('carries the value, the bound it crossed and whose experience it is', () => {
     const [issue] = cwvIssuesOf(
+      'mobile',
       measurement({ inp: { value: 320, source: 'origin' } }),
     );
 
@@ -81,7 +86,31 @@ describe('cwvIssuesOf', () => {
     });
   });
 
+  /** Each device's replace deletes its own codes, so a desktop answer must write desktop's. */
+  it('a desktop metric outside the good band yields its desktop code', () => {
+    const issues = cwvIssuesOf(
+      'desktop',
+      measurement({
+        lcp: { value: 3000, source: 'url' },
+        cls: { value: 0.3, source: 'lab' },
+      }),
+    );
+
+    expect(issues).toEqual([
+      {
+        code: 'CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP',
+        severity: 'notice',
+        details: { value: 3000, max: 2500, source: 'url' },
+      },
+      {
+        code: 'CWV_CLS_POOR_DESKTOP',
+        severity: 'warning',
+        details: { value: 0.3, max: 0.25, source: 'lab' },
+      },
+    ]);
+  });
+
   it('says nothing about an INP Google has no data for', () => {
-    expect(cwvIssuesOf(measurement({ inp: null }))).toEqual([]);
+    expect(cwvIssuesOf('mobile', measurement({ inp: null }))).toEqual([]);
   });
 });

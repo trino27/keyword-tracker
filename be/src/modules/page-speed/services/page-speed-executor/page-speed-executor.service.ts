@@ -122,7 +122,7 @@ export class PageSpeedExecutorService {
 
     switch (outcome.kind) {
       case 'measured': {
-        const findings = cwvIssuesOf(outcome.measurement);
+        const findings = cwvIssuesOf('mobile', outcome.measurement);
         const lighthouseFindings = outcome.lighthouse?.findings ?? [];
         const written = await this.results.completeForWorker(
           claim,

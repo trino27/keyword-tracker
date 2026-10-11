@@ -17,19 +17,35 @@ describe("describeIssue", () => {
 	it("describes CWV_LCP_NEEDS_IMPROVEMENT from its stored bound and source", () => {
 		expect(
 			describeIssue("CWV_LCP_NEEDS_IMPROVEMENT", { value: 3100, max: 2500, source: "url" }),
-		).toBe("LCP is 3.1 s for this page's real visitors; good is 2.5 s or less.");
+		).toBe("LCP on mobile is 3.1 s for this page's real visitors; good is 2.5 s or less.");
 	});
 
 	it("says a poor value is over the poor bound", () => {
 		expect(describeIssue("CWV_INP_POOR", { value: 640, max: 500, source: "origin" })).toBe(
-			"INP is 640 ms for the whole site's real visitors; over 500 ms is poor.",
+			"INP on mobile is 640 ms for the whole site's real visitors; over 500 ms is poor.",
 		);
 	});
 
 	it("names a lab value as one", () => {
 		expect(
 			describeIssue("CWV_CLS_NEEDS_IMPROVEMENT", { value: 0.18, max: 0.1, source: "lab" }),
-		).toBe("CLS is 0.18 for a lab test, which may vary; good is 0.1 or less.");
+		).toBe("CLS on mobile is 0.18 for a lab test, which may vary; good is 0.1 or less.");
+	});
+
+	it("says 'on mobile' for a mobile code", () => {
+		expect(describeIssue("CWV_LCP_POOR", { value: 5200, max: 4000, source: "url" })).toBe(
+			"LCP on mobile is 5.2 s for this page's real visitors; over 4 s is poor.",
+		);
+	});
+
+	it("says 'on desktop' for a desktop code", () => {
+		expect(
+			describeIssue("CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP", {
+				value: 2900,
+				max: 2500,
+				source: "url",
+			}),
+		).toBe("LCP on desktop is 2.9 s for this page's real visitors; good is 2.5 s or less.");
 	});
 
 	it("tells a data-nosnippet wrapper from a robots rule", () => {
