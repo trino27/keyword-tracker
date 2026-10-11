@@ -306,6 +306,29 @@ describe('evaluateChecks', () => {
           height: 60,
         },
         robots: blocked,
+        linkStatuses: {
+          links: new Map([
+            [
+              'https://a.example/moved/',
+              {
+                kind: 'answered',
+                status: 200,
+                redirects: [{ url: 'https://a.example/moved/', status: 301 }],
+                finalUrl: 'https://a.example/new/',
+              },
+            ],
+            [
+              'https://gone.example/source',
+              {
+                kind: 'answered',
+                status: 404,
+                redirects: [],
+                finalUrl: 'https://gone.example/source',
+              },
+            ],
+          ]),
+          documents: new Map(),
+        },
         headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
         htmlBytes: 2_000_000,
         parsed: {
@@ -378,7 +401,12 @@ describe('evaluateChecks', () => {
           ],
           resourceUrls: ['http://a.example/i.png'],
           renderResources: ['https://a.example/app.js'],
-          links: ['http://a.example/other/?utm_source=x'],
+          // A tracking variant, a link that redirects, and a source that is gone.
+          links: [
+            'http://a.example/other/?utm_source=x',
+            'https://a.example/moved/',
+            'https://gone.example/source',
+          ],
           nofollowLinks: ['http://a.example/other/?utm_source=x'],
           uncrawlableLinks: ['<a onclick="go()">Go</a>'],
           wordCount: 100,

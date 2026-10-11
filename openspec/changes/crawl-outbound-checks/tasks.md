@@ -126,19 +126,19 @@ it green.
 - [x] 3.1 Move `variantsOf` from `internal-link-variants.check.ts:14-31` to
   `_shared/link-variants.ts`, unchanged. Commit: `refactor(page-analysis): link variants,
   shared`. Verify: `pnpm --filter be test:ci -- internal-link-variants`.
-- [ ] 3.2 Write first `_shared/link-verdict.spec.ts`:
+- [x] 3.2 Write first `_shared/link-verdict.spec.ts`:
   - plan §10.1's table as `it.each`;
   - `it.each([401, 403, 429, 999, 500, 503])` "an external %d is unknown, never broken";
   - "the BROKEN_LINKS explanation names every external broken status and says 403, 429 and 5xx
     are never reported".
 
   They fail: no module. Verify: `pnpm --filter be test:ci -- link-verdict` fails.
-- [ ] 3.3 Write `link-verdict.ts` (`EXTERNAL_BROKEN_STATUSES = [404, 410]`, `linkVerdictOf`). Add
+- [x] 3.3 Write `link-verdict.ts` (`EXTERNAL_BROKEN_STATUSES = [404, 410]`, `linkVerdictOf`). Add
   the `BROKEN_LINKS` catalogue entry: notice, Ahrefs source (VERIFY the URL); its explanation
   states plan D3's rule in words; `skipReason` "The page has no content links, or none could be
   checked." Verify: `pnpm --filter be test:ci -- link-verdict && pnpm --filter @app/contracts
   test:ci`.
-- [ ] 3.4 Write first `broken-links/broken-links.check.spec.ts`:
+- [x] 3.4 Write first `broken-links/broken-links.check.spec.ts`:
   - "an unchecked link is neither broken nor fine, and the evidence says checked N of M";
   - "is not applicable when no link could be checked";
   - "fails an internal 500";
@@ -151,7 +151,7 @@ it green.
   It fails: no module. Then the check, registered, and its `DESCRIBE` sentence. Verify:
   `pnpm --filter be test:ci -- broken-links && pnpm --filter fe test:ci -- describeIssue &&
   pnpm typecheck`.
-- [ ] 3.5 Write first `links-to-redirects/links-to-redirects.check.spec.ts`:
+- [x] 3.5 Write first `links-to-redirects/links-to-redirects.check.spec.ts`:
   - "fails an internal link that redirects";
   - "skips a link INTERNAL_LINK_VARIANTS reports";
   - "skips a link to this site's development host — that is DEVELOPMENT_HOST_REFERENCES's" (plan
@@ -161,14 +161,25 @@ it green.
 
   It fails: no module. Then the check, the catalogue entry (notice, Ahrefs, VERIFY the URL) and
   `DESCRIBE`. Verify: `pnpm --filter be test:ci -- links-to-redirects && pnpm typecheck`.
-- [ ] 3.6 Write first in `be/test/e2e/crawl.e2e-spec.ts`: "stores BROKEN_LINKS and
+- [x] 3.6 Write first in `be/test/e2e/crawl.e2e-spec.ts`: "stores BROKEN_LINKS and
   LINKS_TO_REDIRECTS for a post linking to a recorded 404 and a recorded 301". Override two URLs
   in the fixture transport. Verify: `pnpm --filter be test:db -- crawl`.
-- [ ] 3.7 Commits:
+- [x] 3.7 Commits:
   - `feat(page-analysis): broken links in the text — external only on 404, 410 or no domain`
   - `feat(page-analysis): links to this site that redirect`
 
   Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+
+  AMENDED during implementation: the two checks landed in one commit — their catalogue
+  entries are neighbours and one pinned conditional list names both. Both read the links
+  through `_shared/content-links.ts` (fragment-free, the page itself and this site's own
+  development host left out, plan D36), the same keys the outbound stage uses. Sources: Ahrefs'
+  "How to find and fix broken links" and Google's "How HTTP status codes, and network and DNS
+  errors affect Google Search" for BROKEN_LINKS; Google's "link to the canonical URL rather
+  than a duplicate" (consolidate-duplicate-urls) and Ahrefs' internal-links guide for
+  LINKS_TO_REDIRECTS — each opened and read on 2026-10-11. The registry spec's clean pages now
+  carry answered links (`runPage`), and its broken pages a redirecting and a dead link. The
+  e2e case in 3.6 passed on its first run, since 3.4 and 3.5 had built what it pins.
 
 ## 4. `CANONICAL_TARGET_BROKEN` (3d) — ANALYSIS-026
 

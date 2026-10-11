@@ -10,6 +10,8 @@ import { ARTICLE_HEADLINE_MISMATCH_CHECK } from './article-headline-mismatch/art
 import { AUTHOR_MARKUP_INCOMPLETE_CHECK } from './author-markup-incomplete/author-markup-incomplete.check';
 import { BREADCRUMB_INVALID_CHECK } from './breadcrumb-invalid/breadcrumb-invalid.check';
 import { BREADCRUMB_MISSING_CHECK } from './breadcrumb-missing/breadcrumb-missing.check';
+import { BROKEN_LINKS_CHECK } from './broken-links/broken-links.check';
+import { LINKS_TO_REDIRECTS_CHECK } from './links-to-redirects/links-to-redirects.check';
 import { CANONICAL_TO_HTTP_CHECK } from './canonical-to-http/canonical-to-http.check';
 import { META_DESCRIPTION_REPEATS_TITLE_CHECK } from './meta-description-repeats-title/meta-description-repeats-title.check';
 import { OG_URL_MISMATCH_CHECK } from './og-url-mismatch/og-url-mismatch.check';
@@ -129,6 +131,8 @@ export const CHECKS: TCheckRegistry = {
   NO_EXTERNAL_SOURCES: NO_EXTERNAL_SOURCES_CHECK,
   INTERNAL_LINKS_NOFOLLOW: INTERNAL_LINKS_NOFOLLOW_CHECK,
   INTERNAL_LINK_VARIANTS: INTERNAL_LINK_VARIANTS_CHECK,
+  BROKEN_LINKS: BROKEN_LINKS_CHECK,
+  LINKS_TO_REDIRECTS: LINKS_TO_REDIRECTS_CHECK,
   LINKS_WITHOUT_TEXT: LINKS_WITHOUT_TEXT_CHECK,
   UNCRAWLABLE_LINKS: UNCRAWLABLE_LINKS_CHECK,
   LANG_MISSING: LANG_MISSING_CHECK,

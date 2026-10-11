@@ -214,6 +214,19 @@ export const ISSUE_SOURCES = {
     title: 'Ahrefs: On-page SEO',
     url: 'https://ahrefs.com/blog/on-page-seo/',
   },
+  ahrefsBrokenLinks: {
+    title: 'Ahrefs: How to find and fix broken links',
+    url: 'https://ahrefs.com/blog/fix-broken-links/',
+  },
+  ahrefsInternalLinks: {
+    title: 'Ahrefs: Internal links for SEO',
+    url: 'https://ahrefs.com/blog/internal-links-for-seo/',
+  },
+  httpNetworkErrors: {
+    title:
+      'Google Search Central: How HTTP status codes, and network and DNS errors affect Google Search',
+    url: 'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+  },
   articleMarkup: {
     title: 'Google Search Central: Article structured data',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/article',
@@ -952,6 +965,39 @@ export const SEO_ISSUE_CATALOGUE = {
       'The content links to pages of this site through a different URL than the one this page is served at — plain HTTP from an HTTPS page, the www host from a site served without it (or the other way round), or a URL carrying tracking or session parameters. Each such link costs a redirect or creates a duplicate URL for Google to crawl and fold back into the canonical one. Google asks sites to link internally to the canonical URL rather than a duplicate, and to avoid session IDs in URLs.',
     sources: [SOURCE.canonical, SOURCE.urlStructure],
     skipReason: 'The content links nowhere on the site.',
+  },
+  BROKEN_LINKS: {
+    // A notice: Ahrefs names the rule, and Google says a 4xx costs only the page it is
+    // on — the reader who follows the link pays, not the ranking (plan D2, D3).
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Broken links in the text',
+    plain: {
+      what: 'Links in this post lead to pages that no longer exist',
+      why: 'A reader who clicks one lands on an error page, which reads as an outdated, unkept post and sends them away. A dead source also stops backing the claim it was linked for.',
+      fix: 'The writer or editor can replace each dead link with a live page on the same subject, or remove it, in the CMS editor.',
+    },
+    hint: 'Replace or remove links that answer 404 or 410, or whose domain no longer exists.',
+    explanation:
+      "The crawl asked every link in the post's main content for its status. A link to this site is broken when it answers any 4xx or 5xx, or redirects in a loop. A link to another site is broken only when it answers 404 or 410, or its domain does not exist: answers such as 401, 403, 429, LinkedIn's 999, any 5xx or a timeout are what anti-bot walls send crawlers and never readers, so they are never reported as broken. Google says a URL answering 4xx is simply left out of the index; the cost of a dead link falls on the reader who follows it, and Ahrefs' guidance treats broken outgoing links as a user-experience defect for that reason. When the crawl could not ask every link within its budget, robots.txt or deadline, the finding says how many it checked.",
+    sources: [SOURCE.ahrefsBrokenLinks, SOURCE.httpNetworkErrors],
+    skipReason:
+      "The page has no content links, or none could be checked within the crawl's budget.",
+  },
+  LINKS_TO_REDIRECTS: {
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Links to this site redirect',
+    plain: {
+      what: "Links in this post point to the site's own pages at old addresses",
+      why: 'Each one sends the reader and search engines through a redirect before the page opens: a little slower, and a mixed signal about which address is the real one. It usually means a page moved and the links were not updated.',
+      fix: 'The writer or editor can update each link in the CMS to the address it now redirects to.',
+    },
+    hint: 'Link to the final address, not to one that redirects to it.',
+    explanation:
+      "Links in the main content point to pages of this site that answer with a redirect before the page itself. Google's guidance on canonical URLs asks sites to link within the site to the canonical URL rather than a duplicate, because consistent internal links tell Google which address is preferred; a redirecting link says the opposite and sends every visit one hop around. Links to other sites are not judged — a redirect there is the other site's arrangement. A link that redirects only because it uses http://, the other www variant or a tracking parameter is reported by INTERNAL_LINK_VARIANTS instead, and one that ends on an error by BROKEN_LINKS.",
+    sources: [SOURCE.canonical, SOURCE.ahrefsInternalLinks],
+    skipReason: 'The page has no links to this site that could be checked.',
   },
   LINKS_WITHOUT_TEXT: {
     owner: 'crawl',

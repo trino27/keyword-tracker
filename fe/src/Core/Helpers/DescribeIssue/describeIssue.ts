@@ -136,6 +136,14 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "is" : "are"} marked nofollow.`,
 	INTERNAL_LINK_VARIANTS: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "uses" : "use"} a URL the site does not serve.`,
+	BROKEN_LINKS: (d) => {
+		const count = num(d, "count");
+		return `${count} link${count === 1 ? " leads" : "s lead"} nowhere: ${list(d, "links")}.`;
+	},
+	LINKS_TO_REDIRECTS: (d) => {
+		const count = num(d, "count");
+		return `${count} link${count === 1 ? "" : "s"} to this site redirect${count === 1 ? "s" : ""}: ${list(d, "links")}.`;
+	},
 	LINKS_WITHOUT_TEXT: (d) => {
 		const count = num(d, "count");
 		return `${count} link${count === 1 ? "" : "s"} to this site ${count === 1 ? "has" : "have"} no text, alt or label.`;

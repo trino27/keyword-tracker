@@ -85,6 +85,18 @@ describe("describeIssue", () => {
 		);
 	});
 
+	it("names the links that are broken or redirect", () => {
+		expect(describeIssue("BROKEN_LINKS", { count: 1, links: ["https://b.example/x"] })).toBe(
+			"1 link leads nowhere: https://b.example/x.",
+		);
+		expect(
+			describeIssue("LINKS_TO_REDIRECTS", {
+				count: 2,
+				links: ["https://a.example/1/", "https://a.example/2/"],
+			}),
+		).toBe("2 links to this site redirect: https://a.example/1/, https://a.example/2/.");
+	});
+
 	it("says what a missing breadcrumb or repeated description is", () => {
 		expect(describeIssue("BREADCRUMB_MISSING", {})).toBe(
 			"The page declares no BreadcrumbList.",

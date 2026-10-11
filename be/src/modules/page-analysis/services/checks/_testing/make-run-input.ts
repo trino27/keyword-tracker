@@ -20,6 +20,18 @@ export const runPage = (
     finalUrl: url,
     // Seen before, unchanged and under the same date — so the comparison applies and
     // passes, as it does for a page nobody touched.
+    // Every link the page carries answered, directly: the link checks apply and pass.
+    linkStatuses: {
+      links: new Map(
+        ['https://a.example/another-post/', 'https://study.example/report'].map(
+          (url) => [
+            url,
+            { kind: 'answered', status: 200, redirects: [], finalUrl: url },
+          ],
+        ),
+      ),
+      documents: new Map(),
+    },
     previous: {
       contentHash: 'a'.repeat(64),
       dateModified: '2026-02-01T09:00:00Z',

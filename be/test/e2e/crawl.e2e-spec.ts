@@ -185,6 +185,59 @@ describe('crawl (e2e, recorded sites)', () => {
     });
   });
 
+  // Plan D4: the outbound stage asks the post's links; the checks store what came back.
+  it('stores BROKEN_LINKS and LINKS_TO_REDIRECTS for a post linking to a recorded 404 and a recorded 301', async () => {
+    const site = 'https://root-blog-no-feed.example';
+    const post = `${site}/post-number-2/`;
+    const paragraph =
+      'Widget pricing depends on volume. Widget pricing tiers explained. '.repeat(
+        40,
+      );
+    transport.override(post, {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+      body: `<html lang="en"><head><title>Widget pricing explained, tier by tier</title></head><body><main><h1>Widget pricing</h1><p>${paragraph} See <a href="${site}/moved/">the old pricing page</a> and <a href="https://gone-source.example/report">the report</a>.</p></main></body></html>`,
+    });
+    transport.override(`${site}/moved/`, {
+      status: 301,
+      headers: { location: `${site}/pricing/` },
+    });
+    transport.override(`${site}/pricing/`, { status: 200 });
+    transport.override('https://gone-source.example/report', { status: 404 });
+    await addClient('root-blog-no-feed.example');
+
+    await app.get(CrawlWorker).runOnce();
+
+    const [page] = await testDb.db
+      .select({ id: pages.id })
+      .from(pages)
+      .where(eq(pages.url, post));
+    const codes = (
+      await testDb.db
+        .select({ code: seoIssues.code, details: seoIssues.details })
+        .from(seoIssues)
+        .where(eq(seoIssues.pageId, page.id))
+    ).filter(({ code }) =>
+      ['BROKEN_LINKS', 'LINKS_TO_REDIRECTS'].includes(code),
+    );
+    expect(codes).toEqual(
+      expect.arrayContaining([
+        {
+          code: 'BROKEN_LINKS',
+          details: expect.objectContaining({
+            links: ['https://gone-source.example/report'],
+          }) as unknown,
+        },
+        {
+          code: 'LINKS_TO_REDIRECTS',
+          details: expect.objectContaining({
+            links: [`${site}/moved/`],
+          }) as unknown,
+        },
+      ]),
+    );
+  });
+
   it('a re-crawl keeps a post the sitemap no longer lists, at its old run', async () => {
     const client = await addClient('yoast.com');
     await app.get(CrawlWorker).runOnce();
