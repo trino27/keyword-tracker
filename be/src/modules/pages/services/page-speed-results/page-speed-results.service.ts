@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { TLighthouseSeoIssue, TPageSpeedSeoIssue } from '@app/contracts';
 import { TransactionRunner } from '@persistence/connections/postgres/transaction-runner/transaction-runner';
 import type {
   IClaimedPageSpeed,
   IPageSpeedJobWrite,
-  IPageSpeedMeasurementWrite,
+  TPageSpeedCompletion,
 } from '../../interfaces/page-speed.interface';
 import { PageSpeedRepository } from '../../repositories/page-speed/page-speed.repository';
 import { SeoIssuesRepository } from '../../repositories/seo-issues/seo-issues.repository';
@@ -31,36 +30,46 @@ export class PageSpeedResultsService {
   }
 
   /**
-   * The measurement and both kinds of its findings — Core Web Vitals and Lighthouse — in
-   * ONE transaction, under the fence: a stale attempt writes none of them, and a reader
-   * never sees new figures beside old findings.
+   * The measurement and its findings in ONE transaction, under the fence: a stale attempt
+   * writes none of them, and a reader never sees new figures beside old findings. The
+   * device's own Core Web Vitals findings are replaced; Lighthouse's only by a mobile
+   * measurement, the one answer that carries them (lighthouse-checks D16).
    */
   completeForWorker(
     claim: IClaimedPageSpeed,
-    measurement: IPageSpeedMeasurementWrite,
-    findings: TPageSpeedSeoIssue[],
-    lighthouseFindings: TLighthouseSeoIssue[],
+    completion: TPageSpeedCompletion,
   ): Promise<boolean> {
+    const { pageId, attempt } = claim;
+    const addressed = <T>(findings: T[]) =>
+      findings.map((finding) => ({ ...finding, pageId }));
     return this.transactions.run(async (tx) => {
       const owned = await this.pageSpeed.completeForWorker(
         tx,
-        claim.pageId,
-        claim.attempt,
-        measurement,
+        pageId,
+        completion.strategy,
+        attempt,
+        completion.measurement,
       );
       if (!owned) return false;
+      if (completion.strategy === 'desktop') {
+        await this.seoIssues.replacePageSpeedFindingsForWorker(
+          tx,
+          pageId,
+          'desktop',
+          addressed(completion.speedFindings),
+        );
+        return true;
+      }
       await this.seoIssues.replacePageSpeedFindingsForWorker(
         tx,
-        claim.pageId,
-        findings.map((finding) => ({ ...finding, pageId: claim.pageId })),
+        pageId,
+        'mobile',
+        addressed(completion.speedFindings),
       );
       await this.seoIssues.replaceLighthouseFindingsForWorker(
         tx,
-        claim.pageId,
-        lighthouseFindings.map((finding) => ({
-          ...finding,
-          pageId: claim.pageId,
-        })),
+        pageId,
+        addressed(completion.lighthouseFindings),
       );
       return true;
     });
@@ -72,6 +81,7 @@ export class PageSpeedResultsService {
   ): Promise<boolean> {
     return this.pageSpeed.recordFailureForWorker(
       claim.pageId,
+      claim.strategy,
       claim.attempt,
       write,
     );
@@ -83,6 +93,7 @@ export class PageSpeedResultsService {
   ): Promise<boolean> {
     return this.pageSpeed.releaseForWorker(
       claim.pageId,
+      claim.strategy,
       claim.attempt,
       notBefore,
     );

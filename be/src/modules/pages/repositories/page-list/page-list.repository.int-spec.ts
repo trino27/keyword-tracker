@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import {
+  ACTIVE_LIGHTHOUSE_CODES,
   CHECK_WEIGHTS,
   LIGHTHOUSE_CATALOGUE,
-  LIGHTHOUSE_ISSUE_CODES,
   type TCrawlRunStatus,
 } from '@app/contracts';
 import { seoIssues } from '@persistence/schema/tables/seo-issues/seo-issues.schema';
@@ -189,14 +189,14 @@ describe('PageListRepository (postgres)', () => {
   /**
    * PAGES-009: the list orders by the score the row shows, Lighthouse's checks included and
    * weighed like ours. B is 90 on the crawl alone (18 of 20, no per-check record, so every
-   * check weighs 1) but 87 with ten Lighthouse notices of which two failed (26 of 30); A
-   * is 88 and has not been measured, so it stays 88 and comes after B.
+   * check weighs 1) but 86 with the nine active Lighthouse notices of which two failed (25
+   * of 29); A is 88 and has not been measured, so it stays 88 and comes after B.
    */
   it("orders by the score summed over the crawl and Lighthouse's checks", async () => {
-    const notices = LIGHTHOUSE_ISSUE_CODES.filter(
+    const notices = ACTIVE_LIGHTHOUSE_CODES.filter(
       (code) => LIGHTHOUSE_CATALOGUE[code].severity === 'notice',
-    ).slice(0, 10);
-    expect(notices).toHaveLength(10);
+    );
+    expect(notices).toHaveLength(9);
     const user = await seedTestUser(testDb, 'a@example.com');
     const client = await addClient(user.id, 'Site');
     const run = await addRun(client.id, 'succeeded');
@@ -210,6 +210,7 @@ describe('PageListRepository (postgres)', () => {
     });
     await testDb.db.insert(pageSpeed).values({
       pageId: b.id,
+      strategy: 'mobile',
       status: 'done',
       lcpMs: 2000,
       lcpSource: 'lab',
@@ -236,10 +237,65 @@ describe('PageListRepository (postgres)', () => {
       'https://site.example/b/',
       'https://site.example/a/',
     ]);
-    expect(rows[0].lighthousePoints).toEqual({ possible: 10, lost: 2 });
-    expect(rows[0].pageSpeed).toMatchObject({
-      lighthouseApplicable: 10,
-      lighthouseFailed: 2,
+    expect(rows[0].lighthousePoints).toEqual({
+      applicable: 9,
+      failed: 2,
+      possible: 9,
+      lost: 2,
+    });
+  });
+
+  /**
+   * D43: a page has two `page_speed` rows once desktop is measured. A join by page id alone
+   * would list it twice and weigh Lighthouse's lateral once per row.
+   */
+  it('lists a page once, with its mobile summary and score, when both strategies are stored', async () => {
+    const notices = ACTIVE_LIGHTHOUSE_CODES.filter(
+      (code) => LIGHTHOUSE_CATALOGUE[code].severity === 'notice',
+    );
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    const page = await addPage(
+      client.id,
+      run.id,
+      'https://site.example/a/',
+      0,
+      {
+        checksApplicable: 20,
+        checksFailed: 2,
+      },
+    );
+    const measurement = {
+      pageId: page.id,
+      status: 'done' as const,
+      lcpSource: 'lab' as const,
+      cls: 0,
+      clsSource: 'lab' as const,
+      measuredAt: new Date(),
+    };
+    await testDb.db.insert(pageSpeed).values([
+      {
+        ...measurement,
+        strategy: 'mobile',
+        lcpMs: 2000,
+        performanceScore: 90,
+        lighthouseJudged: notices,
+        lighthouseNotApplicable: [],
+        lighthouseFailed: 2,
+      },
+      { ...measurement, strategy: 'desktop', lcpMs: 900, performanceScore: 99 },
+    ]);
+
+    const rows = await slice(user.id);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].pageSpeed).toMatchObject({ lcpMs: 2000 });
+    expect(rows[0].lighthousePoints).toEqual({
+      applicable: 9,
+      failed: 0,
+      possible: 9,
+      lost: 0,
     });
   });
 

@@ -2,7 +2,10 @@ import type {
   ILcpBreakdown,
   TCwvSource,
   TLighthouseIssueCode,
+  TLighthouseSeoIssue,
   TPageSpeedErrorCode,
+  TPageSpeedSeoIssueOf,
+  TPsiStrategy,
 } from '@app/contracts';
 
 /**
@@ -56,10 +59,35 @@ export interface IPageSpeedJobWrite {
   lastError: TPageSpeedErrorCode;
 }
 
-/** A claimed row: the page, the attempt that owns it, and the URL Google measures. */
+/** A claimed row: the page and device, the attempt that owns it, and the URL Google measures. */
 export interface IClaimedPageSpeed {
   pageId: number;
+  strategy: TPsiStrategy;
   attempt: number;
   /** The page's final URL — field data is keyed by where visitors land (plan D22). */
   url: string;
 }
+
+/**
+ * What one successful measurement writes. Lighthouse speaks for mobile alone
+ * (lighthouse-checks D16), so the desktop arm cannot carry a Lighthouse record: a desktop
+ * answer that cleared the page's Lighthouse findings would erase mobile's.
+ */
+export type TPageSpeedCompletion =
+  | {
+      strategy: 'mobile';
+      measurement: IPageSpeedMeasurementWrite;
+      speedFindings: TPageSpeedSeoIssueOf<'mobile'>[];
+      lighthouseFindings: TLighthouseSeoIssue[];
+    }
+  | {
+      strategy: 'desktop';
+      measurement: IPageSpeedMeasurementWrite & {
+        lighthouseJudged: null;
+        lighthouseNotApplicable: null;
+        lighthouseFailed: null;
+        seoScore: null;
+        accessibilityScore: null;
+      };
+      speedFindings: TPageSpeedSeoIssueOf<'desktop'>[];
+    };

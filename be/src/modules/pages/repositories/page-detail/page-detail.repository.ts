@@ -140,7 +140,8 @@ export class PageDetailRepository {
       from pages p
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
       cross join lateral (${SCORE_POINTS_LATERAL}) pts
-      left join page_speed ps on ps.page_id = p.id
+      -- The mobile row: the summary, Lighthouse's checks and the score read it.
+      left join page_speed ps on ps.page_id = p.id and ps.strategy = 'mobile'
       left join lateral (${LIGHTHOUSE_SCORE_POINTS_LATERAL}) lpts on true
       where p.id = ${pageId}
         and p.last_seen_run_id = (

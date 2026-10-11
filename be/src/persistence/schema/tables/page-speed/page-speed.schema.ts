@@ -7,6 +7,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   real,
   smallint,
   timestamp,
@@ -15,6 +16,7 @@ import {
 import {
   CWV_SOURCES,
   PAGE_SPEED_STATUSES,
+  PSI_STRATEGIES,
   type ILcpBreakdown,
 } from '@app/contracts';
 import { auditTimestampColumns } from '../../_shared/columns/audit-timestamp-columns';
@@ -27,20 +29,28 @@ export const pageSpeedStatusEnum = pgEnum(
   PAGE_SPEED_STATUSES,
 );
 export const cwvSourceEnum = pgEnum('cwv_source_enum', CWV_SOURCES);
+// Postgres sorts an enum by its declaration order, PSI_STRATEGIES' order, and the claim
+// takes a client's mobile rows first by it: reordering the array reorders the queue.
+export const psiStrategyEnum = pgEnum('psi_strategy_enum', PSI_STRATEGIES);
 
 /**
- * One row per page: its PageSpeed queue entry AND the cache of its last SUCCESSFUL
- * measurement. Nobody reads a history (like seo_issues), so there is none. A failed
+ * One row per page AND device: its PageSpeed queue entry AND the cache of its last
+ * SUCCESSFUL measurement on that device. Nobody reads a history (like seo_issues), so there is none. A failed
  * attempt writes the job columns only, so the last good measurement survives every
  * outage.
  */
 export const pageSpeed = pgTable(
   'page_speed',
   {
-    // The page IS the key: a second row per page would be a second answer to one question.
+    // No longer the key alone: page and device together are one question.
     pageId: bigint('page_id', { mode: 'number' })
-      .primaryKey()
+      .notNull()
       .references(() => pages.id, { onDelete: 'cascade' }),
+    // The device the job and the answer are for. No default: an insert that forgets it is
+    // refused rather than silently queued as mobile, where the desktop row would never
+    // appear. 0016 added it with a default that filled every existing row — all of them
+    // were mobile answers — and 0018 dropped the default.
+    strategy: psiStrategyEnum('strategy').notNull(),
     // queued → running → done | failed; a transient failure returns to queued.
     status: pageSpeedStatusEnum('status').notNull().default('queued'),
     // Claim counter AND fencing token, as on crawl_runs: only attempt N writes N's outcome.
@@ -99,6 +109,8 @@ export const pageSpeed = pgTable(
     ...auditTimestampColumns(),
   },
   (t) => [
+    // A second row for one page and device would be a second answer to one question.
+    primaryKey({ name: 'page_speed_pk', columns: [t.pageId, t.strategy] }),
     // The claim's ORDER BY next_attempt_at over claimable rows.
     index('page_speed_claim_idx')
       .on(t.nextAttemptAt)
@@ -220,6 +232,16 @@ export const pageSpeed = pgTable(
         and (${t.inpGoodShare} is null or coalesce(${t.inpSource} in ('url', 'origin'), false))
         and (${t.clsGoodShare} is null or coalesce(${t.clsSource} in ('url', 'origin'), false))
         and (${t.ttfbGoodShare} is null or coalesce(${t.ttfbSource} in ('url', 'origin'), false))`,
+    ),
+    // Lighthouse's SEO and accessibility verdicts come from mobile alone (lighthouse-checks
+    // D16): the desktop request asks for performance only, so a desktop row with a verdict
+    // or a category score is a writer's bug, refused here.
+    check(
+      'page_speed_lighthouse_mobile_only',
+      sql`${t.strategy} = 'mobile' or (
+        ${t.lighthouseJudged} is null and ${t.lighthouseNotApplicable} is null
+        and ${t.lighthouseFailed} is null
+        and ${t.seoScore} is null and ${t.accessibilityScore} is null)`,
     ),
   ],
 );

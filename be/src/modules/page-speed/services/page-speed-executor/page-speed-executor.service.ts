@@ -5,7 +5,10 @@ import {
   type IPageSpeedSettings,
 } from '@infrastructure/config/page-speed-settings/page-speed-settings';
 import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
-import type { IClaimedPageSpeed } from '@modules/pages/interfaces/page-speed.interface';
+import type {
+  IClaimedPageSpeed,
+  TPageSpeedCompletion,
+} from '@modules/pages/interfaces/page-speed.interface';
 import { PageSpeedResultsService } from '@modules/pages/services/page-speed-results/page-speed-results.service';
 import { PAGE_SPEED_MAX_ATTEMPTS } from '@shared/page-speed-queue/page-speed-queue.constant';
 import {
@@ -118,27 +121,24 @@ export class PageSpeedExecutorService {
   ): Promise<void> {
     const now = new Date();
     const outcome = classifyPsiResponse(result, now.getTime());
-    const where = { pageId: claim.pageId, attempt: claim.attempt };
+    const where = {
+      pageId: claim.pageId,
+      strategy: claim.strategy,
+      attempt: claim.attempt,
+    };
 
     switch (outcome.kind) {
       case 'measured': {
-        const findings = cwvIssuesOf('mobile', outcome.measurement);
-        const lighthouseFindings = outcome.lighthouse?.findings ?? [];
-        const written = await this.results.completeForWorker(
-          claim,
-          toWrite(outcome, now),
-          findings,
-          lighthouseFindings,
-        );
-        this.reportUnknownAudits(outcome.lighthouse);
+        const completion = completionOf(claim, outcome, now);
+        const written = await this.results.completeForWorker(claim, completion);
+        if (completion.strategy === 'mobile')
+          this.reportUnknownAudits(outcome.lighthouse);
+        const findings =
+          completion.strategy === 'mobile'
+            ? [...completion.speedFindings, ...completion.lighthouseFindings]
+            : completion.speedFindings;
         this.logger.info(
-          {
-            ...where,
-            findings: [...findings, ...lighthouseFindings].map(
-              ({ code }) => code,
-            ),
-            written,
-          },
+          { ...where, findings: findings.map(({ code }) => code), written },
           'Page measured',
         );
         return;
@@ -201,6 +201,41 @@ export class PageSpeedExecutorService {
       }
     }
   }
+}
+
+/**
+ * What a measured answer writes for the claimed device. Lighthouse speaks for mobile alone
+ * (lighthouse-checks D16): a desktop completion carries no Lighthouse record and no
+ * Lighthouse findings, whatever the answer held, so it cannot touch mobile's.
+ */
+function completionOf(
+  claim: IClaimedPageSpeed,
+  outcome: {
+    measurement: IExtractedMeasurement;
+    diagnostics: IExtractedDiagnostics;
+    lighthouse: ILighthouseRecord | null;
+  },
+  measuredAt: Date,
+): TPageSpeedCompletion {
+  if (claim.strategy === 'desktop')
+    return {
+      strategy: 'desktop',
+      measurement: {
+        ...toWrite({ ...outcome, lighthouse: null }, measuredAt),
+        lighthouseJudged: null,
+        lighthouseNotApplicable: null,
+        lighthouseFailed: null,
+        seoScore: null,
+        accessibilityScore: null,
+      },
+      speedFindings: cwvIssuesOf('desktop', outcome.measurement),
+    };
+  return {
+    strategy: 'mobile',
+    measurement: toWrite(outcome, measuredAt),
+    speedFindings: cwvIssuesOf('mobile', outcome.measurement),
+    lighthouseFindings: outcome.lighthouse?.findings ?? [],
+  };
 }
 
 function toWrite(

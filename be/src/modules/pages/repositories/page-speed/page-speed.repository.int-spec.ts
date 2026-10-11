@@ -1,9 +1,10 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { pageSpeed } from '@persistence/schema/tables/page-speed/page-speed.schema';
 import { pages } from '@persistence/schema/tables/pages/pages.schema';
 import { expectPgError } from '../../../../../test/support/expect-pg-error';
 import { seedCurrentPage } from '../../../../../test/support/seed-page';
 import { seedTestUser } from '../../../../../test/support/sign-in';
+import type { TPsiStrategy } from '@app/contracts';
 import { createTestDatabase } from '../../../../../test/support/test-database';
 import type { IPageSpeedMeasurementWrite } from '../../interfaces/page-speed.interface';
 import { PageSpeedRepository } from './page-speed.repository';
@@ -46,11 +47,11 @@ async function currentPage(clientId?: number) {
   return seedCurrentPage(testDb, userId, ['seo audit'], clientId);
 }
 
-const rowOf = async (pageId: number) => {
+const rowOf = async (pageId: number, strategy: TPsiStrategy = 'mobile') => {
   const [row] = await testDb.db
     .select()
     .from(pageSpeed)
-    .where(eq(pageSpeed.pageId, pageId));
+    .where(and(eq(pageSpeed.pageId, pageId), eq(pageSpeed.strategy, strategy)));
   return row;
 };
 
@@ -71,16 +72,21 @@ const measurementOf = async (pageId: number) => {
 const enqueue = (
   pageIds: number[],
   staleBefore = new Date(Date.now() - DAY_MS),
+  strategies: readonly TPsiStrategy[] = ['mobile'],
 ) =>
   testDb.db.transaction((tx) =>
-    repository.enqueueForWorker(tx, pageIds, staleBefore),
+    repository.enqueueForWorker(tx, pageIds, strategies, staleBefore),
   );
 
 /** A row as a past measurement left it: done, with the given figures and time. */
-async function measured(pageId: number, measuredAt: Date) {
+async function measured(
+  pageId: number,
+  measuredAt: Date,
+  strategy: TPsiStrategy = 'mobile',
+) {
   await testDb.db
     .insert(pageSpeed)
-    .values({ pageId, status: 'done', ...MEASUREMENT, measuredAt });
+    .values({ pageId, strategy, status: 'done', ...MEASUREMENT, measuredAt });
 }
 
 /** A new client of `ownerId` whose latest run holds `count` current pages, oldest first. */
@@ -106,6 +112,16 @@ async function claimOrder(count: number) {
   const order: number[] = [];
   for (let i = 0; i < count; i += 1)
     order.push((await repository.claimNextForWorker(LEASE_MS))!.pageId);
+  return order;
+}
+
+/** The (page, strategy) of the next `count` claims, one after another. */
+async function claimRows(count: number) {
+  const order: string[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const claim = (await repository.claimNextForWorker(LEASE_MS))!;
+    order.push(`${claim.pageId}:${claim.strategy}`);
+  }
   return order;
 }
 
@@ -286,7 +302,9 @@ describe('PageSpeedRepository', () => {
       const { pageId } = await currentPage();
 
       await expectPgError(
-        testDb.db.insert(pageSpeed).values({ pageId, ...values }),
+        testDb.db
+          .insert(pageSpeed)
+          .values({ pageId, strategy: 'mobile', ...values }),
         { code: '23514', constraint },
       );
     });
@@ -302,6 +320,7 @@ describe('PageSpeedRepository', () => {
       await testDb.db.insert(pageSpeed).values([
         {
           pageId: full,
+          strategy: 'mobile' as const,
           status: 'done' as const,
           ...MEASUREMENT,
           lighthouseJudged: ['LH_CANONICAL', 'LH_ROBOTS_TXT'],
@@ -324,20 +343,76 @@ describe('PageSpeedRepository', () => {
             phases: [{ phase: 'timeToFirstByte' as const, ms: 6 }],
           },
         },
-        { pageId: bare, status: 'done' as const, ...MEASUREMENT },
+        {
+          pageId: bare,
+          strategy: 'mobile' as const,
+          status: 'done' as const,
+          ...MEASUREMENT,
+        },
       ]);
 
       expect((await rowOf(full)).lighthouseFailed).toBe(1);
       expect((await rowOf(bare)).lighthouseJudged).toBeNull();
     });
 
-    it('deleting a page deletes its row', async () => {
+    it('holds one row per page and strategy', async () => {
       const { pageId } = await currentPage();
-      await enqueue([pageId]);
+      await testDb.db.insert(pageSpeed).values([
+        { pageId, strategy: 'mobile' },
+        { pageId, strategy: 'desktop' },
+      ]);
+
+      await expectPgError(
+        testDb.db.insert(pageSpeed).values({ pageId, strategy: 'desktop' }),
+        { code: '23505', constraint: 'page_speed_pk' },
+      );
+    });
+
+    it('refuses a row without a strategy', async () => {
+      const { pageId } = await currentPage();
+
+      await expectPgError(
+        testDb.db.execute(
+          sql`insert into page_speed (page_id) values (${pageId})`,
+        ),
+        { code: '23502', column: 'strategy' },
+      );
+    });
+
+    it.each([
+      [
+        'a judged list',
+        {
+          lighthouseJudged: [],
+          lighthouseNotApplicable: [],
+          lighthouseFailed: 0,
+        },
+      ],
+      ['an SEO score', { seoScore: 90 }],
+      ['an accessibility score', { accessibilityScore: 90 }],
+    ])('refuses a desktop row with %s', async (_, lighthouse) => {
+      const { pageId } = await currentPage();
+
+      await expectPgError(
+        testDb.db.insert(pageSpeed).values({
+          pageId,
+          strategy: 'desktop',
+          status: 'done',
+          ...MEASUREMENT,
+          ...lighthouse,
+        }),
+        { code: '23514', constraint: 'page_speed_lighthouse_mobile_only' },
+      );
+    });
+
+    it('deleting a page deletes both rows', async () => {
+      const { pageId } = await currentPage();
+      await enqueue([pageId], undefined, ['mobile', 'desktop']);
 
       await testDb.db.delete(pages).where(eq(pages.id, pageId));
 
-      expect(await rowOf(pageId)).toBeUndefined();
+      expect(await rowOf(pageId, 'mobile')).toBeUndefined();
+      expect(await rowOf(pageId, 'desktop')).toBeUndefined();
     });
   });
 
@@ -370,6 +445,7 @@ describe('PageSpeedRepository', () => {
       const { pageId } = await currentPage();
       await testDb.db.insert(pageSpeed).values({
         pageId,
+        strategy: 'mobile',
         status: 'failed',
         attempts: 5,
         lastError: 'PSI_UNAVAILABLE',
@@ -388,9 +464,15 @@ describe('PageSpeedRepository', () => {
       const queued = await currentPage();
       const running = await currentPage();
       await testDb.db.insert(pageSpeed).values([
-        { pageId: queued.pageId, status: 'queued', attempts: 2 },
+        {
+          pageId: queued.pageId,
+          strategy: 'mobile',
+          status: 'queued',
+          attempts: 2,
+        },
         {
           pageId: running.pageId,
+          strategy: 'mobile',
           status: 'running',
           attempts: 1,
           lockedUntil: new Date(Date.now() + LEASE_MS),
@@ -403,6 +485,27 @@ describe('PageSpeedRepository', () => {
         status: 'running',
         attempts: 1,
       });
+    });
+
+    it('enqueue with both strategies queues both rows of a new page', async () => {
+      const { pageId } = await currentPage();
+
+      expect(await enqueue([pageId], undefined, ['mobile', 'desktop'])).toBe(2);
+      expect((await rowOf(pageId, 'mobile')).status).toBe('queued');
+      expect((await rowOf(pageId, 'desktop')).status).toBe('queued');
+    });
+
+    it('re-queues a strategy measured exactly 24 h ago and leaves the other', async () => {
+      const staleBefore = new Date('2026-10-09T12:00:00Z');
+      const { pageId } = await currentPage();
+      await measured(pageId, staleBefore, 'desktop');
+      await measured(pageId, new Date(staleBefore.getTime() + 1_000), 'mobile');
+
+      expect(await enqueue([pageId], staleBefore, ['mobile', 'desktop'])).toBe(
+        1,
+      );
+      expect((await rowOf(pageId, 'desktop')).status).toBe('queued');
+      expect((await rowOf(pageId, 'mobile')).status).toBe('done');
     });
 
     it('keeps the measurement when re-queued', async () => {
@@ -428,6 +531,7 @@ describe('PageSpeedRepository', () => {
 
       expect(await repository.claimNextForWorker(LEASE_MS)).toEqual({
         pageId,
+        strategy: 'mobile',
         attempt: 1,
         url: page.finalUrl,
       });
@@ -438,6 +542,7 @@ describe('PageSpeedRepository', () => {
       const { pageId } = await currentPage();
       await testDb.db.insert(pageSpeed).values({
         pageId,
+        strategy: 'mobile',
         nextAttemptAt: new Date(Date.now() + 60_000),
       });
 
@@ -508,10 +613,51 @@ describe('PageSpeedRepository', () => {
       expect(await claimOrder(2)).toEqual([theirs, mine]);
     });
 
+    it('claims a desktop row with its strategy', async () => {
+      const { pageId } = await currentPage();
+      await testDb.db.insert(pageSpeed).values({ pageId, strategy: 'desktop' });
+
+      expect(await repository.claimNextForWorker(LEASE_MS)).toMatchObject({
+        pageId,
+        strategy: 'desktop',
+        attempt: 1,
+      });
+      expect((await rowOf(pageId, 'desktop')).status).toBe('running');
+    });
+
+    it("a claim of a client's desktop row serves the client", async () => {
+      const [served] = await clientWithPages(userId, 1);
+      await testDb.db.insert(pageSpeed).values({
+        pageId: served,
+        strategy: 'desktop',
+        status: 'done',
+        ...MEASUREMENT,
+        measuredAt: new Date(),
+      });
+      const [mine] = await clientWithPages(userId, 1);
+      await enqueue([served, mine]);
+
+      // The client whose desktop row was claimed has been served; the other has not.
+      expect(await claimOrder(2)).toEqual([mine, served]);
+    });
+
+    it('within one client, due mobile rows are claimed before its desktop rows', async () => {
+      const [first, second] = await clientWithPages(userId, 2);
+      await enqueue([first, second], undefined, ['mobile', 'desktop']);
+
+      expect(await claimRows(4)).toEqual([
+        `${first}:mobile`,
+        `${second}:mobile`,
+        `${first}:desktop`,
+        `${second}:desktop`,
+      ]);
+    });
+
     it('reclaims a running row whose lease expired, as the next attempt', async () => {
       const { pageId } = await currentPage();
       await testDb.db.insert(pageSpeed).values({
         pageId,
+        strategy: 'mobile',
         status: 'running',
         attempts: 2,
         lockedUntil: new Date(Date.now() - 1_000),
@@ -528,7 +674,13 @@ describe('PageSpeedRepository', () => {
       const { attempt } = await claimOwn(pageId);
 
       const written = await testDb.db.transaction((tx) =>
-        repository.completeForWorker(tx, pageId, attempt, MEASUREMENT),
+        repository.completeForWorker(
+          tx,
+          pageId,
+          'mobile',
+          attempt,
+          MEASUREMENT,
+        ),
       );
 
       expect(written).toBe(true);
@@ -551,12 +703,23 @@ describe('PageSpeedRepository', () => {
         .where(eq(pageSpeed.pageId, pageId));
 
       const completed = await testDb.db.transaction((tx) =>
-        repository.completeForWorker(tx, pageId, attempt, MEASUREMENT),
+        repository.completeForWorker(
+          tx,
+          pageId,
+          'mobile',
+          attempt,
+          MEASUREMENT,
+        ),
       );
-      const failed = await repository.recordFailureForWorker(pageId, attempt, {
-        status: 'failed',
-        lastError: 'PSI_REJECTED',
-      });
+      const failed = await repository.recordFailureForWorker(
+        pageId,
+        'mobile',
+        attempt,
+        {
+          status: 'failed',
+          lastError: 'PSI_REJECTED',
+        },
+      );
 
       expect([completed, failed]).toEqual([false, false]);
       expect(await rowOf(pageId)).toMatchObject({
@@ -573,7 +736,7 @@ describe('PageSpeedRepository', () => {
       await enqueue([pageId]);
 
       let claim = await claimOwn(pageId);
-      await repository.recordFailureForWorker(pageId, claim.attempt, {
+      await repository.recordFailureForWorker(pageId, 'mobile', claim.attempt, {
         status: 'queued',
         nextAttemptAt: new Date(Date.now() - 1),
         lastError: 'PSI_UNAVAILABLE',
@@ -581,7 +744,12 @@ describe('PageSpeedRepository', () => {
       expect(await measurementOf(pageId)).toEqual(before);
 
       claim = await claimOwn(pageId);
-      await repository.releaseForWorker(pageId, claim.attempt, new Date());
+      await repository.releaseForWorker(
+        pageId,
+        'mobile',
+        claim.attempt,
+        new Date(),
+      );
       expect(await measurementOf(pageId)).toEqual(before);
 
       await testDb.db
@@ -596,13 +764,48 @@ describe('PageSpeedRepository', () => {
       expect(await measurementOf(pageId)).toEqual(before);
     });
 
+    it('a stale attempt on the desktop row writes nothing to the mobile row of the same page and attempt number', async () => {
+      const { pageId } = await currentPage();
+      await testDb.db.insert(pageSpeed).values([
+        {
+          pageId,
+          strategy: 'mobile',
+          status: 'running',
+          attempts: 1,
+          lockedUntil: new Date(Date.now() + LEASE_MS),
+        },
+        { pageId, strategy: 'desktop', status: 'queued', attempts: 0 },
+      ]);
+
+      const completed = await testDb.db.transaction((tx) =>
+        repository.completeForWorker(tx, pageId, 'desktop', 1, MEASUREMENT),
+      );
+      const released = await repository.releaseForWorker(
+        pageId,
+        'desktop',
+        1,
+        new Date(),
+      );
+
+      expect([completed, released]).toEqual([false, false]);
+      expect(await rowOf(pageId, 'mobile')).toMatchObject({
+        status: 'running',
+        attempts: 1,
+        measuredAt: null,
+      });
+      expect(await rowOf(pageId, 'desktop')).toMatchObject({
+        status: 'queued',
+        attempts: 0,
+      });
+    });
+
     it('a release gives back the attempt', async () => {
       const { pageId } = await currentPage();
       await enqueue([pageId]);
       const { attempt } = await claimOwn(pageId);
       const notBefore = new Date(Date.now() + 120_000);
 
-      await repository.releaseForWorker(pageId, attempt, notBefore);
+      await repository.releaseForWorker(pageId, 'mobile', attempt, notBefore);
 
       expect(await rowOf(pageId)).toMatchObject({
         status: 'queued',
@@ -616,6 +819,7 @@ describe('PageSpeedRepository', () => {
       const { pageId } = await currentPage();
       await testDb.db.insert(pageSpeed).values({
         pageId,
+        strategy: 'mobile',
         status: 'running',
         attempts: 5,
         lockedUntil: new Date(Date.now() - 1_000),
@@ -637,8 +841,8 @@ describe('PageSpeedRepository', () => {
       const current = await currentPage(dropped.clientId);
       const other = await currentPage();
 
-      expect(await repository.backfillCurrentForWorker()).toBe(2);
-      expect(await repository.backfillCurrentForWorker()).toBe(0);
+      expect(await repository.backfillCurrentForWorker(['mobile'])).toBe(2);
+      expect(await repository.backfillCurrentForWorker(['mobile'])).toBe(0);
       const rows = await testDb.db
         .select({ pageId: pageSpeed.pageId })
         .from(pageSpeed)

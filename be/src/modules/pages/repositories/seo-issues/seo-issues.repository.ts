@@ -3,10 +3,11 @@ import { and, eq, inArray } from 'drizzle-orm';
 import {
   CRAWL_ISSUE_CODES,
   LIGHTHOUSE_ISSUE_CODES,
-  PAGE_SPEED_ISSUE_CODES,
+  PAGE_SPEED_CODES_BY_STRATEGY,
   type TCrawlSeoIssue,
   type TLighthouseSeoIssue,
-  type TPageSpeedSeoIssue,
+  type TPageSpeedSeoIssueOf,
+  type TPsiStrategy,
 } from '@app/contracts';
 import {
   DATABASE_CONNECTION,
@@ -18,8 +19,9 @@ import { seoIssues } from '@persistence/schema/tables/seo-issues/seo-issues.sche
 /** A crawl finding as the catalogue types it, addressed to a page. */
 export type TNewCrawlIssue = TCrawlSeoIssue & { pageId: number };
 
-/** A speed finding addressed to a page. */
-export type TNewPageSpeedIssue = TPageSpeedSeoIssue & { pageId: number };
+/** One device's speed finding addressed to a page. */
+export type TNewPageSpeedIssue<S extends TPsiStrategy = TPsiStrategy> =
+  TPageSpeedSeoIssueOf<S> & { pageId: number };
 
 /** A Lighthouse finding addressed to a page. */
 export type TNewLighthouseIssue = TLighthouseSeoIssue & { pageId: number };
@@ -52,23 +54,27 @@ export class SeoIssuesRepository {
   }
 
   /**
-   * A measurement's findings replace the page's previous SPEED findings, in the same
-   * transaction as the measurement itself. Crawl findings are left alone.
+   * A measurement's findings replace the page's previous SPEED findings for that device,
+   * in the same transaction as the measurement itself. The other device's findings, the
+   * crawl's and Lighthouse's are left alone: a desktop answer never erases mobile's.
    */
-  async replacePageSpeedFindingsForWorker(
+  async replacePageSpeedFindingsForWorker<S extends TPsiStrategy>(
     tx: Transaction,
     pageId: number,
-    rows: TNewPageSpeedIssue[],
+    strategy: S,
+    rows: TNewPageSpeedIssue<S>[],
   ): Promise<void> {
     await tx
       .delete(seoIssues)
       .where(
         and(
           eq(seoIssues.pageId, pageId),
-          inArray(seoIssues.code, PAGE_SPEED_ISSUE_CODES),
+          inArray(seoIssues.code, PAGE_SPEED_CODES_BY_STRATEGY[strategy]),
         ),
       );
-    if (rows.length > 0) await tx.insert(seoIssues).values(rows);
+    // Widened for the insert: the generic `S` is what kept a desktop code out of mobile's rows.
+    if (rows.length > 0)
+      await tx.insert(seoIssues).values(rows as TNewPageSpeedIssue[]);
   }
 
   /**

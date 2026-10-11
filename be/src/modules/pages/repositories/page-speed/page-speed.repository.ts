@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, sql } from 'drizzle-orm';
-import type { TPageSpeedErrorCode } from '@app/contracts';
+import type { TPageSpeedErrorCode, TPsiStrategy } from '@app/contracts';
 import {
   DATABASE_CONNECTION,
   type Database,
@@ -19,7 +19,7 @@ import {
 } from '@shared/page-speed-queue/page-speed-queue.constant';
 
 /**
- * The PageSpeed queue and its cache, one row per page. Every method is unscoped
+ * The PageSpeed queue and its cache, one row per page and device. Every method is unscoped
  * (…ForWorker): the crawl, the seed and the worker serve every user. The screens read
  * the row through their own repositories.
  */
@@ -28,22 +28,26 @@ export class PageSpeedRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
 
   /**
-   * Queues the pages a crawl has just made current, in the crawl's own transaction: a
-   * page with no row, one whose last attempt failed, or one measured at least
-   * `staleBefore` ago. A queued or running row is left alone, and no branch touches the
-   * measurement, so a re-queued page keeps showing its old figures until new ones land.
-   * Returns how many rows were inserted or re-queued.
+   * Queues the pages a crawl has just made current, one row per page and given device, in
+   * the crawl's own transaction: a row that does not exist, one whose last attempt failed,
+   * or one measured at least `staleBefore` ago — each device on its own. A queued or
+   * running row is left alone, and no branch touches the measurement, so a re-queued page
+   * keeps showing its old figures until new ones land. Returns how many rows were
+   * inserted or re-queued.
    */
   async enqueueForWorker(
     tx: Transaction,
     pageIds: number[],
+    strategies: readonly TPsiStrategy[],
     staleBefore: Date,
   ): Promise<number> {
-    if (pageIds.length === 0) return 0;
+    if (pageIds.length === 0 || strategies.length === 0) return 0;
     const result = await tx.execute(sql`
-      insert into page_speed (page_id)
-      select unnest(${`{${pageIds.join(',')}}`}::bigint[])
-      on conflict (page_id) do update
+      insert into page_speed (page_id, strategy)
+      select p.page_id, s.strategy
+      from unnest(${`{${pageIds.join(',')}}`}::bigint[]) as p(page_id)
+      cross join unnest(${`{${strategies.join(',')}}`}::psi_strategy_enum[]) as s(strategy)
+      on conflict (page_id, strategy) do update
         set status = 'queued', attempts = 0, next_attempt_at = now(),
             locked_until = null, last_error = null, updated_at = now()
         where page_speed.status = 'failed'
@@ -53,20 +57,24 @@ export class PageSpeedRepository {
   }
 
   /**
-   * Queues every page on its client's current run that has never had a row — the seed's
-   * repair for a database crawled before PageSpeed existed. Idempotent: a second run
-   * inserts nothing.
+   * Queues every page on its client's current run that has no row for a given device —
+   * the seed's repair for a database crawled before PageSpeed, or before a device,
+   * existed. Idempotent: a second run inserts nothing.
    */
-  async backfillCurrentForWorker(): Promise<number> {
+  async backfillCurrentForWorker(
+    strategies: readonly TPsiStrategy[],
+  ): Promise<number> {
+    if (strategies.length === 0) return 0;
     const result = await this.db.execute(sql`
-      insert into page_speed (page_id)
-      select p.id from pages p
+      insert into page_speed (page_id, strategy)
+      select p.id, s.strategy from pages p
+      cross join unnest(${`{${strategies.join(',')}}`}::psi_strategy_enum[]) as s(strategy)
       where p.last_seen_run_id = (
         select r.id from crawl_runs r
         where r.client_id = p.client_id and r.status in (${CURRENT_RUN_STATUSES_SQL})
         order by r.finished_at desc, r.id desc
         limit 1)
-      on conflict (page_id) do nothing`);
+      on conflict (page_id, strategy) do nothing`);
     return result.rowCount ?? 0;
   }
 
@@ -83,19 +91,23 @@ export class PageSpeedRepository {
    * take the same row.
    *
    * Fair, not first-in-first-out: the user served longest ago goes first, then, within
-   * that user, the client served longest ago, then the oldest row. "Served" is the
-   * latest claim of any of their rows (a claim stamps `updated_at`; a queued row is not
+   * that user, the client served longest ago, then — within that client — its mobile rows
+   * before its desktop rows, then the oldest row. "Served" is the latest claim of any of
+   * their rows on either device (a claim stamps `updated_at`; a queued row is not
    * served), so one user's backlog of hundreds of pages takes turns with a client added
-   * a minute ago instead of standing in front of it.
+   * a minute ago instead of standing in front of it. Mobile goes first because it feeds
+   * the score, the list's badges and Lighthouse's verdicts; the enum's declaration order
+   * is what sorts it.
    */
   async claimNextForWorker(leaseMs: number): Promise<IClaimedPageSpeed | null> {
     const result = await this.db.execute<{
       page_id: string | number;
+      strategy: TPsiStrategy;
       attempts: number;
       final_url: string;
     }>(sql`
       with due as (
-        select q.page_id, q.next_attempt_at, qp.client_id, qc.user_id
+        select q.page_id, q.strategy, q.next_attempt_at, qp.client_id, qc.user_id
         from page_speed q
         join pages qp on qp.id = q.page_id
         join clients qc on qc.id = qp.client_id
@@ -118,14 +130,14 @@ export class PageSpeedRepository {
         group by sp.client_id, sc.user_id
       ),
       next as (
-        select q.page_id from page_speed q
-        join due d on d.page_id = q.page_id
+        select q.page_id, q.strategy from page_speed q
+        join due d on d.page_id = q.page_id and d.strategy = q.strategy
         left join served cs on cs.client_id = d.client_id
         left join (
           select user_id, max(served_at) as served_at from served group by user_id
         ) us on us.user_id = d.user_id
         order by us.served_at nulls first, cs.served_at nulls first,
-                 d.next_attempt_at, d.page_id
+                 d.strategy, d.next_attempt_at, d.page_id
         for update of q skip locked
         limit 1
       )
@@ -137,11 +149,13 @@ export class PageSpeedRepository {
       from pages p, next
       where p.id = ps.page_id
         and ps.page_id = next.page_id
-      returning ps.page_id, ps.attempts, p.final_url`);
+        and ps.strategy = next.strategy
+      returning ps.page_id, ps.strategy, ps.attempts, p.final_url`);
     const row = result.rows[0];
     return row
       ? {
           pageId: Number(row.page_id),
+          strategy: row.strategy,
           attempt: Number(row.attempts),
           url: row.final_url,
         }
@@ -176,6 +190,7 @@ export class PageSpeedRepository {
   async completeForWorker(
     tx: Transaction,
     pageId: number,
+    strategy: TPsiStrategy,
     attempt: number,
     measurement: IPageSpeedMeasurementWrite,
   ): Promise<boolean> {
@@ -187,7 +202,7 @@ export class PageSpeedRepository {
         lastError: null,
         lockedUntil: null,
       })
-      .where(this.ownedBy(pageId, attempt))
+      .where(this.ownedBy(pageId, strategy, attempt))
       .returning({ pageId: pageSpeed.pageId });
     return rows.length > 0;
   }
@@ -195,6 +210,7 @@ export class PageSpeedRepository {
   /** A failed attempt: try again later, or give up. Never touches the measurement. */
   async recordFailureForWorker(
     pageId: number,
+    strategy: TPsiStrategy,
     attempt: number,
     write: IPageSpeedJobWrite,
   ): Promise<boolean> {
@@ -206,7 +222,7 @@ export class PageSpeedRepository {
         lockedUntil: null,
         ...(write.nextAttemptAt ? { nextAttemptAt: write.nextAttemptAt } : {}),
       })
-      .where(this.ownedBy(pageId, attempt))
+      .where(this.ownedBy(pageId, strategy, attempt))
       .returning({ pageId: pageSpeed.pageId });
     return rows.length > 0;
   }
@@ -218,6 +234,7 @@ export class PageSpeedRepository {
    */
   async releaseForWorker(
     pageId: number,
+    strategy: TPsiStrategy,
     attempt: number,
     notBefore: Date,
   ): Promise<boolean> {
@@ -229,14 +246,20 @@ export class PageSpeedRepository {
         nextAttemptAt: notBefore,
         lockedUntil: null,
       })
-      .where(this.ownedBy(pageId, attempt))
+      .where(this.ownedBy(pageId, strategy, attempt))
       .returning({ pageId: pageSpeed.pageId });
     return rows.length > 0;
   }
 
-  private ownedBy(pageId: number, attempt: number) {
+  /**
+   * The fence: this page's row for this device, still running under this attempt. The
+   * device is part of it — the mobile and desktop rows of one page count attempts apart,
+   * so attempt 1 of one is not attempt 1 of the other.
+   */
+  private ownedBy(pageId: number, strategy: TPsiStrategy, attempt: number) {
     return and(
       eq(pageSpeed.pageId, pageId),
+      eq(pageSpeed.strategy, strategy),
       eq(pageSpeed.status, 'running'),
       eq(pageSpeed.attempts, attempt),
     );

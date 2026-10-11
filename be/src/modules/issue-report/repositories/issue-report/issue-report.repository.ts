@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import {
+  PAGE_SPEED_CODES_BY_STRATEGY,
   type TSeoIssue,
   type TSeoIssueSeverity,
   type TSiteCheckCode,
@@ -121,7 +122,12 @@ export class IssueReportRepository {
       from seo_issues i
       join pages p on p.id = i.page_id
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
+      -- Each finding is dated by its own device's measurement; a crawl or Lighthouse
+      -- finding joins the mobile row and ignores its date. Never by page id alone: a page
+      -- has a row per device, and every finding would come back twice.
       left join page_speed ps on ps.page_id = p.id
+        and ps.strategy = case when i.code = any(${`{${PAGE_SPEED_CODES_BY_STRATEGY.desktop.join(',')}}`}::text[])
+                               then 'desktop' else 'mobile' end::psi_strategy_enum
       where p.client_id = ${clientId} and p.last_seen_run_id = ${runId}
       order by p.sitemap_position, p.id, i.code
     `);

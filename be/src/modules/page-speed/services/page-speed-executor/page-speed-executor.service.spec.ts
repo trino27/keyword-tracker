@@ -1,4 +1,5 @@
 import type { PinoLogger } from 'nestjs-pino';
+import type { TPsiStrategy } from '@app/contracts';
 import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
 import { RemoteApiTimeoutError } from '@infrastructure/remote-api/remote-api.errors';
 import type { PageSpeedResultsService } from '@modules/pages/services/page-speed-results/page-speed-results.service';
@@ -14,7 +15,11 @@ const answer = (status: number, fixture: string): TPsiCallResult => ({
   response: { status, headers: {}, body: pageSpeedFixtureBody(fixture) },
 });
 
-const setup = (result: TPsiCallResult, attempt = 1) => {
+const setup = (
+  result: TPsiCallResult,
+  attempt = 1,
+  strategy: TPsiStrategy = 'mobile',
+) => {
   const results = {
     completeForWorker: jest.fn().mockResolvedValue(true),
     recordFailureForWorker: jest.fn().mockResolvedValue(true),
@@ -40,7 +45,7 @@ const setup = (result: TPsiCallResult, attempt = 1) => {
     { apiKey: KEY },
     logger as unknown as PinoLogger,
   );
-  const claim = { pageId: 42, attempt, url: 'https://yoast.com/a/' };
+  const claim = { pageId: 42, strategy, attempt, url: 'https://yoast.com/a/' };
   const run = () => executor.execute(claim, new AbortController().signal);
   return { run, results, psi, limiter, runtime, logger, claim };
 };
@@ -56,9 +61,9 @@ describe('PageSpeedExecutorService', () => {
       KEY,
       expect.any(AbortSignal),
     );
-    expect(results.completeForWorker).toHaveBeenCalledWith(
-      claim,
-      expect.objectContaining({
+    expect(results.completeForWorker).toHaveBeenCalledWith(claim, {
+      strategy: 'mobile',
+      measurement: expect.objectContaining({
         lcpMs: 3025,
         lcpSource: 'url',
         inpMs: 212,
@@ -66,8 +71,8 @@ describe('PageSpeedExecutorService', () => {
         cls: 0.01,
         clsSource: 'url',
         performanceScore: 46,
-      }),
-      [
+      }) as unknown,
+      speedFindings: [
         {
           code: 'CWV_LCP_NEEDS_IMPROVEMENT',
           severity: 'notice',
@@ -79,8 +84,8 @@ describe('PageSpeedExecutorService', () => {
           details: { value: 212, max: 200, source: 'url' },
         },
       ],
-      [],
-    );
+      lighthouseFindings: [],
+    });
   });
 
   /** SPEED-017/018/019: one answer, every part of it written in the one completion. */
@@ -91,21 +96,24 @@ describe('PageSpeedExecutorService', () => {
 
     await run();
 
-    const [, write, cwv, lighthouse] = results.completeForWorker.mock
-      .calls[0] as [
+    const [claimed, completion] = results.completeForWorker.mock.calls[0] as [
       unknown,
-      Record<string, unknown> & { lighthouseJudged: string[] },
-      unknown[],
-      { code: string }[],
+      {
+        strategy: string;
+        measurement: Record<string, unknown> & { lighthouseJudged: string[] };
+        speedFindings: unknown[];
+        lighthouseFindings: { code: string }[];
+      },
     ];
-    expect(results.completeForWorker).toHaveBeenCalledWith(
-      claim,
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-    );
+    const {
+      measurement: write,
+      speedFindings: cwv,
+      lighthouseFindings: lighthouse,
+    } = completion;
+    expect(claimed).toBe(claim);
+    expect(completion.strategy).toBe('mobile');
     expect(write).toMatchObject({
-      lighthouseFailed: 3,
+      lighthouseFailed: 1,
       seoScore: 92,
       accessibilityScore: 94,
       ttfbMs: 652,
@@ -118,11 +126,7 @@ describe('PageSpeedExecutorService', () => {
     });
     expect(write.lighthouseJudged).toContain('LH_ROBOTS_TXT');
     expect(cwv.length).toBeGreaterThan(0);
-    expect(lighthouse.map(({ code }) => code)).toEqual([
-      'LH_ROBOTS_TXT',
-      'LH_COLOR_CONTRAST',
-      'LH_LINK_NAME',
-    ]);
+    expect(lighthouse.map(({ code }) => code)).toEqual(['LH_ROBOTS_TXT']);
   });
 
   /** D20: the record is absent, not empty, and its old findings go with it. */
@@ -131,11 +135,10 @@ describe('PageSpeedExecutorService', () => {
 
     await run();
 
-    const [, write, , lighthouse] = results.completeForWorker.mock.calls[0] as [
+    const [, { measurement: write, lighthouseFindings: lighthouse }] = results
+      .completeForWorker.mock.calls[0] as [
       unknown,
-      Record<string, unknown>,
-      unknown,
-      unknown[],
+      { measurement: Record<string, unknown>; lighthouseFindings: unknown[] },
     ];
     expect(write).toMatchObject({
       lighthouseJudged: null,
@@ -252,9 +255,9 @@ describe('PageSpeedExecutorService', () => {
 
     await run();
 
-    expect(results.completeForWorker).toHaveBeenCalledWith(
-      claim,
-      expect.objectContaining({
+    expect(results.completeForWorker).toHaveBeenCalledWith(claim, {
+      strategy: 'mobile',
+      measurement: expect.objectContaining({
         lcpMs: 3824,
         lcpSource: 'origin',
         inpMs: 231,
@@ -262,8 +265,8 @@ describe('PageSpeedExecutorService', () => {
         cls: 0,
         clsSource: 'origin',
         performanceScore: 59,
-      }),
-      [
+      }) as unknown,
+      speedFindings: [
         {
           code: 'CWV_LCP_NEEDS_IMPROVEMENT',
           severity: 'notice',
@@ -275,8 +278,8 @@ describe('PageSpeedExecutorService', () => {
           details: { value: 231, max: 200, source: 'origin' },
         },
       ],
-      [],
-    );
+      lighthouseFindings: [],
+    });
   });
 
   it('writes a lab-only page without INP and, when its lab figures are good, no findings', async () => {
@@ -284,9 +287,9 @@ describe('PageSpeedExecutorService', () => {
 
     await run();
 
-    expect(results.completeForWorker).toHaveBeenCalledWith(
-      claim,
-      expect.objectContaining({
+    expect(results.completeForWorker).toHaveBeenCalledWith(claim, {
+      strategy: 'mobile',
+      measurement: expect.objectContaining({
         lcpMs: 809,
         lcpSource: 'lab',
         inpMs: null,
@@ -294,10 +297,47 @@ describe('PageSpeedExecutorService', () => {
         cls: 0,
         clsSource: 'lab',
         performanceScore: 100,
-      }),
-      [],
-      [],
+      }) as unknown,
+      speedFindings: [],
+      lighthouseFindings: [],
+    });
+  });
+
+  /**
+   * Lighthouse speaks for mobile alone (lighthouse-checks D16): a desktop claim writes its
+   * own Core Web Vitals codes and no Lighthouse record, whatever the answer holds.
+   */
+  it('a desktop claim completes the desktop arm with no Lighthouse record', async () => {
+    const { run, results, claim } = setup(
+      answer(200, 'lighthouse-url-field.json'),
+      1,
+      'desktop',
     );
+
+    await run();
+
+    const [claimed, completion] = results.completeForWorker.mock.calls[0] as [
+      unknown,
+      {
+        strategy: string;
+        measurement: Record<string, unknown>;
+        speedFindings: { code: string }[];
+      },
+    ];
+    expect(claimed).toBe(claim);
+    expect(completion.strategy).toBe('desktop');
+    expect(completion).not.toHaveProperty('lighthouseFindings');
+    expect(completion.measurement).toMatchObject({
+      lighthouseJudged: null,
+      lighthouseNotApplicable: null,
+      lighthouseFailed: null,
+      seoScore: null,
+      accessibilityScore: null,
+      ttfbMs: 652,
+    });
+    expect(completion.speedFindings.length).toBeGreaterThan(0);
+    for (const { code } of completion.speedFindings)
+      expect(code).toMatch(/_DESKTOP$/);
   });
 
   it('a 429 pauses every slot and releases the row without spending an attempt', async () => {

@@ -137,9 +137,11 @@ export class PageListRepository {
       from current_pages p
       join clients c on c.id = p.client_id
       cross join lateral (${SCORE_POINTS_LATERAL}) pts
-      -- One primary-key probe per listed page. Lighthouse's points take part in the
-      -- order below; its Core Web Vitals never do.
-      left join page_speed ps on ps.page_id = p.id
+      -- One primary-key probe per listed page, on its whole key: the list, its badges and
+      -- the score read the mobile measurement, and a join by page id alone would list a
+      -- page once per device. Lighthouse's points take part in the order below; its Core
+      -- Web Vitals never do.
+      left join page_speed ps on ps.page_id = p.id and ps.strategy = 'mobile'
       left join lateral (${LIGHTHOUSE_SCORE_POINTS_LATERAL}) lpts on true
       -- Worst first: the score exists so a user can triage a portfolio, and an order that
       -- buries the worst page of the second client under the best page of the first

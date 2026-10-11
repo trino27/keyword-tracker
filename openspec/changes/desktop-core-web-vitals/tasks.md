@@ -77,7 +77,7 @@ runnable.
 Until group 3 no desktop row is queued (plan D45, I30). Everything below is per strategy, and the
 product behaves as before.
 
-- [ ] 2.1 Write first. Each refusal case asserts the constraint's NAME in the error, so it cannot
+- [x] 2.1 Write first. Each refusal case asserts the constraint's NAME in the error, so it cannot
   pass on another error. The int-specs first fail to compile against the missing column, as
   `lighthouse-checks` task 4.1 recorded.
   - in `be/src/modules/pages/repositories/page-speed/page-speed.repository.int-spec.ts`:
@@ -112,7 +112,10 @@ product behaves as before.
   The list and report cases, run after 2.2 and before 2.3, fail on two rows for one page.
   Verify: `pnpm --filter be test:db -- page-speed seo-issues page-list issue-report` and
   `pnpm --filter be test:ci -- src/modules/pages src/modules/page-speed` fail on those.
-- [ ] 2.2 Edit `be/src/persistence/schema/tables/page-speed/page-speed.schema.ts` per plan §3.2:
+  Done. The int-specs first failed to compile against the old repository signatures. After the
+  schema change and before the joins named a device, "lists a page once …" failed on two rows
+  for one page (a mobile and a desktop summary), which is the defect D43 prevents.
+- [x] 2.2 Edit `be/src/persistence/schema/tables/page-speed/page-speed.schema.ts` per plan §3.2:
   `psiStrategyEnum`, `strategy … .notNull().default('mobile')`, `primaryKey({ name:
   'page_speed_pk', columns: [t.pageId, t.strategy] })`, the CHECK
   `page_speed_lighthouse_mobile_only`, and the table comment naming the device. Run
@@ -127,7 +130,18 @@ product behaves as before.
   the old key under its Postgres name `page_speed_pkey`; if it prompts or names it otherwise,
   answer for the honest change and record what it did here with `AMENDED during
   implementation:`. Verify: both files read as stated, and `pnpm db:migrate` exits 0.
-- [ ] 2.3 Make the specs pass (plan §7, §10.14):
+  AMENDED during implementation (the user's decision, 2026-10-11): drizzle-kit 0.31 could not
+  generate the key change. In one file it left `DROP CONSTRAINT "<constraint_name>"` commented
+  out for the name to be pasted by hand, and put `ADD PRIMARY KEY` before `ADD COLUMN`, so the
+  file could not run. The change was generated in three steps instead:
+  - `0016_silly_earthquake.sql` adds the enum, the column with its default and the CHECK;
+  - `0017_abnormal_thing.sql` swaps the key. Its one hand edit is uncommenting drizzle's own
+    `DROP CONSTRAINT` line with the name it asked for, `page_speed_pkey`, read from the database;
+  - `0018_true_arachne.sql` drops the default.
+
+  All three were applied by the test database's migrator; the dev database gets them when the
+  stack's migrate runs.
+- [x] 2.3 Make the specs pass (plan §7, §10.14):
   - `be/src/shared/page-speed-queue/page-speed-queue.constant.ts`:
     `PAGE_SPEED_QUEUED_STRATEGIES = ['mobile']`;
   - `be/src/modules/pages/interfaces/page-speed.interface.ts`: `IClaimedPageSpeed.strategy`,
@@ -152,18 +166,23 @@ product behaves as before.
 
   Verify: `pnpm --filter be test:db -- page-speed seo-issues page-list issue-report && pnpm
   --filter be test:ci -- src/modules/pages src/modules/page-speed src/modules/issue-report`.
-- [ ] 2.4 Check that no join to `page_speed` is left without its strategy, and that the score
+  Done. `TNewPageSpeedIssue<S>` is widened at the insert only, since the generic `S` cannot
+  reach drizzle's value type.
+- [x] 2.4 Check that no join to `page_speed` is left without its strategy, and that the score
   still reads the mobile row. Verify: `git grep -n "join page_speed" be/src` (every line names
   `strategy`), and `pnpm --filter be test:db -- page-speed` keeps "a Lighthouse finding counts
   among the issues, in the spread and in the score" green.
+  Done: page-list and page-detail name `ps.strategy = 'mobile'`; issue-report names it on the
+  next line (the device of each code). The Lighthouse score case stays green.
 - [ ] 2.5 Edit `be/test/explain/pages-list.explain.sql:33-41`: the join gains `AND ps.strategy =
   'mobile'`, the comment names `page_speed_pk`. Verify: `docker compose up -d --build`, then
   `docker compose exec -T postgres psql -U tracker -d seo_tracker <
   be/test/explain/pages-list.explain.sql`, and read the plan: an index scan on `page_speed_pk`
   with both key columns, or a hash over the small table; not a sequential scan per listed page.
-- [ ] 2.6 `be/src/seed/seed.ts:45` prints `pagespeed  N measurements queued`. The line itself is
+- [x] 2.6 `be/src/seed/seed.ts:45` prints `pagespeed  N measurements queued`. The line itself is
   not pinned by a test (the seed-runner int-spec asserts the count, not the words). Verify:
   `pnpm --filter be typecheck && git grep -n "measurements queued" be/src/seed/seed.ts`.
+  Done.
 - [ ] 2.7 Check the stack still queues mobile only. Verify: `docker compose exec postgres psql -U
   tracker -d seo_tracker -c "select strategy, status, count(*) from page_speed group by 1, 2"`
   shows only `mobile` rows (D13); re-crawl one seed client from the UI, and the same query still

@@ -1,4 +1,5 @@
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
+import { pageSpeed } from '@persistence/schema/tables/page-speed/page-speed.schema';
 import { seoIssues } from '@persistence/schema/tables/seo-issues/seo-issues.schema';
 import { siteChecks } from '@persistence/schema/tables/site-checks/site-checks.schema';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
@@ -102,6 +103,65 @@ describe('IssueReportRepository', () => {
     expect(run).toMatchObject({ runId: current.runId, pages: 1 });
     expect(findings.map(({ issue, page }) => [issue.code, page.id])).toEqual([
       ['LANG_MISSING', current.pageId],
+    ]);
+  });
+
+  /**
+   * D43: with a row per device, a join by page id alone returns every finding twice. Each
+   * speed finding is dated by its own device's measurement; a crawl finding by the mobile
+   * row, whose date it ignores.
+   */
+  it("returns each finding once when both strategies are stored, with its own strategy's measured_at", async () => {
+    const { user, scope } = await owner();
+    const page = await seedCurrentPage(testDb, user.id);
+    const mobileAt = new Date('2026-10-10T10:00:00Z');
+    const desktopAt = new Date('2026-10-11T11:00:00Z');
+    const measurement = {
+      pageId: page.pageId,
+      status: 'done' as const,
+      lcpMs: 5200,
+      lcpSource: 'url' as const,
+      cls: 0,
+      clsSource: 'url' as const,
+      performanceScore: 50,
+    };
+    await testDb.db.insert(pageSpeed).values([
+      { ...measurement, strategy: 'mobile', measuredAt: mobileAt },
+      { ...measurement, strategy: 'desktop', measuredAt: desktopAt },
+    ]);
+    await testDb.db.insert(seoIssues).values([
+      {
+        pageId: page.pageId,
+        code: 'CWV_LCP_POOR',
+        severity: 'warning',
+        details: { value: 5200, max: 4000, source: 'url' },
+      },
+      {
+        pageId: page.pageId,
+        code: 'CWV_LCP_POOR_DESKTOP',
+        severity: 'warning',
+        details: { value: 5200, max: 4000, source: 'url' },
+      },
+      {
+        pageId: page.pageId,
+        code: 'LANG_MISSING',
+        severity: 'notice',
+        details: {},
+      },
+    ]);
+
+    const findings = await repository.pageFindings(
+      scope,
+      page.clientId,
+      page.runId,
+    );
+
+    expect(
+      findings.map(({ issue, measuredAt }) => [issue.code, measuredAt]),
+    ).toEqual([
+      ['CWV_LCP_POOR', mobileAt],
+      ['CWV_LCP_POOR_DESKTOP', desktopAt],
+      ['LANG_MISSING', mobileAt],
     ]);
   });
 

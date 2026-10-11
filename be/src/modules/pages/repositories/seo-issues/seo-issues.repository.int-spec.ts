@@ -70,7 +70,7 @@ describe('SeoIssuesRepository', () => {
     const pageId = await pageWithBothKinds();
 
     await testDb.db.transaction((tx) =>
-      repository.replacePageSpeedFindingsForWorker(tx, pageId, [
+      repository.replacePageSpeedFindingsForWorker(tx, pageId, 'mobile', [
         {
           pageId,
           code: 'CWV_CLS_NEEDS_IMPROVEMENT',
@@ -82,6 +82,60 @@ describe('SeoIssuesRepository', () => {
 
     expect(await codesOf(pageId)).toEqual([
       'CWV_CLS_NEEDS_IMPROVEMENT',
+      'LANG_MISSING',
+    ]);
+  });
+
+  /**
+   * Each device's measurement replaces its own codes only: a desktop answer that took the
+   * mobile findings would erase them until the next mobile measurement, a day later.
+   */
+  it("a desktop replace leaves the page's mobile, Lighthouse and crawl findings", async () => {
+    const pageId = await pageWithBothKinds();
+    await testDb.db.insert(seoIssues).values([
+      { pageId, code: 'LH_CANONICAL', severity: 'warning', details: {} },
+      {
+        pageId,
+        code: 'CWV_INP_POOR_DESKTOP',
+        severity: 'warning',
+        details: { value: 640, max: 500, source: 'origin' },
+      },
+    ]);
+
+    await testDb.db.transaction((tx) =>
+      repository.replacePageSpeedFindingsForWorker(tx, pageId, 'desktop', [
+        {
+          pageId,
+          code: 'CWV_CLS_POOR_DESKTOP',
+          severity: 'warning',
+          details: { value: 0.3, max: 0.25, source: 'lab' },
+        },
+      ]),
+    );
+
+    expect(await codesOf(pageId)).toEqual([
+      'CWV_CLS_POOR_DESKTOP',
+      'CWV_LCP_POOR',
+      'LANG_MISSING',
+      'LH_CANONICAL',
+    ]);
+  });
+
+  it('a mobile replace leaves its desktop findings', async () => {
+    const pageId = await pageWithBothKinds();
+    await testDb.db.insert(seoIssues).values({
+      pageId,
+      code: 'CWV_LCP_POOR_DESKTOP',
+      severity: 'warning',
+      details: { value: 4300, max: 4000, source: 'url' },
+    });
+
+    await testDb.db.transaction((tx) =>
+      repository.replacePageSpeedFindingsForWorker(tx, pageId, 'mobile', []),
+    );
+
+    expect(await codesOf(pageId)).toEqual([
+      'CWV_LCP_POOR_DESKTOP',
       'LANG_MISSING',
     ]);
   });
@@ -113,7 +167,12 @@ describe('SeoIssuesRepository', () => {
 
     await testDb.db.transaction(async (tx) => {
       await repository.replaceCrawlFindingsForWorker(tx, [pageId], []);
-      await repository.replacePageSpeedFindingsForWorker(tx, pageId, []);
+      await repository.replacePageSpeedFindingsForWorker(
+        tx,
+        pageId,
+        'mobile',
+        [],
+      );
     });
     expect(await codesOf(pageId)).toEqual(['LH_COLOR_CONTRAST']);
   });
