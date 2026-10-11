@@ -3,6 +3,7 @@ import {
 	LIGHTHOUSE_ISSUE_CODES,
 	SEO_ISSUE_CATALOGUE,
 	counterpartGroupOf,
+	whyCounterpartsDiffer,
 	skipReasonOf,
 	type ICounterpartGroup,
 	type TCheckStatus,
@@ -12,7 +13,12 @@ import {
 	type TScoredIssueOwner,
 	type TSeoIssueCode,
 } from "@app/contracts";
-import { CHECK_TOPICS, CHECK_TOPIC_OF, type TCheckTopicId } from "@Core/Constants/checkTopics";
+import {
+	CHECK_TOPICS,
+	CHECK_TOPIC_OF,
+	type TCheckPart,
+	type TCheckTopicId,
+} from "@Core/Constants/checkTopics";
 
 /** One check of one owner, as a cell shows it. */
 export interface ICheckCell {
@@ -29,11 +35,15 @@ export interface ICheckRow {
 	cells: Record<TScoredIssueOwner, ICheckCell[]>;
 	/** One owner failed what the other passed (lighthouse-checks D18). */
 	disagree: boolean;
+	/** Why the two can differ on this row — `WHY_COUNTERPARTS_DIFFER` — when they do. */
+	why: string | null;
 }
 
 /** One chapter of checks (`CHECK_TOPICS`), as the Info tab names it. */
 export interface ICheckSection {
 	heading: string;
+	/** Our reference checks, or Lighthouse's own audits: the screen draws a block per part. */
+	part: TCheckPart;
 	rows: ICheckRow[];
 	/** Rows in this chapter with at least one failed check, of either owner. */
 	failed: number;
@@ -136,7 +146,13 @@ export function summariseChecks(byOwner: TChecksByOwner, context: IChecksContext
 			"lighthouse",
 			group?.lighthouse ?? (isLighthouse(code) ? [code] : []),
 		);
-		return { key, cells: { crawl, lighthouse }, disagree: disagree(crawl, lighthouse) };
+		const differ = disagree(crawl, lighthouse);
+		return {
+			key,
+			cells: { crawl, lighthouse },
+			disagree: differ,
+			why: differ ? whyCounterpartsDiffer(code) : null,
+		};
 	};
 
 	// Every row once: our codes in the order the backend sent them, a counterpart group on
@@ -156,12 +172,12 @@ export function summariseChecks(byOwner: TChecksByOwner, context: IChecksContext
 
 	// The chapters the Info tab teaches, in its reading order, so a check sits under the
 	// same heading on both screens. Failures lead each chapter; the order is kept within.
-	const sections = CHECK_TOPICS.map(({ id, title }) => {
+	const sections = CHECK_TOPICS.map(({ id, title, part }) => {
 		const inTopic = rows
 			.filter(({ topic, row }) => topic === id && hasCells(row))
 			.map(({ row }) => row)
 			.sort((a, b) => Number(isFailed(b)) - Number(isFailed(a)));
-		return { heading: title, rows: inTopic, failed: inTopic.filter(isFailed).length };
+		return { heading: title, part, rows: inTopic, failed: inTopic.filter(isFailed).length };
 	}).filter((section) => section.rows.length > 0);
 
 	return {

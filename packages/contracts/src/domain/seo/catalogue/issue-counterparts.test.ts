@@ -7,6 +7,7 @@ import {
 import {
   ISSUE_COUNTERPARTS,
   counterpartGroupOf,
+  whyCounterpartsDiffer,
   type ICounterpartGroup,
 } from './issue-counterparts.constant';
 
@@ -120,5 +121,19 @@ describe('the counterpart groups', () => {
         'LH_SVG_IMG_ALT',
       ],
     );
+  });
+
+  /** The screen says why a disagreement is expected; a group without a reason would say nothing. */
+  it('gives every group a reason its two verdicts can differ, found from either side', () => {
+    for (const group of GROUPS) {
+      const reasons = codesOf(group).map((code) =>
+        whyCounterpartsDiffer(
+          code as Parameters<typeof whyCounterpartsDiffer>[0],
+        ),
+      );
+      expect(new Set(reasons).size).toBe(1);
+      expect(reasons[0]).toMatch(/Lighthouse/);
+    }
+    expect(whyCounterpartsDiffer('THIN_CONTENT')).toBeNull();
   });
 });

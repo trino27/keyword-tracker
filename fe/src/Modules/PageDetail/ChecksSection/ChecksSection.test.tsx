@@ -76,6 +76,10 @@ describe("ChecksSection", () => {
 		expect(within(row).getByText("Canonical URL is missing")).toBeInTheDocument();
 		expect(within(row).getByText("Canonical URL is relative")).toBeInTheDocument();
 		expect(within(row).getByText("Sources disagree")).toBeInTheDocument();
+		// The reason is said in full under the marker, not hidden in a tooltip.
+		expect(
+			within(row).getByText(/Lighthouse does not judge a missing canonical/),
+		).toBeInTheDocument();
 		expect(lighthouseLabel).toHaveAttribute("data-status", "failed");
 	});
 
@@ -90,6 +94,8 @@ describe("ChecksSection", () => {
 		).toBeInTheDocument();
 		const failed = screen.getByText("Text with too little contrast");
 		expect(failed).toHaveAttribute("data-status", "failed");
+		// Lighthouse's own audits sit in a block of their own, after ours.
+		expect(screen.getAllByText("Lighthouse audits")).toHaveLength(1);
 		// Nothing of ours judges contrast, so there is nothing to disagree with.
 		expect(screen.queryByText("Sources disagree")).not.toBeInTheDocument();
 	});

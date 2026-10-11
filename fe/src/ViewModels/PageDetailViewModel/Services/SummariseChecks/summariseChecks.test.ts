@@ -149,6 +149,10 @@ describe("summariseChecks", () => {
 		const summary = summarise({ lighthouse: lighthouse({ LH_CANONICAL: "failed" }) });
 
 		expect(rowWith(summary, "LH_CANONICAL")?.disagree).toBe(true);
+		expect(rowWith(summary, "LH_CANONICAL")?.why).toMatch(
+			/Lighthouse does not judge a missing canonical/,
+		);
+		expect(rowWith(summary, "LH_DOCUMENT_TITLE")?.why).toBeNull();
 		expect(rowWith(summary, "LH_DOCUMENT_TITLE")?.disagree).toBe(false);
 		expect(rowWith(summary, "LH_TABINDEX")?.disagree).toBe(false);
 	});

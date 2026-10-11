@@ -8,7 +8,6 @@ import {
 	Text,
 	ThemeIcon,
 	Title,
-	Tooltip,
 } from "@mantine/core";
 import {
 	IconArrowsDiff,
@@ -35,6 +34,7 @@ const MARKER: Record<TCheckStatus, { color: string; icon: React.ReactNode }> = {
 
 const OWNERS: TScoredIssueOwner[] = ["crawl", "lighthouse"];
 
+/** For a pair with no reason of its own; every catalogued pair has one. */
 const DISAGREE =
 	"Our check and Lighthouse's disagree. They can: Lighthouse runs the page's scripts in a " +
 	"browser, while our crawl reads the HTML the server sends, and the two looked at the page " +
@@ -67,8 +67,16 @@ export function ChecksSection({ checksByOwner, context, timeZone }: IChecksSecti
 							<ColumnHeader key={owner} column={columns[owner]} timeZone={timeZone} />
 						))}
 					</SimpleGrid>
-					{sections.map((section) => (
+					{sections.map((section, index) => (
 						<Stack key={section.heading} gap="xs">
+							{/* Lighthouse's own audits are a category of their own, as on the Info
+							    tab: a block heading where the part changes. */}
+							{section.part === "lighthouse" &&
+								sections[index - 1]?.part !== "lighthouse" && (
+									<Title order={5} pt="sm">
+										Lighthouse audits
+									</Title>
+								)}
 							<Divider
 								label={
 									<Group gap={6} wrap="nowrap">
@@ -97,7 +105,11 @@ export function ChecksSection({ checksByOwner, context, timeZone }: IChecksSecti
 											key={owner}
 											title={columns[owner].title}
 											cells={row.cells[owner]}
-											disagree={owner === "lighthouse" && row.disagree}
+											disagree={
+												owner === "lighthouse" && row.disagree
+													? (row.why ?? DISAGREE)
+													: null
+											}
 										/>
 									))}
 								</SimpleGrid>
@@ -151,7 +163,8 @@ function Cell({
 }: {
 	title: string;
 	cells: ICheckCell[];
-	disagree: boolean;
+	/** Why the two owners differ on this row, said under it; null when they agree. */
+	disagree: string | null;
 }) {
 	if (cells.length === 0) return <Box visibleFrom="sm" />;
 	return (
@@ -182,7 +195,9 @@ function Cell({
 				</Group>
 			))}
 			{disagree && (
-				<Tooltip label={DISAGREE} withArrow multiline maw={320}>
+				// Said in full, not behind a tooltip: whether a disagreement is expected or a
+				// defect is the one thing a reader needs from this row.
+				<Stack gap={2}>
 					<Group gap={4} wrap="nowrap" w="fit-content">
 						<IconArrowsDiff
 							size={14}
@@ -193,7 +208,10 @@ function Cell({
 							Sources disagree
 						</Text>
 					</Group>
-				</Tooltip>
+					<Text size="xs" c="dimmed">
+						{disagree}
+					</Text>
+				</Stack>
 			)}
 		</Stack>
 	);
