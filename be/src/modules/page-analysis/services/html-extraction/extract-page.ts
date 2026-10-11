@@ -593,8 +593,6 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
 }
 
 /** The share of the content's words an <article> needs to be the post on its own. */
-const POST_ARTICLE_SHARE = 0.5;
-
 /**
  * The post's own <article> inside the content, when the content is wider than it.
  *
@@ -603,7 +601,13 @@ const POST_ARTICLE_SHARE = 0.5;
  * same <main> carries a "preferred source" badge with an image. Counted as the post's
  * image, it passed NO_IMAGES and IMAGES_MISSING_ALT on posts with no image at all —
  * Lighthouse, finding no content image there, said not applicable. The images are
- * therefore read from the one <article> holding most of the content's words.
+ * therefore read from the post's <article>.
+ *
+ * The post is the largest top-level <article>, and only if it outweighs everything else:
+ * all the other articles together (so a listing's biggest card is not taken), the text
+ * outside any article (so a lone card beside a page's own text is not), and the bar
+ * `mainContent` sets an article with an h1. A share of half the words alone missed a
+ * short semrush post, 175 of whose 359 words were the post's.
  *
  * Images only. Moving the text to the article as well drops the author bio and the
  * related-post teasers, which is right, but the keyword catalogue measured four
@@ -617,13 +621,21 @@ function postArticleIn(
   if (main.is('article')) return null;
   const total = wordsIn($, main);
   if (total === 0) return null;
-  const posts = main
+  const articles = main
     .find('article')
     .filter((_, element) => $(element).parents('article').length === 0)
-    .filter(
-      (_, element) => wordsIn($, $(element)) > total * POST_ARTICLE_SHARE,
-    );
-  return posts.length === 1 ? posts.first() : null;
+    .toArray()
+    .map((element) => ({ element, words: wordsIn($, $(element)) }))
+    .sort((a, b) => b.words - a.words);
+  const [largest, ...others] = articles;
+  if (!largest) return null;
+  const otherArticles = others.reduce((sum, { words }) => sum + words, 0);
+  const outside = total - largest.words - otherArticles;
+  return largest.words >= total * ARTICLE_MIN_SHARE &&
+    largest.words > otherArticles &&
+    largest.words > outside
+    ? $(largest.element)
+    : null;
 }
 
 function metaContent(

@@ -122,6 +122,22 @@ describe('extractPage', () => {
     expect(parsed.blocks[0]).toContain('AI drafts the copy');
   });
 
+  it('reads the article of a short post whose teasers carry nearly as many words', () => {
+    // semrush.com/blog/what-is-keyword-analysis/, live 2026-10-11: 175 of the content's 359
+    // words are the post's; the h1 block and three related-post cards are the rest. A bar
+    // of half the words missed it and counted the badge below as the post's image.
+    const words = (n: number, word: string) => Array(n).fill(word).join(' ');
+    const parsed = page(
+      `<main><h1>What Is Keyword Analysis?</h1><p>${words(60, 'byline')}</p>` +
+        `<article><p>${words(120, 'keyword')}</p></article>` +
+        `<article><p>${words(40, 'teaser')}</p></article>` +
+        `<article><p>${words(40, 'teaser')}</p></article>` +
+        '<section><img src="/badge.png" alt="Add us as a preferred source"></section></main>',
+    );
+
+    expect(parsed.images).toEqual([]);
+  });
+
   it('reads no image into a semrush post whose article has none (recorded)', () => {
     const parsed = recorded(
       'semrush/blog/what-is-ai-marketing/index.html',
