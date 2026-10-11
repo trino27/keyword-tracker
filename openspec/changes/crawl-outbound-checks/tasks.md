@@ -10,14 +10,14 @@ it green.
 
 ## 1. A request for a status reads no body; a missing domain is named (3a) — REMOTE-005
 
-- [ ] 1.1 Write first in `be/src/infrastructure/remote-api/undici-http-transport/undici-http-transport.spec.ts`:
+- [x] 1.1 Write first in `be/src/infrastructure/remote-api/undici-http-transport/undici-http-transport.spec.ts`:
   "a zero-byte cap returns the head and frees the connection". Use a local server that streams an
   endless body, and nine `send` calls with `maxBytes: 0, overflow: 'truncate'` on one origin; all
   must resolve within the timeout. It fails if the body is drained. VERIFY: `readCapped`
   (`undici-http-transport.ts:101-107`) may already make this pass on its first run. If so, close
   the task `VERIFIED, NOT BUILT`, naming the test. Verify: `pnpm --filter be test:ci --
   undici-http-transport`.
-- [ ] 1.2 Write first `be/src/infrastructure/remote-api/remote-failure-kind/remote-failure-kind.spec.ts`,
+- [x] 1.2 Write first `be/src/infrastructure/remote-api/remote-failure-kind/remote-failure-kind.spec.ts`,
   driving the real `createGuardedLookup` with a `resolveAll` that rejects:
   - "a lookup answering ENOTFOUND is nxdomain";
   - "EAI_AGAIN is network";
@@ -28,7 +28,7 @@ it green.
   `error.cause` or one level deeper. If it does not surface at all, record that here with
   `AMENDED during implementation:` and drop nxdomain from plan §10.1 (plan R9). Verify:
   `pnpm --filter be test:ci -- remote-failure-kind`.
-- [ ] 1.3 Add `SiteHttpClient.checkLink(url, signal)` (`maxBytes: 0`, `overflow: 'truncate'`,
+- [x] 1.3 Add `SiteHttpClient.checkLink(url, signal)` (`maxBytes: 0`, `overflow: 'truncate'`,
   `maxRetries: 0`, `timeoutMs: OUTBOUND_CHECK_LIMITS.timeoutMs`) and `readDocument(url, signal)`
   (`SITE_FETCH_LIMITS.htmlBytes`, decoded as `getHtml`, `maxRetries: 0`, the same timeout), with
   `site-http-client.spec.ts` cases:
@@ -37,17 +37,25 @@ it green.
 
   Write the cases first; they fail with no method. Verify: `pnpm --filter be test:ci --
   site-http-client`.
-- [ ] 1.4 `be/eslint.config.mjs`: a block for `src/modules/page-analysis/services/{checks,site-checks}/**/*.ts`
+- [x] 1.4 `be/eslint.config.mjs`: a block for `src/modules/page-analysis/services/{checks,site-checks}/**/*.ts`
   (ignoring specs). It re-composes `LOGGER_RESTRICTION` and `DB_ACCESS_PATTERNS`, and adds
   patterns banning `@infrastructure/remote-api/**` and `@modules/crawl/**` (plan D28). Add a
   deliberate import to one check, see the lint fail, then remove it. Verify: `pnpm --filter be
   lint`.
-- [ ] 1.5 Commits:
+- [x] 1.5 Commits:
   - `feat(site-http-client): ask a URL for its status without reading its body`
   - `feat(remote-api): name a domain that does not exist`
   - `build(lint): checks cannot reach the network`
 
   Verify: `pnpm lint && pnpm typecheck && pnpm test`.
+
+  AMENDED during implementation: 1.1 is VERIFIED, NOT BUILT — "a zero-byte cap returns the head
+  and frees the connection" passed on its first run (`readCapped` aborts at the first chunk);
+  the test stays. 1.2 — undici does surface `ENOTFOUND`: the spec drives the real transport and
+  the real guarded lookup, and `remoteFailureKind` reads it on the cause chain, so nxdomain
+  stays in plan §10.1. 1.3 — `OUTBOUND_CHECK_LIMITS` was written here, ahead of 2.4, since
+  both methods read its timeout. 1.4 — a deliberate import of `@modules/crawl` into a check was
+  seen failing the lint, then removed.
 
 ## 2. The outbound stage, its budgets and robots per host (3b) — CRAWL-011, CRAWL-012, CRAWL-013
 

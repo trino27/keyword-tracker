@@ -183,6 +183,39 @@ export default tseslint.config(
     },
   },
   {
+    // Checks are pure functions of their input (plan D28): what the network said reaches
+    // them as facts the crawl gathered, never as a request a check could make itself.
+    files: [
+      'src/modules/page-analysis/services/checks/**/*.ts',
+      'src/modules/page-analysis/services/site-checks/**/*.ts',
+    ],
+    ignores: ['src/modules/**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [LOGGER_RESTRICTION],
+          patterns: [
+            ...DB_ACCESS_PATTERNS,
+            {
+              group: [
+                '@infrastructure/remote-api',
+                '@infrastructure/remote-api/*',
+              ],
+              message:
+                'A check cannot reach the network. The outbound stage gathers the facts; the check reads them from its input.',
+            },
+            {
+              group: ['@modules/crawl', '@modules/crawl/*'],
+              message:
+                'A check cannot reach the crawl. What it needs travels in ICheckInput or ISiteCheckInput.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // I3 everywhere in the application. Every block below that sets
     // no-restricted-syntax re-composes this selector: flat config replaces the rule's
     // options per file rather than merging them.
