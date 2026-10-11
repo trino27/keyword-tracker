@@ -42,6 +42,27 @@ describe('AUTHOR_MARKUP_INCOMPLETE', () => {
   });
 
   // yoast.com, 2026-10: sameAs opens with the site, then names the author's profiles.
+  /**
+   * Google: author.url is "a web page that uniquely identifies the author". An
+   * organization's home page does, and so does a person's own site; only the home page
+   * of the site the article is on says nothing about who wrote it.
+   */
+  it("passes an organization's home page, and a person's own site", () => {
+    expect(
+      verdict([
+        {
+          name: 'Acme',
+          type: 'Organization',
+          urls: ['https://acme.example/'],
+          asText: false,
+        },
+      ]),
+    ).toEqual(PASSES);
+    expect(verdict([person({ urls: ['https://janedoe.example/'] })])).toEqual(
+      PASSES,
+    );
+  });
+
   it('passes a sameAs list that names the author after a home page', () => {
     expect(
       verdict([
@@ -80,6 +101,8 @@ describe('AUTHOR_MARKUP_INCOMPLETE', () => {
       'url https://a.example/ is a home page, not a page about the author',
     ],
     [person({ name: 'By Jane Doe' }), 'a prefix in name'],
+    // Google lists "Honorific prefix or suffix" among what name must not carry.
+    [person({ name: 'Dr. Peter J. Meyers' }), 'an honorific in name'],
     [
       person({ name: 'Dana @ Minimalist Baker' }),
       'the publisher written into name',

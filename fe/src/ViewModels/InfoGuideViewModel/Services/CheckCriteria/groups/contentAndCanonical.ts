@@ -40,7 +40,7 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			'The page passes when the tracker finds any one of: a named author on the Article or BlogPosting item of its JSON-LD (an "@id" reference to a named person counts), a non-empty <meta name="author">, an <a> or <link> with rel="author", an element with itemprop="author", or a link anywhere on the page to this site\'s author archive — a path ending in /author/<slug>/ (or authors, contributor, contributors). A byline that only a class name marks, like <p class="byline">By Jane Doe</p>, is not counted. The check always applies.',
+			'The page passes when the tracker finds any one of: a named author on the Article or BlogPosting item of its JSON-LD (an "@id" reference to a named person counts), a non-empty <meta name="author">, an <a> or <link> with rel="author" (a link to a humans.txt credits file does not count), an element with itemprop="author", a byline the theme marks with a class — WordPress\'s post-author-name block, class="byline", or a class containing author-name — or a link anywhere on the page to this site\'s author archive — a path ending in /author/<slug>/ (or authors, contributor, contributors). The check always applies.',
 		manualCheck: [
 			'Open View source (Ctrl+U) and use Ctrl+F to look for name="author", rel="author" and itemprop="author".',
 			'Search the JSON-LD for "author" and check it sits on the Article or BlogPosting item and has a "name".',

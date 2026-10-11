@@ -833,6 +833,22 @@ describe('extractPage', () => {
     ]);
   });
 
+  /**
+   * wordpress.org/news, 2026-10: WordPress core's author block names Matt Mullenweg,
+   * linked to his profile on another site, and every post was reported as naming no one.
+   * moz.com's rel="author" names its humans.txt, a credits file, not a person.
+   */
+  it("names the author from a theme's byline, and not from a credits file", () => {
+    const parsed = page(
+      '<article><div class="wp-block-post-author-name">' +
+        '<a href="https://profiles.wordpress.org/matt/" class="wp-block-post-author-name__link">Matt Mullenweg</a>' +
+        '</div><p>x</p></article>',
+      '<link rel="author" href="https://a.example/humans.txt">',
+    );
+
+    expect(parsed.authors).toEqual(['byline: Matt Mullenweg']);
+  });
+
   it('falls back to the article:* dates when the markup has none', () => {
     expect(
       page(

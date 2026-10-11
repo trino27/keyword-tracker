@@ -1,5 +1,6 @@
 import type { IMarkupAuthor } from '../../../interfaces/parsed-page.interface';
 import { evidence } from '../_shared/evidence';
+import { sameSite } from '../_shared/same-site';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
@@ -14,6 +15,9 @@ const isAcceptedType = (type: string) =>
 /** "By Jane Doe", "Posted by Jane", "Автор: Иван" — words Google asks to leave out. */
 const PREFIX = /^(?:by|posted\s+by|written\s+by|author\s*:?|автор\s*:?)\s+/i;
 
+/** "Dr. Peter J. Meyers": Google lists an "Honorific prefix or suffix" among what to leave out. */
+const HONORIFIC = /^(?:dr|mr|mrs|ms|mx|prof|sir|dame)\.?\s/i;
+
 /**
  * A Person's name that reads as several people or carries a title: "Jane Doe and John
  * Roe", "Jane Doe, PhD". Only a Person's: "Smith & Partners" is an organization's name.
@@ -26,17 +30,21 @@ const SEVERAL = /\s(?:and|&|и)\s|[,;/]/i;
  */
 const PUBLISHER = /\s[@|]\s/;
 
-/** A url naming a site's home page: it says where the author writes, not who they are. */
-function isHomePage(url: string): boolean {
+/**
+ * A url naming the home page of the site the article is on: it says where the author
+ * writes, not who they are. Another site's home page — a person's own site — does
+ * identify them, as Google's "a web page that uniquely identifies the author" asks.
+ */
+function isOwnHomePage(url: string, pageUrl: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.pathname === '/' && !parsed.search;
+    return parsed.pathname === '/' && !parsed.search && sameSite(url, pageUrl);
   } catch {
     return false;
   }
 }
 
-function problemsOf(author: IMarkupAuthor): string[] {
+function problemsOf(author: IMarkupAuthor, pageUrl: string): string[] {
   const name = author.name ? `author "${author.name}"` : 'author with no name';
   if (author.asText)
     return [`${name} — a bare string, with no @type and no url to read more`];
@@ -48,12 +56,17 @@ function problemsOf(author: IMarkupAuthor): string[] {
   // itself, and on yoast.com it opens a sameAs list whose later entries do name the
   // author — so one home page among them is no finding, all of them is.
   if (author.urls.length === 0) problems.push('no url or sameAs');
-  else if (author.urls.every(isHomePage))
+  // An organization's home page is the page that identifies it.
+  else if (
+    author.type === 'Person' &&
+    author.urls.every((url) => isOwnHomePage(url, pageUrl))
+  )
     problems.push(
       `url ${author.urls[0]} is a home page, not a page about the author`,
     );
   if (!author.name) problems.push('no name');
   else if (PREFIX.test(author.name)) problems.push('a prefix in name');
+  else if (HONORIFIC.test(author.name)) problems.push('an honorific in name');
   else if (PUBLISHER.test(author.name))
     problems.push('the publisher written into name');
   else if (author.type === 'Person' && SEVERAL.test(author.name))
@@ -69,7 +82,7 @@ function problemsOf(author: IMarkupAuthor): string[] {
  */
 export const AUTHOR_MARKUP_INCOMPLETE_CHECK = defineCheck(
   'AUTHOR_MARKUP_INCOMPLETE',
-  ({ parsed }) => {
+  ({ parsed, finalUrl }) => {
     const authors = parsed.articleMarkup?.authors ?? [];
     // Nothing on the page names the author: AUTHOR_MISSING's finding, which a nameless
     // Person in the markup (habr.com, 2026-10) would otherwise report a second time.
@@ -82,7 +95,7 @@ export const AUTHOR_MARKUP_INCOMPLETE_CHECK = defineCheck(
         authors.map((author) => [JSON.stringify(author), author]),
       ).values(),
     ];
-    const problems = unique.flatMap(problemsOf);
+    const problems = unique.flatMap((author) => problemsOf(author, finalUrl));
     return problems.length === 0
       ? PASS
       : fails({

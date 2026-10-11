@@ -1396,10 +1396,21 @@ function isAuthorArchive(href: string, baseUrl: string): boolean {
 }
 
 /**
+ * A visible byline as themes mark it: WordPress core's post-author-name block (every
+ * wordpress.org/news post names Matt Mullenweg in one, and was reported as naming no
+ * one), and the `byline` and `author-name` classes themes give theirs.
+ */
+const BYLINE =
+  '.wp-block-post-author-name, .wp-block-post-author, [class~="byline" i], [class*="author-name" i], [class*="author_name" i]';
+
+/** A site's credits file, which moz.com links as rel="author": no person wrote the post. */
+const CREDITS_FILE = /\/humans\.txt$/i;
+
+/**
  * The author as the HTML itself names it: `<meta name="author">`, a `rel="author"` link,
- * an element marked `itemprop="author"`, or a byline that links to the author's archive
- * on this site — `<a href="/author/jane-doe/">Jane Doe</a>`, the way blog.cloudflare.com
- * names its authors with nothing else. Each quoted as written.
+ * an element marked `itemprop="author"`, a byline a theme marks as one, or a link to the
+ * author's archive on this site — `<a href="/author/jane-doe/">Jane Doe</a>`, the way
+ * blog.cloudflare.com names its authors with nothing else. Each quoted as written.
  */
 function authorsInMarkup($: CheerioAPI, baseUrl: string): string[] {
   const found: string[] = [];
@@ -1408,9 +1419,14 @@ function authorsInMarkup($: CheerioAPI, baseUrl: string): string[] {
   $('a[rel~="author" i][href], link[rel~="author" i][href]').each(
     (_, element) => {
       const href = absolute($(element).attr('href'), baseUrl);
-      if (href) found.push(`<${element.tagName} rel="author" href="${href}">`);
+      if (href && !CREDITS_FILE.test(new URL(href).pathname))
+        found.push(`<${element.tagName} rel="author" href="${href}">`);
     },
   );
+  $(BYLINE).each((_, element) => {
+    const name = collapse($(element).text()).replace(/^by\s+/i, '');
+    if (name && name.length <= 100) found.push(`byline: ${name}`);
+  });
   $('[itemprop~="author"]').each((_, element) => {
     const name =
       collapse($(element).find('[itemprop~="name"]').first().text()) ||
