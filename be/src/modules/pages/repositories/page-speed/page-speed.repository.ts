@@ -81,6 +81,12 @@ export class PageSpeedRepository {
    * current run are claimed — a URL the latest crawl dropped costs no quota; a later
    * crawl that finds it again re-queues it. FOR UPDATE SKIP LOCKED: two slots never
    * take the same row.
+   *
+   * Fair, not first-in-first-out: the user served longest ago goes first, then, within
+   * that user, the client served longest ago, then the oldest row. "Served" is the
+   * latest claim of any of their rows (a claim stamps `updated_at`; a queued row is not
+   * served), so one user's backlog of hundreds of pages takes turns with a client added
+   * a minute ago instead of standing in front of it.
    */
   async claimNextForWorker(leaseMs: number): Promise<IClaimedPageSpeed | null> {
     const result = await this.db.execute<{
@@ -88,27 +94,49 @@ export class PageSpeedRepository {
       attempts: number;
       final_url: string;
     }>(sql`
+      with due as (
+        select q.page_id, q.next_attempt_at, qp.client_id, qc.user_id
+        from page_speed q
+        join pages qp on qp.id = q.page_id
+        join clients qc on qc.id = qp.client_id
+        where ((q.status = 'queued' and q.next_attempt_at <= now())
+               or (q.status = 'running' and q.locked_until < now()))
+          and q.attempts < ${PAGE_SPEED_MAX_ATTEMPTS}
+          and qp.last_seen_run_id = (
+            select r.id from crawl_runs r
+            where r.client_id = qp.client_id and r.status in (${CURRENT_RUN_STATUSES_SQL})
+            order by r.finished_at desc, r.id desc
+            limit 1)
+      ),
+      served as (
+        select sp.client_id, sc.user_id, max(s.updated_at) as served_at
+        from page_speed s
+        join pages sp on sp.id = s.page_id
+        join clients sc on sc.id = sp.client_id
+        where s.status <> 'queued'
+          and sc.user_id in (select d.user_id from due d)
+        group by sp.client_id, sc.user_id
+      ),
+      next as (
+        select q.page_id from page_speed q
+        join due d on d.page_id = q.page_id
+        left join served cs on cs.client_id = d.client_id
+        left join (
+          select user_id, max(served_at) as served_at from served group by user_id
+        ) us on us.user_id = d.user_id
+        order by us.served_at nulls first, cs.served_at nulls first,
+                 d.next_attempt_at, d.page_id
+        for update of q skip locked
+        limit 1
+      )
       update page_speed ps
       set status = 'running',
           attempts = ps.attempts + 1,
           locked_until = now() + make_interval(secs => ${leaseMs / 1000}),
-          updated_at = now()
-      from pages p
+          updated_at = clock_timestamp()
+      from pages p, next
       where p.id = ps.page_id
-        and ps.page_id = (
-          select q.page_id from page_speed q
-          join pages qp on qp.id = q.page_id
-          where ((q.status = 'queued' and q.next_attempt_at <= now())
-                 or (q.status = 'running' and q.locked_until < now()))
-            and q.attempts < ${PAGE_SPEED_MAX_ATTEMPTS}
-            and qp.last_seen_run_id = (
-              select r.id from crawl_runs r
-              where r.client_id = qp.client_id and r.status in (${CURRENT_RUN_STATUSES_SQL})
-              order by r.finished_at desc, r.id desc
-              limit 1)
-          order by q.next_attempt_at, q.page_id
-          for update of q skip locked
-          limit 1)
+        and ps.page_id = next.page_id
       returning ps.page_id, ps.attempts, p.final_url`);
     const row = result.rows[0];
     return row
