@@ -174,20 +174,24 @@ product behaves as before.
   among the issues, in the spread and in the score" green.
   Done: page-list and page-detail name `ps.strategy = 'mobile'`; issue-report names it on the
   next line (the device of each code). The Lighthouse score case stays green.
-- [ ] 2.5 Edit `be/test/explain/pages-list.explain.sql:33-41`: the join gains `AND ps.strategy =
+- [x] 2.5 Edit `be/test/explain/pages-list.explain.sql:33-41`: the join gains `AND ps.strategy =
   'mobile'`, the comment names `page_speed_pk`. Verify: `docker compose up -d --build`, then
   `docker compose exec -T postgres psql -U tracker -d seo_tracker <
   be/test/explain/pages-list.explain.sql`, and read the plan: an index scan on `page_speed_pk`
   with both key columns, or a hash over the small table; not a sequential scan per listed page.
+  Done: `Index Scan using page_speed_pk on page_speed ps`, `Index Cond: ((page_id = p.id) AND
+  (strategy = 'mobile'))`, 15 loops for the 15-row slice.
 - [x] 2.6 `be/src/seed/seed.ts:45` prints `pagespeed  N measurements queued`. The line itself is
   not pinned by a test (the seed-runner int-spec asserts the count, not the words). Verify:
   `pnpm --filter be typecheck && git grep -n "measurements queued" be/src/seed/seed.ts`.
   Done.
-- [ ] 2.7 Check the stack still queues mobile only. Verify: `docker compose exec postgres psql -U
+- [x] 2.7 Check the stack still queues mobile only. Verify: `docker compose exec postgres psql -U
   tracker -d seo_tracker -c "select strategy, status, count(*) from page_speed group by 1, 2"`
   shows only `mobile` rows (D13); re-crawl one seed client from the UI, and the same query still
   shows only `mobile` rows (D45).
-- [ ] 2.8 Commits, in order:
+  Done after the stack's migrate applied 0016–0018: 45 `mobile`/`done` rows and no other; run
+  207 (semrush.com) re-crawled and the table still held only mobile rows.
+- [x] 2.8 Commits, in order:
   - `feat(db): a page_speed row per page and strategy — queue, fence, replace and reads per
     strategy` (2.2–2.4 together: the key change breaks every `on conflict (page_id)` at runtime
     and the NOT NULL column breaks every insert at typecheck, so no smaller commit is green);
@@ -195,6 +199,9 @@ product behaves as before.
   - `feat(seed): the backfill counts measurements, not pages`.
 
   Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+  Done: 684e8b2, 47acb13, 4933a7e, after a45f85b, which brought the e2e up to date with the
+  retired accessibility audits. lint and typecheck clean; contracts 789, be 1324, fe 435,
+  db/e2e 221 tests green.
 
 ## 3. Google is asked for desktop, and the crawl queues it (4c) — SPEED-001, SPEED-005, SEED-006
 
