@@ -25,6 +25,7 @@ export function makeCheckInput(
     headers: { 'content-type': 'text/html', 'content-encoding': 'br' },
     htmlBytes: 50_000,
     fetchedAt: new Date('2026-10-09T12:00:00Z'),
+    timeZone: 'America/Toronto',
     previewImage: {
       url: 'https://a.example/i.png',
       status: 200,

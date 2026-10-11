@@ -19,6 +19,7 @@ import { IMAGES_NOT_INDEXABLE_CHECK } from './images-not-indexable/images-not-in
 import { PREVIEW_IMAGE_IS_LOGO_CHECK } from './preview-image-is-logo/preview-image-is-logo.check';
 import { PREVIEW_IMAGE_TOO_SMALL_CHECK } from './preview-image-too-small/preview-image-too-small.check';
 import { TITLE_SCRIPT_MISMATCH_CHECK } from './title-script-mismatch/title-script-mismatch.check';
+import { TITLE_YEAR_OUTDATED_CHECK } from './title-year-outdated/title-year-outdated.check';
 import { VIDEO_WITHOUT_METADATA_CHECK } from './video-without-metadata/video-without-metadata.check';
 import { AUTHOR_MISSING_CHECK } from './author-missing/author-missing.check';
 import { CANONICAL_CONFLICT_CHECK } from './canonical-conflict/canonical-conflict.check';
@@ -96,6 +97,7 @@ export const CHECKS: TCheckRegistry = {
   TITLE_MISSING: TITLE_MISSING_CHECK,
   TITLE_LENGTH: TITLE_LENGTH_CHECK,
   TITLE_SCRIPT_MISMATCH: TITLE_SCRIPT_MISMATCH_CHECK,
+  TITLE_YEAR_OUTDATED: TITLE_YEAR_OUTDATED_CHECK,
   META_DESCRIPTION_MISSING: META_DESCRIPTION_MISSING_CHECK,
   META_DESCRIPTION_LENGTH: META_DESCRIPTION_LENGTH_CHECK,
   META_DESCRIPTION_REPEATS_TITLE: META_DESCRIPTION_REPEATS_TITLE_CHECK,

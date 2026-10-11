@@ -249,6 +249,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       selection.pages.map((page) => ({
         ...page,
         previous: previous.get(page.url) ?? null,
+        timeZone: target.timeZone,
       })),
       target.siteKey,
     );

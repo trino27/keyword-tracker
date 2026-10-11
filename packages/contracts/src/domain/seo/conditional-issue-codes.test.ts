@@ -52,6 +52,7 @@ describe('CONDITIONAL_ISSUE_CODES', () => {
       'TITLE_DUPLICATE',
       'TITLE_LENGTH',
       'TITLE_SCRIPT_MISMATCH',
+      'TITLE_YEAR_OUTDATED',
       'VIDEO_WITHOUT_METADATA',
     ]);
   });

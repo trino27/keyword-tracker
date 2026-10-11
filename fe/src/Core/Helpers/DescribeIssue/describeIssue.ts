@@ -56,6 +56,8 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`The title is written in ${list(d, "titleScripts")} script; the page's text is ${text(d, "pageScript")}.`,
 	TITLE_LENGTH: (d) =>
 		`The title is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
+	TITLE_YEAR_OUTDATED: (d) =>
+		`The title names ${num(d, "year")} as current; it is ${num(d, "currentYear")}.`,
 	META_DESCRIPTION_MISSING: () => "The page has no meta description.",
 	META_DESCRIPTION_LENGTH: (d) =>
 		`The description is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,

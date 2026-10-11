@@ -10,9 +10,13 @@ const repository = new CrawlRunsRepository(testDb.db);
 const LEASE_MS = 60_000;
 
 let siteCounter = 0;
-async function queueRun(): Promise<number> {
+async function queueRun(timeZone?: string): Promise<number> {
   siteCounter += 1;
-  const user = await seedTestUser(testDb, `owner-${siteCounter}@example.com`);
+  const user = await seedTestUser(
+    testDb,
+    `owner-${siteCounter}@example.com`,
+    timeZone,
+  );
   const [client] = await testDb.db
     .insert(clients)
     .values({
@@ -69,6 +73,15 @@ describe('crawl run queue (postgres)', () => {
     expect(first).not.toBeNull();
     expect(second).not.toBeNull();
     expect(first!.id).not.toBe(second!.id);
+  });
+
+  // A check that names "this year" reads it in the owner's zone, not the server's (TZ-003).
+  it("the run target carries its owner's time zone", async () => {
+    const runId = await queueRun('Asia/Tokyo');
+
+    await expect(
+      repository.getRunTargetForWorker(runId),
+    ).resolves.toMatchObject({ timeZone: 'Asia/Tokyo' });
   });
 
   it('answers null when nothing is claimable', async () => {

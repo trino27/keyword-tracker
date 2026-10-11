@@ -116,6 +116,7 @@ describe('evaluateChecks', () => {
     expect(checksNotApplicable).toEqual([
       'TITLE_LENGTH',
       'TITLE_SCRIPT_MISMATCH',
+      'TITLE_YEAR_OUTDATED',
       'META_DESCRIPTION_REPEATS_TITLE',
       'TITLE_DUPLICATE',
     ]);
@@ -289,9 +290,10 @@ describe('evaluateChecks', () => {
         headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
         htmlBytes: 2_000_000,
         parsed: {
-          title: 'Shared title',
+          // Too short, shared with the other page, and selling a past year.
+          title: 'Shared title for 2020',
           // Too short, shared with the other broken page, and the title again.
-          metaDescription: 'Shared title',
+          metaDescription: 'Shared title for 2020',
           metaRobots: 'noindex, nosnippet',
           relativeCanonicals: ['/x/'],
           featuredImage: {

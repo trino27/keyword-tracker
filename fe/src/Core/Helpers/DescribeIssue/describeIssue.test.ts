@@ -79,6 +79,12 @@ describe("describeIssue", () => {
 		);
 	});
 
+	it("names the past year a title still sells", () => {
+		expect(describeIssue("TITLE_YEAR_OUTDATED", { year: 2025, currentYear: 2026 })).toBe(
+			"The title names 2025 as current; it is 2026.",
+		);
+	});
+
 	it("says what a missing breadcrumb or repeated description is", () => {
 		expect(describeIssue("BREADCRUMB_MISSING", {})).toBe(
 			"The page declares no BreadcrumbList.",

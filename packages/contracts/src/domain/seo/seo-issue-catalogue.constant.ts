@@ -430,6 +430,22 @@ export const SEO_ISSUE_CATALOGUE = {
     skipReason:
       'The page has no title, or too little text to tell which script it is written in.',
   },
+  TITLE_YEAR_OUTDATED: {
+    // A notice: Ahrefs names freshness in titles; Google draws no line on it (plan D2).
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Title names a past year',
+    plain: {
+      what: 'The page title presents a past year as current',
+      why: 'A title such as "Best tools for 2025" read in a later year tells searchers the post is out of date before they open it, and fewer of them click. Refreshing the post and its year is one of the cheapest ways to win those clicks back.',
+      fix: "The writer or editor can update the post for this year and then the year in its title, in the CMS's title and SEO title fields; changing only the year without the content misleads readers.",
+    },
+    hint: 'Update the post, then the year in its title; or drop the year if the post is evergreen.',
+    explanation:
+      'The title ends with a year, or names one after "in", "for" or "в", and that year is earlier than the current year where the client is. Ahrefs recommends a year in titles of topics where freshness matters, and the same year becomes a liability once it passes: searchers read it as a sign of stale advice. Google draws no line on years in titles, and changing a date without changing the content is the very thing DATE_BUMPED_WITHOUT_CHANGES flags, so the fix is to refresh the post, not just the number. A year in the site name after the separator is not read, and neither is one inside the title such as "2024 vs 2025"; a historical title like "SEO in 2008" is reported, and is for the reader to judge.',
+    sources: [SOURCE.ahrefsOnPage, SOURCE.titleLinks],
+    skipReason: 'No title to read.',
+  },
   META_DESCRIPTION_MISSING: {
     owner: 'crawl',
     severity: 'warning',

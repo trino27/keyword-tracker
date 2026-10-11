@@ -30,6 +30,11 @@ export interface ICheckInput {
   headers: Record<string, string>;
   /** When the response arrived: the "now" every date a check compares against. */
   fetchedAt: Date;
+  /**
+   * The client owner's IANA zone. A check that says "this year" reads `fetchedAt` in it,
+   * so the year turns at the owner's midnight, not the server's (TZ-003).
+   */
+  timeZone: string;
   htmlBytes: number;
   parsed: IParsedPage;
   /**
