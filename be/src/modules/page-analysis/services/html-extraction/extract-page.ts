@@ -1119,6 +1119,9 @@ function shareImageOf(openGraph: Record<string, string>): string | null {
 /** `"@type":"X"`, as written or escaped inside a string (`\"@type\":\"X\"`). */
 const SCRIPTED_TYPE = /\\?"@type\\?"\s*:\s*\\?"([A-Za-z]+)\\?"/g;
 
+/** The properties through which a JSON-LD node holds the page's own nested items. */
+const NESTED_ITEM_PROPERTIES = ['mainEntity', 'breadcrumb'] as const;
+
 /** The schema.org types inline scripts other than JSON-LD blocks name. */
 function scriptedSchemaTypesOf($: CheerioAPI): string[] {
   const types = new Set<string>();
@@ -1166,10 +1169,8 @@ function structuredDataOf(
     if (!node || typeof node !== 'object') return;
     const record = node as Record<string, unknown>;
     nodes.push(record);
-    const nodeTypes = [record['@type']].flat();
-    for (const type of nodeTypes) {
-      if (typeof type === 'string') types.add(type);
-    }
+    const nodeTypes = typesOf(record);
+    for (const type of nodeTypes) types.add(type);
     if (typeof record['@id'] === 'string') {
       if (!nodesById.has(record['@id'])) nodesById.set(record['@id'], record);
       if (typeof record.name === 'string')
@@ -1190,6 +1191,14 @@ function structuredDataOf(
     }
     for (const keyword of keywordsOf(record.keywords)) keywords.add(keyword);
     if (record['@graph'] !== undefined) visit(record['@graph']);
+    // Google: "Google Search understands multiple items on a page, whether you nest the
+    // items or specify each item individually." A WebPage carries its post as mainEntity
+    // and its trail as breadcrumb. Only these two are followed, and only into a typed
+    // node: a listing's ItemList of BlogPostings is not the page's article, and a bare
+    // {"@id"} reference would shadow the full node in the index.
+    for (const key of NESTED_ITEM_PROPERTIES)
+      for (const item of [record[key]].flat())
+        if (item && typeof item === 'object' && '@type' in item) visit(item);
   };
   // A block is read as Google reads it — a raw line break inside a string is forgiven
   // (`parseJsonLd`). What is still not JSON reaches Google as nothing, which is a finding,

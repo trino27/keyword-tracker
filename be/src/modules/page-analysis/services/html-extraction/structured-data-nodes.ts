@@ -15,10 +15,15 @@ const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
 const isNode = (value: unknown): value is TNode =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
+/**
+ * A node's types, as schema.org names: `"@type": "https://schema.org/BlogPosting"` — a
+ * full IRI, which JSON-LD allows and Google reads — is `BlogPosting`.
+ */
 export const typesOf = (node: TNode): string[] =>
   [node['@type']]
     .flat()
-    .filter((type): type is string => typeof type === 'string');
+    .filter((type): type is string => typeof type === 'string')
+    .map((type) => type.replace(/^(?:https?:\/\/schema\.org\/|schema:)/i, ''));
 
 /**
  * A reference resolved into the node it names, the reference's own keys kept on top: Yoast

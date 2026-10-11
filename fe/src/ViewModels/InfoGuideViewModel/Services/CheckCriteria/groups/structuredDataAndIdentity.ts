@@ -74,7 +74,7 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"The tracker collects the @type of every JSON-LD node — each top-level object and each member of an @graph — and of every Microdata item (itemtype). The page passes when any of them is Article, NewsArticle, BlogPosting, TechArticle, ScholarlyArticle, Report or LiveBlogPosting. RDFa is not read, so an article declared only in RDFa is reported here.",
+			"The tracker collects the @type of every JSON-LD node — each top-level object, each member of an @graph, and an item nested as a WebPage's mainEntity or breadcrumb, which Google reads as if it stood alone — and of every Microdata item (itemtype). A type written as a full address (https://schema.org/BlogPosting) counts as its name. The page passes when any of them is Article, NewsArticle, BlogPosting, TechArticle, ScholarlyArticle, Report or LiveBlogPosting. RDFa is not read, so an article declared only in RDFa is reported here.",
 		manualCheck: [
 			'Open View source (Ctrl+U) and find (Ctrl+F) "@type" and "itemtype" to see which types the page declares.',
 			"Paste the URL into the Rich Results Test (https://search.google.com/test/rich-results); an Article item should be listed among the detected items.",
@@ -226,7 +226,7 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 			lang: "html",
 		},
 		howChecked:
-			"The tracker looks for a BreadcrumbList among the JSON-LD types (top-level objects and @graph members) and the Microdata itemtypes of the HTML the server sent. Any declared trail passes, even a one-step one; whether it is complete is BREADCRUMB_INVALID's question. A visible trail without markup, or one in RDFa only, fails; a BreadcrumbList that only an inline script inserts later, as Next.js sites do, is not judged.",
+			"The tracker looks for a BreadcrumbList among the JSON-LD types (top-level objects, @graph members, and a trail nested as a WebPage's breadcrumb) and the Microdata itemtypes of the HTML the server sent. Any declared trail passes, even a one-step one; whether it is complete is BREADCRUMB_INVALID's question. A visible trail without markup, or one in RDFa only, fails; a BreadcrumbList that only an inline script inserts later, as Next.js sites do, is not judged.",
 		manualCheck: [
 			'Open View source (Ctrl+U) and find (Ctrl+F) "BreadcrumbList".',
 			"Paste the URL into the Rich Results Test (https://search.google.com/test/rich-results); a Breadcrumbs item should be detected.",

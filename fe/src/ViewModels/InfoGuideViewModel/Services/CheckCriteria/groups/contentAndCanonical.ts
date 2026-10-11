@@ -66,7 +66,7 @@ export const CONTENT_AND_CANONICAL_CRITERIA = {
 			lang: "text",
 		},
 		howChecked:
-			"With each crawl the tracker stores the post's declared modification date — dateModified on the article's JSON-LD, else <meta property=\"article:modified_time\">, else the article's microdata — and a SHA-256 fingerprint of its main text (template, sidebars and comments removed). On the next crawl of the same URL it fails the post when the date differs from the stored one, compared as written, while the fingerprint is identical; a new date over changed text, or an unchanged date, passes. Not applicable on the first crawl of the URL, when the post declares no modification date now, or when the previous crawl recorded no date for it.",
+			"With each crawl the tracker stores the post's declared modification date — dateModified on the article's JSON-LD, else <meta property=\"article:modified_time\">, else the article's microdata — and a SHA-256 fingerprint of its main text (template, sidebars and comments removed). On the next crawl of the same URL it fails the post when the date names a different moment from the stored one — the same moment written another way (Z or +00:00) is the same date — while the fingerprint is identical; a new date over changed text, or an unchanged date, passes. Not applicable on the first crawl of the URL, when the post declares no modification date now, or when the previous crawl recorded no date for it.",
 		manualCheck: [
 			"Open View source (Ctrl+U), use Ctrl+F to find dateModified and article:modified_time, and note the values with today's date.",
 			"Compare them with the two dates the tracker's finding quotes, and compare the post's text with what was there on the earlier date.",

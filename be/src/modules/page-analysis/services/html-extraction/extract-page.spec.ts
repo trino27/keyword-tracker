@@ -370,6 +370,66 @@ describe('extractPage', () => {
     );
   });
 
+  /**
+   * Google: "Google Search understands multiple items on a page, whether you nest the
+   * items or specify each item individually." A listing's ItemList is not followed.
+   */
+  it('reads an article and a trail nested in a WebPage, and IRI types', () => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">' +
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Blog',
+                item: 'https://a.example/blog/',
+              },
+              { '@type': 'ListItem', position: 2, name: 'Post' },
+            ],
+          },
+          mainEntity: {
+            '@type': 'https://schema.org/BlogPosting',
+            headline: 'Nested post',
+            datePublished: '2026-10-01T09:00:00Z',
+          },
+        }) +
+        '</script>',
+    );
+
+    expect(parsed.articleMarkup).toMatchObject({
+      type: 'BlogPosting',
+      headline: 'Nested post',
+    });
+    expect(parsed.breadcrumbs).toHaveLength(1);
+    expect(parsed.jsonLd.types).toEqual(
+      expect.arrayContaining(['WebPage', 'BreadcrumbList', 'BlogPosting']),
+    );
+    expect(parsed.datePublished).toBe('2026-10-01T09:00:00Z');
+  });
+
+  it("does not take a listing's first card for the page's article", () => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">' +
+        JSON.stringify({
+          '@type': 'CollectionPage',
+          hasPart: {
+            '@type': 'ItemList',
+            itemListElement: [{ '@type': 'BlogPosting', headline: 'Card' }],
+          },
+        }) +
+        '</script>',
+    );
+
+    expect(parsed.articleMarkup).toBeNull();
+  });
+
   it('separates adjacent blocks so their words never fuse', () => {
     expect(page('<main><h1>Title</h1><p>One</p></main>').wordCount).toBe(2);
   });
