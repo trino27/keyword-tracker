@@ -471,6 +471,39 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   BreadcrumbList lives in the Next.js payload, written by React in the browser where Google
   reads it (`scriptedSchemaTypes`; the check is not applicable to it). The same payload
   carries vercel.com's Article markup, which `STRUCTURED_DATA_MISSING` does not yet consult.
+- **Field audit of the outbound checks (2026-10-11).** The first pass ran 32 live sites
+  (blog.cloudflare.com, kinsta.com, semrush.com, moz.com, blog.hubspot.com, ahrefs.com,
+  smashingmagazine.com, backlinko.com, css-tricks.com, yoast.com, gazeta.uz, kun.uz, habr.com,
+  techcrunch.com, seths.blog, lifehacker.ru, deepl.com, kottke.org, notion.com,
+  wpbeginner.com, 404media.co, ghost.org, blog.duolingo.com, react.dev, sitepoint.com,
+  zapier.com, vc.ru, cossa.ru, unisender.com, neilpatel.com, texterra.ru, hostinger.com) through
+  discovery, selection, the outbound stage and analysis, 6 posts each. It found four kinds of
+  false finding, each fixed with a spec from the site:
+  - an internal 429 or 403 refuses the crawler, not the page (moz.com, css-tricks.com), so
+    401/402/403/429 inside the site read as unknown. This is the sitemap check's refusal set,
+    and closes the plan's O3;
+  - backlinko.com's `/hub/` links leave the site for a host that walls crawlers off, and
+    youtube.com channels end on 404 through consent.youtube.com. An internal link that leaves
+    the site is judged as external, and any answer reached through a third host is unknown;
+  - Cloudflare's `/cdn-cgi/` e-mail protection links are no pages (techcrunch.com);
+  - a dead link that is also a variant was reported twice (cossa.ru), so it is now
+    `BROKEN_LINKS`' alone.
+
+  The second pass ran the same sites after the fixes: 29 reached (yoast.com now challenges
+  this crawler's address at robots.txt, kun.uz and sitepoint.com yielded no post), 160 posts,
+  plus a full stack crawl of semrush.com. Each firing was read against the live URL in a
+  browser-like request:
+  - `BROKEN_LINKS`: 27 fired, 0 wrong. It includes vc.ru's tag pages, which answer every
+    client 500 (`Invalid character in header content ["location"]`), and amazon.com skill
+    pages whose canonical `/dp/` URL answers "couldn't find that page". A plain fetch of those
+    Amazon pages shows a captcha with 200.
+  - `LINKS_TO_REDIRECTS`: 72 fired, 0 wrong (122 distinct links; every first hop matched and
+    every target answered).
+  - `CANONICAL_TARGET_BROKEN`: 0 of 154 judged.
+  - `HREFLANG_NOT_RECIPROCAL`: 0 of 27 judged.
+
+  Because `CANONICAL_TARGET_BROKEN` never fired, its step-aside removed no
+  `CANONICAL_MISMATCH`. The two silent checks are held by their specs' failing cases.
 - **Two checks are deliberately absent.** `SLOW_RESPONSE` measured the crawler's network position
   rather than the page, and `KEYWORD_NOT_IN_TITLE` could not fail by construction. The
   measurements are in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and

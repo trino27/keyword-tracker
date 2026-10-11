@@ -107,9 +107,11 @@ it green.
   Verify: `pnpm --filter be test:ci -- src/modules/crawl src/modules/page-analysis`.
 - [x] 2.6 Make sure the recorded corpus still behaves the same with empty facts. Verify:
   `pnpm --filter be test:ci -- checks.registry && pnpm --filter be test:db -- crawl`.
-- [ ] 2.7 On the stack, re-crawl a seed client. Verify: `docker compose up -d --build`, then after
+- [x] 2.7 On the stack, re-crawl a seed client. Verify: `docker compose up -d --build`, then after
   the run `docker compose logs be | grep '"Crawl run stages"' | tail -n 2` shows an `outbound`
   timing under 60000.
+  Done 2026-10-11: run 194 (semrush.com, 15 posts) spent 19 505 ms in `outbound`. The stack had
+  been built before the stage was committed, so only `be` was rebuilt first.
 - [x] 2.8 Commit: `feat(crawl): an outbound stage — links and documents under a budget, robots per
   host`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
 
@@ -262,29 +264,41 @@ it green.
 
 ## 6. Field audit, measured cost, and the module document (3f) — plan D12
 
-- [ ] 6.1 Before the audit, record the run outcomes. Verify: `docker compose exec postgres psql -U
+- [x] 6.1 Before the audit, record the run outcomes. Verify: `docker compose exec postgres psql -U
   tracker -d seo_tracker -c "select status, error_code, count(*) from crawl_runs group by 1, 2"`
   (`crawl-runs.schema.ts:46`).
-- [ ] 6.2 Run the plan §14 protocol for `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
+  Done 2026-10-11: 9 runs, all `succeeded`.
+- [x] 6.2 Run the plan §14 protocol for `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
   `CANONICAL_TARGET_BROKEN` and `HREFLANG_NOT_RECIPROCAL`. Read every firing against the live URL:
   open the link, follow the target, view the alternate's source. A firing on an internal
   401/402/403/429 or challenge is the plan's O3 trigger; record it as such. Also read every
   `CANONICAL_MISMATCH` the broken-target step-aside removed, to confirm each target was broken
   (plan D34). Verify: the §14
   queries print every firing, and each is judged.
-- [ ] 6.3 For each wrong firing, write first a failing spec from that site, then the fix, or
+  AMENDED during implementation: the sites went through a jest harness that wires the real
+  discovery, selection, outbound and analysis services without the database; the stack ran
+  semrush.com. Two passes over 32 sites, every firing read against the live URL; the tally is in
+  `PAGE_ANALYSIS_MODULE.md`. The first pass hit O3 (moz.com, css-tricks.com internal 429/403).
+- [x] 6.3 For each wrong firing, write first a failing spec from that site, then the fix, or
   `enabled: false`. One `fix(page-analysis): …` commit each. Verify: `pnpm --filter be test:ci --
   src/modules/page-analysis`.
-- [ ] 6.4 Measure. Verify: `docker compose logs be | grep '"Crawl run stages"'` over the audit's
+  Done: c39e0fa (refusals and third-host detours), b27483f (`/cdn-cgi/`), dd7d153 (a dead
+  variant is BROKEN_LINKS' alone). The second pass: 0 wrong.
+- [x] 6.4 Measure. Verify: `docker compose logs be | grep '"Crawl run stages"'` over the audit's
   runs gives the median and slowest `outbound` timing, and the 6.1 query shows no run that now
   fails with a code it did not fail with before.
-- [ ] 6.5 Update the docs:
+  Done: median 9.6 s, slowest 60.0 s (react.dev, 1 link unchecked: deadline) over 29 sites; 19.5 s
+  for a full semrush.com crawl on the stack. One run now fails that did not: yoast.com,
+  `SITE_BLOCKED` at robots.txt, before any outbound request. Cloudflare challenges this address
+  for every User-Agent, a browser's included, so it is not the stage.
+- [x] 6.5 Update the docs:
   - `CRAWL_MODULE.md`: the `outbound` stage (plan D4, D26), `OUTBOUND_CHECK_LIMITS`, robots per
     host, why there is no queue, and the measured timings;
   - `PAGE_ANALYSIS_MODULE.md`: the four tally lines.
 
   Commit: `docs(crawl): the outbound stage, its budgets and what it costs a crawl`. Verify:
   `git grep -n "outbound" be/src/modules/crawl/CRAWL_MODULE.md`.
+  Done.
 
 ## 7. Change acceptance
 

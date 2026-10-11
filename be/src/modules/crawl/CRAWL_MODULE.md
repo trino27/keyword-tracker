@@ -72,6 +72,25 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   run's robots.txt as `IRobotsRules`, so the checks can ask it about Googlebot and the AI search
   crawlers — the crawl itself only ever asks about its own name — and what the client's previous
   crawl recorded for each URL, read before the transaction opens.
+- **The `outbound` stage asks the posts' links for their status** (`OutboundChecksService`),
+  between `fetch` and `analysis`, so every request is made before the persist transaction
+  opens and the checks stay pure: `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
+  `CANONICAL_TARGET_BROKEN` and `HREFLANG_NOT_RECIPROCAL` read its `IOutboundFacts`. Each
+  content link is asked once per run, in sitemap order and then document order, so two
+  crawls of an unchanged site check the same links; a link to one of the run's own posts is
+  answered from that post's fetch. A link is asked for its status only, with no body read
+  (`SiteHttpClient.checkLink`); canonical targets, then hreflang alternates, are read whole.
+  `OUTBOUND_CHECK_LIMITS` bounds it: 300 link URLs and 30 documents per run, 8 requests in
+  flight, 2 per host, 5 s per request, 60 s for the stage. Anything past those reads
+  "unchecked" with its reason (budget, deadline, robots), never fine and never broken. Each
+  external host's robots.txt is fetched once per run and obeyed for the crawler's own name.
+  No failure of the stage fails the run. There is no queue, as PageSpeed has, because a link
+  check has neither Google's quota nor its minute-long answers. A queue would also change a
+  page's issues after its crawl, and race the next crawl. Measured on 2026-10-11 over 29
+  live sites, 6 posts each: median 9.6 s, slowest 60.0 s. react.dev reached the deadline
+  with 1 of 233 links unchecked, after 17 requests to other hosts timed out or failed. On
+  the stack a full 15-post crawl of semrush.com spent 19.5 s in `outbound`
+  (`"Crawl run stages"`).
 - **Outbound HTTP** goes through `SiteHttpClient` (extends `RemoteApiCore`): per-kind size caps,
   `.gz` sitemaps inflated under a second cap, retries for a timeout, a network error, 408, 429 and
   500/502/503/504 only (`RETRYABLE_STATUSES`), private and metadata addresses refused at connect
