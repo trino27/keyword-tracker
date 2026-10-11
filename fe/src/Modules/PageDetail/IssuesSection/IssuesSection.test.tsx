@@ -31,7 +31,9 @@ describe("IssuesSection", () => {
 			screen.getByText("The content has 120 words; aim for at least 300."),
 		).toBeInTheDocument();
 		expect(
-			screen.getByText("Posts under 300 words rarely answer a query well enough to rank."),
+			screen.getByText(
+				"Posts under 300 words are often stubs or teasers; check this one fully answers its question.",
+			),
 		).toBeInTheDocument();
 	});
 
