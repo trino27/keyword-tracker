@@ -1,12 +1,4 @@
 import type { TSeoIssueSeverity } from '../../seo-issue-severity.enum.js';
-import type { TLighthouseCategory } from '../issue-definition.interface.js';
-
-/**
- * The weight from which Lighthouse treats an audit as one of its heavier ones: 10 and 7
- * are what its accessibility category gives the failures that block a visitor outright,
- * 3 and 1 what it gives the rest. SEO weighs every audit 1 but `is-crawlable`.
- */
-const WARNING_WEIGHT = 7;
 
 /**
  * The audits whose failure is graver than their weight says. `is-crawlable` failing means
@@ -15,12 +7,14 @@ const WARNING_WEIGHT = 7;
  */
 const ERROR_AUDITS: ReadonlySet<string> = new Set(['is-crawlable']);
 
-/** A Lighthouse code's severity, from its audit and its heaviest weight. */
-export function lighthouseSeverityOf(
-  audit: string,
-  weights: Partial<Record<TLighthouseCategory, number>>,
-): TSeoIssueSeverity {
-  if (ERROR_AUDITS.has(audit)) return 'error';
-  const heaviest = Math.max(0, ...Object.values(weights));
-  return heaviest >= WARNING_WEIGHT ? 'warning' : 'notice';
+/**
+ * A Lighthouse code's severity, from its audit. Lighthouse's SEO category weighs every
+ * audit alike but `is-crawlable`, so every other one is a notice.
+ *
+ * The accessibility weights are not read: they once made `image-alt` and `document-title`
+ * warnings, but the tracker counts Lighthouse's SEO audits only, and a weight borrowed from
+ * the accessibility category would count accessibility in the score by the back door.
+ */
+export function lighthouseSeverityOf(audit: string): TSeoIssueSeverity {
+  return ERROR_AUDITS.has(audit) ? 'error' : 'notice';
 }

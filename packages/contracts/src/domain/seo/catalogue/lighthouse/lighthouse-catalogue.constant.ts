@@ -298,8 +298,13 @@ const LH_SOURCE = {
  * Every audit Lighthouse scores in its SEO or accessibility category, as a finding the
  * PageSpeed worker writes from the mobile answer: a code per audit id, its weights as
  * Lighthouse's configuration gives them (`lighthouse-audits.fixture.json`), and the
- * severity `lighthouseSeverityOf` derives from the highest of them. SEO first, then
- * accessibility, each in the order Lighthouse lists its audits.
+ * severity `lighthouseSeverityOf` derives from its audit. SEO first, then accessibility,
+ * each in the order Lighthouse lists its audits.
+ *
+ * Only the audits Lighthouse weighs in SEO are checks (`ACTIVE_LIGHTHOUSE_CODES`). The
+ * accessibility ones are retired: the page shows Lighthouse's accessibility score as an
+ * overview, and its audits are neither extracted, listed nor scored. Their entries stay so
+ * a finding or verdict stored before still reads back, as a retired crawl check's does.
  *
  * The verdicts are Lighthouse's, not ours: where one of our checks looks at the same thing,
  * both are recorded and both count (lighthouse-checks D11), and `ISSUE_COUNTERPARTS`
@@ -325,7 +330,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_DOCUMENT_TITLE: {
     audit: 'document-title',
     weights: { seo: 1, accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Title is missing or empty',
     passLabel: 'Title is present',
     plain: {
@@ -425,7 +430,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_IMAGE_ALT: {
     audit: 'image-alt',
     weights: { seo: 1, accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Images without alt text',
     passLabel: 'Images have alt text',
     plain: {
@@ -473,7 +478,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ACCESSKEYS: {
     audit: 'accesskeys',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Keyboard shortcut keys used twice',
     passLabel: 'Keyboard shortcut keys are unique',
     plain: {
@@ -489,7 +494,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_ALLOWED_ATTR: {
     audit: 'aria-allowed-attr',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: "Screen reader details that don't fit the element",
     passLabel: 'Screen reader details fit their elements',
     plain: {
@@ -505,7 +510,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_COMMAND_NAME: {
     audit: 'aria-command-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Custom links and menu items without a name',
     passLabel: 'Custom links and menu items have names',
     plain: {
@@ -521,7 +526,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_CONDITIONAL_ATTR: {
     audit: 'aria-conditional-attr',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Checkbox or row states set where not allowed',
     passLabel: 'Checkbox and row states are set where allowed',
     plain: {
@@ -553,7 +558,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_DIALOG_NAME: {
     audit: 'aria-dialog-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Pop-ups without a title for screen readers',
     passLabel: 'Pop-ups have a title for screen readers',
     plain: {
@@ -569,7 +574,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_HIDDEN_BODY: {
     audit: 'aria-hidden-body',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Whole page hidden from screen readers',
     passLabel: 'Page is visible to screen readers',
     plain: {
@@ -585,7 +590,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_HIDDEN_FOCUS: {
     audit: 'aria-hidden-focus',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Hidden parts that keyboard users can still reach',
     passLabel: 'Hidden parts are out of keyboard reach',
     plain: {
@@ -601,7 +606,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_INPUT_FIELD_NAME: {
     audit: 'aria-input-field-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Custom form fields without a label',
     passLabel: 'Custom form fields have labels',
     plain: {
@@ -617,7 +622,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_METER_NAME: {
     audit: 'aria-meter-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Gauges without a name',
     passLabel: 'Gauges have names',
     plain: {
@@ -633,7 +638,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_PROGRESSBAR_NAME: {
     audit: 'aria-progressbar-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Progress bars without a name',
     passLabel: 'Progress bars have names',
     plain: {
@@ -649,7 +654,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_PROHIBITED_ATTR: {
     audit: 'aria-prohibited-attr',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Labels placed where screen readers ignore them',
     passLabel: 'Labels sit where screen readers read them',
     plain: {
@@ -665,7 +670,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_REQUIRED_ATTR: {
     audit: 'aria-required-attr',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: "Custom controls that don't report their state",
     passLabel: 'Custom controls report their state',
     plain: {
@@ -681,7 +686,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_REQUIRED_CHILDREN: {
     audit: 'aria-required-children',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Menus and lists missing their marked items',
     passLabel: 'Menus and lists contain their items',
     plain: {
@@ -697,7 +702,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_REQUIRED_PARENT: {
     audit: 'aria-required-parent',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Menu or list items outside their group',
     passLabel: 'Menu and list items sit in their group',
     plain: {
@@ -713,7 +718,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_ROLES: {
     audit: 'aria-roles',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Unrecognised element types in the code',
     passLabel: 'Element types are recognised',
     plain: {
@@ -729,7 +734,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_TEXT: {
     audit: 'aria-text',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Silent tab stops inside grouped text',
     passLabel: 'No silent tab stops in grouped text',
     plain: {
@@ -745,7 +750,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_TOGGLE_FIELD_NAME: {
     audit: 'aria-toggle-field-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Checkboxes and switches without a label',
     passLabel: 'Checkboxes and switches have labels',
     plain: {
@@ -761,7 +766,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_TOOLTIP_NAME: {
     audit: 'aria-tooltip-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Tooltips with no text for screen readers',
     passLabel: 'Tooltips have text for screen readers',
     plain: {
@@ -777,7 +782,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_TREEITEM_NAME: {
     audit: 'aria-treeitem-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Unnamed entries in expandable tree menus',
     passLabel: 'Tree menu entries have names',
     plain: {
@@ -793,7 +798,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_VALID_ATTR_VALUE: {
     audit: 'aria-valid-attr-value',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Screen reader instructions with invalid values',
     passLabel: 'Screen reader instructions have valid values',
     plain: {
@@ -809,7 +814,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_ARIA_VALID_ATTR: {
     audit: 'aria-valid-attr',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Misspelled screen reader instructions',
     passLabel: 'Screen reader instructions are spelled right',
     plain: {
@@ -825,7 +830,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_BUTTON_NAME: {
     audit: 'button-name',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Buttons without a name',
     passLabel: 'Buttons have names',
     plain: {
@@ -841,7 +846,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_BYPASS: {
     audit: 'bypass',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'No way to skip to the main content',
     passLabel: 'There is a way to skip to the main content',
     plain: {
@@ -857,7 +862,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_COLOR_CONTRAST: {
     audit: 'color-contrast',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Text with too little contrast',
     passLabel: 'Text has enough contrast',
     plain: {
@@ -873,7 +878,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_DEFINITION_LIST: {
     audit: 'definition-list',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Term-and-definition lists built out of order',
     passLabel: 'Term-and-definition lists are built in order',
     plain: {
@@ -889,7 +894,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_DLITEM: {
     audit: 'dlitem',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Terms and definitions outside a list',
     passLabel: 'Terms and definitions sit in a list',
     plain: {
@@ -905,7 +910,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_DUPLICATE_ID_ARIA: {
     audit: 'duplicate-id-aria',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Labels that point to a duplicated reference',
     passLabel: 'Label references are unique',
     plain: {
@@ -937,7 +942,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_FRAME_TITLE: {
     audit: 'frame-title',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Embedded frames without a title',
     passLabel: 'Embedded frames have titles',
     plain: {
@@ -969,7 +974,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_HTML_HAS_LANG: {
     audit: 'html-has-lang',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Page language is not set',
     passLabel: 'Page language is set',
     plain: {
@@ -985,7 +990,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_HTML_LANG_VALID: {
     audit: 'html-lang-valid',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Page language code is not valid',
     passLabel: 'Page language code is valid',
     plain: {
@@ -1025,7 +1030,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_INPUT_BUTTON_NAME: {
     audit: 'input-button-name',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Form buttons with no text',
     passLabel: 'Form buttons have text',
     plain: {
@@ -1041,7 +1046,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_INPUT_IMAGE_ALT: {
     audit: 'input-image-alt',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Image buttons without alt text',
     passLabel: 'Image buttons have alt text',
     plain: {
@@ -1057,7 +1062,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_LABEL: {
     audit: 'label',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Form fields without labels',
     passLabel: 'Form fields have labels',
     plain: {
@@ -1073,7 +1078,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_LINK_IN_TEXT_BLOCK: {
     audit: 'link-in-text-block',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Links that stand out only by colour',
     passLabel: 'Links stand out by more than colour',
     plain: {
@@ -1089,7 +1094,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_LINK_NAME: {
     audit: 'link-name',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Links without a readable name',
     passLabel: 'Links have readable names',
     plain: {
@@ -1109,7 +1114,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_LIST: {
     audit: 'list',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Lists with stray content inside',
     passLabel: 'Lists hold only list items',
     plain: {
@@ -1125,7 +1130,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_LISTITEM: {
     audit: 'listitem',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'List items outside a list',
     passLabel: 'List items sit in a list',
     plain: {
@@ -1141,7 +1146,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_META_REFRESH: {
     audit: 'meta-refresh',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Page refreshes or redirects on a timer',
     passLabel: 'No timed refresh or redirect',
     plain: {
@@ -1157,7 +1162,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_META_VIEWPORT: {
     audit: 'meta-viewport',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Zooming is blocked on phones',
     passLabel: 'Zooming is allowed on phones',
     plain: {
@@ -1173,7 +1178,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_OBJECT_ALT: {
     audit: 'object-alt',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Embedded objects without a text alternative',
     passLabel: 'Embedded objects have a text alternative',
     plain: {
@@ -1189,7 +1194,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_SELECT_NAME: {
     audit: 'select-name',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Drop-down menus without labels',
     passLabel: 'Drop-down menus have labels',
     plain: {
@@ -1221,7 +1226,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_TABINDEX: {
     audit: 'tabindex',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Tab order forced out of reading order',
     passLabel: 'Tab order follows reading order',
     plain: {
@@ -1237,7 +1242,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_TARGET_SIZE: {
     audit: 'target-size',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Tap targets too small or crowded',
     passLabel: 'Tap targets are large enough',
     plain: {
@@ -1253,7 +1258,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_TD_HEADERS_ATTR: {
     audit: 'td-headers-attr',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Table cells point to the wrong headers',
     passLabel: 'Table cells point to the right headers',
     plain: {
@@ -1269,7 +1274,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_TH_HAS_DATA_CELLS: {
     audit: 'th-has-data-cells',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Table headers with no data under them',
     passLabel: 'Table headers have data under them',
     plain: {
@@ -1285,7 +1290,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_VALID_LANG: {
     audit: 'valid-lang',
     weights: { accessibility: 7 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Passages with an invalid language code',
     passLabel: 'Passage language codes are valid',
     plain: {
@@ -1301,7 +1306,7 @@ export const LIGHTHOUSE_CATALOGUE = {
   LH_VIDEO_CAPTION: {
     audit: 'video-caption',
     weights: { accessibility: 10 },
-    severity: 'warning',
+    severity: 'notice',
     label: 'Videos without captions',
     passLabel: 'Videos have captions',
     plain: {

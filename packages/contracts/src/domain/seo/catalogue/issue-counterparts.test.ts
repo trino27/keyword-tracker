@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ACTIVE_LIGHTHOUSE_CODES,
   ISSUE_OWNERS,
-  LIGHTHOUSE_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
 } from './issue-catalogues.constant';
 import {
@@ -52,7 +52,8 @@ describe('the counterpart groups', () => {
 
   it('gives a code no other owner checks no group', () => {
     expect(counterpartGroupOf('THIN_CONTENT')).toBeNull();
-    expect(counterpartGroupOf('LH_COLOR_CONTRAST')).toBeNull();
+    expect(counterpartGroupOf('LH_ROBOTS_TXT')).toBeNull();
+    expect(counterpartGroupOf('LH_LINK_NAME')).toBeNull();
   });
 
   /**
@@ -62,65 +63,16 @@ describe('the counterpart groups', () => {
    */
   it('leaves exactly these Lighthouse codes without a counterpart of ours', () => {
     const grouped = new Set(GROUPS.flatMap(codesOf));
-    expect(LIGHTHOUSE_ISSUE_CODES.filter((code) => !grouped.has(code))).toEqual(
-      [
-        'LH_HTTP_STATUS_CODE',
-        'LH_LINK_TEXT',
-        'LH_ROBOTS_TXT',
-        'LH_ACCESSKEYS',
-        'LH_ARIA_ALLOWED_ATTR',
-        'LH_ARIA_COMMAND_NAME',
-        'LH_ARIA_CONDITIONAL_ATTR',
-        'LH_ARIA_DEPRECATED_ROLE',
-        'LH_ARIA_DIALOG_NAME',
-        'LH_ARIA_HIDDEN_BODY',
-        'LH_ARIA_HIDDEN_FOCUS',
-        'LH_ARIA_INPUT_FIELD_NAME',
-        'LH_ARIA_METER_NAME',
-        'LH_ARIA_PROGRESSBAR_NAME',
-        'LH_ARIA_PROHIBITED_ATTR',
-        'LH_ARIA_REQUIRED_ATTR',
-        'LH_ARIA_REQUIRED_CHILDREN',
-        'LH_ARIA_REQUIRED_PARENT',
-        'LH_ARIA_ROLES',
-        'LH_ARIA_TEXT',
-        'LH_ARIA_TOGGLE_FIELD_NAME',
-        'LH_ARIA_TOOLTIP_NAME',
-        'LH_ARIA_TREEITEM_NAME',
-        'LH_ARIA_VALID_ATTR_VALUE',
-        'LH_ARIA_VALID_ATTR',
-        'LH_BUTTON_NAME',
-        'LH_BYPASS',
-        'LH_COLOR_CONTRAST',
-        'LH_DEFINITION_LIST',
-        'LH_DLITEM',
-        'LH_DUPLICATE_ID_ARIA',
-        'LH_FORM_FIELD_MULTIPLE_LABELS',
-        'LH_FRAME_TITLE',
-        'LH_HTML_LANG_VALID',
-        'LH_HTML_XML_LANG_MISMATCH',
-        'LH_INPUT_BUTTON_NAME',
-        'LH_INPUT_IMAGE_ALT',
-        'LH_LABEL',
-        'LH_LINK_IN_TEXT_BLOCK',
-        'LH_LIST',
-        'LH_LISTITEM',
-        'LH_META_VIEWPORT',
-        'LH_OBJECT_ALT',
-        'LH_SELECT_NAME',
-        'LH_SKIP_LINK',
-        'LH_TABINDEX',
-        'LH_TARGET_SIZE',
-        'LH_TD_HEADERS_ATTR',
-        'LH_TH_HAS_DATA_CELLS',
-        'LH_VALID_LANG',
-        'LH_VIDEO_CAPTION',
-        'LH_LANDMARK_ONE_MAIN',
-        'LH_AUTOCOMPLETE_VALID',
-        'LH_PRESENTATION_ROLE_CONFLICT',
-        'LH_SVG_IMG_ALT',
-      ],
-    );
+    expect(
+      ACTIVE_LIGHTHOUSE_CODES.filter((code) => !grouped.has(code)),
+    ).toEqual(['LH_HTTP_STATUS_CODE', 'LH_LINK_TEXT', 'LH_ROBOTS_TXT']);
+  });
+
+  /** A retired audit is listed nowhere, so a group holding one would draw a half-empty row. */
+  it('pairs only the Lighthouse codes that are checks', () => {
+    for (const group of GROUPS)
+      for (const code of group.lighthouse ?? [])
+        expect(ACTIVE_LIGHTHOUSE_CODES).toContain(code);
   });
 
   /** The screen says why a disagreement is expected; a group without a reason would say nothing. */

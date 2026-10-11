@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { TLighthouseCategory } from '../issue-definition.interface';
+import { ACTIVE_LIGHTHOUSE_CODES } from '../issue-catalogues.constant';
 import { LIGHTHOUSE_CATALOGUE } from './lighthouse-catalogue.constant';
 import { lighthouseSeverityOf } from './lighthouse-severity.util';
 
@@ -58,37 +59,38 @@ describe("Lighthouse's catalogue", () => {
       expect(code).toBe(`LH_${entry.audit.toUpperCase().replace(/-/g, '_')}`);
   });
 
-  it('gives each code the severity its highest weight earns', () => {
+  it('gives each code the severity its audit earns', () => {
     for (const [code, entry] of ENTRIES)
       expect({ code, severity: entry.severity }).toEqual({
         code,
-        severity: lighthouseSeverityOf(entry.audit, entry.weights),
+        severity: lighthouseSeverityOf(entry.audit),
       });
+  });
+
+  /** The accessibility audits are retired: Lighthouse's accessibility score stands for them. */
+  it('makes the audits Lighthouse weighs in SEO its active codes, and no other', () => {
+    expect(
+      ACTIVE_LIGHTHOUSE_CODES.map(
+        (code) => LIGHTHOUSE_CATALOGUE[code].audit,
+      ).sort(),
+    ).toEqual(
+      CONFIG.categories.seo
+        .filter((ref) => ref.weight > 0)
+        .map((ref) => ref.id)
+        .sort(),
+    );
   });
 });
 
 describe('lighthouseSeverityOf', () => {
-  it('makes a weight of 7 or more a warning', () => {
-    expect(lighthouseSeverityOf('color-contrast', { accessibility: 7 })).toBe(
-      'warning',
-    );
-  });
-
-  it('makes a lighter audit a notice', () => {
-    expect(lighthouseSeverityOf('heading-order', { accessibility: 3 })).toBe(
-      'notice',
-    );
-    expect(lighthouseSeverityOf('canonical', { seo: 1 })).toBe('notice');
-  });
-
-  it('reads the highest weight of an audit in both categories', () => {
-    expect(
-      lighthouseSeverityOf('image-alt', { seo: 1, accessibility: 10 }),
-    ).toBe('warning');
+  /** SEO weighs its audits alike; an accessibility weight no longer makes a warning. */
+  it('makes an SEO audit a notice', () => {
+    expect(lighthouseSeverityOf('canonical')).toBe('notice');
+    expect(lighthouseSeverityOf('image-alt')).toBe('notice');
   });
 
   /** A page Lighthouse finds blocked from indexing falls out of search: as NOINDEX is. */
-  it('makes is-crawlable an error whatever its weight', () => {
-    expect(lighthouseSeverityOf('is-crawlable', { seo: 4.043 })).toBe('error');
+  it('makes is-crawlable an error', () => {
+    expect(lighthouseSeverityOf('is-crawlable')).toBe('error');
   });
 });

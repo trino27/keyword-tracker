@@ -32,8 +32,8 @@ export interface IIssueOwnerDefinition {
  * - `crawl` judges the page's HTML;
  * - `pageSpeed` writes the Core Web Vitals bands from Google's measurement. They count among
  *   a page's issues and never in its score;
- * - `lighthouse` writes the SEO and accessibility audits Lighthouse scored in the same
- *   answer. They are checks and count in the score.
+ * - `lighthouse` writes the SEO audits Lighthouse scored in the same answer
+ *   (`ACTIVE_LIGHTHOUSE_CODES`). They are checks and count in the score.
  *
  * Everything about owners is derived from this object. A new owner is a folder and one line
  * here; a list of owners written anywhere else is a list that can go stale.
@@ -193,3 +193,28 @@ export const PAGE_ISSUE_CODES = CRAWL_ISSUE_CODES.filter(
 export const ACTIVE_ISSUE_CODES = CRAWL_ISSUE_CODES.filter(
   (code) => !('enabled' in CRAWL_CATALOGUE[code]),
 );
+
+/** The Lighthouse codes whose audit Lighthouse weighs in its SEO category. */
+export type TActiveLighthouseIssueCode = {
+  [
+    K in TLighthouseIssueCode
+  ]: (typeof LIGHTHOUSE_CATALOGUE)[K]['weights'] extends {
+    seo: number;
+  }
+    ? K
+    : never;
+}[TLighthouseIssueCode];
+
+/**
+ * The Lighthouse codes the worker extracts and a screen lists and scores: its SEO audits.
+ * The accessibility audits are retired — Lighthouse's accessibility score is shown as an
+ * overview instead — and, as `ACTIVE_ISSUE_CODES` does for the crawl, everything that
+ * judges, lists or counts iterates this, while lookups by code keep the whole catalogue.
+ *
+ * Unlike a crawl check's, a retired audit's stored verdict is not left to the next
+ * measurement: the score reads a page's Lighthouse verdicts through this list, so an
+ * accessibility verdict stored before stops counting the moment this ships.
+ */
+export const ACTIVE_LIGHTHOUSE_CODES = LIGHTHOUSE_ISSUE_CODES.filter(
+  (code) => 'seo' in LIGHTHOUSE_CATALOGUE[code].weights,
+) as TActiveLighthouseIssueCode[];
