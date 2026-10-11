@@ -176,6 +176,21 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     }
   });
 
+  /** D21: the detail carries both devices' summaries; the crawl queued both. */
+  it('the detail carries pageSpeedByStrategy', async () => {
+    const { body } = await list('?pageSize=1').expect(200);
+    const detail = await http()
+      .get(`/api/pages/${body.items[0].id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    expect(detail.body).not.toHaveProperty('pageSpeed');
+    expect(detail.body.pageSpeedByStrategy).toEqual({
+      mobile: { status: 'queued', measurement: null, lastError: null },
+      desktop: { status: 'queued', measurement: null, lastError: null },
+    });
+  });
+
   /**
    * The one assertion that covers the crawl, the upsert, the read and the serialization
    * together: a freshly crawled page must account for every catalogue code, and its

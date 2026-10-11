@@ -199,7 +199,10 @@ export class PageReadService {
           SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),
       ),
       lastCrawl: client.latestRun,
-      pageSpeed: pageSpeedSummaryOf(page.pageSpeed),
+      pageSpeedByStrategy: {
+        mobile: pageSpeedSummaryOf(page.pageSpeedByStrategy.mobile),
+        desktop: pageSpeedSummaryOf(page.pageSpeedByStrategy.desktop),
+      },
       pageSpeedAvailability: this.pageSpeed.current(),
     };
   }

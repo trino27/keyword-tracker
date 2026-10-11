@@ -30,6 +30,7 @@ import {
 	type TPageSpeedErrorCode,
 	type TMeasuredIssueCode,
 	type TPageSpeedSeoIssue as TContractPageSpeedSeoIssue,
+	type TPsiStrategy,
 	type TSeoIssue as TContractSeoIssue,
 } from "@app/contracts";
 import { crawlRunSummarySchema } from "../../ClientGateway/Validation/ClientSchemas";
@@ -127,6 +128,12 @@ export const pageSpeedSummarySchema = z.object({
 		.enum(PAGE_SPEED_ERROR_CODES as [TPageSpeedErrorCode, ...TPageSpeedErrorCode[]])
 		.nullable(),
 }) satisfies z.ZodType<IPageSpeedSummary>;
+
+/** Each device's summary; null for a device the page was never queued on. */
+export const pageSpeedByStrategySchema = z.object({
+	mobile: pageSpeedSummarySchema.nullable(),
+	desktop: pageSpeedSummarySchema.nullable(),
+}) satisfies z.ZodType<Record<TPsiStrategy, IPageSpeedSummary | null>>;
 
 export const pageSpeedAvailabilitySchema = z.object({
 	state: z.enum(PAGE_SPEED_AVAILABILITY_STATES),
@@ -290,7 +297,7 @@ export const pageDetailSchema = z.object({
 	checksByOwner: checksByOwnerSchema,
 	issues: z.array(detailIssueSchema),
 	lastCrawl: crawlRunSummarySchema.nullable(),
-	pageSpeed: pageSpeedSummarySchema.nullable(),
+	pageSpeedByStrategy: pageSpeedByStrategySchema,
 	pageSpeedAvailability: pageSpeedAvailabilitySchema,
 }) satisfies z.ZodType<IPageDetail>;
 

@@ -1,5 +1,5 @@
-import { screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { IPageSpeedSummary } from "@app/contracts";
 import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProviders";
 import { SpeedSection } from "./SpeedSection";
@@ -20,13 +20,38 @@ const MEASURED: IPageSpeedSummary = {
 	},
 };
 
+/** A desktop measurement: performance only, so no SEO or accessibility score. */
+const DESKTOP: IPageSpeedSummary = {
+	status: "done",
+	lastError: null,
+	measurement: {
+		measuredAt: "2026-10-10T12:00:00.000Z",
+		lcp: { value: 2900, band: "needsImprovement", source: "url", share: null },
+		inp: { value: 62, band: "good", source: "url", share: null },
+		cls: { value: 0.18, band: "needsImprovement", source: "url", share: null },
+		performanceScore: 69,
+		ttfb: { value: 384, band: "good", source: "url", share: null },
+		lcpBreakdown: null,
+		seoScore: null,
+		accessibilityScore: null,
+	},
+};
+
 const renderSection = (
 	pageSpeed: IPageSpeedSummary | null,
 	state: "active" | "notConfigured" | "keyRejected" = "active",
+	desktop: IPageSpeedSummary | null = null,
 ) =>
 	renderWithProviders(() => (
-		<SpeedSection pageSpeed={pageSpeed} availability={{ state }} timeZone="America/Toronto" />
+		<SpeedSection
+			pageSpeedByStrategy={{ mobile: pageSpeed, desktop }}
+			availability={{ state }}
+			timeZone="America/Toronto"
+		/>
 	));
+
+const showDesktop = async () =>
+	fireEvent.click(await screen.findByRole("radio", { name: "Desktop" }));
 
 describe("SpeedSection", () => {
 	it("shows each metric's value, band and source", async () => {
@@ -185,5 +210,90 @@ describe("SpeedSection", () => {
 		expect(
 			screen.getByLabelText("Lighthouse Accessibility score 78 of 100"),
 		).toBeInTheDocument();
+	});
+
+	describe("the device switch", () => {
+		it("opens on Mobile", async () => {
+			renderSection(MEASURED, "active", DESKTOP);
+
+			expect(await screen.findByRole("radio", { name: "Mobile" })).toBeChecked();
+			expect(screen.getByText("3.1 s")).toBeInTheDocument();
+			expect(screen.queryByText("2.9 s")).not.toBeInTheDocument();
+		});
+
+		it("Desktop shows the desktop cards and its TTFB line", async () => {
+			renderSection(MEASURED, "active", DESKTOP);
+
+			await showDesktop();
+
+			expect(await screen.findByText("2.9 s")).toBeInTheDocument();
+			expect(screen.getByText("0.18")).toBeInTheDocument();
+			expect(screen.getByText(/Time to first byte .*384 ms/)).toBeInTheDocument();
+			expect(screen.queryByText("3.1 s")).not.toBeInTheDocument();
+		});
+
+		it("Desktop shows no SEO or accessibility caption", async () => {
+			renderSection(
+				{ ...MEASURED, measurement: { ...MEASURED.measurement!, seoScore: 92 } },
+				"active",
+				DESKTOP,
+			);
+			expect(
+				await screen.findByLabelText("Lighthouse SEO score 92 of 100"),
+			).toBeInTheDocument();
+
+			await showDesktop();
+
+			expect(
+				await screen.findByLabelText("Lighthouse Performance score 69 of 100"),
+			).toBeInTheDocument();
+			expect(screen.queryByLabelText(/Lighthouse SEO score/)).not.toBeInTheDocument();
+			expect(
+				screen.queryByLabelText(/Lighthouse Accessibility score/),
+			).not.toBeInTheDocument();
+		});
+
+		it("Desktop reads 'Not measured on desktop yet' for a page never queued on desktop", async () => {
+			renderSection(MEASURED, "active", null);
+
+			await showDesktop();
+
+			expect(await screen.findByText(/^Not measured on desktop yet/)).toBeInTheDocument();
+		});
+
+		it("Mobile reads 'Measuring…' while Desktop reads 'In queue'", async () => {
+			renderSection({ status: "running", measurement: null, lastError: null }, "active", {
+				status: "queued",
+				measurement: null,
+				lastError: null,
+			});
+			expect(await screen.findByText(/^Measuring…/)).toBeInTheDocument();
+
+			await showDesktop();
+
+			expect(await screen.findByText(/^In queue for measurement/)).toBeInTheDocument();
+		});
+
+		it("the key-rejected notice stands above both", async () => {
+			renderSection(MEASURED, "keyRejected", DESKTOP);
+			expect(
+				await screen.findByText(/Google rejected the PageSpeed key/),
+			).toBeInTheDocument();
+
+			await showDesktop();
+
+			expect(screen.getByText(/Google rejected the PageSpeed key/)).toBeInTheDocument();
+		});
+
+		it("switching makes no request", async () => {
+			const fetch = vi.spyOn(globalThis, "fetch");
+			renderSection(MEASURED, "active", DESKTOP);
+
+			await showDesktop();
+			fireEvent.click(screen.getByRole("radio", { name: "Mobile" }));
+
+			expect(fetch).not.toHaveBeenCalled();
+			fetch.mockRestore();
+		});
 	});
 });

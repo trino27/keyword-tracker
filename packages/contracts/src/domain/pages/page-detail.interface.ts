@@ -6,6 +6,7 @@ import type { TChecksByOwner } from './page-check.interface.js';
 import type { IPageScore } from './page-score/page-score.util.js';
 import type { IPageSpeedAvailability } from '../page-speed/page-speed-availability.interface.js';
 import type { IPageSpeedSummary } from '../page-speed/page-speed-summary.interface.js';
+import type { TPsiStrategy } from '../page-speed/psi-strategy.enum.js';
 
 export interface IPageDetail {
   page: {
@@ -60,7 +61,11 @@ export interface IPageDetail {
   issues: (TSeoIssue & { pagesAffected: number })[];
   /** The client's latest run, whatever its status. */
   lastCrawl: ICrawlRunSummary | null;
-  /** Null: never queued for PageSpeed. Never part of `score`. */
-  pageSpeed: IPageSpeedSummary | null;
+  /**
+   * Each device's measurement; null for a device the page was never queued on (a page
+   * crawled before desktop existed reads desktop null until its next crawl). Never part
+   * of `score`, which reads Lighthouse from the mobile measurement alone.
+   */
+  pageSpeedByStrategy: Record<TPsiStrategy, IPageSpeedSummary | null>;
   pageSpeedAvailability: IPageSpeedAvailability;
 }

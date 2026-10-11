@@ -6,6 +6,7 @@ import {
 	Paper,
 	Progress,
 	RingProgress,
+	SegmentedControl,
 	SimpleGrid,
 	Stack,
 	Text,
@@ -13,6 +14,7 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import { IconAlertTriangle, IconInfoCircle } from "@tabler/icons-react";
+import { useState } from "react";
 import {
 	CWV_METRICS,
 	type IPageSpeedAvailability,
@@ -22,6 +24,7 @@ import {
 	type IVisitShare,
 	type TCwvMetric,
 	type TLcpPhase,
+	type TPsiStrategy,
 } from "@app/contracts";
 import { cwvBandColor, cwvBandLabel } from "@Core/Constants/cwvBandColor";
 import { pageSpeedAvailabilityCopy } from "@Core/Constants/pageSpeedAvailabilityCopy";
@@ -37,10 +40,16 @@ import { pageSpeedViewOf } from "@Core/Helpers/DescribePageSpeed/describePageSpe
 import { formatInZone } from "@Core/Helpers/FormatInZone/formatInZone";
 
 interface ISpeedSectionProps {
-	pageSpeed: IPageSpeedSummary | null;
+	/** Each device's measurement; null for a device the page was never queued on. */
+	pageSpeedByStrategy: Record<TPsiStrategy, IPageSpeedSummary | null>;
 	availability: IPageSpeedAvailability;
 	timeZone: string;
 }
+
+const DEVICES: { value: TPsiStrategy; label: string }[] = [
+	{ value: "mobile", label: "Mobile" },
+	{ value: "desktop", label: "Desktop" },
+];
 
 const FULL_NAME: Record<TCwvMetric, string> = {
 	lcp: "Largest Contentful Paint",
@@ -48,26 +57,43 @@ const FULL_NAME: Record<TCwvMetric, string> = {
 	cls: "Cumulative Layout Shift",
 };
 
+/** A device the page was never queued on: crawled before that device was measured. */
+const NOT_MEASURED: Record<TPsiStrategy, string> = {
+	mobile: "This page has not been measured yet: it was crawled before speed measurement existed. The next crawl or seed run queues it.",
+	desktop:
+		"Not measured on desktop yet: this page was crawled before desktop measurement existed. The next crawl or seed run queues it.",
+};
+
 const STATE_SENTENCE = {
-	notMeasured:
-		"This page has not been measured yet: it was crawled before speed measurement existed. The next crawl or seed run queues it.",
 	queued: "In queue for measurement. Clients take turns, and pages are measured about five a minute, so a long queue can take an hour or more.",
 	measuring: "Measuring… Google's PageSpeed test takes up to a minute per page.",
 	paused: "Not measured yet, and paused until the PageSpeed key is fixed.",
 } as const;
 
 /**
- * The page's Core Web Vitals, mobile, from Google PageSpeed Insights: one card per metric
- * with its value, band, source and date. Scored apart from the SEO score, and every
- * absence written as a sentence that says which absence it is.
+ * The page's Core Web Vitals from Google PageSpeed Insights, on the device the switch
+ * shows — mobile first: one card per metric with its value, band, source and date. Scored
+ * apart from the SEO score, and every absence written as a sentence that says which
+ * absence it is. The switch is local state: both measurements came with the page, so
+ * switching asks for nothing.
  */
-export function SpeedSection({ pageSpeed, availability, timeZone }: ISpeedSectionProps) {
-	const view = pageSpeedViewOf(pageSpeed, availability);
+export function SpeedSection({ pageSpeedByStrategy, availability, timeZone }: ISpeedSectionProps) {
+	const [strategy, setStrategy] = useState<TPsiStrategy>("mobile");
+	const view = pageSpeedViewOf(pageSpeedByStrategy[strategy], availability);
 	const notice = pageSpeedAvailabilityCopy[availability.state];
 
 	return (
 		<Stack gap="sm">
-			<Title order={4}>Speed (Core Web Vitals, mobile)</Title>
+			<Group justify="space-between" align="center" gap="sm">
+				<Title order={4}>Speed (Core Web Vitals)</Title>
+				<SegmentedControl
+					size="xs"
+					data={DEVICES}
+					value={strategy}
+					onChange={setStrategy}
+					aria-label="Device"
+				/>
+			</Group>
 			{notice && (
 				<Alert variant="light" color={notice.color} icon={<IconInfoCircle size={18} />}>
 					{notice.notice}
@@ -78,10 +104,12 @@ export function SpeedSection({ pageSpeed, availability, timeZone }: ISpeedSectio
 					Couldn't measure: {view.reason}
 				</Alert>
 			)}
-			{(view.kind === "notMeasured" ||
-				view.kind === "queued" ||
-				view.kind === "measuring" ||
-				view.kind === "paused") && (
+			{view.kind === "notMeasured" && (
+				<Text size="sm" c="dimmed">
+					{NOT_MEASURED[strategy]}
+				</Text>
+			)}
+			{(view.kind === "queued" || view.kind === "measuring" || view.kind === "paused") && (
 				<Text size="sm" c="dimmed">
 					{STATE_SENTENCE[view.kind]}
 				</Text>
@@ -150,7 +178,7 @@ export function SpeedSection({ pageSpeed, availability, timeZone }: ISpeedSectio
 					{view.measurement.lcpBreakdown && (
 						<LcpBreakdown breakdown={view.measurement.lcpBreakdown} />
 					)}
-					<LighthouseScores measurement={view.measurement} />
+					<LighthouseScores measurement={view.measurement} strategy={strategy} />
 				</>
 			)}
 		</Stack>
@@ -256,11 +284,18 @@ const lighthouseColor = (score: number) =>
 			: cwvBandColor.poor;
 
 /**
- * Lighthouse's three category scores as cards: the number in a ring, coloured by
- * Lighthouse's bands. Lab figures from one run on a phone — said once, under them — and
- * never part of our SEO score, which counts Lighthouse's audits rather than its averages.
+ * Lighthouse's category scores as cards: the number in a ring, coloured by Lighthouse's
+ * bands. Lab figures from one run on the device shown — said once, under them — and never
+ * part of our SEO score, which counts Lighthouse's audits rather than its averages. A
+ * desktop measurement asks for performance alone, so it has no SEO or accessibility card.
  */
-function LighthouseScores({ measurement }: { measurement: IPageSpeedMeasurement }) {
+function LighthouseScores({
+	measurement,
+	strategy,
+}: {
+	measurement: IPageSpeedMeasurement;
+	strategy: TPsiStrategy;
+}) {
 	const scores = [
 		{ name: "Performance", score: measurement.performanceScore },
 		{ name: "SEO", score: measurement.seoScore },
@@ -304,9 +339,9 @@ function LighthouseScores({ measurement }: { measurement: IPageSpeedMeasurement 
 				))}
 			</SimpleGrid>
 			<Text size="xs" c="dimmed">
-				From one Lighthouse run on a phone, as PageSpeed Insights tests the page — a lab
-				test that may vary between runs. Our SEO score counts Lighthouse&apos;s audits, not
-				these averages.
+				From one Lighthouse run on a {strategy === "mobile" ? "phone" : "computer"}, as
+				PageSpeed Insights tests the page — a lab test that may vary between runs. Our SEO
+				score counts Lighthouse&apos;s audits, not these averages.
 			</Text>
 		</Stack>
 	);

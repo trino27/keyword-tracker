@@ -273,7 +273,7 @@ switches in group 4.
 
 ## 4. The page shows both devices (4d) — PAGES-014, PAGEDETAIL-011
 
-- [ ] 4.1 Write first:
+- [x] 4.1 Write first:
   - `be/src/modules/pages/services/page-read/page-read.service.spec.ts` → "the detail carries a
     summary per strategy, null where never queued", "the score reads the mobile row whatever the
     desktop row holds";
@@ -290,7 +290,13 @@ switches in group 4.
   `PageSchemas.ts` (`pageSpeedByStrategy`, still `satisfies z.ZodType<IPageDetail>`). Verify:
   `pnpm --filter be test:ci -- src/modules/pages && pnpm --filter be test:db -- pages page-speed
   && pnpm --filter fe test:ci -- PageSchemas`.
-- [ ] 4.2 Write first `fe/src/Modules/PageDetail/SpeedSection/SpeedSection.test.tsx`:
+  Done. The detail cases failed on the missing field. "The score reads the mobile row whatever
+  the desktop row holds" passed from the start: since e576613 `scoreOf` reads Lighthouse from
+  the `lpts` lateral over the mobile join, not from the summary. It stays as a guard. The schema
+  test drives an exported `pageSpeedByStrategySchema`. `pageSpeedColumns(alias)` builds both
+  reads, and `pageSpeedRowOf(columns, alias)` reads the desktop columns back through the same
+  reader.
+- [x] 4.2 Write first `fe/src/Modules/PageDetail/SpeedSection/SpeedSection.test.tsx`:
   - "opens on Mobile";
   - "Desktop shows the desktop cards and its TTFB line";
   - "Desktop shows no SEO or accessibility caption";
@@ -304,12 +310,16 @@ switches in group 4.
   `PageDetailViewModel.ts`, and `PageDetailScreen.tsx` (`:80` passes the record; `:121` and
   `:130` read `.mobile`, plan D49). Verify: `pnpm --filter fe test:ci -- SpeedSection PageDetail
   ChecksSection explainScore CwvBadges`.
+  Done: the eleven existing cases kept their meaning, with the mobile summary passed under
+  `pageSpeedByStrategy`; the seven new ones failed with no switch. On desktop the Lighthouse
+  caption says "computer" instead of "phone".
 - [ ] 4.3 On the stack: `docker compose up -d --build`, sign in with `curl -c c.txt`, then
   `curl -s -b c.txt http://localhost:8080/api/pages/<id> | grep -o
   '"pageSpeedByStrategy":{"mobile"'` prints the match. In a browser, open a page detail and switch
   devices; no console error. Verify: the walk is done and the result written here.
-- [ ] 4.4 Commit: `feat(fe): the Speed block switches between mobile and desktop`. Verify:
+- [x] 4.4 Commit: `feat(fe): the Speed block switches between mobile and desktop`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+  Done: lint and typecheck clean; contracts 789, be 1329, fe 444, db/e2e 225 tests green.
 
 ## 5. Live: both devices drain and agree with Google (4e)
 

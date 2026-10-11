@@ -212,7 +212,7 @@ const detailSetup = (
       possible: number;
       lost: number;
     } | null;
-    pageSpeed: unknown;
+    pageSpeedByStrategy: { mobile: unknown; desktop: unknown };
   }> = {},
 ) => {
   const issueCodes = overrides.issueCodes ?? ['LANG_MISSING', 'TITLE_MISSING'];
@@ -247,7 +247,10 @@ const detailSetup = (
     lighthouseJudged: overrides.lighthouseJudged ?? null,
     lighthousePoints: overrides.lighthousePoints ?? null,
     lighthouseNotApplicable: overrides.lighthouseNotApplicable ?? null,
-    pageSpeed: overrides.pageSpeed ?? null,
+    pageSpeedByStrategy: overrides.pageSpeedByStrategy ?? {
+      mobile: null,
+      desktop: null,
+    },
   };
   const detail = {
     findCurrentPage: () =>
@@ -297,7 +300,46 @@ describe('PageReadService.getPage', () => {
   it('a page never queued for PageSpeed has no summary', async () => {
     const { service } = detailSetup();
 
-    expect((await service.getPage(scope, 1)).pageSpeed).toBeNull();
+    expect((await service.getPage(scope, 1)).pageSpeedByStrategy).toEqual({
+      mobile: null,
+      desktop: null,
+    });
+  });
+
+  it('the detail carries a summary per strategy, null where never queued', async () => {
+    const { service } = detailSetup({
+      pageSpeedByStrategy: {
+        mobile: { ...NO_SPEED_FIGURES, status: 'queued' },
+        desktop: null,
+      },
+    });
+
+    expect((await service.getPage(scope, 1)).pageSpeedByStrategy).toEqual({
+      mobile: { status: 'queued', measurement: null, lastError: null },
+      desktop: null,
+    });
+  });
+
+  /** D49: the score and Lighthouse's share come from the mobile row alone. */
+  it('the score reads the mobile row whatever the desktop row holds', async () => {
+    const { service } = detailSetup({
+      checksApplicable: 16,
+      checksFailed: 2,
+      pageSpeedByStrategy: {
+        mobile: null,
+        desktop: {
+          ...NO_SPEED_FIGURES,
+          status: 'done',
+          lighthouseApplicable: 9,
+          lighthouseFailed: 9,
+        },
+      },
+    });
+
+    const { score } = await service.getPage(scope, 1);
+
+    expect(score.byOwner.lighthouse).toBeNull();
+    expect(score.applicable).toBe(16);
   });
 
   it('refuses a page the scope cannot reach, exactly like a missing one', async () => {
@@ -365,7 +407,10 @@ describe('PageReadService.getPage', () => {
       lighthouseNotApplicable: ACTIVE_LIGHTHOUSE_CODES.slice(7, 9),
       // The lateral counts the active codes only; the seven judged weigh 10 + 6 × 1.
       lighthousePoints: { applicable: 7, failed: 1, possible: 16, lost: 1 },
-      pageSpeed: { ...NO_SPEED_FIGURES, status: 'done' },
+      pageSpeedByStrategy: {
+        mobile: { ...NO_SPEED_FIGURES, status: 'done' },
+        desktop: null,
+      },
     });
 
     const { checksByOwner, score } = await service.getPage(scope, 1);

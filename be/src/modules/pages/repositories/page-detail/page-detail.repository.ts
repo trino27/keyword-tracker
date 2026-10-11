@@ -4,6 +4,7 @@ import {
   type TSeoIssue,
   type TSeoIssueCode,
   type TSeoIssueSeverity,
+  type TPsiStrategy,
 } from '@app/contracts';
 import { CURRENT_RUN_STATUSES_SQL } from '@persistence/sql/current-run-statuses';
 import {
@@ -13,7 +14,9 @@ import {
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import {
   PAGE_SPEED_COLUMNS,
+  pageSpeedColumns,
   pageSpeedRowOf,
+  type IDesktopPageSpeedColumns,
   type IPageSpeedColumns,
   type IPageSpeedRow,
 } from '../page-speed/page-speed-read';
@@ -59,7 +62,8 @@ export interface ICurrentPageRecord {
   clientWebsiteUrl: string;
   /** Pages on the client's current run — the denominator of "on 5 of 15 pages". */
   clientCurrentPages: number;
-  pageSpeed: IPageSpeedRow | null;
+  /** Each device's row; the score and Lighthouse's lists read the mobile one. */
+  pageSpeedByStrategy: Record<TPsiStrategy, IPageSpeedRow | null>;
 }
 
 /**
@@ -78,7 +82,11 @@ export interface IHistoryRow {
 }
 
 interface IPageRow
-  extends Record<string, unknown>, IPageSpeedColumns, ILighthousePointsColumns {
+  extends
+    Record<string, unknown>,
+    IPageSpeedColumns,
+    IDesktopPageSpeedColumns,
+    ILighthousePointsColumns {
   id: string;
   url: string;
   final_url: string;
@@ -136,12 +144,14 @@ export class PageDetailRepository {
              (select count(*) from pages sib
                where sib.client_id = p.client_id
                  and sib.last_seen_run_id = p.last_seen_run_id) as client_current_pages,
-             ${PAGE_SPEED_COLUMNS}
+             ${PAGE_SPEED_COLUMNS}, ${pageSpeedColumns('psd')}
       from pages p
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
       cross join lateral (${SCORE_POINTS_LATERAL}) pts
       -- The mobile row: the summary, Lighthouse's checks and the score read it.
       left join page_speed ps on ps.page_id = p.id and ps.strategy = 'mobile'
+      -- The desktop row, for the Speed block's other tab alone.
+      left join page_speed psd on psd.page_id = p.id and psd.strategy = 'desktop'
       left join lateral (${LIGHTHOUSE_SCORE_POINTS_LATERAL}) lpts on true
       where p.id = ${pageId}
         and p.last_seen_run_id = (
@@ -183,7 +193,10 @@ export class PageDetailRepository {
       clientName: row.client_name,
       clientWebsiteUrl: row.client_website_url,
       clientCurrentPages: Number(row.client_current_pages),
-      pageSpeed: pageSpeedRowOf(row),
+      pageSpeedByStrategy: {
+        mobile: pageSpeedRowOf(row),
+        desktop: pageSpeedRowOf(row, 'psd'),
+      },
     };
   }
 

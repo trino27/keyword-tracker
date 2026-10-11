@@ -396,6 +396,47 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       }
     });
 
+    /** Plan I16, per device: a desktop card and its desktop finding never disagree. */
+    it('every non-good desktop card has its desktop finding', async () => {
+      await crawlYoast(s);
+      await answerEveryPage(s.transport, 200, 'url-field.json');
+      await drain(s.app);
+
+      for (const item of await listOf(s)) {
+        const detail = (
+          await request(s.app.getHttpServer())
+            .get(`/api/pages/${item.id}`)
+            .set('Cookie', s.cookie)
+            .expect(200)
+        ).body as {
+          issues: { code: string }[];
+          pageSpeedByStrategy: {
+            desktop: {
+              measurement: Record<
+                'lcp' | 'inp' | 'cls',
+                { band: string } | null
+              > | null;
+            } | null;
+          };
+        };
+        const desktopCodes = detail.issues
+          .map(({ code }) => code)
+          .filter((code) => code.endsWith('_DESKTOP'))
+          .sort();
+        const measurement = detail.pageSpeedByStrategy.desktop?.measurement;
+        const expected = (['lcp', 'inp', 'cls'] as const)
+          .flatMap((metric) => {
+            const reading = measurement?.[metric];
+            return reading && reading.band !== 'good'
+              ? [`${CODE_OF[metric][reading.band]}_DESKTOP`]
+              : [];
+          })
+          .sort();
+        expect(measurement).not.toBeNull();
+        expect(desktopCodes).toEqual(expected);
+      }
+    });
+
     it('the list and the detail carry the PageSpeed state', async () => {
       const [pageId] = await crawlYoast(s);
 
@@ -414,7 +455,10 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         lastError: null,
       });
       expect(detail.pageSpeedAvailability).toEqual({ state: 'active' });
-      expect(detail.pageSpeed).toMatchObject({ status: 'queued' });
+      expect(detail.pageSpeedByStrategy).toMatchObject({
+        mobile: { status: 'queued' },
+        desktop: { status: 'queued' },
+      });
     });
 
     it('opening the list, the detail and the report requests nothing from PageSpeed and writes nothing', async () => {

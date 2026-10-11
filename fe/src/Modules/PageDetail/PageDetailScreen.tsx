@@ -77,7 +77,7 @@ export function PageDetailScreen() {
 				<KpiCards detail={vm.detail} />
 			</Stack>
 			<SpeedSection
-				pageSpeed={vm.detail.pageSpeed}
+				pageSpeedByStrategy={vm.detail.pageSpeedByStrategy}
 				availability={vm.detail.pageSpeedAvailability}
 				timeZone={timeZone}
 			/>
@@ -118,7 +118,10 @@ export function PageDetailScreen() {
 				checksByOwner={vm.detail.checksByOwner}
 				context={{
 					crawledAt: vm.detail.page.crawledAt,
-					lighthouseMeasuredAt: vm.detail.pageSpeed?.measurement?.measuredAt ?? null,
+					// Lighthouse's verdicts come from the mobile answer, whichever device the
+					// Speed block shows.
+					lighthouseMeasuredAt:
+						vm.detail.pageSpeedByStrategy.mobile?.measurement?.measuredAt ?? null,
 					pageSpeedState: vm.detail.pageSpeedAvailability.state,
 				}}
 				timeZone={timeZone}
@@ -127,7 +130,8 @@ export function PageDetailScreen() {
 				score={vm.detail.score}
 				lighthouse={{
 					state: vm.detail.pageSpeedAvailability.state,
-					measuredAt: vm.detail.pageSpeed?.measurement?.measuredAt ?? null,
+					measuredAt:
+						vm.detail.pageSpeedByStrategy.mobile?.measurement?.measuredAt ?? null,
 					timeZone,
 				}}
 			/>

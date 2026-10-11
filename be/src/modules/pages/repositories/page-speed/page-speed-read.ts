@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import {
   LCP_PHASES,
@@ -42,7 +42,7 @@ export interface IPageSpeedRow {
   lighthouseFailed: number | null;
 }
 
-/** The raw columns a read selects through `PAGE_SPEED_COLUMNS`. */
+/** The raw columns a read selects through `PAGE_SPEED_COLUMNS` (the `ps` alias). */
 export interface IPageSpeedColumns {
   ps_status: TPageSpeedStatus | null;
   ps_last_error: string | null;
@@ -71,25 +71,65 @@ export interface IPageSpeedColumns {
   ps_lighthouse_failed: number | null;
 }
 
+/** The alias a read joins `page_speed` under: `ps` the mobile row, `psd` the desktop one. */
+export type TPageSpeedAlias = 'ps' | 'psd';
+
+/** The same columns under the desktop alias, for the detail's second join. */
+export type IDesktopPageSpeedColumns = {
+  [
+    K in keyof IPageSpeedColumns as K extends `ps_${infer R}`
+      ? `psd_${R}`
+      : never
+  ]: IPageSpeedColumns[K];
+};
+
+/** Each column's expression over the alias, and the name it is read back by. */
+const COLUMNS: readonly [expression: string, name: string][] = [
+  ['status', 'status'],
+  ['last_error', 'last_error'],
+  ['lcp_ms', 'lcp_ms'],
+  ['lcp_source', 'lcp_source'],
+  ['inp_ms', 'inp_ms'],
+  ['inp_source', 'inp_source'],
+  ['cls', 'cls'],
+  ['cls_source', 'cls_source'],
+  ['performance_score', 'performance_score'],
+  ['measured_at', 'measured_at'],
+  ['ttfb_ms', 'ttfb_ms'],
+  ['ttfb_source', 'ttfb_source'],
+  ['lcp_good_share', 'lcp_good_share'],
+  ['lcp_poor_share', 'lcp_poor_share'],
+  ['inp_good_share', 'inp_good_share'],
+  ['inp_poor_share', 'inp_poor_share'],
+  ['cls_good_share', 'cls_good_share'],
+  ['cls_poor_share', 'cls_poor_share'],
+  ['ttfb_good_share', 'ttfb_good_share'],
+  ['ttfb_poor_share', 'ttfb_poor_share'],
+  ['lcp_breakdown_json', 'lcp_breakdown_json'],
+  ['seo_score', 'seo_score'],
+  ['accessibility_score', 'accessibility_score'],
+  ['cardinality(%.lighthouse_judged)', 'lighthouse_applicable'],
+  ['lighthouse_failed', 'lighthouse_failed'],
+];
+
 /**
- * The columns of `page_speed ps`, prefixed — for a read that LEFT JOINs it by page id,
- * one primary-key probe per page, in the statement it already runs.
+ * The columns of `page_speed <alias>`, prefixed with the alias — for a read that LEFT
+ * JOINs it by its whole key, one primary-key probe per page, in the statement it already
+ * runs. The alias is a literal union, so the raw SQL built from it cannot carry input.
  */
-export const PAGE_SPEED_COLUMNS = sql`
-  ps.status as ps_status, ps.last_error as ps_last_error,
-  ps.lcp_ms as ps_lcp_ms, ps.lcp_source as ps_lcp_source,
-  ps.inp_ms as ps_inp_ms, ps.inp_source as ps_inp_source,
-  ps.cls as ps_cls, ps.cls_source as ps_cls_source,
-  ps.performance_score as ps_performance_score, ps.measured_at as ps_measured_at,
-  ps.ttfb_ms as ps_ttfb_ms, ps.ttfb_source as ps_ttfb_source,
-  ps.lcp_good_share as ps_lcp_good_share, ps.lcp_poor_share as ps_lcp_poor_share,
-  ps.inp_good_share as ps_inp_good_share, ps.inp_poor_share as ps_inp_poor_share,
-  ps.cls_good_share as ps_cls_good_share, ps.cls_poor_share as ps_cls_poor_share,
-  ps.ttfb_good_share as ps_ttfb_good_share, ps.ttfb_poor_share as ps_ttfb_poor_share,
-  ps.lcp_breakdown_json as ps_lcp_breakdown_json,
-  ps.seo_score as ps_seo_score, ps.accessibility_score as ps_accessibility_score,
-  cardinality(ps.lighthouse_judged) as ps_lighthouse_applicable,
-  ps.lighthouse_failed as ps_lighthouse_failed`;
+export function pageSpeedColumns(alias: TPageSpeedAlias): SQL {
+  return sql.raw(
+    COLUMNS.map(([expression, name]) => {
+      const column = expression.includes('%')
+        ? expression.replace('%', alias)
+        : `${alias}.${expression}`;
+      return `${column} as ${alias}_${name}`;
+    }).join(', '),
+  );
+}
+
+/** The mobile row's columns, as the list and the score read them. */
+export const PAGE_SPEED_COLUMNS = pageSpeedColumns('ps');
 
 /**
  * The stored breakdown, read through a schema rather than trusted: a shape the worker
@@ -103,8 +143,26 @@ const lcpBreakdownSchema = z.object({
 const numberOrNull = (value: number | string | null): number | null =>
   value === null ? null : Number(value);
 
-export function pageSpeedRowOf(row: IPageSpeedColumns): IPageSpeedRow | null {
-  if (row.ps_status === null) return null;
+/**
+ * A row read back from the columns of one alias; null when the join found no row. The
+ * desktop row comes back through the same reader as the mobile one, renamed, so the two
+ * cannot be read differently.
+ */
+export function pageSpeedRowOf(
+  columns: IPageSpeedColumns | IDesktopPageSpeedColumns,
+  alias: TPageSpeedAlias = 'ps',
+): IPageSpeedRow | null {
+  const row = (
+    alias === 'ps'
+      ? columns
+      : Object.fromEntries(
+          Object.entries(columns).map(([key, value]) => [
+            key.replace(/^psd_/, 'ps_'),
+            value,
+          ]),
+        )
+  ) as IPageSpeedColumns;
+  if (row.ps_status === null || row.ps_status === undefined) return null;
   return {
     status: row.ps_status,
     // A catalogue code by construction: only the worker writes it, from the catalogue.

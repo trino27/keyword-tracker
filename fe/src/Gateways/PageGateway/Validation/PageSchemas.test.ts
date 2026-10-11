@@ -4,6 +4,7 @@ import {
 	checksByOwnerSchema,
 	pageCheckSchema,
 	pageSpeedAvailabilitySchema,
+	pageSpeedByStrategySchema,
 	pageSpeedSummarySchema,
 	seoIssueSchema,
 } from "./PageSchemas";
@@ -107,6 +108,14 @@ describe("the PageSpeed summary", () => {
 
 	it("parses a measured summary", () => {
 		expect(pageSpeedSummarySchema.parse(SUMMARY)).toEqual(SUMMARY);
+	});
+
+	/** D21: the detail names both devices; one never queued is null, not absent. */
+	it("parses a detail with a desktop summary and a null one", () => {
+		const both = { mobile: SUMMARY, desktop: null };
+
+		expect(pageSpeedByStrategySchema.parse(both)).toEqual(both);
+		expect(pageSpeedByStrategySchema.safeParse({ mobile: SUMMARY }).success).toBe(false);
 	});
 
 	/** A band the screen has no colour for is contract drift, not a grey badge. */
