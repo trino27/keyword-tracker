@@ -207,6 +207,27 @@ describe('OutboundChecksService', () => {
     expect(transport.requests).not.toContain('https://a.example/target/');
   });
 
+  it("keeps a run page's redirect when the link names the address before its slash", async () => {
+    const transport = new FakeTransport(withRobots(() => ok()));
+    const target: ICrawledPage = {
+      ...post('target', 1),
+      url: 'https://a.example/target',
+      redirects: [{ url: 'https://a.example/target', status: 301 }],
+    };
+
+    const facts = await check(transport, [
+      post('p', 0, links('https://a.example/target')),
+      target,
+    ]);
+
+    expect(facts.links.get('https://a.example/target')).toEqual({
+      kind: 'answered',
+      status: 200,
+      redirects: [{ url: 'https://a.example/target', status: 301 }],
+      finalUrl: 'https://a.example/target/',
+    });
+  });
+
   it('reads at most 30 documents, canonical targets first', async () => {
     const transport = new FakeTransport(
       withRobots(() =>

@@ -64,12 +64,16 @@ function ownPagesOf(pages: readonly ICrawledPage[]): Map<string, ICrawledPage> {
   return own;
 }
 
-/** What a run's own post answered, read from its fetch instead of a second request. */
+/**
+ * What a run's own post answered, read from its fetch instead of a second request. Only
+ * the exact address it settled at answered without a redirect: `/post` that 301s to
+ * `/post/` is a redirect, though the two name one document.
+ */
 function fromOwnFetch(page: ICrawledPage, url: string): TOutboundOutcome {
   return {
     kind: 'answered',
     status: page.httpStatus,
-    redirects: sameDocument(url, page.finalUrl) ? [] : page.redirects,
+    redirects: url === withoutFragment(page.finalUrl) ? [] : page.redirects,
     finalUrl: page.finalUrl,
   };
 }
