@@ -8,7 +8,7 @@ stated reason, then lands in the same commit as the code that turns it green. Br
 
 ## 1. A live answer to build from
 
-- [ ] 1.1 Extend `be/test/fixtures/record-pagespeed-fixtures.ts`:
+- [x] 1.1 Extend `be/test/fixtures/record-pagespeed-fixtures.ts`:
   - request `category=performance&category=seo&category=accessibility`;
   - keep, in `trim()`:
     - `categories.{seo,accessibility}` with `auditRefs` (`id`, `weight`);
@@ -23,7 +23,21 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   Verify: re-record `url-field.json`, `origin-only.json` and `lab-only.json`, plus one new
   `lighthouse-mixed.json` from a page with at least one failing SEO audit and one failing
   accessibility audit. `git grep -n "$PAGESPEED_API_KEY" be/test` finds nothing.
-- [ ] 1.2 From the recorded answers, write down in this file under 1.2:
+
+  AMENDED during implementation: this task said to re-record the three existing success answers.
+  A re-recording moves every number pinned by `extract-measurement.spec`,
+  `page-speed-executor.service.spec` and two e2e specs, and the old answers are exactly what
+  an answer WITHOUT the categories looks like (D20). What was built instead:
+  - two new targets, `lighthouse-url-field.json` (yoast.com: own field data, fails
+    `robots-txt`, `color-contrast` and `link-name`, an image LCP in four phases) and
+    `lighthouse-lab-only.json` (octocat Spoon-Knife: no field data, fails seven audits, a text
+    LCP in two phases);
+  - a `verdicts` flag per target;
+  - a file-name prefix argument (`node record-pagespeed-fixtures.ts lighthouse-`), so nothing
+    is re-recorded by accident.
+
+  `page-speed-fixtures.spec.ts` pins the roles of both new answers. No answer holds the key.
+- [x] 1.2 From the recorded answers, write down in this file under 1.2:
   - the SEO and accessibility audit ids, each with its `scoreDisplayMode` and weight;
   - the id and shape of the LCP breakdown and LCP element audits (`-insight` or legacy);
   - the answer size in bytes.
@@ -31,7 +45,53 @@ stated reason, then lands in the same commit as the code that turns it green. Br
   If the size exceeds 4 MB, add `AMENDED during implementation:` and revisit
   `PAGE_SPEED_MAX_BYTES` (design, Risks). Verify: the list is in this file, and every id in it
   appears in a fixture.
-- [ ] 1.3 Commit: `test(page-speed): record answers with Lighthouse SEO, accessibility and the
+
+  **Found (Lighthouse 13.5.0, the version PageSpeed ran on 2026-10-11):**
+  - **Answer size.** An untrimmed mobile answer with all three categories for yoast.com is
+    861,607 bytes, well under `PAGE_SPEED_MAX_BYTES`, so the limit stands.
+  - **SEO.** 11 audits:
+    - `is-crawlable` w 93/23;
+    - weight 1: `document-title`, `meta-description`, `http-status-code`, `link-text`,
+      `crawlable-anchors`, `robots-txt`, `image-alt`, `hreflang`, `canonical`;
+    - `structured-data` is `manual`, w 0.
+  - **Accessibility.** 76 audits:
+    - 58 have a weight above 0 (10, 7, 3 or 1);
+    - 10 are `manual`;
+    - 1 is `informative` (`identical-links-same-purpose`);
+    - 3 are in the `hidden` group with weight 0 (`label-content-name-mismatch`,
+      `table-fake-caption`, `td-has-header`);
+    - 4 are binary with weight 0 (`table-duplicate-name`, `empty-heading`,
+      `aria-allowed-role`, `image-redundant-alt`).
+  - **Shared audits.** `document-title` (SEO w1, a11y w7) and `image-alt` (SEO w1, a11y w10)
+    are ONE audit referenced by both categories.
+  - **Weights.** An answer reports weight 0 for every audit that is `notApplicable` on that
+    page, so weights are read from Lighthouse's `core/config/default-config.js`, not from an
+    answer. They are snapshotted in
+    `packages/contracts/src/domain/seo/catalogue/lighthouse/lighthouse-audits.fixture.json`
+    with their source.
+  - **LCP breakdown.** It is `lcp-breakdown-insight` (`informative`). In it:
+    - `details.items[0].items[]` holds `{ subpart, label, duration }`, with subparts
+      `timeToFirstByte`, `resourceLoadDelay`, `resourceLoadDuration` and
+      `elementRenderDelay`; a text LCP has only the first and the last;
+    - `details.items[1]` is the element node (`selector`, `nodeLabel`, `snippet`).
+
+    No `largest-contentful-paint-element` audit exists in 13.5.0.
+  - **TTFB.** `EXPERIMENTAL_TIME_TO_FIRST_BYTE` has the same shape as LCP: `percentile` plus
+    three `distributions`, with bounds 800 and 1800.
+
+  AMENDED during implementation: three decisions are corrected by these findings.
+  - **D4/D13.** "Every audit with a verdict" becomes "every audit Lighthouse SCORES" (weight
+    above 0 in at least one category): 66 codes. The 3 hidden and 4 weight-0 binary audits
+    return verdicts, but Lighthouse itself never counts them. Counting them in our score (D9)
+    would weigh what Lighthouse chose not to.
+  - **D14/D23.** An entry declares `weights: { seo?, accessibility? }`, not one `category` and
+    one `weight`, and its severity follows its highest weight. `LH_IMAGE_ALT` (w10) and
+    `LH_DOCUMENT_TITLE` (w7) are warnings.
+  - **D7/PAGEDETAIL-013.** The breakdown's phases come from the trace Lighthouse observed
+    WITHOUT throttling. On yoast.com they sum to 2.3 s, against a simulated lab LCP of 8.9 s.
+    They do not add up to any LCP shown, so the screen presents them as the SHARE of the time
+    spent in each phase, labelled as such.
+- [x] 1.3 Commit: `test(page-speed): record answers with Lighthouse SEO, accessibility and the
   LCP breakdown`. Verify: `pnpm --filter be test:ci -- src/modules/page-speed` is still green on
   the re-recorded fixtures.
 

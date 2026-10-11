@@ -24,6 +24,8 @@ const ANSWERS: Record<
   'url-field.json': { status: 200, outcome: { kind: 'measured' } },
   'origin-only.json': { status: 200, outcome: { kind: 'measured' } },
   'lab-only.json': { status: 200, outcome: { kind: 'measured' } },
+  'lighthouse-url-field.json': { status: 200, outcome: { kind: 'measured' } },
+  'lighthouse-lab-only.json': { status: 200, outcome: { kind: 'measured' } },
   'failed-document.json': {
     status: 400,
     outcome: { kind: 'permanent', error: 'PAGE_LOAD_FAILED' },
@@ -99,6 +101,54 @@ describe('the recorded PageSpeed answers', () => {
     );
     expect(lab.loadingExperience?.metrics).toBeUndefined();
     expect(lab.originLoadingExperience?.metrics).toBeUndefined();
+  });
+
+  /**
+   * The roles the `lighthouse-*` answers were recorded for. Their verdicts are what the
+   * Lighthouse extraction is pinned against, so a re-recording that lost a failing audit or
+   * the breakdown's shape fails here rather than as a missing finding three files away.
+   */
+  it('lighthouse-url-field fails SEO and accessibility audits and breaks an image LCP into four phases; lighthouse-lab-only has no field data and a two-phase text LCP', () => {
+    type TLighthouse = TSuccess & {
+      lighthouseResult: {
+        categories: Record<string, unknown>;
+        audits: Record<
+          string,
+          {
+            score: number | null;
+            scoreDisplayMode: string;
+            details?: { items: { items?: unknown[] }[] };
+          }
+        >;
+      };
+    };
+    const own = readPageSpeedFixture(
+      'lighthouse-url-field.json',
+    ) as TLighthouse;
+    const lab = readPageSpeedFixture('lighthouse-lab-only.json') as TLighthouse;
+    const failing = (answer: TLighthouse) =>
+      Object.entries(answer.lighthouseResult.audits)
+        .filter(([, a]) => a.scoreDisplayMode === 'binary' && a.score === 0)
+        .map(([id]) => id);
+    const phases = (answer: TLighthouse) =>
+      answer.lighthouseResult.audits['lcp-breakdown-insight']?.details?.items[0]
+        ?.items?.length;
+
+    for (const answer of [own, lab])
+      expect(Object.keys(answer.lighthouseResult.categories).sort()).toEqual([
+        'accessibility',
+        'performance',
+        'seo',
+      ]);
+    expect(failing(own)).toEqual(
+      expect.arrayContaining(['robots-txt', 'color-contrast']),
+    );
+    expect(Object.keys(own.loadingExperience?.metrics ?? {})).toContain(
+      'EXPERIMENTAL_TIME_TO_FIRST_BYTE',
+    );
+    expect(phases(own)).toBe(4);
+    expect(lab.loadingExperience?.metrics).toBeUndefined();
+    expect(phases(lab)).toBe(2);
   });
 
   it('no answer carries an API key or a project number', () => {

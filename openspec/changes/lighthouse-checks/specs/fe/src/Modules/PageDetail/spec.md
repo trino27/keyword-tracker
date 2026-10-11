@@ -8,12 +8,19 @@ The Speed block MUST show:
   with a reason when Google has no field data;
 - under each metric that comes from real visitors, a bar of the share of visits in the good,
   needs-improvement and poor bands, with each share in words in its tooltip;
-- the LCP breakdown: the element named as Lighthouse names it, and one segment per phase with
-  its time. It MUST be labelled a lab figure that may disagree with a field LCP above it;
+- the LCP breakdown: the element named as Lighthouse names it, and one segment per phase sized
+  by its share of the phases' total, each share in words in its tooltip. It MUST be labelled a
+  lab figure from an unthrottled trace that does not add up to any LCP shown above it, and MUST
+  NOT present the phases' milliseconds as the page's LCP;
 - Lighthouse's SEO and accessibility scores as lab captions beside the performance score, never
   as badges or findings.
 
 Any of these absent from the measurement MUST be omitted without an empty frame.
+
+AMENDED during implementation (task 1.2): this requirement showed each phase "with its time". The
+live answer's phases come from Lighthouse's unthrottled trace. On yoast.com they sum to 2.3 s,
+next to a simulated lab LCP of 8.9 s, so milliseconds beside the card would contradict it. The
+phases' shares are what is true of both.
 
 #### Scenario: field data for the page
 - **WHEN** the measurement holds TTFB 620 ms from `url` and LCP shares 0.68 good and 0.11 poor
@@ -25,6 +32,12 @@ Any of these absent from the measurement MUST be omitted without an empty frame.
 - **WHEN** LCP and CLS come from `lab` and Google has no field TTFB
 - **THEN** no share bar is shown, the TTFB line says Google has no real-visitor data for this
   page or site, and the LCP breakdown is shown with its lab label
+
+#### Scenario: an image LCP
+- **WHEN** the breakdown holds time to first byte 6 ms, resource load delay 736 ms, load duration
+  43 ms and render delay 1529 ms
+- **THEN** the bar's segments are 0%, 32%, 2% and 66%, and no phase's milliseconds are shown as
+  the LCP
 
 #### Scenario: the category scores
 - **WHEN** the measurement holds an SEO score of 92 and an accessibility score of 78
