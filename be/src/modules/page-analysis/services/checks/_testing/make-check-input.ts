@@ -74,6 +74,7 @@ export function makeCheckInput(
         ],
       },
       microdata: { types: [], articleFields: [] },
+      scriptedSchemaTypes: [],
       articleMarkup: {
         source: 'json-ld',
         type: 'Article',

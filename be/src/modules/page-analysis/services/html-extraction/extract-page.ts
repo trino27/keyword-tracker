@@ -320,6 +320,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
 
   const canonicals = canonicalsOf($, 'head', baseUrl);
   const structured = structuredDataOf($, baseUrl);
+  const scriptedSchemaTypes = scriptedSchemaTypesOf($);
   const { jsonLd, jsonLdErrors, authors, dates } = structured;
   const microdata = readMicrodata($, baseUrl);
   const wordCount = countWords(mainText);
@@ -345,6 +346,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .filter(Boolean),
     jsonLd,
     jsonLdErrors,
+    scriptedSchemaTypes,
     microdata: {
       types: microdata.types,
       articleFields: microdata.articleFields,
@@ -831,8 +833,17 @@ function relTokens(rel: string | undefined): string[] {
 }
 
 /**
- * An empty framework mount point, or a `<noscript>` asking for JavaScript. Read on the
- * whole document before anything is removed, because the `<noscript>` is the evidence.
+ * How many words a shell may hold outside its `<noscript>`: a loading line, a cookie
+ * notice. Substack's paid posts hold a hundred and more beside their banner (field
+ * audit, 2026-10-11), and a real shell holds none.
+ */
+const SHELL_MAX_WORDS = 20;
+
+/**
+ * An empty framework mount point, or a `<noscript>` asking for JavaScript in a body that
+ * holds next to nothing else. The banner alone is no evidence: Substack prints "This site
+ * requires JavaScript" on every page, server-rendered ones included. Read on the whole
+ * document before anything is removed, because the `<noscript>` is the evidence.
  */
 function looksClientRendered($: CheerioAPI): boolean {
   const emptyMount = $(APP_MOUNT_POINTS)
@@ -843,9 +854,15 @@ function looksClientRendered($: CheerioAPI): boolean {
       return collapse(node.text()) === '';
     });
   if (emptyMount) return true;
-  return $('body noscript')
+  const asksForJavascript = $('body noscript')
     .toArray()
     .some((element) => /javascript/i.test($(element).text()));
+  if (!asksForJavascript) return false;
+  const body = $('body').clone();
+  body.find(NEVER_CONTENT).remove();
+  return (
+    collapse(body.text()).split(' ').filter(Boolean).length <= SHELL_MAX_WORDS
+  );
 }
 
 /** `http-equiv` is matched case-insensitively: `HTTP-EQUIV="Refresh"` is the same tag. */
@@ -921,6 +938,21 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
  * `"image": []` for fields nobody filled in, and treating a present-but-empty key as the
  * field being there would pass every page a CMS half-populated.
  */
+/** `"@type":"X"`, as written or escaped inside a string (`\"@type\":\"X\"`). */
+const SCRIPTED_TYPE = /\\?"@type\\?"\s*:\s*\\?"([A-Za-z]+)\\?"/g;
+
+/** The schema.org types inline scripts other than JSON-LD blocks name. */
+function scriptedSchemaTypesOf($: CheerioAPI): string[] {
+  const types = new Set<string>();
+  $('script:not([src])')
+    .not('script[type="application/ld+json" i]')
+    .each((_, element) => {
+      for (const [, type] of $(element).text().matchAll(SCRIPTED_TYPE))
+        types.add(type);
+    });
+  return [...types];
+}
+
 function structuredDataOf(
   $: CheerioAPI,
   baseUrl: string,

@@ -165,6 +165,8 @@ describe('evaluateChecks', () => {
               // No article markup, trail, video or image of its own to judge.
               articleMarkup: null,
               breadcrumbs: [],
+              // Its only trail is one a script would insert, which cannot be confirmed.
+              scriptedSchemaTypes: ['BreadcrumbList'],
               videos: [],
               openGraph: {},
             },

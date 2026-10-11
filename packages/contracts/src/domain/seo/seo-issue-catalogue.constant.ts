@@ -1483,8 +1483,10 @@ export const SEO_ISSUE_CATALOGUE = {
     },
     hint: 'Add a BreadcrumbList in JSON-LD or Microdata.',
     explanation:
-      "The page declares no BreadcrumbList, neither in JSON-LD (an @graph included) nor in Microdata. Google uses breadcrumb markup to categorise a page within its site and can show the trail in place of the URL in a result. The markup is optional and a page without it is not demoted; it only gives up the trail. RDFa is not read, so a trail declared only there is reported here. Whether a declared trail is complete is BREADCRUMB_INVALID's question.",
+      "The page declares no BreadcrumbList, neither in JSON-LD (an @graph included) nor in Microdata. Google uses breadcrumb markup to categorise a page within its site and can show the trail in place of the URL in a result. The markup is optional and a page without it is not demoted; it only gives up the trail. RDFa is not read, so a trail declared only there is reported here. Whether a declared trail is complete is BREADCRUMB_INVALID's question. A trail that an inline script inserts in the browser — as Next.js sites do — is read by Google after rendering and is not judged here.",
     sources: [SOURCE.breadcrumbMarkup],
+    skipReason:
+      'The trail is inserted by a script in the browser, which this crawler does not run.',
   },
   BREADCRUMB_INVALID: {
     // A warning, as a broken JSON-LD block is: the markup is there and Google ignores it.

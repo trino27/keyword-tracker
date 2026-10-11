@@ -136,6 +136,13 @@ export interface IParsedPage {
   /** JSON-LD blocks that are not JSON, each as the start of its text and the error. */
   jsonLdErrors: string[];
   /**
+   * schema.org types named in an ordinary inline script rather than a JSON-LD block —
+   * structured data a framework inserts in the browser (Next.js carries it in its RSC
+   * payload). Google renders it and reads it; this crawler cannot confirm it, so a check
+   * that would call such a type missing is not applicable instead.
+   */
+  scriptedSchemaTypes: string[];
+  /**
    * The same two facts read from Microdata (`itemscope itemtype`), which Google reads as
    * it reads JSON-LD: the schema.org types, and the properties of the article item.
    */
