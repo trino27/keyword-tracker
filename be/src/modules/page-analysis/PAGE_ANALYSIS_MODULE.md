@@ -121,7 +121,9 @@ files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
   and would break every older row the day a check is added; `checks.registry.spec.ts` asserts it
   over the recorded corpus instead. What the database CAN state, and does, is
   `checks_applicable = cardinality(checks_judged)`.
+
 <!-- invariant: ANALYSIS-011 -->
+
 **One pass records which checks it judged and which it could not.** The two lists are disjoint,
 in catalogue order, and their union is the catalogue that crawl ran. Pinned by
 `be/src/modules/page-analysis/services/checks/checks.registry.spec.ts` ->
@@ -499,7 +501,6 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   candidates, each ranked lower than the one word deserves. It needs a stemmer per target
   language, and which languages are targets is undecided; see "Not done, and next" in the root
   README.
-
 
 ## Specified invariants
 

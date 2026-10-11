@@ -44,21 +44,24 @@ for a re-crawl and no check rows.
 ### Requirement [PAGEDETAIL-010]: the score is explained on the page's own numbers and bounded in what it claims
 
 The page detail MUST show how its health score was computed, using this page's own passed and
-applicable counts and the rounding that produced the displayed value. It MUST state that every
-check counts the same and why, that the denominator is the checks that could be judged on this
-page, and which bands the score falls in. It MUST state that the score claims only the absence of
+applicable counts, the points those checks were worth and the points the failures cost, and the
+rounding that produced the displayed value. It MUST state what each severity weighs and why, with
+the weights taken from the contract rather than written into the copy, that the denominator is
+the checks that could be judged on this page, and which bands the score falls in. It MUST state that the score claims only the absence of
 obvious technical defects, and MUST NOT present it as a traffic forecast, a comparison with a
 competitor, or a judgement of the writing. The arithmetic shown MUST agree with the score shown.
 
-#### Scenario: sixteen applicable checks of which two failed
+#### Scenario: eighteen applicable checks of which two failed
 
-- **WHEN** the detail is opened
-- **THEN** it reads that 14 of the 16 checks that applied passed, shows the division and the
-  rounding that produced the displayed score, and names the poor/average/good bands
+- **WHEN** the detail is opened for a page whose 18 applicable checks were worth 120 points and
+  whose 2 failures cost 13
+- **THEN** it reads that 16 of the 18 checks that applied passed, that they were worth 120 points
+  and the 2 that failed cost 13, shows 100 × 107 ÷ 120 ≈ 89.17 rounded half-up to 89, names each
+  severity's weight and the poor/average/good bands
 
 #### Scenario: a quotient that would round the other way at one decimal
 
-- **WHEN** 1 of 16 checks passed, so the quotient is 6.25 and the score is 6
+- **WHEN** 1 of 16 points was kept, so the quotient is 6.25 and the score is 6
 - **THEN** the quotient is shown with enough precision that the rounding stated beside it is
   correct
 
@@ -182,14 +185,14 @@ Modified by `client-issue-report`: the group names follow the product's one seve
 
 ### Requirement [PAGEDETAIL-011]: the page shows its Core Web Vitals with their source and age
 
-The detail MUST show a "Speed (Core Web Vitals, mobile)" block with one card per metric — the
-value with its unit, the band in words and colour, the source in plain words and the date
-measured — and the Lighthouse lab performance score as a caption that says it is a lab figure. A
-lab-sourced value MUST say it may vary between runs; a missing INP MUST say why there is none. The
-block MUST state "Measuring…", "Couldn't refresh: <reason>, showing the measurement from <date>",
-"Couldn't measure: <reason>", "Not measured" and "PageSpeed not configured" in words, never as
-empty cards; when PageSpeed's state is `keyRejected` it MUST open with "Google rejected the
-PageSpeed key — speed measurements are paused. See the README." above whatever is stored.
+The detail MUST show a "Speed (Core Web Vitals, mobile)" block with one card per metric — the value
+with its unit, the band in words and colour, the source in plain words and the date measured — and
+the Lighthouse lab performance score as a caption that says it is a lab figure. A lab-sourced value
+MUST say it may vary between runs; a missing INP MUST say why there is none. The block MUST state
+"In queue for measurement", "Measuring…", "Couldn't refresh: <reason>, showing the measurement from
+<date>", "Couldn't measure: <reason>", "Not measured" and "PageSpeed not configured" in words,
+never as empty cards; when PageSpeed's state is `keyRejected` it MUST open with "Google rejected
+the PageSpeed key — speed measurements are paused. See the README." above whatever is stored.
 
 #### Scenario: an origin-sourced INP
 - **WHEN** the page's INP is 240 ms from the whole site's real visitors

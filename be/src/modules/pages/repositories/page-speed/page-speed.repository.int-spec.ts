@@ -83,6 +83,32 @@ async function measured(pageId: number, measuredAt: Date) {
     .values({ pageId, status: 'done', ...MEASUREMENT, measuredAt });
 }
 
+/** A new client of `ownerId` whose latest run holds `count` current pages, oldest first. */
+async function clientWithPages(ownerId: number, count: number) {
+  const first = await seedCurrentPage(testDb, ownerId);
+  const pageIds = [first.pageId];
+  for (let i = 1; i < count; i += 1)
+    pageIds.push(
+      (await seedCurrentPage(testDb, ownerId, [], first.clientId)).pageId,
+    );
+  // Each seeded page brought its own run; make the newest run hold all of them.
+  const latest = await seedCurrentPage(testDb, ownerId, [], first.clientId);
+  await testDb.db
+    .update(pages)
+    .set({ lastSeenRunId: latest.runId })
+    .where(eq(pages.clientId, first.clientId));
+  await testDb.db.delete(pages).where(eq(pages.id, latest.pageId));
+  return pageIds;
+}
+
+/** The page ids of the next `count` claims, one after another. */
+async function claimOrder(count: number) {
+  const order: number[] = [];
+  for (let i = 0; i < count; i += 1)
+    order.push((await repository.claimNextForWorker(LEASE_MS))!.pageId);
+  return order;
+}
+
 async function claimOwn(pageId: number) {
   const claimed = await repository.claimNextForWorker(LEASE_MS);
   expect(claimed?.pageId).toBe(pageId);
@@ -440,6 +466,46 @@ describe('PageSpeedRepository', () => {
       await currentPage(dropped.clientId);
 
       expect(await repository.claimNextForWorker(LEASE_MS)).toBeNull();
+    });
+
+    it("a client queued later takes turns with another client's backlog", async () => {
+      const backlog = await clientWithPages(userId, 3);
+      await enqueue(backlog);
+      const [late] = await clientWithPages(userId, 1);
+      await enqueue([late]);
+
+      expect(await claimOrder(4)).toEqual([
+        backlog[0],
+        late,
+        backlog[1],
+        backlog[2],
+      ]);
+    });
+
+    it('a user with many clients does not stand in front of another user', async () => {
+      const busy = [
+        ...(await clientWithPages(userId, 1)),
+        ...(await clientWithPages(userId, 1)),
+        ...(await clientWithPages(userId, 1)),
+      ];
+      await enqueue(busy);
+      const other = (await seedTestUser(testDb, 'other@example.com')).id;
+      const [late] = await clientWithPages(other, 1);
+      await enqueue([late]);
+
+      expect(await claimOrder(4)).toEqual([busy[0], late, busy[1], busy[2]]);
+    });
+
+    it('a user measured recently waits behind one not served yet', async () => {
+      const [done] = await clientWithPages(userId, 1);
+      await measured(done, new Date());
+      const [mine] = await clientWithPages(userId, 1);
+      await enqueue([mine]);
+      const other = (await seedTestUser(testDb, 'other@example.com')).id;
+      const [theirs] = await clientWithPages(other, 1);
+      await enqueue([theirs]);
+
+      expect(await claimOrder(2)).toEqual([theirs, mine]);
     });
 
     it('reclaims a running row whose lease expired, as the next attempt', async () => {

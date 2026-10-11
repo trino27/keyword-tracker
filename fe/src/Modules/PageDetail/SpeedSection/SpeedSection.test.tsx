@@ -59,8 +59,14 @@ describe("SpeedSection", () => {
 		).toBeInTheDocument();
 	});
 
-	it("says a queued page is being measured", async () => {
+	it("says a queued page is waiting in the queue", async () => {
 		renderSection({ status: "queued", measurement: null, lastError: null });
+
+		expect(await screen.findByText(/^In queue for measurement/)).toBeInTheDocument();
+	});
+
+	it("says a running page is being measured", async () => {
+		renderSection({ status: "running", measurement: null, lastError: null });
 
 		expect(await screen.findByText(/^Measuring…/)).toBeInTheDocument();
 	});

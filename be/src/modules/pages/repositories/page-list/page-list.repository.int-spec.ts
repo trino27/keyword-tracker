@@ -1,5 +1,11 @@
 import { sql } from 'drizzle-orm';
-import { LIGHTHOUSE_ISSUE_CODES, type TCrawlRunStatus } from '@app/contracts';
+import {
+  CHECK_WEIGHTS,
+  LIGHTHOUSE_CATALOGUE,
+  LIGHTHOUSE_ISSUE_CODES,
+  type TCrawlRunStatus,
+} from '@app/contracts';
+import { seoIssues } from '@persistence/schema/tables/seo-issues/seo-issues.schema';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
 import { keywords } from '@persistence/schema/tables/keywords/keywords.schema';
@@ -59,8 +65,15 @@ async function addPage(
   runId: number,
   url: string,
   sitemapPosition: number,
-  /** The page's score. Default: 15 of 18 passed, i.e. 83. */
-  counters: { checksApplicable: number; checksFailed: number } = {
+  /**
+   * The page's score. Default: 15 of 18 passed, i.e. 83. Without `checksJudged` the row
+   * is one crawled before per-check recording, and every check weighs 1.
+   */
+  counters: {
+    checksApplicable: number;
+    checksFailed: number;
+    checksJudged?: string[];
+  } = {
     checksApplicable: 18,
     checksFailed: 3,
   },
@@ -79,6 +92,8 @@ async function addPage(
       sitemapPosition,
       checksApplicable: counters.checksApplicable,
       checksFailed: counters.checksFailed,
+      checksJudged: counters.checksJudged ?? null,
+      checksNotApplicable: counters.checksJudged ? [] : null,
       lastSeenRunId: runId,
       crawledAt: new Date(),
     })
@@ -172,11 +187,16 @@ describe('PageListRepository (postgres)', () => {
   });
 
   /**
-   * PAGES-009: the list orders by the score the row shows, Lighthouse's checks included.
-   * B is 90 on the crawl alone but 80 with Lighthouse's 25 audits (36 of 45); A is 88 and
-   * has not been measured, so it stays 88 and comes after B.
+   * PAGES-009: the list orders by the score the row shows, Lighthouse's checks included and
+   * weighed like ours. B is 90 on the crawl alone (18 of 20, no per-check record, so every
+   * check weighs 1) but 87 with ten Lighthouse notices of which two failed (26 of 30); A
+   * is 88 and has not been measured, so it stays 88 and comes after B.
    */
   it("orders by the score summed over the crawl and Lighthouse's checks", async () => {
+    const notices = LIGHTHOUSE_ISSUE_CODES.filter(
+      (code) => LIGHTHOUSE_CATALOGUE[code].severity === 'notice',
+    ).slice(0, 10);
+    expect(notices).toHaveLength(10);
     const user = await seedTestUser(testDb, 'a@example.com');
     const client = await addClient(user.id, 'Site');
     const run = await addRun(client.id, 'succeeded');
@@ -197,10 +217,18 @@ describe('PageListRepository (postgres)', () => {
       clsSource: 'lab',
       performanceScore: 90,
       measuredAt: new Date(),
-      lighthouseJudged: LIGHTHOUSE_ISSUE_CODES.slice(0, 25),
+      lighthouseJudged: notices,
       lighthouseNotApplicable: [],
-      lighthouseFailed: 7,
+      lighthouseFailed: 2,
     });
+    await testDb.db.insert(seoIssues).values(
+      notices.slice(0, 2).map((code) => ({
+        pageId: b.id,
+        code,
+        severity: 'notice' as const,
+        details: {},
+      })),
+    );
 
     const rows = await slice(user.id);
 
@@ -208,9 +236,10 @@ describe('PageListRepository (postgres)', () => {
       'https://site.example/b/',
       'https://site.example/a/',
     ]);
+    expect(rows[0].lighthousePoints).toEqual({ possible: 10, lost: 2 });
     expect(rows[0].pageSpeed).toMatchObject({
-      lighthouseApplicable: 25,
-      lighthouseFailed: 7,
+      lighthouseApplicable: 10,
+      lighthouseFailed: 2,
     });
   });
 
@@ -274,6 +303,60 @@ describe('PageListRepository (postgres)', () => {
     expect((await slice(user.id)).map((row) => row.url)).toEqual([
       'https://site.example/four/',
       'https://site.example/two/',
+    ]);
+  });
+
+  it('weighs a Critical failure above an Improvement, and a speed finding not at all', async () => {
+    const user = await seedTestUser(testDb, 'a@example.com');
+    const client = await addClient(user.id, 'Site');
+    const run = await addRun(client.id, 'succeeded');
+    // The same two checks applied to both pages and each failed one. Counted alike they
+    // tie at 50 and the sitemap order would put the Improvement page first.
+    const judged = ['TITLE_MISSING', 'LANG_MISSING'];
+    const counters = {
+      checksApplicable: 2,
+      checksFailed: 1,
+      checksJudged: judged,
+    };
+    const minor = await addPage(
+      client.id,
+      run.id,
+      'https://site.example/minor/',
+      0,
+      counters,
+    );
+    const critical = await addPage(
+      client.id,
+      run.id,
+      'https://site.example/critical/',
+      1,
+      counters,
+    );
+    await testDb.db.execute(sql`
+      insert into seo_issues (page_id, code, severity, details_json) values
+      (${minor.id}, 'LANG_MISSING', 'notice', '{}'),
+      (${minor.id}, 'CWV_LCP_POOR', 'warning', '{}'),
+      (${critical.id}, 'TITLE_MISSING', 'error', '{}')
+    `);
+
+    const possible = CHECK_WEIGHTS.TITLE_MISSING + CHECK_WEIGHTS.LANG_MISSING;
+    expect(
+      (await slice(user.id)).map(({ url, pointsPossible, pointsLost }) => ({
+        url,
+        pointsPossible,
+        pointsLost,
+      })),
+    ).toEqual([
+      {
+        url: 'https://site.example/critical/',
+        pointsPossible: possible,
+        pointsLost: CHECK_WEIGHTS.TITLE_MISSING,
+      },
+      {
+        url: 'https://site.example/minor/',
+        pointsPossible: possible,
+        pointsLost: CHECK_WEIGHTS.LANG_MISSING,
+      },
     ]);
   });
 

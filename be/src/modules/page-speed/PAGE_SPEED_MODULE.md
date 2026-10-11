@@ -17,7 +17,12 @@ worker it would exit under mid-call.
   `SKIP LOCKED` under a 3-minute lease, only for pages still on their client's current run —
   "current" spelled by `CURRENT_RUN_STATUSES_SQL` (`be/src/persistence/sql/current-run-statuses.ts`),
   the same fragment the list, the detail and the report read, so the worker never measures a page
-  the screens no longer show.
+  the screens no longer show. The queue is fair, not FIFO: the user served longest ago first,
+  then that user's client served longest ago, then the oldest row — a client added behind
+  another user's hundreds of pages is measured within minutes, not after them.
+- **Deleting a client aborts its measurements.** The delete cascades to its `page_speed` rows,
+  so nothing of it is claimed again; a call already in flight finishes, and its completion,
+  fenced on the row, writes nothing.
 - **One request, no in-call retry** (`PsiClient`): the key in the `x-goog-api-key` header, never
   in the URL (the URL reaches error messages, logs and fixtures), 90 s timeout.
 - **Which value per metric** (`extractMeasurement`): the page's own field data, else the site's
@@ -155,3 +160,6 @@ and what pins it. Unless another path is named, the requirement lives in
 <!-- invariant: SPEED-013 -->
 
 **Reading a screen never calls PageSpeed.** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "opening the list, the detail and the report requests nothing from PageSpeed and writes nothing".
+
+<!-- invariant: SPEED-014 -->
+**Users take turns, then their clients, then rows by age; a user or client never served goes first.** Pinned by `pages/repositories/page-speed/page-speed.repository.int-spec.ts` -> "a client queued later takes turns with another client's backlog", "a user with many clients does not stand in front of another user", "a user measured recently waits behind one not served yet".

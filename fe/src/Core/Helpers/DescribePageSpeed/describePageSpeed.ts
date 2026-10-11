@@ -6,7 +6,7 @@ import {
 } from "@app/contracts";
 
 /**
- * What a page's speed cell or block shows — six states, because absence is explained and
+ * What a page's speed cell or block shows — seven states, because absence is explained and
  * never drawn as a grey badge that could mean any of them.
  */
 export type TPageSpeedView =
@@ -14,7 +14,9 @@ export type TPageSpeedView =
 	| { kind: "notConfigured" }
 	/** The page has never been queued: crawled before PageSpeed existed. */
 	| { kind: "notMeasured" }
-	/** Waiting for, or in, its measurement. */
+	/** Waiting in the queue for its turn; a long queue can take an hour or more. */
+	| { kind: "queued" }
+	/** Google is testing it right now. */
 	| { kind: "measuring" }
 	/** Waiting, but the queue is halted because Google refused the key. */
 	| { kind: "paused" }
@@ -37,5 +39,6 @@ export function pageSpeedViewOf(
 	if (availability.state === "notConfigured") return { kind: "notConfigured" };
 	if (!summary) return { kind: "notMeasured" };
 	if (summary.status === "failed") return { kind: "couldNotMeasure", reason: reason ?? "" };
-	return availability.state === "keyRejected" ? { kind: "paused" } : { kind: "measuring" };
+	if (availability.state === "keyRejected") return { kind: "paused" };
+	return summary.status === "running" ? { kind: "measuring" } : { kind: "queued" };
 }

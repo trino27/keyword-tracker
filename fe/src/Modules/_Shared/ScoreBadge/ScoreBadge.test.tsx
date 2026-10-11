@@ -1,12 +1,28 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { IPageScore } from "@app/contracts";
 import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProviders";
 import { ScoreBadge } from "./ScoreBadge";
 
-const render = (counts: { value: number; applicable: number; failed: number }) =>
-	renderWithProviders(() => (
-		<ScoreBadge score={{ ...counts, byOwner: { crawl: counts, lighthouse: null } }} />
-	));
+/** The badge reads only the value and the counts; the points are filled in to match. */
+const scoreOf = ({
+	value,
+	applicable,
+	failed,
+}: Pick<IPageScore, "value" | "applicable" | "failed">): IPageScore => ({
+	value,
+	applicable,
+	failed,
+	pointsPossible: applicable,
+	pointsLost: failed,
+	byOwner: {
+		crawl: { applicable, failed, pointsPossible: applicable, pointsLost: failed },
+		lighthouse: null,
+	},
+});
+
+const render = (score: Pick<IPageScore, "value" | "applicable" | "failed">) =>
+	renderWithProviders(() => <ScoreBadge score={scoreOf(score)} />);
 
 describe("ScoreBadge", () => {
 	it.each([
@@ -31,15 +47,7 @@ describe("ScoreBadge", () => {
 	// Two pages with different denominators must not silently compare as equals.
 	it("names the denominator it was computed from", async () => {
 		renderWithProviders(() => (
-			<ScoreBadge
-				score={{
-					value: 88,
-					applicable: 16,
-					failed: 2,
-					byOwner: { crawl: { applicable: 16, failed: 2 }, lighthouse: null },
-				}}
-				withNote
-			/>
+			<ScoreBadge score={scoreOf({ value: 88, applicable: 16, failed: 2 })} withNote />
 		));
 
 		expect(await screen.findByText("14/16 checks")).toBeInTheDocument();

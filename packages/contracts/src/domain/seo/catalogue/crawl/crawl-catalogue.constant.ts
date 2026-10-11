@@ -888,7 +888,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Link to the URL the site actually serves: same scheme, same host, no tracking parameters.',
     explanation:
-      'The content links to pages of this site through a different URL than the one this page is served at — plain HTTP from an HTTPS page, the www host from a site served without it (or the other way round), or a URL carrying tracking or session parameters. Each such link costs a redirect or creates a duplicate URL for Google to crawl and fold back into the canonical one. Google asks sites to link internally to the canonical URL rather than a duplicate, and to avoid session IDs in URLs.',
+      'The content links to pages of this site through a different URL than the one this page is served at — plain HTTP from an HTTPS page, the www host from a site served without it (or the other way round), or a URL carrying tracking or session parameters. Each such link costs a redirect or creates a duplicate URL for Google to crawl and fold back into the canonical one. Google asks sites to link internally to the canonical URL rather than a duplicate, and to avoid session IDs in URLs. A link the crawl found dead is reported by BROKEN_LINKS instead.',
     sources: [SOURCE.canonical, SOURCE.urlStructure],
     skipReason: 'The content links nowhere on the site.',
   },
@@ -904,7 +904,7 @@ export const CRAWL_CATALOGUE = {
     },
     hint: 'Replace or remove links that answer 404 or 410, or whose domain no longer exists.',
     explanation:
-      "The crawl asked every link in the post's main content for its status. A link to this site is broken when it answers any 4xx or 5xx, or redirects in a loop. A link to another site is broken only when it answers 404 or 410, or its domain does not exist: answers such as 401, 403, 429, LinkedIn's 999, any 5xx or a timeout are what anti-bot walls send crawlers and never readers, so they are never reported as broken. Google says a URL answering 4xx is simply left out of the index; the cost of a dead link falls on the reader who follows it, and Ahrefs' guidance treats broken outgoing links as a user-experience defect for that reason. When the crawl could not ask every link within its budget, robots.txt or deadline, the finding says how many it checked.",
+      "The crawl asked every link in the post's main content for its status. A link to this site is broken when it answers a 4xx or 5xx, or redirects in a loop — except 401, 402, 403 and 429, which turn a crawler away rather than describe the page. A link to another site is broken only when it answers 404 or 410, or its domain does not exist: answers such as 401, 403, 429, LinkedIn's 999, any 5xx or a timeout are what anti-bot walls send crawlers and never readers, so they are never reported as broken, and neither is an answer reached through a detour to a third host, such as a cookie-consent page. Google says a URL answering 4xx is simply left out of the index; the cost of a dead link falls on the reader who follows it, and Ahrefs' guidance treats broken outgoing links as a user-experience defect for that reason. When the crawl could not ask every link within its budget, robots.txt or deadline, the finding says how many it checked.",
     sources: [SOURCE.ahrefsBrokenLinks, SOURCE.httpNetworkErrors],
     skipReason:
       "The page has no content links, or none could be checked within the crawl's budget.",

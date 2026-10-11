@@ -25,7 +25,12 @@ const ITEM = {
 		value: 94,
 		applicable: 18,
 		failed: 1,
-		byOwner: { crawl: { applicable: 18, failed: 1 }, lighthouse: null },
+		pointsPossible: 18,
+		pointsLost: 1,
+		byOwner: {
+			crawl: { applicable: 18, failed: 1, pointsPossible: 18, pointsLost: 1 },
+			lighthouse: null,
+		},
 	},
 	issues: { total: 1, error: 0, warning: 1, notice: 0, siteWide: 0 },
 	pageSpeed: null,

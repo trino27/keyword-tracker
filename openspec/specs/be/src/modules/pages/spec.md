@@ -156,18 +156,28 @@ them; a speed finding is shown in the page's issues and in its Speed block inste
   applies
 - **THEN** its stored not-applicable list is empty
 
-### Requirement [PAGES-009]: a page's health score is the share of the checks that could apply to it
+### Requirement [PAGES-009]: a page's health score is the share of the checks that could apply to it, weighed by severity
 
-The pages list and the page detail MUST each carry a score derived at read time from the page's
-stored check counts as the rounded percentage of applicable checks that passed, together with the
-applicable and failed counts it came from, so two pages with different denominators are never
-presented as comparable without the denominator being visible. One implementation of the formula
-MUST serve both the backend and the frontend.
+The pages list and the page detail MUST each carry a score derived at read time as the rounded
+percentage of the applicable checks' points that the page kept. Each check weighs what its
+catalogue severity says — Critical (error) 10, Important (warning) 3, Improvement (notice) 1 —
+and both the numerator and the denominator are weighed, so a page that passed every applicable
+check scores 100. The score MUST be reported together with the applicable and failed counts and
+the points possible and lost it came from. Only findings whose code the page's crawl judged cost
+points; a page whose crawl predates per-check recording weighs every check as 1. One
+implementation of the formula MUST serve both the backend and the frontend, and the weights
+MUST live in one place.
 
-#### Scenario: sixteen applicable, two failed
+#### Scenario: a Critical failure costs more than an Improvement
 
-- **WHEN** a page stored 16 applicable checks of which 2 failed
-- **THEN** its score is 88, reported with `applicable: 16` and `failed: 2`
+- **WHEN** two pages judged the same Critical and Improvement checks, and one failed the Critical
+  check while the other failed the Improvement
+- **THEN** the first scores 9 (1 of 11 points kept) and the second 91 (10 of 11)
+
+#### Scenario: points equal to counts
+
+- **WHEN** a page's applicable checks were worth 16 points and its failures cost 2
+- **THEN** its score is 88
 
 #### Scenario: a page that passed everything that applied
 
@@ -176,7 +186,7 @@ MUST serve both the backend and the frontend.
 
 ### Requirement [PAGES-010]: the pages list is ordered worst first under a total order
 
-The list MUST be ordered by score ascending, then by the number of failed checks descending, and
+The list MUST be ordered by score ascending, then by the points lost descending, and
 MUST end its ordering on the page id so that the order is total; every page matching the filter
 MUST appear exactly once across the paginated walk. The score expression used for ordering MUST
 be evaluated in a type that preserves fractions.
@@ -193,7 +203,7 @@ be evaluated in a type that preserves fractions.
 
 #### Scenario: integer division
 
-- **WHEN** the ordering expression divides two smallint columns without a cast
+- **WHEN** the ordering expression divides two integer point totals without a cast
 - **THEN** the two-page ordering scenario above fails
 
 ### Requirement [PAGES-011]: a finding is reported with how many of the client's current pages carry it

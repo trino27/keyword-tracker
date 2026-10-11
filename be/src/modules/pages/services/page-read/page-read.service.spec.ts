@@ -32,6 +32,8 @@ const setup = (rowCount: number) => {
     // most checks and each later row fails fewer.
     checksApplicable: 18,
     checksFailed: Math.min(18, Math.max(0, rowCount - 1 - i)),
+    pointsPossible: 60,
+    pointsLost: 3 * Math.min(18, Math.max(0, rowCount - 1 - i)),
   }));
   const list = {
     listSlice: (_scope: IUserScope, filter: IPageListFilter) => {
@@ -203,6 +205,7 @@ const detailSetup = (
     page: unknown;
     lighthouseJudged: TSeoIssueCode[] | null;
     lighthouseNotApplicable: TSeoIssueCode[] | null;
+    lighthousePoints: { possible: number; lost: number } | null;
     pageSpeed: unknown;
   }> = {},
 ) => {
@@ -220,6 +223,8 @@ const detailSetup = (
     responseMs: 120,
     checksApplicable: overrides.checksApplicable ?? ACTIVE_ISSUE_CODES.length,
     checksFailed: overrides.checksFailed ?? issueCodes.length,
+    pointsPossible: 100,
+    pointsLost: 11,
     checksJudged:
       overrides.checksJudged === undefined
         ? [...ACTIVE_ISSUE_CODES]
@@ -234,6 +239,7 @@ const detailSetup = (
     clientWebsiteUrl: 'https://a.example',
     clientCurrentPages: 15,
     lighthouseJudged: overrides.lighthouseJudged ?? null,
+    lighthousePoints: overrides.lighthousePoints ?? null,
     lighthouseNotApplicable: overrides.lighthouseNotApplicable ?? null,
     pageSpeed: overrides.pageSpeed ?? null,
   };
@@ -351,6 +357,7 @@ describe('PageReadService.getPage', () => {
       checksFailed: 1,
       lighthouseJudged: judged,
       lighthouseNotApplicable: LIGHTHOUSE_ISSUE_CODES.slice(20, 26),
+      lighthousePoints: { possible: 60, lost: 3 },
       pageSpeed: {
         ...NO_SPEED_FIGURES,
         status: 'done',
@@ -373,13 +380,26 @@ describe('PageReadService.getPage', () => {
       checksByOwner.crawl?.find((check) => check.code === 'TITLE_MISSING')
         ?.status,
     ).toBe('failed');
+    // The fixture's crawl points are 100 possible, 11 lost; Lighthouse adds 60 and 3.
     expect(score).toEqual({
-      value: 94,
+      value: 91,
       applicable: 36,
       failed: 2,
+      pointsPossible: 160,
+      pointsLost: 14,
       byOwner: {
-        crawl: { applicable: 16, failed: 1 },
-        lighthouse: { applicable: 20, failed: 1 },
+        crawl: {
+          applicable: 16,
+          failed: 1,
+          pointsPossible: 100,
+          pointsLost: 11,
+        },
+        lighthouse: {
+          applicable: 20,
+          failed: 1,
+          pointsPossible: 60,
+          pointsLost: 3,
+        },
       },
     });
   });
@@ -390,7 +410,8 @@ describe('PageReadService.getPage', () => {
     const { score, checksByOwner } = await service.getPage(scope, 1);
 
     expect(score.byOwner.lighthouse).toBeNull();
-    expect(score.value).toBe(88);
+    // The fixture's crawl points alone: 100 × 89 ÷ 100.
+    expect(score.value).toBe(89);
     expect(checksByOwner.lighthouse).toBeNull();
   });
 

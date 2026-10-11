@@ -51,6 +51,47 @@ describe('linkVerdictOf', () => {
     },
   );
 
+  // Field audit, 2026-10-11 (plan O3): moz.com and css-tricks.com answered our own pace
+  // with 429, and moz.com's checkout 403 — refusals of a crawler, not dead pages.
+  it.each([401, 402, 403, 429])(
+    'an internal %d refuses the crawler; it is unknown, not broken',
+    (status) => {
+      expect(linkVerdictOf(answered(status), true)).toBe('unknown');
+    },
+  );
+
+  // backlinko.com/hub/… redirects to searchengineland.com, which walls crawlers off.
+  it('an internal link that redirects off the site is judged by where it ends', () => {
+    const offSite: TOutboundOutcome = {
+      kind: 'answered',
+      status: 403,
+      redirects: [{ url: 'https://a.example/hub/x', status: 301 }],
+      finalUrl: 'https://b.example/guide/x',
+    };
+
+    expect(linkVerdictOf(offSite, true)).toBe('unknown');
+    expect(linkVerdictOf({ ...offSite, status: 404 }, true)).toBe('broken');
+  });
+
+  // youtube.com/@Ahrefs, 2026-10-11: through consent.youtube.com it ends on a 404 — a
+  // cookie wall, not a missing channel. A detour through a third host proves nothing.
+  it('a 404 reached through another host on the way is unknown', () => {
+    expect(
+      linkVerdictOf(
+        {
+          kind: 'answered',
+          status: 404,
+          redirects: [
+            { url: 'https://www.youtube.com/@Ahrefs', status: 302 },
+            { url: 'https://consent.youtube.com/m?continue=x', status: 303 },
+          ],
+          finalUrl: 'https://www.youtube.com/@Ahrefs?cbrd=1',
+        },
+        false,
+      ),
+    ).toBe('unknown');
+  });
+
   // D25: the sentence and the constant cannot drift apart unnoticed.
   it('the BROKEN_LINKS explanation names every external broken status and says 403, 429 and 5xx are never reported', () => {
     const { explanation } = SEO_ISSUE_CATALOGUE.BROKEN_LINKS;

@@ -52,13 +52,17 @@ export const bestPositionSchema = z.object({
 const ownerCountsSchema = z.object({
 	applicable: z.number().int().min(0),
 	failed: z.number().int().min(0),
+	pointsPossible: z.number().int().min(0),
+	pointsLost: z.number().int().min(0),
 });
 
-/** A score, the denominator it came from (never zero), and whose checks made it. */
+/** A score, the counts and points it came from (neither denominator ever zero), and whose. */
 export const pageScoreSchema = z.object({
 	value: z.number().int().min(0).max(100),
 	applicable: z.number().int().positive(),
 	failed: z.number().int().min(0),
+	pointsPossible: z.number().int().positive(),
+	pointsLost: z.number().int().min(0),
 	byOwner: z.object({
 		crawl: ownerCountsSchema.nullable(),
 		lighthouse: ownerCountsSchema.nullable(),

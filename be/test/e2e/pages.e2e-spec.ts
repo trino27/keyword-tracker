@@ -115,7 +115,13 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     const response = await list('?pageSize=20').expect(200);
 
     for (const item of response.body.items as {
-      score: { value: number; applicable: number; failed: number };
+      score: {
+        value: number;
+        applicable: number;
+        failed: number;
+        pointsPossible: number;
+        pointsLost: number;
+      };
     }[]) {
       expect(item.score.applicable).toBeGreaterThanOrEqual(
         ACTIVE_ISSUE_CODES.length - CONDITIONAL_ISSUE_CODES.length,
@@ -124,10 +130,18 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
         ACTIVE_ISSUE_CODES.length,
       );
       expect(item.score.failed).toBeLessThanOrEqual(item.score.applicable);
+      // Every check weighs at least 1, and a failure costs no more than it was worth.
+      expect(item.score.pointsPossible).toBeGreaterThanOrEqual(
+        item.score.applicable,
+      );
+      expect(item.score.pointsLost).toBeGreaterThanOrEqual(item.score.failed);
+      expect(item.score.pointsLost).toBeLessThanOrEqual(
+        item.score.pointsPossible,
+      );
       expect(item.score.value).toBe(
         Math.round(
-          (100 * (item.score.applicable - item.score.failed)) /
-            item.score.applicable,
+          (100 * (item.score.pointsPossible - item.score.pointsLost)) /
+            item.score.pointsPossible,
         ),
       );
     }

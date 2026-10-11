@@ -34,8 +34,14 @@ describe("pageSpeedViewOf", () => {
 		expect(pageSpeedViewOf(null, ACTIVE)).toEqual({ kind: "notMeasured" });
 	});
 
-	it.each(["queued", "running"] as const)("a %s page is being measured", (status) => {
-		expect(pageSpeedViewOf(summary({ status }), ACTIVE)).toEqual({ kind: "measuring" });
+	it("a queued page is waiting its turn, not being measured", () => {
+		expect(pageSpeedViewOf(summary({ status: "queued" }), ACTIVE)).toEqual({ kind: "queued" });
+	});
+
+	it("a running page is being measured", () => {
+		expect(pageSpeedViewOf(summary({ status: "running" }), ACTIVE)).toEqual({
+			kind: "measuring",
+		});
 	});
 
 	it("a waiting page reads Paused under a rejected key", () => {

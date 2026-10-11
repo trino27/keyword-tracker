@@ -43,8 +43,8 @@ MUST be left as it is. Re-queuing MUST NOT clear the stored measurement.
 
 ### Requirement [SPEED-003]: one slot measures a page at a time, and only the attempt holding it writes
 
-A slot MUST claim a row with a single `UPDATE … WHERE page_id = (SELECT … FOR UPDATE SKIP LOCKED
-LIMIT 1)` that sets it running, increments `attempts` and takes a lease; every write of an
+A slot MUST claim a row with a single `UPDATE` whose row is chosen by a `SELECT … FOR UPDATE SKIP
+LOCKED LIMIT 1` that sets it running, increments `attempts` and takes a lease; every write of an
 attempt's outcome MUST carry `status = 'running' and attempts = <its attempt>` and write nothing
 when that no longer holds. A running row whose lease expired MUST be claimable again while
 `attempts < 5`; past the fifth it MUST become `failed` with `ABANDONED`.
@@ -69,6 +69,21 @@ Such a row MUST stay as it is, so a later crawl that finds the page again can re
 #### Scenario: a post leaves the sitemap
 - **WHEN** a re-crawl no longer finds a queued page
 - **THEN** no slot claims its row and no PageSpeed request is made for its URL
+
+### Requirement [SPEED-014]: users and clients take turns in the queue
+
+Of the due rows, a slot MUST claim one of the user served longest ago, then of that user's
+client served longest ago, then the oldest; a user or client never served goes first. A user or
+client is served at the latest claim of any of its rows, so a backlog of one user's pages never
+stands in front of a client added after it.
+
+#### Scenario: a client is added behind a backlog
+- **WHEN** one client has 3 pages queued and a second client then queues 1
+- **THEN** the claims take the first client's page, the second client's page, then the rest
+
+#### Scenario: a user with many clients
+- **WHEN** one user's 3 clients have a page queued each and another user then queues 1
+- **THEN** the second claim takes the other user's page
 
 ### Requirement [SPEED-005]: each metric takes the closest real measurement available, and says where it came from
 

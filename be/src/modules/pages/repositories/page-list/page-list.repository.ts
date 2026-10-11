@@ -13,6 +13,13 @@ import {
   type IPageSpeedColumns,
   type IPageSpeedRow,
 } from '../page-speed/page-speed-read';
+import {
+  LIGHTHOUSE_SCORE_POINTS_LATERAL,
+  SCORE_POINTS_LATERAL,
+  lighthousePointsOf,
+  type ILighthousePoints,
+  type ILighthousePointsColumns,
+} from '../page-score/score-points';
 
 export interface IPageListFilter {
   clientId?: number;
@@ -28,6 +35,10 @@ export interface IPageListRow {
   clientName: string;
   checksApplicable: number;
   checksFailed: number;
+  pointsPossible: number;
+  pointsLost: number;
+  /** Null until the page is measured with Lighthouse's categories. */
+  lighthousePoints: ILighthousePoints | null;
   pageSpeed: IPageSpeedRow | null;
 }
 
@@ -58,7 +69,8 @@ export interface ISiteWideCountRow {
   siteWide: number;
 }
 
-interface ISliceRow extends Record<string, unknown>, IPageSpeedColumns {
+interface ISliceRow
+  extends Record<string, unknown>, IPageSpeedColumns, ILighthousePointsColumns {
   id: string;
   url: string;
   title: string | null;
@@ -66,6 +78,8 @@ interface ISliceRow extends Record<string, unknown>, IPageSpeedColumns {
   client_name: string;
   checks_applicable: number;
   checks_failed: number;
+  points_possible: string;
+  points_lost: string;
 }
 
 interface IKeywordRow extends Record<string, unknown> {
@@ -115,29 +129,33 @@ export class PageListRepository {
     const { rows } = await this.db.execute<ISliceRow>(sql`
       ${this.currentPages(scope, filter)}
       select p.id, p.url, p.title, p.checks_applicable, p.checks_failed,
+             pts.points_possible, pts.points_lost,
+             lpts.lighthouse_points_possible, lpts.lighthouse_points_lost,
              c.id as client_id, c.name as client_name,
              ${PAGE_SPEED_COLUMNS}
       from current_pages p
       join clients c on c.id = p.client_id
-      -- One primary-key probe per listed page. Lighthouse's counts take part in the
+      cross join lateral (${SCORE_POINTS_LATERAL}) pts
+      -- One primary-key probe per listed page. Lighthouse's points take part in the
       -- order below; its Core Web Vitals never do.
       left join page_speed ps on ps.page_id = p.id
+      left join lateral (${LIGHTHOUSE_SCORE_POINTS_LATERAL}) lpts on true
       -- Worst first: the score exists so a user can triage a portfolio, and an order that
       -- buries the worst page of the second client under the best page of the first
       -- defeats it. Three things here are load-bearing:
-      --   ::numeric — both counters are smallint, and integer division would collapse
+      --   ::numeric — the points are integers, and integer division would collapse
       --     every score to 0 or 1;
-      --   checks_failed desc — among equal scores the page with more failures is the
-      --     bigger job, so the tie-break means something;
+      --   points_lost desc — among equal scores the page that lost more is the bigger
+      --     job, so the tie-break means something;
       --   p.id last — unique, so the order is TOTAL. Without it two pages with the same
       --     score have no defined relative order and the planner may answer offset 0 and
       --     offset 20 differently, so rows repeat and vanish between pages.
-      -- The sums are pageScoreOf's (PAGES-009): the crawl's counters plus Lighthouse's
-      -- judged list and failed count, which add nothing before the page is measured.
-      order by (p.checks_applicable + coalesce(cardinality(ps.lighthouse_judged), 0)
-                - p.checks_failed - coalesce(ps.lighthouse_failed, 0))::numeric
-               / (p.checks_applicable + coalesce(cardinality(ps.lighthouse_judged), 0)) asc,
-               p.checks_failed + coalesce(ps.lighthouse_failed, 0) desc,
+      -- The sums are pageScoreOf's (PAGES-009): the crawl's points plus Lighthouse's,
+      -- which add nothing before the page is measured with its categories.
+      order by (pts.points_possible + coalesce(lpts.lighthouse_points_possible, 0)
+                - pts.points_lost - coalesce(lpts.lighthouse_points_lost, 0))::numeric
+               / (pts.points_possible + coalesce(lpts.lighthouse_points_possible, 0)) asc,
+               pts.points_lost + coalesce(lpts.lighthouse_points_lost, 0) desc,
                c.name, c.id, p.sitemap_position, p.id
       limit ${limit} offset ${offset}
     `);
@@ -149,6 +167,9 @@ export class PageListRepository {
       clientName: row.client_name,
       checksApplicable: Number(row.checks_applicable),
       checksFailed: Number(row.checks_failed),
+      pointsPossible: Number(row.points_possible),
+      pointsLost: Number(row.points_lost),
+      lighthousePoints: lighthousePointsOf(row),
       pageSpeed: pageSpeedRowOf(row),
     }));
   }

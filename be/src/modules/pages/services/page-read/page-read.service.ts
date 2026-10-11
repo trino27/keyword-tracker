@@ -16,6 +16,7 @@ import { normalizeText } from '@modules/page-analysis/services/text/normalize-te
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
 import { PageNotFoundException } from '../../exceptions/pages.exceptions';
 import { PageDetailRepository } from '../../repositories/page-detail/page-detail.repository';
+import type { ILighthousePoints } from '../../repositories/page-score/score-points';
 import type { IPageSpeedRow } from '../../repositories/page-speed/page-speed-read';
 import {
   PageListRepository,
@@ -206,20 +207,37 @@ export class PageReadService {
 }
 
 /**
- * The page's score over every scored owner: the crawl's stored counters, and Lighthouse's
- * judged list and failed count from the measurement — absent until it has been measured
- * with Lighthouse's categories (lighthouse-checks D9).
+ * The page's score over every scored owner (lighthouse-checks D9), each check weighed by
+ * its severity: the crawl's counters and points, and Lighthouse's judged list, failed
+ * count and points from the measurement — absent until the page has been measured with
+ * Lighthouse's categories.
  */
 function scoreOf(page: {
   checksApplicable: number;
   checksFailed: number;
+  pointsPossible: number;
+  pointsLost: number;
+  lighthousePoints: ILighthousePoints | null;
   pageSpeed: IPageSpeedRow | null;
 }): IPageScore {
   const applicable = page.pageSpeed?.lighthouseApplicable ?? null;
   const failed = page.pageSpeed?.lighthouseFailed ?? null;
+  const points = page.lighthousePoints;
   return pageScoreOf({
-    crawl: { applicable: page.checksApplicable, failed: page.checksFailed },
+    crawl: {
+      applicable: page.checksApplicable,
+      failed: page.checksFailed,
+      pointsPossible: page.pointsPossible,
+      pointsLost: page.pointsLost,
+    },
     lighthouse:
-      applicable === null || failed === null ? null : { applicable, failed },
+      applicable === null || failed === null || points === null
+        ? null
+        : {
+            applicable,
+            failed,
+            pointsPossible: points.possible,
+            pointsLost: points.lost,
+          },
   });
 }

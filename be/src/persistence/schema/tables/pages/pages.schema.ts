@@ -51,8 +51,9 @@ export const pages = pgTable(
     // How many catalogue checks could be judged on this page, and how many of them failed.
     // Written by the same act that writes the page's issues, because applicability is only
     // knowable while the parsed page is in hand — this row holds no canonical, no Open Graph
-    // and no JSON-LD, so it cannot be recovered later. The score is applicable-minus-failed
-    // over applicable, derived at read time.
+    // and no JSON-LD, so it cannot be recovered later. The score is derived at read time
+    // from checks_judged and the page's findings, each check weighed by its severity
+    // (repositories/page-score/score-points.ts); these counts are what it reports beside.
     checksApplicable: smallint('checks_applicable').notNull(),
     checksFailed: smallint('checks_failed').notNull(),
     // WHICH checks ran, and which could not be judged — disjoint, and together the
