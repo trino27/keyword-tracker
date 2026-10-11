@@ -59,8 +59,11 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`The description is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	H1_MISSING: () => "The page has no H1 heading.",
 	H1_MULTIPLE: (d) => `The page has ${num(d, "count")} H1 headings.`,
+	H1_LENGTH: (d) =>
+		`The main heading is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	HEADING_SKIP: (d) =>
 		`"${text(d, "heading")}" jumps from ${text(d, "from").toUpperCase()} to ${text(d, "to").toUpperCase()}.`,
+	NO_SUBHEADINGS: (d) => `${num(d, "words")} words of content run under no subheading.`,
 	CANONICAL_MISSING: (d) =>
 		urls(d, "outsideHead").length > 0
 			? "The canonical link is written in <body>, where Google ignores it."
@@ -87,6 +90,7 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${num(d, "count")} of ${num(d, "total")} scripts and stylesheets on this site's host are closed to Googlebot.`,
 	IMAGES_MISSING_ALT: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} images in the content have no alt text.`,
+	NO_IMAGES: (d) => `The content runs to ${num(d, "words")} words without a single image.`,
 	THIN_CONTENT: (d) =>
 		`The content has ${num(d, "value")} words; aim for at least ${num(d, "min")}.`,
 	AUTHOR_MISSING: () => "Nothing on the page names who wrote it.",
@@ -97,6 +101,13 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		return external === 0
 			? "The content contains no links at all."
 			: `The content links out ${external} time${external === 1 ? "" : "s"}, never to this site.`;
+	},
+	NO_EXTERNAL_SOURCES: (d) => {
+		const links = num(d, "links");
+		if (links === 0) return "The content contains no links, so it cites no source.";
+		return links === 1
+			? "The one link in the content stays on this site."
+			: `All ${links} links in the content stay on this site.`;
 	},
 	INTERNAL_LINKS_NOFOLLOW: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} links to this site ${d.count === 1 ? "is" : "are"} marked nofollow.`,

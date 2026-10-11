@@ -15,6 +15,7 @@ import { DEVELOPMENT_HOST_REFERENCES_CHECK } from './development-host-references
 import { DATES_INCONSISTENT_CHECK } from './dates-inconsistent/dates-inconsistent.check';
 import { DATE_BUMPED_WITHOUT_CHANGES_CHECK } from './date-bumped-without-changes/date-bumped-without-changes.check';
 import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
+import { H1_LENGTH_CHECK } from './h1-length/h1-length.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
@@ -37,7 +38,10 @@ import { META_DESCRIPTION_MISSING_CHECK } from './meta-description-missing/meta-
 import { META_REFRESH_CHECK } from './meta-refresh/meta-refresh.check';
 import { MIXED_CONTENT_CHECK } from './mixed-content/mixed-content.check';
 import { NEAR_DUPLICATE_CONTENT_CHECK } from './near-duplicate-content/near-duplicate-content.check';
+import { NO_EXTERNAL_SOURCES_CHECK } from './no-external-sources/no-external-sources.check';
+import { NO_IMAGES_CHECK } from './no-images/no-images.check';
 import { NO_INTERNAL_LINKS_CHECK } from './no-internal-links/no-internal-links.check';
+import { NO_SUBHEADINGS_CHECK } from './no-subheadings/no-subheadings.check';
 import { NOINDEX_CHECK } from './noindex/noindex.check';
 import { NOT_HTTPS_CHECK } from './not-https/not-https.check';
 import { OG_TAGS_MISSING_CHECK } from './og-tags-missing/og-tags-missing.check';
@@ -80,7 +84,9 @@ export const CHECKS: TCheckRegistry = {
   META_DESCRIPTION_LENGTH: META_DESCRIPTION_LENGTH_CHECK,
   H1_MISSING: H1_MISSING_CHECK,
   H1_MULTIPLE: H1_MULTIPLE_CHECK,
+  H1_LENGTH: H1_LENGTH_CHECK,
   HEADING_SKIP: HEADING_SKIP_CHECK,
+  NO_SUBHEADINGS: NO_SUBHEADINGS_CHECK,
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
   CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
@@ -92,10 +98,12 @@ export const CHECKS: TCheckRegistry = {
   ROBOTS_BLOCKS_RESOURCES: ROBOTS_BLOCKS_RESOURCES_CHECK,
   ROBOTS_BLOCKS_AI_SEARCH: ROBOTS_BLOCKS_AI_SEARCH_CHECK,
   IMAGES_MISSING_ALT: IMAGES_MISSING_ALT_CHECK,
+  NO_IMAGES: NO_IMAGES_CHECK,
   THIN_CONTENT: THIN_CONTENT_CHECK,
   AUTHOR_MISSING: AUTHOR_MISSING_CHECK,
   DATE_BUMPED_WITHOUT_CHANGES: DATE_BUMPED_WITHOUT_CHANGES_CHECK,
   NO_INTERNAL_LINKS: NO_INTERNAL_LINKS_CHECK,
+  NO_EXTERNAL_SOURCES: NO_EXTERNAL_SOURCES_CHECK,
   INTERNAL_LINKS_NOFOLLOW: INTERNAL_LINKS_NOFOLLOW_CHECK,
   INTERNAL_LINK_VARIANTS: INTERNAL_LINK_VARIANTS_CHECK,
   LINKS_WITHOUT_TEXT: LINKS_WITHOUT_TEXT_CHECK,

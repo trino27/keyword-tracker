@@ -80,7 +80,11 @@ export function makeCheckInput(
         },
       ],
       resourceUrls: ['https://a.example/a.png'],
-      links: ['https://a.example/another-post/'],
+      // One link on the site and one source off it, so neither link check fails.
+      links: [
+        'https://a.example/another-post/',
+        'https://study.example/report',
+      ],
       nofollowLinks: [],
       uncrawlableLinks: [],
       unnamedLinks: [],

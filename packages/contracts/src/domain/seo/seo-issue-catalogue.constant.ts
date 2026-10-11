@@ -311,15 +311,37 @@ export const ISSUE_SOURCES = {
       'Google Search Central: Understanding page experience in Google Search results',
     url: 'https://developers.google.com/search/docs/appearance/page-experience',
   },
-  // Backs Claude-SearchBot in ROBOTS_BLOCKS_AI_SEARCH; opened and read on 2026-10-11.
+  // The four below back Claude-SearchBot and the content checks drawn from Productive
+  // Shop's audit and AI-search guidance; opened and read on 2026-10-11. The three
+  // Productive Shop pages are industry sources, cited where no first party gives a number.
   claudeBots: {
     title:
       'Claude Help Center: Does Anthropic crawl data from the web, and how can site owners block the crawler?',
     url: 'https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler',
   },
+  productiveShopAudit: {
+    title:
+      'Productive Shop: Essential enterprise SEO audit for B2B websites [checklist]',
+    url: 'https://productiveshop.com/resources/blog/seo-audit-checklist/',
+  },
+  productiveShopAiSearch: {
+    title:
+      'Productive Shop: How do AI overviews and AI answer engines impact organic traffic?',
+    url: 'https://productiveshop.com/resources/blog/ai-saas-search-trends/',
+  },
+  productiveShopGeo: {
+    title: 'Productive Shop: Generative engine optimization services',
+    url: 'https://productiveshop.com/generative-engine-optimization-services/',
+  },
 } as const satisfies Record<string, ISeoIssueSource>;
 
 const SOURCE = ISSUE_SOURCES;
+
+/**
+ * THIN_CONTENT's line. Below it a post is short, and the checks that ask how a long text
+ * is built — sections, images, sources — do not judge it: a 150-word note needs none.
+ */
+const LONG_TEXT_WORDS = 300;
 
 /**
  * Every SEO issue the tracker can report — the crawl's checks are typed by the
@@ -425,6 +447,25 @@ export const SEO_ISSUE_CATALOGUE = {
       'The HTML standard no longer allows several <h1> elements to describe one document, and MDN advises one per page: a page with several main headings tells screen-reader users that it is about several things. Google says it copes with any heading structure, so the cost is clarity for readers and assistive technology rather than a ranking penalty.',
     sources: [SOURCE.mdnHeadings, SOURCE.starterGuide],
   },
+  H1_LENGTH: {
+    // A notice, and an industry number: Google publishes no length for headings and says
+    // their structure does not matter to Search. The bounds are the audit checklist's.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'H1 length',
+    plain: {
+      what: 'The main heading is very short or very long',
+      why: 'A heading of a word or two rarely tells a reader what the post covers, and one longer than a sentence is hard to take in at a glance. Google sets no length for headings, so treat this as a prompt to reread it, not a rule.',
+      fix: "The writer or editor can rewrite the post's main heading in the CMS to roughly 15–70 characters that say what the post covers.",
+    },
+    hint: 'Main headings outside 15–70 characters are too vague or too long to scan.',
+    explanation:
+      "The post's main heading (<h1>) is under 15 or over 70 characters. Google publishes no length for headings and states that heading structure does not matter to Search; the range is the audit industry's working rule, taken from Productive Shop's enterprise audit checklist, which flags an H1 over 70 characters and asks for 15–60. A heading too short to say what the post is about, or too long to read at a glance, costs readers rather than rankings. The heading measured is the first <h1> of the main content, or of the document when the content has none.",
+    sources: [SOURCE.productiveShopAudit, SOURCE.starterGuide],
+    min: 15,
+    max: 70,
+    skipReason: 'No main heading to measure.',
+  },
   HEADING_SKIP: {
     owner: 'crawl',
     severity: 'notice',
@@ -439,6 +480,26 @@ export const SEO_ISSUE_CATALOGUE = {
       "Headings form an outline that screen-reader users navigate by, and a jump from <h2> to <h4> tells them a level is missing. MDN asks never to skip heading levels. Google's own guidance is explicit that heading order does not matter to Search, so this is an accessibility and readability finding, not a ranking one.",
     sources: [SOURCE.mdnHeadings, SOURCE.starterGuide],
     skipReason: 'Fewer than two headings — no outline to judge.',
+  },
+  NO_SUBHEADINGS: {
+    // A notice: Google says there is no ideal number of headings. The cost is to readers
+    // who scan a long post, and to screen-reader users who move through it by headings.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'No subheadings',
+    plain: {
+      what: 'This post is one long block of text with no subheadings',
+      why: 'Readers scan a long post by its subheadings to find the part they came for, and without them many leave. Google says there is no ideal number of headings, so this is about readers, not a ranking rule.',
+      fix: 'The writer or editor can split the post into sections in the CMS, each under a "Heading 2" that says what the section answers.',
+    },
+    hint: 'Break a long post into sections under H2 subheadings.',
+    explanation: `The main content runs to ${LONG_TEXT_WORDS} words or more with no heading below the title — no <h2> to <h6>. Google's SEO Starter Guide asks for headings that help users navigate a page, while saying there is no magical, ideal number of them; MDN notes that screen-reader users commonly move through a page from heading to heading, and a post without any leaves them nothing to move by. Audit checklists flag a page with no H2 for the same reason. It is not a ranking switch: it is how a long text stays readable.`,
+    sources: [
+      SOURCE.starterGuide,
+      SOURCE.mdnHeadings,
+      SOURCE.productiveShopAudit,
+    ],
+    skipReason: `The text is under ${LONG_TEXT_WORDS} words, short enough to read without sections.`,
   },
   CANONICAL_MISSING: {
     owner: 'crawl',
@@ -614,6 +675,26 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.images, SOURCE.waiImages],
     skipReason: 'The page has no images.',
   },
+  NO_IMAGES: {
+    // A notice: no search engine asks for a number of images. Google's starter guide asks
+    // for images near relevant text; the AI-search figure is industry data.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'No images in the content',
+    plain: {
+      what: 'This post has no images',
+      why: 'Many people search visually, and an image is often how a post is first found in Google Images or shown beside a result. A long post with no chart, screenshot or photo is also harder to read.',
+      fix: 'The writer or editor can add at least one relevant image in the CMS — a chart, screenshot or diagram — near the text it illustrates, with alt text.',
+    },
+    hint: 'Add at least one relevant image near the text it illustrates.',
+    explanation: `The main content runs to ${LONG_TEXT_WORDS} words or more, holds no <img>, and the page shows no featured image either. Google's SEO Starter Guide asks sites to add high-quality images near relevant text, because many people search visually and an image can be how a page is found for the first time. Productive Shop's study of pages appearing in AI Overviews reports that they tend to carry more images — about five on an average blog post — which is a correlation in industry data, not a rule any search engine states. Images drawn by CSS, inline SVG and video embeds are not seen by this check.`,
+    sources: [
+      SOURCE.starterGuide,
+      SOURCE.images,
+      SOURCE.productiveShopAiSearch,
+    ],
+    skipReason: `The text is under ${LONG_TEXT_WORDS} words, short enough to stand without an image.`,
+  },
   THIN_CONTENT: {
     // A notice: Google says it has no preferred word count, so a short page is a prompt
     // to reread it, not a defect on the page.
@@ -629,7 +710,7 @@ export const SEO_ISSUE_CATALOGUE = {
     explanation:
       "Google says plainly that it has no preferred word count, and a short page that fully answers its question is fine. The 300-word line is an audit heuristic, not a Google rule: below it a blog post is more often a stub, a teaser for another page or a placeholder than a complete answer, and Google's guidance asks whether a page provides substantial, complete value compared with others on the topic. Read the page and decide whether it says everything a searcher needs.",
     sources: [SOURCE.helpfulContent],
-    min: 300,
+    min: LONG_TEXT_WORDS,
   },
   AUTHOR_MISSING: {
     owner: 'crawl',
@@ -677,6 +758,26 @@ export const SEO_ISSUE_CATALOGUE = {
     explanation:
       "Google finds pages and learns how they relate mainly by following links, and reads a link's anchor text as a description of the page it points to. A post whose text never links to another page on the same site passes none of that on. Links to a heading of this same page (a table of contents) do not count, since they lead nowhere new; nor do the navigation, related-posts rail and footer, which are not what the author wrote.",
     sources: [SOURCE.crawlableLinks, SOURCE.starterGuide],
+  },
+  NO_EXTERNAL_SOURCES: {
+    // A notice: Google asks for clear sourcing as a mark of trust, but a post built on the
+    // company's own data or the author's own experience may rightly cite nothing.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Cites no outside sources',
+    plain: {
+      what: "The text of this post doesn't link to any other website",
+      why: 'Google lists clear sourcing among the signs that content can be trusted. A post that states facts or figures without saying where they come from asks readers, and the AI assistants that quote pages, to take them on trust.',
+      fix: 'The writer can link the statistics, studies and quotes in the post to their original sources; if the post rests only on your own data or experience, this can be set aside.',
+    },
+    hint: 'Link claims, statistics and quotes to the sources they come from.',
+    explanation: `The main content runs to ${LONG_TEXT_WORDS} words or more and none of its links leads to another site. Google's guidance on helpful content names clear sourcing among the things that make content trustworthy, and its SEO Starter Guide recommends linking to resources that corroborate what you write; Productive Shop's guidance on being cited by AI assistants asks for the same. Not every post needs a source: one resting on the company's own data or the author's own experience may rightly link nowhere. The site's own subdomains count as the site, not as sources, and the navigation, sidebar and share buttons are not read.`,
+    sources: [
+      SOURCE.helpfulContent,
+      SOURCE.starterGuide,
+      SOURCE.productiveShopGeo,
+    ],
+    skipReason: `The text is under ${LONG_TEXT_WORDS} words, short enough to need no sources.`,
   },
   INTERNAL_LINKS_NOFOLLOW: {
     owner: 'crawl',
