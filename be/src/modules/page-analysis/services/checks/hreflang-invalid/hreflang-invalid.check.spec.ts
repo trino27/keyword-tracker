@@ -35,25 +35,15 @@ describe('HREFLANG_INVALID', () => {
           { lang: 'english', href: 'https://a.example/uk/' },
         ),
       ),
-    ).toEqual(
-      failsWith({ invalid: ['en_GB', 'english'], selfReferenced: true }),
-    );
+    ).toEqual(failsWith({ invalid: ['en_GB', 'english'] }));
   });
 
-  // Google ignores the whole set when the page is not in it, so a correct set of other
-  // languages is still a defect on this page.
-  it('fails a set that never names this page', () => {
+  // A set that leaves out its own page is HREFLANG_NO_SELF_REFERENCE's finding; reported
+  // here as well, one fact would count twice against the page (plan D14).
+  it("passes a valid set that omits this page — that is HREFLANG_NO_SELF_REFERENCE's", () => {
     expect(
       HREFLANG_INVALID_CHECK.evaluate(
         withAlternates({ lang: 'de-DE', href: 'https://a.example/de/post/' }),
-      ),
-    ).toEqual(failsWith({ invalid: [], selfReferenced: false }));
-  });
-
-  it('accepts a self-reference written without the trailing slash', () => {
-    expect(
-      HREFLANG_INVALID_CHECK.evaluate(
-        withAlternates({ lang: 'en', href: 'https://a.example/post' }),
       ),
     ).toEqual(PASSES);
   });
@@ -85,14 +75,80 @@ describe('HREFLANG_INVALID', () => {
     ]);
   });
 
+  /**
+   * Google: "Only language codes listed in ISO 639-1 and region codes listed in ISO
+   * 3166-1 Alpha 2 are supported; other codes … such as es-419, aren't supported." Each
+   * of these is valid BCP 47 that Google ignores.
+   */
+  it.each([
+    [
+      'es-419',
+      '"419" is a UN M.49 region; Google supports only two-letter ISO 3166-1 country codes',
+    ],
+    [
+      'fil',
+      '"fil" is not an ISO 639-1 code; Google supports only two-letter language codes',
+    ],
+    ['en-ZZ', '"ZZ" is not a country code'],
+    ['en-XA', '"XA" is not a country code'],
+    [
+      'de-DE-1996',
+      '"1996" follows the country; hreflang takes a language, an optional script and an optional country',
+    ],
+  ])('fails %s, which Google does not support', (lang, problem) => {
+    const verdict = HREFLANG_INVALID_CHECK.evaluate(
+      withAlternates(
+        { lang: 'en', href: SELF },
+        { lang, href: 'https://a.example/other/' },
+      ),
+    );
+
+    expect(evidenceOf(verdict)).toEqual([
+      `<link rel="alternate" hreflang="${lang}" href="https://a.example/other/"> — ${problem}`,
+    ]);
+  });
+
+  /**
+   * Google: alternate URLs "must be fully-qualified, including the transport method",
+   * and the tags "must be inside a well-formed <head> section". Lighthouse fails a
+   * relative href too.
+   */
+  it('fails a relative alternate URL, and an hreflang outside <head>, quoting each as written', () => {
+    const verdict = HREFLANG_INVALID_CHECK.evaluate(
+      makeCheckInput({
+        finalUrl: SELF,
+        parsed: {
+          alternates: [
+            { lang: 'en', href: SELF },
+            {
+              lang: 'de',
+              href: 'https://a.example/de/post/',
+              relativeHref: '/de/post/',
+            },
+          ],
+          alternatesOutsideHead: [
+            { lang: 'fr', href: 'https://a.example/fr/post/' },
+          ],
+        },
+      }),
+    );
+
+    expect(verdict).toEqual(failsWith({ invalid: ['de', 'fr'] }));
+    expect(evidenceOf(verdict)).toEqual([
+      '<link rel="alternate" hreflang="de" href="/de/post/"> — a relative URL; Google requires the full address, https:// included',
+      '<link rel="alternate" hreflang="fr" href="https://a.example/fr/post/"> — outside <head>, where Google does not read hreflang',
+    ]);
+  });
+
   // Real languages that happen to share a country's code are not corrected.
-  it('accepts se (Northern Sami) and uz-Latn', () => {
+  it('accepts se (Northern Sami), uz-Latn and zh-Hant-TW', () => {
     expect(
       HREFLANG_INVALID_CHECK.evaluate(
         withAlternates(
           { lang: 'en', href: SELF },
           { lang: 'se', href: 'https://a.example/se/' },
           { lang: 'uz-Latn', href: 'https://a.example/uz/' },
+          { lang: 'zh-Hant-TW', href: 'https://a.example/tw/' },
         ),
       ),
     ).toEqual(PASSES);

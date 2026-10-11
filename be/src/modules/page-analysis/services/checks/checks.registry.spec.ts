@@ -4,9 +4,10 @@ import { join } from 'node:path';
 import {
   ACTIVE_ISSUE_CODES,
   CONDITIONAL_ISSUE_CODES,
+  CRAWL_ISSUE_CODES,
+  PAGE_SPEED_ISSUE_CODES,
   RUN_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
-  SEO_ISSUE_CODES,
   skipReasonOf,
   type TSeoIssueCode,
 } from '@app/contracts';
@@ -48,14 +49,22 @@ const twoUnrelatedPages = () =>
   );
 
 describe('CHECKS', () => {
-  it('has exactly one check per catalogued code', () => {
-    expect(Object.keys(CHECKS).sort()).toEqual([...SEO_ISSUE_CODES].sort());
+  it('has exactly one check per crawl-owned code', () => {
+    expect(Object.keys(CHECKS).sort()).toEqual([...CRAWL_ISSUE_CODES].sort());
+  });
+
+  // A speed finding comes from Google's measurement, not from the HTML; a check for one
+  // would let the crawl write a code whose findings only the PageSpeed worker may clear.
+  it('has no check for a pageSpeed-owned code', () => {
+    for (const code of PAGE_SPEED_ISSUE_CODES) {
+      expect(Object.keys(CHECKS)).not.toContain(code);
+    }
   });
 
   // The key alone is not enough: two unmeasured checks are structurally identical, so
   // without the code on the unit, registering one under the other's key would compile.
   it('registers every check under the code it carries', () => {
-    for (const code of SEO_ISSUE_CODES) {
+    for (const code of CRAWL_ISSUE_CODES) {
       expect(CHECKS[code].code).toBe(code);
     }
   });
@@ -63,7 +72,7 @@ describe('CHECKS', () => {
   // What a check reads follows from the catalogue, never from the check — which is what
   // makes a run-shaped check under a page code a compile error rather than a silent no-op.
   it('gives a check the shape its catalogue scope calls for', () => {
-    for (const code of SEO_ISSUE_CODES) {
+    for (const code of CRAWL_ISSUE_CODES) {
       const expected = (RUN_ISSUE_CODES as TSeoIssueCode[]).includes(code)
         ? 'run'
         : 'page';
@@ -86,9 +95,10 @@ describe('evaluateChecks', () => {
   });
 
   it('does not count against a page a check that could not be judged', () => {
-    // No title: TITLE_LENGTH has nothing to measure, and TITLE_DUPLICATE has nothing to
-    // compare. Passing either would reward the page for the very thing TITLE_MISSING is
-    // failing it for.
+    // No title: TITLE_LENGTH has nothing to measure, TITLE_SCRIPT_MISMATCH no script to
+    // read nor year to date, and META_DESCRIPTION_REPEATS_TITLE and TITLE_DUPLICATE
+    // nothing to compare.
+    // Passing any would reward the page for the very thing TITLE_MISSING is failing it for.
     const run = twoUnrelatedPages();
     const { issues, checksApplicable, checksFailed, checksNotApplicable } =
       evaluateChecks(
@@ -98,12 +108,35 @@ describe('evaluateChecks', () => {
         ),
       )[0];
 
-    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 2);
+    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 5);
     expect(issues.map(({ code }) => code)).toEqual(['TITLE_MISSING']);
     expect(checksFailed).toBe(1);
     // Named, not counted: the screen quotes this code's reason back to the reader, so
     // the wrong code here would show "no title to measure" against the wrong check.
-    expect(checksNotApplicable).toEqual(['TITLE_LENGTH', 'TITLE_DUPLICATE']);
+    expect(checksNotApplicable).toEqual([
+      'TITLE_LENGTH',
+      'TITLE_SCRIPT_MISMATCH',
+      'TITLE_YEAR_OUTDATED',
+      'META_DESCRIPTION_REPEATS_TITLE',
+      'TITLE_DUPLICATE',
+    ]);
+  });
+
+  // Length and content are two facts (plan D35): no step-aside between the two.
+  it('a 40-character copy of the title fails both META_DESCRIPTION_REPEATS_TITLE and META_DESCRIPTION_LENGTH', () => {
+    const title = 'A complete guide to link building today';
+    const codes = evaluateChecks(
+      makeRunInput([
+        runPage('a', { parsed: { title, metaDescription: title } }),
+      ]),
+    )[0].issues.map(({ code }) => code);
+
+    expect(codes).toEqual(
+      expect.arrayContaining([
+        'META_DESCRIPTION_REPEATS_TITLE',
+        'META_DESCRIPTION_LENGTH',
+      ]),
+    );
   });
 
   it('drops every conditional check together on a bare page in a run of one', () => {
@@ -122,11 +155,24 @@ describe('evaluateChecks', () => {
               // No links to another page of the site, so neither link check that
               // reads them has anything to judge.
               links: [],
-              // And no date to contradict.
+              // And no date to contradict, or whose form to read.
               datePublished: null,
+              dateModified: null,
               // And no featured image to be lazy.
               featuredImage: null,
+              // And too short a text to be asked for sections, images or sources.
+              wordCount: 120,
+              // No article markup, trail, video or image of its own to judge.
+              articleMarkup: null,
+              breadcrumbs: [],
+              // Its only trail is one a script would insert, which cannot be confirmed.
+              scriptedSchemaTypes: ['BreadcrumbList'],
+              videos: [],
+              openGraph: {},
+              shareImage: null,
             },
+            // No image of its own was measured.
+            previewImage: null,
             // A robots.txt that governs no host this page touches: neither robots
             // check has a rule to read.
             robots: { allows: () => null, matchingRule: () => null },
@@ -238,11 +284,12 @@ describe('evaluateChecks', () => {
         new URL(url).hostname === 'a.example' ? false : null,
       matchingRule: () => 'line 2: Disallow: /',
     };
-    // Thirty different words, ten times over: enough text for two copies to be compared.
+    // Thirty different words, ten times over: enough text for two copies to be compared
+    // — in Cyrillic, under a Latin title.
     const sameText = Array.from(
       { length: 10 },
       (_, n) =>
-        Array.from({ length: 30 }, (_, k) => `word${n}x${k}`).join(' ') + '.',
+        Array.from({ length: 30 }, (_, k) => `слово${n}х${k}`).join(' ') + '.',
     );
     const broken = (path: string) =>
       runPage(path, {
@@ -253,13 +300,64 @@ describe('evaluateChecks', () => {
         },
         redirected: true,
         redirects: [{ url: `https://a.example/${path}-old/`, status: 302 }],
+        previewImage: {
+          url: 'https://a.example/small.jpg',
+          status: 200,
+          width: 600,
+          height: 60,
+        },
         robots: blocked,
+        linkStatuses: {
+          // On `b` the canonical's target was read and is gone (CANONICAL_TARGET_BROKEN);
+          // on `c` it was not read, so CANONICAL_MISMATCH judges it as before.
+          documents: new Map(
+            path === 'b'
+              ? [
+                  [
+                    'https://a.example/x/',
+                    {
+                      url: 'https://a.example/x/',
+                      outcome: {
+                        kind: 'answered',
+                        status: 404,
+                        redirects: [],
+                        finalUrl: 'https://a.example/x/',
+                      },
+                      page: null,
+                    },
+                  ],
+                ]
+              : [],
+          ),
+          links: new Map([
+            [
+              'https://a.example/moved/',
+              {
+                kind: 'answered',
+                status: 200,
+                redirects: [{ url: 'https://a.example/moved/', status: 301 }],
+                finalUrl: 'https://a.example/new/',
+              },
+            ],
+            [
+              'https://gone.example/source',
+              {
+                kind: 'answered',
+                status: 404,
+                redirects: [],
+                finalUrl: 'https://gone.example/source',
+              },
+            ],
+          ]),
+        },
         headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
         htmlBytes: 2_000_000,
         parsed: {
-          title: 'Shared title',
-          metaDescription: 'Too short',
-          metaRobots: 'noindex, nosnippet',
+          // Too short, shared with the other page, and selling a past year.
+          title: 'Shared title for 2020',
+          // Too short, shared with the other broken page, and the title again.
+          metaDescription: 'Shared title for 2020',
+          metaRobots: ['noindex, nosnippet'],
           relativeCanonicals: ['/x/'],
           featuredImage: {
             loading: 'lazy',
@@ -285,20 +383,51 @@ describe('evaluateChecks', () => {
           blocks: sameText,
           metaRefresh: '0; url=/elsewhere/',
           viewport: null,
-          canonicals: ['https://a.example/x/', 'https://a.example/y/'],
+          // Two canonicals that disagree; on `a` the first is the page's own http://
+          // twin (CANONICAL_TO_HTTP), on `b` another page (CANONICAL_MISMATCH).
+          canonicals: [
+            path === 'a' ? 'http://a.example/a/' : 'https://a.example/x/',
+            'https://a.example/y/',
+          ],
           alternates: [{ lang: 'english', href: 'https://a.example/en/' }],
           openGraph: { 'og:url': 'https://staging.a.example/post/' },
           jsonLd: { types: [], keywords: [], articleFields: [] },
+          articleMarkup: {
+            source: 'json-ld',
+            type: 'Article',
+            headline: 'Something else entirely',
+            datePublished: 'October 3, 2026',
+            dateModified: null,
+            authors: [{ name: 'By Jane', type: null, urls: [], asText: true }],
+            images: [
+              { url: 'https://a.example/logo.png', width: 600, height: 60 },
+            ],
+          },
+          logos: ['https://a.example/logo.png'],
+          breadcrumbs: [
+            [
+              { position: null, name: 'Home', item: null },
+              { position: 2, name: 'Post', item: null },
+            ],
+          ],
           lang: null,
           h1s: ['One', 'Two'],
           headings: [
             { level: 1, text: 'One' },
             { level: 3, text: 'Three' },
           ],
-          images: [makeImage({ src: 'a.png', alt: null })],
+          images: [
+            makeImage({ src: 'IMG_1234.jpg', alt: null }),
+            makeImage({ src: null, srcset: 'b-800.jpg 800w' }),
+          ],
           resourceUrls: ['http://a.example/i.png'],
           renderResources: ['https://a.example/app.js'],
-          links: ['http://a.example/other/?utm_source=x'],
+          // A tracking variant, a link that redirects, and a source that is gone.
+          links: [
+            'http://a.example/other/?utm_source=x',
+            'https://a.example/moved/',
+            'https://gone.example/source',
+          ],
           nofollowLinks: ['http://a.example/other/?utm_source=x'],
           uncrawlableLinks: ['<a onclick="go()">Go</a>'],
           wordCount: 100,
@@ -308,20 +437,65 @@ describe('evaluateChecks', () => {
       url: 'http://a.example/plain/',
       finalUrl: 'http://a.example/plain/',
       robots: blocked,
+      // Its French version (makeCheckInput's `fr/` alternate) was read and does not
+      // name it back.
+      linkStatuses: {
+        links: new Map(),
+        documents: new Map([
+          [
+            'http://a.example/plain/fr/',
+            {
+              url: 'http://a.example/plain/fr/',
+              outcome: {
+                kind: 'answered',
+                status: 200,
+                redirects: [],
+                finalUrl: 'http://a.example/plain/fr/',
+              },
+              page: { noindex: false, canonical: null, alternates: [] },
+            },
+          ],
+        ]),
+      },
       parsed: {
         title: null,
         metaDescription: null,
         canonicals: [],
         h1s: [],
+        // A long text under no subheading, with no image and no link: what the broken
+        // pages are too short to be asked about.
+        headings: [],
+        images: [],
+        featuredImage: null,
         links: [],
         jsonLd: { types: ['Article'], keywords: [], articleFields: [] },
+        breadcrumbs: [],
+        // A French version only: the set leaves this page out, and the French page does
+        // not name it back either.
+        alternates: [{ lang: 'fr', href: 'http://a.example/plain/fr/' }],
+        // Not the page's address, and not a staging host either.
+        openGraph: {
+          ...makeCheckInput().parsed.openGraph,
+          'og:url': 'http://a.example/elsewhere/',
+        },
+        // A time with no zone, and an author written as a bare string.
+        datePublished: '2026-10-03T09:00:00',
+        articleMarkup: {
+          ...makeCheckInput().parsed.articleMarkup!,
+          authors: [{ name: 'Gazeta', type: null, urls: [], asText: true }],
+        },
       },
     });
 
     const evaluations = evaluateChecks(
       makeRunInput(
-        [broken('a'), broken('b'), opposite],
-        [keywordsOf('same'), keywordsOf('same'), keywordsOf('other')],
+        [broken('a'), broken('b'), broken('c'), opposite],
+        [
+          keywordsOf('same'),
+          keywordsOf('same'),
+          keywordsOf('same'),
+          keywordsOf('other'),
+        ],
       ),
     );
     const issues = evaluations.flatMap((evaluation) => evaluation.issues);

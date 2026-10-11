@@ -22,6 +22,7 @@ import {
   CrawlResultsService,
   type IRunPage,
 } from '@modules/pages/services/crawl-results/crawl-results.service';
+import { PageSpeedQueueService } from '@modules/pages/services/page-speed-queue/page-speed-queue.service';
 import {
   BOT_CHALLENGE_REASON,
   MAX_PAGE_URL_LENGTH,
@@ -43,6 +44,8 @@ import type {
   IRunStep,
 } from '../../pipelines/run-pipeline/run-step.interface';
 import type { ICrawlRunExecutor } from '../../ports/crawl-run-executor.port';
+import { NO_OUTBOUND_FACTS } from '@modules/page-analysis/interfaces/outbound-facts.interface';
+import { OutboundChecksService } from '../outbound-checks/outbound-checks.service';
 import { PostSelectionService } from '../post-selection/post-selection.service';
 import { SitemapDiscoveryService } from '../sitemap-discovery/sitemap-discovery.service';
 
@@ -118,6 +121,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
   private readonly pipeline: readonly IRunStep[] = assertRunPipeline([
     { name: 'discovery', run: (context) => this.discover(context) },
     { name: 'fetch', run: (context) => this.fetch(context) },
+    { name: 'outbound', run: (context) => this.outbound(context) },
     { name: 'analysis', run: (context) => this.analyse(context) },
     {
       name: 'persist',
@@ -131,8 +135,10 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
     private readonly discovery: SitemapDiscoveryService,
     private readonly selection: PostSelectionService,
     private readonly siteProbe: SiteProbeService,
+    private readonly outboundChecks: OutboundChecksService,
     private readonly analysis: PageAnalysisService,
     private readonly results: CrawlResultsService,
+    private readonly pageSpeedQueue: PageSpeedQueueService,
     private readonly transactions: TransactionRunner,
     @InjectPinoLogger(CrawlRunExecutorService.name)
     private readonly logger: PinoLogger,
@@ -225,9 +231,27 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       context.siteProbes = await this.siteProbe.probe(
         servedOrigin,
         discovery.robots,
+        new URL(target.websiteUrl).origin,
         run.id,
         signal,
       );
+  }
+
+  /**
+   * The posts' links, canonical targets and hreflang alternates, asked under a budget and
+   * a deadline of their own (plan D4, D6, D26). A stage of its own so its time shows in
+   * the run's timings; still before the transaction, like every request a run makes.
+   */
+  private async outbound(context: IRunContext): Promise<void> {
+    const { discovery, selection, target, signal } = context;
+    if (!discovery || !selection || !target || selection.pages.length === 0)
+      return;
+    context.outbound = await this.outboundChecks.check({
+      pages: selection.pages,
+      robots: discovery.robots,
+      robotsOrigin: new URL(target.websiteUrl).origin,
+      signal,
+    });
   }
 
   /**
@@ -247,6 +271,8 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       selection.pages.map((page) => ({
         ...page,
         previous: previous.get(page.url) ?? null,
+        timeZone: target.timeZone,
+        linkStatuses: context.outbound ?? NO_OUTBOUND_FACTS,
       })),
       target.siteKey,
     );
@@ -264,6 +290,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
         status: item.status,
         httpStatus: item.httpStatus,
         reason: item.reason,
+        clientRendered: item.clientRendered,
         page: item.page
           ? {
               finalUrl: item.page.finalUrl,
@@ -280,6 +307,9 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       })),
       hostVariants: context.siteProbes?.hostVariants ?? null,
       missingPage: context.siteProbes?.missingPage ?? null,
+      home: context.siteProbes?.home ?? null,
+      favicon: context.siteProbes?.favicon ?? null,
+      faviconFallback: context.siteProbes?.faviconFallback ?? null,
     });
     context.outcome = outcomeOf(
       selection.pages.length,
@@ -322,6 +352,14 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
               pages,
             })
           : new Map<string, number>();
+      // Queued in the finalize transaction: a rolled-back finalize queues nothing, and the
+      // NOTIFY reaches the PageSpeed worker only once the pages are committed. The crawl
+      // does not wait for Google — it only leaves the pages in line (plan D4).
+      const queuedForSpeed = await this.pageSpeedQueue.enqueueForWorker(
+        tx,
+        [...pageIds.values()],
+        new Date(),
+      );
       const items: ICrawlRunItemRecord[] = (selection?.items ?? []).map(
         (item) => ({
           sitemapPosition: item.sitemapPosition,
@@ -344,6 +382,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
           runId: run.id,
           status: outcome.status,
           pagesDone: outcome.pagesDone,
+          queuedForSpeed,
         },
         'Crawl run finished',
       );

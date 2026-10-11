@@ -11,7 +11,11 @@ import {
   RemoteApiTooLargeError,
   RemoteApiTooManyRedirectsError,
 } from '@infrastructure/remote-api/remote-api.errors';
-import type { IParsedPage } from '@modules/page-analysis/interfaces/parsed-page.interface';
+import type {
+  IParsedPage,
+  IPreviewImage,
+} from '@modules/page-analysis/interfaces/parsed-page.interface';
+import { readImageHeader } from '@modules/page-analysis/services/checks/_shared/image-header';
 import { extractPage } from '@modules/page-analysis/services/html-extraction/extract-page';
 import {
   ARTICLE_SCHEMA_TYPES,
@@ -32,6 +36,7 @@ import type {
   ISelectedItem,
 } from '../../interfaces/crawled-page.interface';
 import type { RobotsPolicy } from '../robots-policy/robots-policy';
+import { isShareImageAddress } from '@modules/page-analysis/services/checks/_shared/share-image';
 import { SiteHttpClient } from '../site-http-client/site-http-client';
 
 export interface IPostSelectionInput {
@@ -60,7 +65,13 @@ const skip = (
   status: ISelectedItem['status'],
   reason: string,
   httpStatus: number | null = null,
-): TItemWithoutPosition => ({ status, reason, httpStatus, page: null });
+): TItemWithoutPosition => ({
+  status,
+  reason,
+  httpStatus,
+  clientRendered: false,
+  page: null,
+});
 
 /**
  * "The first 15 posts in sitemap order" (§10.2): entries are considered position by
@@ -180,19 +191,23 @@ export class PostSelectionService {
     // Last, because it needs the parse: a page with nothing to read is not a post,
     // whatever its markup claims about itself.
     if (parsed.wordCount < MIN_POST_WORD_COUNT)
-      return skip(
-        'skipped_listing',
-        parsed.clientRendered
-          ? `Rendered by JavaScript: the HTML itself holds ${parsed.wordCount} words, ` +
-              'which is all a crawler that runs no scripts will ever read'
-          : `Too little content to analyse (${parsed.wordCount} words)`,
-        response.status,
-      );
+      return {
+        ...skip(
+          'skipped_listing',
+          parsed.clientRendered
+            ? `Rendered by JavaScript: the HTML itself holds ${parsed.wordCount} words, ` +
+                'which is all a crawler that runs no scripts will ever read'
+            : `Too little content to analyse (${parsed.wordCount} words)`,
+          response.status,
+        ),
+        clientRendered: parsed.clientRendered,
+      };
 
     return {
       status: 'crawled',
       reason: null,
       httpStatus: response.status,
+      clientRendered: false,
       page: {
         sitemapPosition,
         url,
@@ -206,8 +221,54 @@ export class PostSelectionService {
         responseMs: response.ttfbMs,
         htmlBytes: response.bytes,
         parsed,
+        previewImage: await this.measurePreviewImage(
+          parsed,
+          response.finalUrl,
+          input,
+        ),
       },
     };
+  }
+
+  /**
+   * The first bytes of the image the page names for itself — og:image, or else its
+   * article markup's first image — whose header carries the pixel size. One request per
+   * post, cut at the probe cap; the size a page declares for the image is often not the
+   * file's, so the check reads the file.
+   */
+  private async measurePreviewImage(
+    parsed: IParsedPage,
+    pageUrl: string,
+    input: IPostSelectionInput,
+  ): Promise<IPreviewImage | null> {
+    // An og:image naming no fetchable address (`content="https:"`) would resolve to the
+    // page itself; the article markup's image is the page's next choice.
+    const named =
+      (parsed.shareImage !== null && isShareImageAddress(parsed.shareImage)
+        ? parsed.shareImage
+        : null) ?? parsed.articleMarkup?.images[0]?.url;
+    let url: string;
+    try {
+      url = new URL(named ?? '', pageUrl).href;
+    } catch {
+      return null;
+    }
+    if (!named || !/^https?:/.test(url) || !input.robots.isAllowed(url))
+      return null;
+    try {
+      const response = await this.http.getImageHead(url, input.signal);
+      const header =
+        response.status === 200 ? readImageHeader(response.body) : null;
+      return {
+        url,
+        status: response.status,
+        width: header?.width ?? null,
+        height: header?.height ?? null,
+      };
+    } catch (error) {
+      if (!(error instanceof RemoteApiError)) throw error;
+      return { url, status: null, width: null, height: null };
+    }
   }
 
   private checkBeforeFetch(

@@ -24,14 +24,16 @@ describe("IssuesSection", () => {
 		]);
 
 		const headings = screen
-			.getAllByText(/^(Errors|Warnings|Notices)$/)
+			.getAllByText(/^(Critical|Important|Improvements)$/)
 			.map((node) => node.textContent);
-		expect(headings).toEqual(["Errors", "Warnings"]);
+		expect(headings).toEqual(["Critical", "Important"]);
 		expect(
 			screen.getByText("The content has 120 words; aim for at least 300."),
 		).toBeInTheDocument();
 		expect(
-			screen.getByText("Posts under 300 words rarely answer a query well enough to rank."),
+			screen.getByText(
+				"Posts under 300 words are often stubs or teasers; check this one fully answers its question.",
+			),
 		).toBeInTheDocument();
 	});
 

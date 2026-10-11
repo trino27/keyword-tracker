@@ -60,6 +60,27 @@ describe('DATE_BUMPED_WITHOUT_CHANGES', () => {
     ).toEqual(PASSES);
   });
 
+  /** One moment spelled two ways, and a date longer than the 64 characters a crawl keeps. */
+  it('passes the same date written differently, or stored cut', () => {
+    expect(
+      DATE_BUMPED_WITHOUT_CHANGES_CHECK.evaluate(
+        comparing(
+          { contentHash: SAME, dateModified: '2026-10-01T09:00:00+00:00' },
+          { dateModified: '2026-10-01T09:00:00Z' },
+        ),
+      ),
+    ).toEqual(PASSES);
+    const long = `2026-10-01T09:00:00Z ${'x'.repeat(80)}`;
+    expect(
+      DATE_BUMPED_WITHOUT_CHANGES_CHECK.evaluate(
+        comparing(
+          { contentHash: SAME, dateModified: long.slice(0, 64) },
+          { dateModified: long },
+        ),
+      ),
+    ).toEqual(PASSES);
+  });
+
   it.each([
     ['the first crawl of the page', null, {}],
     [

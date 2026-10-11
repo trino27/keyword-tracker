@@ -1,16 +1,205 @@
 import { describe, expect, it } from 'vitest';
 import {
   ACTIVE_ISSUE_CODES,
+  CRAWL_ISSUE_CODES,
+  ISSUE_CATALOGUES,
+  ISSUE_OWNERS,
+  LIGHTHOUSE_ISSUE_CODES,
+  SCORED_ISSUE_OWNERS,
+  issueCodesOf,
   PAGE_ISSUE_CODES,
+  PAGE_SPEED_CODES_BY_STRATEGY,
+  PAGE_SPEED_ISSUE_CODES,
   RUN_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
   SEO_ISSUE_CODES,
-} from './seo-issue-catalogue.constant';
+} from './catalogue/issue-catalogues.constant';
+import { CWV_ISSUE_CODES } from '../page-speed/cwv-issue-codes.constant';
+import { CWV_THRESHOLDS } from '../page-speed/cwv-thresholds.constant';
+import { CWV_METRICS } from '../page-speed/cwv-metric.enum';
+import { PSI_STRATEGIES } from '../page-speed/psi-strategy.enum';
+import { SITE_CHECK_CATALOGUE } from '../site/site-check-catalogue.constant';
+import { inclusionBarViolations } from './inclusion-bar/inclusion-bar.util';
+
+describe('the owner registry', () => {
+  it('derives the owners from the registry: crawl, pageSpeed, lighthouse', () => {
+    expect([...ISSUE_OWNERS].sort()).toEqual([
+      'crawl',
+      'lighthouse',
+      'pageSpeed',
+    ]);
+    expect(ISSUE_OWNERS).toEqual(Object.keys(ISSUE_CATALOGUES));
+  });
+
+  /**
+   * The owner is the key an entry sits under, stamped onto the flattened catalogue — so an
+   * entry cannot claim one owner while living in another's catalogue.
+   */
+  it('stamps each entry with the owner whose catalogue holds it', () => {
+    for (const owner of ISSUE_OWNERS)
+      for (const code of issueCodesOf(owner))
+        expect({ code, owner: SEO_ISSUE_CATALOGUE[code].owner }).toEqual({
+          code,
+          owner,
+        });
+  });
+
+  it('no code belongs to two owners', () => {
+    const all = ISSUE_OWNERS.flatMap((owner) => issueCodesOf(owner));
+    expect(new Set(all).size).toBe(all.length);
+    expect([...all].sort()).toEqual([...SEO_ISSUE_CODES].sort());
+  });
+
+  it('the crawl and Lighthouse are scored, the Core Web Vitals are not', () => {
+    expect([...SCORED_ISSUE_OWNERS].sort()).toEqual(['crawl', 'lighthouse']);
+  });
+
+  it("gives the crawl's code list none of Lighthouse's", () => {
+    const crawl = new Set<string>(CRAWL_ISSUE_CODES);
+    expect(LIGHTHOUSE_ISSUE_CODES.filter((code) => crawl.has(code))).toEqual(
+      [],
+    );
+  });
+});
+
+describe('the catalogue split by owner', () => {
+  /**
+   * Each writer replaces only its own codes, so a code in both sets would be deleted by
+   * one writer's replace and re-added by the other's, and a code in neither would never
+   * be cleared at all.
+   */
+  it("partitions the catalogue by owner: every code in exactly one writer's set", () => {
+    expect(
+      [
+        ...CRAWL_ISSUE_CODES,
+        ...PAGE_SPEED_ISSUE_CODES,
+        ...LIGHTHOUSE_ISSUE_CODES,
+      ].sort(),
+    ).toEqual([...SEO_ISSUE_CODES].sort());
+    const overlap = CRAWL_ISSUE_CODES.filter((code) =>
+      (PAGE_SPEED_ISSUE_CODES as string[]).includes(code),
+    );
+    expect(overlap).toEqual([]);
+  });
+
+  it('gives the PageSpeed worker exactly the twelve Core Web Vitals codes, six per strategy, and image delivery', () => {
+    expect([...PAGE_SPEED_ISSUE_CODES].sort()).toEqual([
+      'CWV_CLS_NEEDS_IMPROVEMENT',
+      'CWV_CLS_NEEDS_IMPROVEMENT_DESKTOP',
+      'CWV_CLS_POOR',
+      'CWV_CLS_POOR_DESKTOP',
+      'CWV_INP_NEEDS_IMPROVEMENT',
+      'CWV_INP_NEEDS_IMPROVEMENT_DESKTOP',
+      'CWV_INP_POOR',
+      'CWV_INP_POOR_DESKTOP',
+      'CWV_LCP_NEEDS_IMPROVEMENT',
+      'CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP',
+      'CWV_LCP_POOR',
+      'CWV_LCP_POOR_DESKTOP',
+      'IMAGE_DELIVERY_INEFFICIENT',
+    ]);
+  });
+
+  /**
+   * Each strategy's replace deletes its own codes only, so a speed code in both lists would
+   * be erased by the other device's measurement, and one in neither would never be cleared.
+   */
+  it("splits the speed codes by strategy: six CWV codes each, and image delivery is mobile's", () => {
+    for (const strategy of PSI_STRATEGIES) {
+      const leaves = CWV_METRICS.flatMap((metric) =>
+        Object.values(CWV_ISSUE_CODES[strategy][metric]),
+      );
+      const extra = strategy === 'mobile' ? ['IMAGE_DELIVERY_INEFFICIENT'] : [];
+      expect([...PAGE_SPEED_CODES_BY_STRATEGY[strategy]].sort()).toEqual(
+        [...leaves, ...extra].sort(),
+      );
+      for (const code of PAGE_SPEED_CODES_BY_STRATEGY[strategy])
+        expect({ code, strategy: SEO_ISSUE_CATALOGUE[code].strategy }).toEqual({
+          code,
+          strategy,
+        });
+    }
+    expect(
+      [
+        ...PAGE_SPEED_CODES_BY_STRATEGY.mobile,
+        ...PAGE_SPEED_CODES_BY_STRATEGY.desktop,
+      ].sort(),
+    ).toEqual([...PAGE_SPEED_ISSUE_CODES].sort());
+  });
+
+  /**
+   * The badge reads the thresholds, the finding reads the catalogue's bound; if they
+   * drifted, a yellow badge could sit beside no finding, or a finding beside a green one.
+   */
+  it("each CWV code's max is its metric's threshold for its band, on both strategies", () => {
+    for (const strategy of PSI_STRATEGIES)
+      for (const metric of CWV_METRICS) {
+        const codes = CWV_ISSUE_CODES[strategy][metric];
+        expect(SEO_ISSUE_CATALOGUE[codes.needsImprovement].max).toBe(
+          CWV_THRESHOLDS[metric].good,
+        );
+        expect(SEO_ISSUE_CATALOGUE[codes.poor].max).toBe(
+          CWV_THRESHOLDS[metric].poor,
+        );
+      }
+  });
+
+  /** D10: falling out of search is Critical; a slow page shows, so it is at most Important. */
+  it('makes a poor metric a warning and one that needs improvement a notice', () => {
+    for (const metric of CWV_METRICS) {
+      expect(
+        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.mobile[metric].poor].severity,
+      ).toBe('warning');
+      expect(
+        SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.mobile[metric].needsImprovement]
+          .severity,
+      ).toBe('notice');
+    }
+  });
+
+  it("gives a desktop code its mobile twin's severity", () => {
+    for (const metric of CWV_METRICS)
+      for (const band of ['needsImprovement', 'poor'] as const)
+        expect(
+          SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.desktop[metric][band]].severity,
+        ).toBe(
+          SEO_ISSUE_CATALOGUE[CWV_ISSUE_CODES.mobile[metric][band]].severity,
+        );
+  });
+
+  /** D48: two codes of one metric must not read as one name where a label stands alone. */
+  it('names the device in every CWV label', () => {
+    for (const strategy of PSI_STRATEGIES)
+      for (const metric of CWV_METRICS)
+        for (const code of Object.values(CWV_ISSUE_CODES[strategy][metric]))
+          expect(SEO_ISSUE_CATALOGUE[code].label).toMatch(
+            new RegExp(` on ${strategy}$`),
+          );
+  });
+
+  /**
+   * D50: Lighthouse computes it, but it is a speed opportunity, not a check — so it sits
+   * with the Core Web Vitals, unscored, and its bar is the catalogue's own `min`.
+   */
+  it('IMAGE_DELIVERY_INEFFICIENT is a pageSpeed code: unscored, mobile, an Improvement at 100 KiB', () => {
+    expect(SEO_ISSUE_CATALOGUE.IMAGE_DELIVERY_INEFFICIENT).toMatchObject({
+      owner: 'pageSpeed',
+      strategy: 'mobile',
+      severity: 'notice',
+      min: 102_400,
+    });
+    expect(
+      (LIGHTHOUSE_ISSUE_CODES as string[]).includes(
+        'IMAGE_DELIVERY_INEFFICIENT',
+      ),
+    ).toBe(false);
+  });
+});
 
 describe('the catalogue split by scope', () => {
-  it('partitions the catalogue: every code in exactly one list', () => {
+  it("partitions the crawl's codes: every one in exactly one list", () => {
     expect([...PAGE_ISSUE_CODES, ...RUN_ISSUE_CODES].sort()).toEqual(
-      [...SEO_ISSUE_CODES].sort(),
+      [...CRAWL_ISSUE_CODES].sort(),
     );
     const overlap = PAGE_ISSUE_CODES.filter((code) =>
       (RUN_ISSUE_CODES as string[]).includes(code),
@@ -62,6 +251,12 @@ describe('what the catalogue tells a reader', () => {
     }
   });
 
+  /** Plan D1: an industry reading of search, unbacked by a first party, is at most a notice. */
+  it('holds the inclusion bar: no industry-only check above notice', () => {
+    expect(inclusionBarViolations(SEO_ISSUE_CATALOGUE)).toEqual([]);
+    expect(inclusionBarViolations(SITE_CHECK_CATALOGUE)).toEqual([]);
+  });
+
   it('backs every check with at least one https source', () => {
     for (const code of SEO_ISSUE_CODES) {
       const { sources } = SEO_ISSUE_CATALOGUE[code];
@@ -75,9 +270,9 @@ describe('what the catalogue tells a reader', () => {
 });
 
 describe('the catalogue split by whether the check still runs', () => {
-  it('holds every code the catalogue has not retired', () => {
+  it('holds every crawl code the catalogue has not retired', () => {
     const running = Object.entries(SEO_ISSUE_CATALOGUE)
-      .filter(([, entry]) => !('enabled' in entry))
+      .filter(([, entry]) => entry.owner === 'crawl' && !('enabled' in entry))
       .map(([code]) => code)
       .sort();
 
@@ -99,8 +294,33 @@ describe('the catalogue split by whether the check still runs', () => {
     );
   });
 
-  /** Nothing is retired today; this says so out loud rather than by silence. */
-  it('runs every catalogued check right now', () => {
-    expect([...ACTIVE_ISSUE_CODES].sort()).toEqual([...SEO_ISSUE_CODES].sort());
+  /**
+   * Nothing is retired today; this says so out loud rather than by silence. The speed
+   * codes are not checks — no crawl runs them — so they are never active.
+   */
+  it('runs every catalogued crawl check right now', () => {
+    expect([...ACTIVE_ISSUE_CODES].sort()).toEqual(
+      [...CRAWL_ISSUE_CODES].sort(),
+    );
+  });
+});
+
+describe('what a passed check reads as', () => {
+  /** A list of checks shows this beside a pass; the label beside a pass reads backwards. */
+  it('gives every check a pass label that is not its problem label', () => {
+    for (const code of [...CRAWL_ISSUE_CODES, ...LIGHTHOUSE_ISSUE_CODES]) {
+      const entry = SEO_ISSUE_CATALOGUE[code] as {
+        label: string;
+        passLabel: string;
+      };
+      expect({ code, ok: entry.passLabel.trim().length > 0 }).toEqual({
+        code,
+        ok: true,
+      });
+      expect({ code, same: entry.passLabel === entry.label }).toEqual({
+        code,
+        same: false,
+      });
+    }
   });
 });

@@ -1,6 +1,7 @@
 import type { IBestPosition } from './best-position.interface.js';
 import type { IKeywordPosition } from './keyword-position.interface.js';
 import type { IPageScore } from './page-score/page-score.util.js';
+import type { IPageSpeedSummary } from '../page-speed/page-speed-summary.interface.js';
 
 export interface IPageIssueCounts {
   total: number;
@@ -26,7 +27,14 @@ export interface IPageListItem {
   bestPosition: IBestPosition | null;
   /** The share of the checks that could apply to THIS page and passed. Always present. */
   score: IPageScore;
+  /** Speed findings included: a failing Core Web Vital is an issue like any other. */
   issues: IPageIssueCounts;
+  /**
+   * The page's Core Web Vitals and its place in the PageSpeed queue. Null: the page has
+   * never been queued — crawled before PageSpeed existed and not re-crawled or seeded since.
+   * Never part of `score`.
+   */
+  pageSpeed: IPageSpeedSummary | null;
   /** The latest snapshot of any of the page's keywords; ISO-8601 UTC. */
   lastCapturedAt: string | null;
 }

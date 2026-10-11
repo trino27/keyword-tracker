@@ -1,9 +1,29 @@
 import {
   ACTIVE_ISSUE_CODES,
   SEO_ISSUE_CATALOGUE,
-  type TSeoIssue,
+  type TCrawlIssueCode,
+  type TCrawlSeoIssue,
   type TSeoIssueCode,
 } from '@app/contracts';
+import { ARTICLE_DATE_FORMAT_INVALID_CHECK } from './article-date-format-invalid/article-date-format-invalid.check';
+import { ARTICLE_HEADLINE_MISMATCH_CHECK } from './article-headline-mismatch/article-headline-mismatch.check';
+import { AUTHOR_MARKUP_INCOMPLETE_CHECK } from './author-markup-incomplete/author-markup-incomplete.check';
+import { BREADCRUMB_INVALID_CHECK } from './breadcrumb-invalid/breadcrumb-invalid.check';
+import { BREADCRUMB_MISSING_CHECK } from './breadcrumb-missing/breadcrumb-missing.check';
+import { BROKEN_LINKS_CHECK } from './broken-links/broken-links.check';
+import { LINKS_TO_REDIRECTS_CHECK } from './links-to-redirects/links-to-redirects.check';
+import { CANONICAL_TARGET_BROKEN_CHECK } from './canonical-target-broken/canonical-target-broken.check';
+import { CANONICAL_TO_HTTP_CHECK } from './canonical-to-http/canonical-to-http.check';
+import { META_DESCRIPTION_REPEATS_TITLE_CHECK } from './meta-description-repeats-title/meta-description-repeats-title.check';
+import { OG_URL_MISMATCH_CHECK } from './og-url-mismatch/og-url-mismatch.check';
+import { IMAGE_FILENAMES_GENERIC_CHECK } from './image-filenames-generic/image-filenames-generic.check';
+import { IMAGE_PREVIEW_NOT_LARGE_CHECK } from './image-preview-not-large/image-preview-not-large.check';
+import { IMAGES_NOT_INDEXABLE_CHECK } from './images-not-indexable/images-not-indexable.check';
+import { PREVIEW_IMAGE_IS_LOGO_CHECK } from './preview-image-is-logo/preview-image-is-logo.check';
+import { PREVIEW_IMAGE_TOO_SMALL_CHECK } from './preview-image-too-small/preview-image-too-small.check';
+import { TITLE_SCRIPT_MISMATCH_CHECK } from './title-script-mismatch/title-script-mismatch.check';
+import { TITLE_YEAR_OUTDATED_CHECK } from './title-year-outdated/title-year-outdated.check';
+import { VIDEO_WITHOUT_METADATA_CHECK } from './video-without-metadata/video-without-metadata.check';
 import { AUTHOR_MISSING_CHECK } from './author-missing/author-missing.check';
 import { CANONICAL_CONFLICT_CHECK } from './canonical-conflict/canonical-conflict.check';
 import { CANONICAL_RELATIVE_CHECK } from './canonical-relative/canonical-relative.check';
@@ -17,6 +37,8 @@ import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
+import { HREFLANG_NOT_RECIPROCAL_CHECK } from './hreflang-not-reciprocal/hreflang-not-reciprocal.check';
+import { HREFLANG_NO_SELF_REFERENCE_CHECK } from './hreflang-no-self-reference/hreflang-no-self-reference.check';
 import { LCP_IMAGE_LAZY_LOADED_CHECK } from './lcp-image-lazy-loaded/lcp-image-lazy-loaded.check';
 import { RENDER_BLOCKING_SCRIPTS_CHECK } from './render-blocking-scripts/render-blocking-scripts.check';
 import { FONT_PRELOAD_WITHOUT_CROSSORIGIN_CHECK } from './font-preload-without-crossorigin/font-preload-without-crossorigin.check';
@@ -36,7 +58,10 @@ import { META_DESCRIPTION_MISSING_CHECK } from './meta-description-missing/meta-
 import { META_REFRESH_CHECK } from './meta-refresh/meta-refresh.check';
 import { MIXED_CONTENT_CHECK } from './mixed-content/mixed-content.check';
 import { NEAR_DUPLICATE_CONTENT_CHECK } from './near-duplicate-content/near-duplicate-content.check';
+import { NO_EXTERNAL_SOURCES_CHECK } from './no-external-sources/no-external-sources.check';
+import { NO_IMAGES_CHECK } from './no-images/no-images.check';
 import { NO_INTERNAL_LINKS_CHECK } from './no-internal-links/no-internal-links.check';
+import { NO_SUBHEADINGS_CHECK } from './no-subheadings/no-subheadings.check';
 import { NOINDEX_CHECK } from './noindex/noindex.check';
 import { NOT_HTTPS_CHECK } from './not-https/not-https.check';
 import { OG_TAGS_MISSING_CHECK } from './og-tags-missing/og-tags-missing.check';
@@ -57,10 +82,12 @@ import { VIEWPORT_MISSING_CHECK } from './viewport-missing/viewport-missing.chec
 import type { IRunInput, TCheck, TVerdict } from './check.interface';
 
 /**
- * One check per catalogued code, in catalogue order.
+ * One check per crawl-owned code, in catalogue order. The speed codes have none: Google's
+ * measurement produces them, and only the PageSpeed worker writes them.
  *
  * The mapped type is the completeness check, and it is `pnpm typecheck` rather than a
- * test: a code added to the catalogue without a check does not compile, and neither does
+ * test: a crawl code added to the catalogue without a check does not compile, a check
+ * keyed by a speed code does not compile either, and neither does
  * a check registered under the wrong code — the unit carries its own code, so the two
  * must agree. Whether a check reads one page or the whole crawl follows from the code's
  * `scope` in the catalogue, so that cannot disagree either.
@@ -68,39 +95,58 @@ import type { IRunInput, TCheck, TVerdict } from './check.interface';
  * Retired codes stay here. `enabled: false` decides what RUNS; this record decides what
  * EXISTS, and a retired check still has to exist for its stored findings to be read.
  */
-export type TCheckRegistry = { [K in TSeoIssueCode]: TCheck<K> };
+export type TCheckRegistry = { [K in TCrawlIssueCode]: TCheck<K> };
 
 export const CHECKS: TCheckRegistry = {
   TITLE_MISSING: TITLE_MISSING_CHECK,
   TITLE_LENGTH: TITLE_LENGTH_CHECK,
+  TITLE_SCRIPT_MISMATCH: TITLE_SCRIPT_MISMATCH_CHECK,
+  TITLE_YEAR_OUTDATED: TITLE_YEAR_OUTDATED_CHECK,
   META_DESCRIPTION_MISSING: META_DESCRIPTION_MISSING_CHECK,
   META_DESCRIPTION_LENGTH: META_DESCRIPTION_LENGTH_CHECK,
+  META_DESCRIPTION_REPEATS_TITLE: META_DESCRIPTION_REPEATS_TITLE_CHECK,
   H1_MISSING: H1_MISSING_CHECK,
   H1_MULTIPLE: H1_MULTIPLE_CHECK,
   HEADING_SKIP: HEADING_SKIP_CHECK,
+  NO_SUBHEADINGS: NO_SUBHEADINGS_CHECK,
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,
   CANONICAL_MISMATCH: CANONICAL_MISMATCH_CHECK,
+  CANONICAL_TO_HTTP: CANONICAL_TO_HTTP_CHECK,
+  CANONICAL_TARGET_BROKEN: CANONICAL_TARGET_BROKEN_CHECK,
   CANONICAL_CONFLICT: CANONICAL_CONFLICT_CHECK,
   DEVELOPMENT_HOST_REFERENCES: DEVELOPMENT_HOST_REFERENCES_CHECK,
   CANONICAL_RELATIVE: CANONICAL_RELATIVE_CHECK,
   NOINDEX: NOINDEX_CHECK,
   SNIPPET_RESTRICTED: SNIPPET_RESTRICTED_CHECK,
+  IMAGE_PREVIEW_NOT_LARGE: IMAGE_PREVIEW_NOT_LARGE_CHECK,
   ROBOTS_BLOCKS_GOOGLEBOT: ROBOTS_BLOCKS_GOOGLEBOT_CHECK,
   ROBOTS_BLOCKS_RESOURCES: ROBOTS_BLOCKS_RESOURCES_CHECK,
   ROBOTS_BLOCKS_AI_SEARCH: ROBOTS_BLOCKS_AI_SEARCH_CHECK,
   IMAGES_MISSING_ALT: IMAGES_MISSING_ALT_CHECK,
+  NO_IMAGES: NO_IMAGES_CHECK,
+  IMAGES_NOT_INDEXABLE: IMAGES_NOT_INDEXABLE_CHECK,
+  IMAGE_FILENAMES_GENERIC: IMAGE_FILENAMES_GENERIC_CHECK,
+  VIDEO_WITHOUT_METADATA: VIDEO_WITHOUT_METADATA_CHECK,
   THIN_CONTENT: THIN_CONTENT_CHECK,
   AUTHOR_MISSING: AUTHOR_MISSING_CHECK,
   DATE_BUMPED_WITHOUT_CHANGES: DATE_BUMPED_WITHOUT_CHANGES_CHECK,
   NO_INTERNAL_LINKS: NO_INTERNAL_LINKS_CHECK,
+  NO_EXTERNAL_SOURCES: NO_EXTERNAL_SOURCES_CHECK,
   INTERNAL_LINKS_NOFOLLOW: INTERNAL_LINKS_NOFOLLOW_CHECK,
   INTERNAL_LINK_VARIANTS: INTERNAL_LINK_VARIANTS_CHECK,
+  BROKEN_LINKS: BROKEN_LINKS_CHECK,
+  LINKS_TO_REDIRECTS: LINKS_TO_REDIRECTS_CHECK,
   LINKS_WITHOUT_TEXT: LINKS_WITHOUT_TEXT_CHECK,
   UNCRAWLABLE_LINKS: UNCRAWLABLE_LINKS_CHECK,
   LANG_MISSING: LANG_MISSING_CHECK,
   HREFLANG_INVALID: HREFLANG_INVALID_CHECK,
+  HREFLANG_NO_SELF_REFERENCE: HREFLANG_NO_SELF_REFERENCE_CHECK,
+  HREFLANG_NOT_RECIPROCAL: HREFLANG_NOT_RECIPROCAL_CHECK,
   VIEWPORT_MISSING: VIEWPORT_MISSING_CHECK,
   OG_TAGS_MISSING: OG_TAGS_MISSING_CHECK,
+  OG_URL_MISMATCH: OG_URL_MISMATCH_CHECK,
+  PREVIEW_IMAGE_TOO_SMALL: PREVIEW_IMAGE_TOO_SMALL_CHECK,
+  PREVIEW_IMAGE_IS_LOGO: PREVIEW_IMAGE_IS_LOGO_CHECK,
   CHARSET_MISSING_OR_LATE: CHARSET_MISSING_OR_LATE_CHECK,
   NOT_HTTPS: NOT_HTTPS_CHECK,
   MIXED_CONTENT: MIXED_CONTENT_CHECK,
@@ -121,12 +167,17 @@ export const CHECKS: TCheckRegistry = {
   DATES_INCONSISTENT: DATES_INCONSISTENT_CHECK,
   STRUCTURED_DATA_MISSING: STRUCTURED_DATA_MISSING_CHECK,
   STRUCTURED_DATA_INCOMPLETE: STRUCTURED_DATA_INCOMPLETE_CHECK,
+  AUTHOR_MARKUP_INCOMPLETE: AUTHOR_MARKUP_INCOMPLETE_CHECK,
+  ARTICLE_DATE_FORMAT_INVALID: ARTICLE_DATE_FORMAT_INVALID_CHECK,
+  ARTICLE_HEADLINE_MISMATCH: ARTICLE_HEADLINE_MISMATCH_CHECK,
+  BREADCRUMB_MISSING: BREADCRUMB_MISSING_CHECK,
+  BREADCRUMB_INVALID: BREADCRUMB_INVALID_CHECK,
 };
 
 /** What one pass over the checks concluded about a page. */
 export interface ISeoEvaluation {
-  /** In catalogue order, as the screens read them. */
-  issues: TSeoIssue[];
+  /** In catalogue order, as the screens read them. Crawl findings only. */
+  issues: TCrawlSeoIssue[];
   /**
    * The codes that could be judged, and the codes that could not, both in catalogue
    * order and disjoint. Their union is THE CATALOGUE THIS CRAWL RAN, which is the only
@@ -135,8 +186,8 @@ export interface ISeoEvaluation {
    * was seen, and without these two lists it would be indistinguishable from one that
    * passed.
    */
-  checksJudged: TSeoIssueCode[];
-  checksNotApplicable: TSeoIssueCode[];
+  checksJudged: TCrawlIssueCode[];
+  checksNotApplicable: TCrawlIssueCode[];
   /** Outcomes that were not `notApplicable` — the score's denominator. */
   checksApplicable: number;
   /** Outcomes that were `fails`. Always `issues.length`; see below. */
@@ -161,11 +212,11 @@ class MissingVerdictsError extends Error {
 function verdictsByCode(
   run: IRunInput,
   checks: TCheckRegistry,
-): Record<TSeoIssueCode, TVerdict<TSeoIssueCode>[]> {
-  const verdicts = {} as Record<TSeoIssueCode, TVerdict<TSeoIssueCode>[]>;
+): Record<TCrawlIssueCode, TVerdict<TCrawlIssueCode>[]> {
+  const verdicts = {} as Record<TCrawlIssueCode, TVerdict<TCrawlIssueCode>[]>;
 
   for (const code of ACTIVE_ISSUE_CODES) {
-    const check: TCheck<TSeoIssueCode> = checks[code];
+    const check: TCheck<TCrawlIssueCode> = checks[code];
     if (check.scope === 'run') {
       const perPage = check.evaluate(run);
       if (perPage.length !== run.pages.length)
@@ -213,9 +264,9 @@ export function evaluateChecks(
   const verdicts = verdictsByCode(run, checks);
 
   return run.pages.map((_, index) => {
-    const issues: TSeoIssue[] = [];
-    const checksJudged: TSeoIssueCode[] = [];
-    const checksNotApplicable: TSeoIssueCode[] = [];
+    const issues: TCrawlSeoIssue[] = [];
+    const checksJudged: TCrawlIssueCode[] = [];
+    const checksNotApplicable: TCrawlIssueCode[] = [];
 
     for (const code of ACTIVE_ISSUE_CODES) {
       const verdict = verdicts[code][index];
@@ -229,7 +280,7 @@ export function evaluateChecks(
           code,
           severity: SEO_ISSUE_CATALOGUE[code].severity,
           details: verdict.details,
-        } as TSeoIssue);
+        } as TCrawlSeoIssue);
     }
 
     return {

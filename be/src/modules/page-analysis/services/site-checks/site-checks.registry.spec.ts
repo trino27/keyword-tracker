@@ -4,6 +4,17 @@ import { evaluateSite, SITE_CHECKS } from './site-checks.registry';
 
 const SERVED = 'https://www.a.example';
 
+/** The first 24 bytes of a PNG of the given size: signature, then the IHDR chunk. */
+function pngHead(width: number, height: number): Uint8Array {
+  const bytes = new Uint8Array(24);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  bytes.set([0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52], 8);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(16, width);
+  view.setUint32(20, height);
+  return bytes;
+}
+
 /** A site that passes every site check. */
 const healthySite = (
   overrides: Partial<ISiteCheckInput> = {},
@@ -32,6 +43,7 @@ const healthySite = (
     status: 'crawled' as const,
     httpStatus: 200,
     reason: null,
+    clientRendered: false,
     page: {
       finalUrl: `${SERVED}/post-${n}/`,
       dateModified: `2026-0${n}-10`,
@@ -58,6 +70,26 @@ const healthySite = (
     redirects: [],
     finalUrl: `${SERVED}/seo-keyword-tracker-missing-page-1/`,
   },
+  home: {
+    url: `${SERVED}/`,
+    icons: [
+      {
+        rel: 'icon',
+        href: `${SERVED}/favicon.png`,
+        type: 'image/png',
+        sizes: '48x48',
+      },
+    ],
+    websiteNames: [{ name: 'A Example', alternateNames: ['AE'] }],
+    ogSiteName: 'A Example',
+  },
+  favicon: {
+    url: `${SERVED}/favicon.png`,
+    status: 200,
+    head: pngHead(48, 48),
+    blockedBy: null,
+  },
+  faviconFallback: null,
   ...overrides,
 });
 
@@ -93,6 +125,9 @@ describe('SITE_CHECKS', () => {
         fetched: [],
         hostVariants: null,
         missingPage: null,
+        home: null,
+        favicon: null,
+        faviconFallback: null,
       }),
     );
 
@@ -189,6 +224,7 @@ describe('sitemap checks', () => {
       status: 'crawled' as const,
       httpStatus: 200,
       reason: null,
+      clientRendered: false,
       page: null,
       ...extra,
     });
@@ -228,6 +264,81 @@ describe('sitemap checks', () => {
       `${SERVED}/gone/ — answers HTTP 404`,
       `${SERVED}/old/ — redirects to ${SERVED}/new/`,
       `${SERVED}/hidden/ — is set to noindex`,
+    ]);
+  });
+
+  // A canonical contradiction is named whichever check carries it: CANONICAL_MISMATCH,
+  // or CANONICAL_TO_HTTP, which it steps aside for on the page's http:// twin (plan D37).
+  it('names an entry whose page names another canonical, the http twin included', () => {
+    const page = (url: string, code: string, canonical: string) => ({
+      url,
+      status: 'crawled' as const,
+      httpStatus: 200,
+      reason: null,
+      clientRendered: false,
+      page: {
+        finalUrl: url,
+        dateModified: null,
+        issues: [{ code, details: { canonical } }],
+      },
+    });
+
+    expect(
+      evidenceOf(
+        'SITEMAP_LISTS_NON_INDEXABLE',
+        healthySite({
+          fetched: [
+            page(
+              `${SERVED}/copy/`,
+              'CANONICAL_MISMATCH',
+              `${SERVED}/original/`,
+            ),
+            page(
+              `${SERVED}/twin/`,
+              'CANONICAL_TO_HTTP',
+              'http://a.example/twin/',
+            ),
+          ],
+        }),
+      ),
+    ).toEqual([
+      '2 of the 2 sitemap entries this crawl fetched:',
+      `${SERVED}/copy/ — names ${SERVED}/original/ as canonical`,
+      `${SERVED}/twin/ — names http://a.example/twin/ as canonical`,
+    ]);
+  });
+
+  // D34 leaves a broken target to CANONICAL_TARGET_BROKEN alone; the entry still
+  // contradicts the sitemap, so the sitemap check reads that finding too (D37).
+  it('names an entry whose canonical target is broken', () => {
+    expect(
+      evidenceOf(
+        'SITEMAP_LISTS_NON_INDEXABLE',
+        healthySite({
+          fetched: [
+            {
+              url: `${SERVED}/copy/`,
+              status: 'crawled',
+              httpStatus: 200,
+              reason: null,
+              clientRendered: false,
+              page: {
+                finalUrl: `${SERVED}/copy/`,
+                dateModified: null,
+                issues: [
+                  {
+                    code: 'CANONICAL_TARGET_BROKEN',
+                    details: { canonical: `${SERVED}/gone/` },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    ).toEqual([
+      '1 of the 1 sitemap entries this crawl fetched:',
+      `${SERVED}/copy/ — names ${SERVED}/gone/ as canonical`,
     ]);
   });
 
@@ -285,6 +396,7 @@ describe('sitemap checks', () => {
             status: 'crawled' as const,
             httpStatus: 200,
             reason: null,
+            clientRendered: false,
             page: { finalUrl: url, dateModified: '2026-09-30', issues: [] },
           })),
         }),
@@ -292,6 +404,62 @@ describe('sitemap checks', () => {
     ).toContain(
       `${SERVED}/post-1/ — sitemap lastmod 2026-01-10, the page says it was modified 2026-09-30`,
     );
+  });
+});
+
+describe('content checks', () => {
+  const post = (n: number, extra: object = {}) => ({
+    url: `${SERVED}/post-${n}/`,
+    status: 'crawled' as const,
+    httpStatus: 200,
+    reason: null,
+    clientRendered: false,
+    page: null,
+    ...extra,
+  });
+  const shell = (n: number) =>
+    post(n, {
+      status: 'skipped_listing' as const,
+      reason: 'Rendered by JavaScript: the HTML itself holds 3 words',
+      clientRendered: true,
+    });
+
+  it('reports N of M posts that render with JavaScript, naming them', () => {
+    expect(
+      evidenceOf(
+        'CONTENT_NEEDS_JAVASCRIPT',
+        healthySite({ fetched: [shell(1), post(2), shell(3)] }),
+      ),
+    ).toEqual([
+      '2 of the 3 posts this crawl read render their content with JavaScript:',
+      `${SERVED}/post-1/`,
+      `${SERVED}/post-3/`,
+    ]);
+  });
+
+  it('counts the flag, not the reason text', () => {
+    expect(
+      verdictOf(
+        'CONTENT_NEEDS_JAVASCRIPT',
+        healthySite({
+          fetched: [post(1, { reason: 'Rendered by JavaScript, says a test' })],
+        }),
+      ).status,
+    ).toBe('passed');
+  });
+
+  it('is not applicable when no post was read', () => {
+    expect(
+      verdictOf(
+        'CONTENT_NEEDS_JAVASCRIPT',
+        healthySite({
+          fetched: [
+            post(1, { status: 'skipped_robots', httpStatus: null }),
+            post(2, { status: 'failed', httpStatus: 500 }),
+          ],
+        }),
+      ).status,
+    ).toBe('notApplicable');
   });
 });
 
@@ -452,6 +620,7 @@ describe('host checks', () => {
       status: 'failed' as const,
       httpStatus,
       reason,
+      clientRendered: false,
       page: null,
     });
     expect(

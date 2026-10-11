@@ -42,11 +42,6 @@ describe('DATES_INCONSISTENT', () => {
       dated('2024-05-02', null, '/2023/05/post/'),
       'The URL says 2023; datePublished says 2024 (2024-05-02)',
     ],
-    [
-      'a publication date that is no date',
-      dated('last spring'),
-      'datePublished "last spring" is not a date',
-    ],
   ])('fails %s, quoting the contradiction', (_, page, quote) => {
     const verdict = DATES_INCONSISTENT_CHECK.evaluate(page);
 
@@ -89,5 +84,29 @@ describe('DATES_INCONSISTENT', () => {
     expect(DATES_INCONSISTENT_CHECK.evaluate(dated(null))).toEqual(
       NOT_APPLICABLE,
     );
+  });
+
+  // Its form is ARTICLE_DATE_FORMAT_INVALID's finding; reporting it here too said it twice.
+  it('cannot compare a publication date that is no date', () => {
+    expect(DATES_INCONSISTENT_CHECK.evaluate(dated('last spring'))).toEqual(
+      NOT_APPLICABLE,
+    );
+  });
+
+  it('cannot compare a date that does not exist', () => {
+    expect(
+      DATES_INCONSISTENT_CHECK.evaluate(
+        dated('2026-02-30T10:00:00Z', null, '/2025/02/post/'),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
+  it('compares dates written in the ISO forms Date.parse refuses', () => {
+    // 10:00 at +05 is 05:00 UTC, an hour before the 06:00 UTC publication.
+    const result = DATES_INCONSISTENT_CHECK.evaluate(
+      dated('2026-01-10T06:00:00,5Z', '2026-01-10T10:00+05'),
+    );
+    expect(result).toEqual(failsWith({}));
+    expect(evidenceOf(result)[0]).toContain('is earlier than datePublished');
   });
 });

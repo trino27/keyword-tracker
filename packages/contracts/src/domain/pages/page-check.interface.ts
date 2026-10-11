@@ -1,4 +1,7 @@
-import type { TSeoIssueCode } from '../seo/seo-issue-catalogue.constant.js';
+import type {
+  TIssueCodeOf,
+  TScoredIssueOwner,
+} from '../seo/catalogue/issue-catalogues.constant.js';
 
 /**
  * What one catalogue check concluded about one page.
@@ -26,7 +29,20 @@ export type TCheckStatus = (typeof CHECK_STATUSES)[number];
  * A failure carries no details here either — those are in the page's `issues`, with the
  * measurement and the count of sibling pages that share the code.
  */
-export interface IPageCheck {
-  code: TSeoIssueCode;
+export interface IPageCheck<O extends TScoredIssueOwner = TScoredIssueOwner> {
+  /**
+   * A code of an owner whose verdicts are checks — the crawl's or Lighthouse's. Core Web
+   * Vitals findings are not checks and never count in the score.
+   */
+  code: TIssueCodeOf<O>;
   status: TCheckStatus;
 }
+
+/**
+ * Each scored owner's checks on the page, or null where that owner has recorded none:
+ * the crawl before per-check recording, Lighthouse before its first measurement. One
+ * owner's null never empties the other's list (lighthouse-checks D12).
+ */
+export type TChecksByOwner = {
+  [O in TScoredIssueOwner]: IPageCheck<O>[] | null;
+};

@@ -7,7 +7,13 @@ import type {
 } from '@modules/clients/interfaces/client-record.interface';
 import type { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import type { CrawlResultsService } from '@modules/pages/services/crawl-results/crawl-results.service';
+import type { PageSpeedQueueService } from '@modules/pages/services/page-speed-queue/page-speed-queue.service';
 import type { SiteProbeService } from '../site-probe/site-probe.service';
+import type { OutboundChecksService } from '../outbound-checks/outbound-checks.service';
+import {
+  NO_OUTBOUND_FACTS,
+  type IOutboundFacts,
+} from '@modules/page-analysis/interfaces/outbound-facts.interface';
 import { PageAnalysisService } from '@modules/page-analysis/services/page-analysis/page-analysis.service';
 import { makeCheckInput } from '@modules/page-analysis/services/checks/_testing/make-check-input';
 import type {
@@ -42,6 +48,7 @@ const crawledItem = (position: number): ISelectedItem => {
     responseMs: 100,
     htmlBytes: 1000,
     parsed: makeCheckInput().parsed,
+    previewImage: null,
   };
   return {
     sitemapPosition: position,
@@ -49,11 +56,13 @@ const crawledItem = (position: number): ISelectedItem => {
     status: 'crawled',
     reason: null,
     httpStatus: 200,
+    clientRendered: false,
     page,
   };
 };
 
 const setup = (options: {
+  outbound?: IOutboundFacts;
   discovery?: TSitemapDiscovery;
   items?: ISelectedItem[];
   owned?: boolean;
@@ -108,8 +117,14 @@ const setup = (options: {
             pages: items.flatMap((item) => (item.page ? [item.page] : [])),
           }),
   } as unknown as PostSelectionService;
+  /** What happened, in order: the outbound stage, the analysis, the transaction. */
+  const order: string[] = [];
+  const outboundCalls: { pages: number; inTransaction: boolean }[] = [];
   const results = {
-    previousCrawlsForWorker: () => Promise.resolve(new Map()),
+    previousCrawlsForWorker: () => {
+      order.push('analysis');
+      return Promise.resolve(new Map());
+    },
     applyRunResultsForWorker: (
       _tx: Transaction,
       input: { pages: unknown[] },
@@ -120,10 +135,22 @@ const setup = (options: {
       );
     },
   } as unknown as CrawlResultsService;
+  const openedTx: Transaction[] = [];
   const transactions = {
-    run: (work: (tx: Transaction) => Promise<unknown>) =>
-      work({} as Transaction),
+    run: (work: (tx: Transaction) => Promise<unknown>) => {
+      order.push('transaction');
+      const tx = { id: openedTx.length } as unknown as Transaction;
+      openedTx.push(tx);
+      return work(tx);
+    },
   } as unknown as TransactionRunner;
+  const enqueued: { tx: Transaction; pageIds: number[] }[] = [];
+  const pageSpeedQueue = {
+    enqueueForWorker: (tx: Transaction, pageIds: number[]) => {
+      enqueued.push({ tx, pageIds });
+      return Promise.resolve(pageIds.length);
+    },
+  } as unknown as PageSpeedQueueService;
   const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() };
   const executor = new CrawlRunExecutorService(
     runs,
@@ -133,12 +160,32 @@ const setup = (options: {
       probe: (servedOrigin: string) =>
         Promise.resolve({ servedOrigin, hostVariants: [], missingPage: null }),
     } as unknown as SiteProbeService,
+    {
+      check: (input: { pages: unknown[] }) => {
+        order.push('outbound');
+        outboundCalls.push({
+          pages: input.pages.length,
+          inTransaction: openedTx.length > 0,
+        });
+        return Promise.resolve(options.outbound ?? NO_OUTBOUND_FACTS);
+      },
+    } as unknown as OutboundChecksService,
     new PageAnalysisService(),
     results,
+    pageSpeedQueue,
     transactions,
     logger as unknown as PinoLogger,
   );
-  return { executor, finalized, applied, runs };
+  return {
+    executor,
+    finalized,
+    applied,
+    runs,
+    enqueued,
+    openedTx,
+    order,
+    outboundCalls,
+  };
 };
 
 describe('outcomeOf', () => {
@@ -160,6 +207,7 @@ describe('outcomeOf', () => {
     status: 'failed',
     reason,
     httpStatus,
+    clientRendered: false,
     page: null,
   });
 
@@ -254,6 +302,35 @@ describe('CrawlRunExecutorService', () => {
     ]);
   });
 
+  // Plan D4, D26: all network before the transaction, the outbound requests included.
+  it('runs the outbound stage after fetch and before analysis, outside the transaction', async () => {
+    const { executor, order, outboundCalls } = setup({
+      items: [crawledItem(0), crawledItem(1)],
+    });
+
+    await executor.execute(RUN, new AbortController().signal);
+
+    expect(order).toEqual(['outbound', 'analysis', 'transaction']);
+    expect(outboundCalls).toEqual([{ pages: 2, inTransaction: false }]);
+  });
+
+  // The stage's deadline ends the stage, never the run: what it missed is unchecked.
+  it('an outbound stage that times out leaves the run succeeded', async () => {
+    const { executor, finalized } = setup({
+      items: [crawledItem(0)],
+      outbound: {
+        links: new Map([
+          ['https://b.example/', { kind: 'unchecked', reason: 'deadline' }],
+        ]),
+        documents: new Map(),
+      },
+    });
+
+    await executor.execute(RUN, new AbortController().signal);
+
+    expect(finalized[0].outcome.status).not.toBe('failed');
+  });
+
   it('a discovery failure finalizes failed with its code and no items', async () => {
     const { executor, finalized, applied } = setup({
       discovery: {
@@ -288,6 +365,30 @@ describe('CrawlRunExecutorService', () => {
 
     expect(applied).toEqual([]);
     expect(finalized).toEqual([]);
+  });
+
+  /** In the same transaction: a rolled-back finalize must queue nothing (plan D4). */
+  it("enqueues the run's pages in the finalize transaction", async () => {
+    const { executor, enqueued, openedTx } = setup({
+      items: [crawledItem(0), crawledItem(1)],
+    });
+
+    await executor.execute(RUN, new AbortController().signal);
+
+    expect(enqueued).toHaveLength(1);
+    expect(enqueued[0].pageIds).toEqual([100, 101]);
+    expect(enqueued[0].tx).toBe(openedTx.at(-1));
+  });
+
+  it('a superseded attempt enqueues nothing', async () => {
+    const { executor, enqueued } = setup({
+      items: [crawledItem(0)],
+      owned: false,
+    });
+
+    await executor.execute(RUN, new AbortController().signal);
+
+    expect(enqueued).toEqual([]);
   });
 
   it('an unexpected error finalizes CRAWL_INTERNAL_ERROR', async () => {

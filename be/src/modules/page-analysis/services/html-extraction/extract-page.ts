@@ -4,11 +4,24 @@ import { load, type CheerioAPI } from 'cheerio';
 import { ARTICLE_TYPES } from '../../constants/article-types.constant';
 import type {
   IAlternateLink,
+  IArticleMarkup,
   IHeading,
+  IIconLink,
   IPageImage,
   IParsedPage,
 } from '../../interfaces/parsed-page.interface';
 import { parseJsonLd } from './parse-json-ld';
+import { readMicrodata } from './read-microdata';
+import { srcsetUrls } from '../text/srcset-urls/srcset-urls';
+import {
+  authorsOf,
+  breadcrumbItemsOf,
+  imagesOf,
+  logosOf,
+  typesOf,
+  websiteNameOf,
+  type TNode,
+} from './structured-data-nodes';
 
 /**
  * Removed from the main content before anything is read from it.
@@ -89,7 +102,7 @@ const RESOURCE_ATTRIBUTES: readonly [string, string][] = [
   ['img[srcset], source[srcset]', 'srcset'],
   ['img[data-src]', 'data-src'],
   ['script[src]', 'src'],
-  ['link[rel~="stylesheet"][href]', 'href'],
+  ['link[rel~="stylesheet" i][href]', 'href'],
   ['iframe[src], frame[src], embed[src]', 'src'],
   ['video[src], audio[src], source[src], track[src]', 'src'],
   ['object[data]', 'data'],
@@ -112,6 +125,16 @@ const APP_MOUNT_POINTS =
   '#root, #app, #__next, #__nuxt, #___gatsby, app-root, [data-reactroot]';
 
 const LINK_SCHEMES = new Set(['http:', 'https:']);
+
+/**
+ * What a frame leaves behind in the main content. A frame is never text, so it is removed
+ * with the rest of NEVER_CONTENT — but it is a demo or a player the reader sees, so it
+ * leaves this empty marker, counted as an embed once the furniture around it is gone.
+ */
+const FRAME_MARKER = 'seo-frame';
+
+/** What shows the reader something other than text and pictures: a demo, a player, a chart. */
+const EMBED_SELECTOR = `${FRAME_MARKER}, video, embed, object`;
 
 /**
  * A `javascript:` URL that does nothing — the link is a control whose click a script
@@ -143,9 +166,30 @@ const NAME_ATTRIBUTE = 'data-seo-accessible-name';
 /** Which entry of the links' markup-as-written a link is, for the same reason. */
 const INDEX_ATTRIBUTE = 'data-seo-link-index';
 
-/** A meta element that declares the encoding, in either of its two forms. */
-const CHARSET_DECLARATION =
-  /<meta\b[^>]*?(?:\bcharset\s*=|http-equiv\s*=\s*["']?content-type)[^>]*>/i;
+/** The element the main content is read from, marked before it is cloned. */
+const MAIN_ATTRIBUTE = 'data-seo-main';
+
+/** Which `data-nosnippet` holder an element is, so the main content's clone can name it. */
+const NOSNIPPET_ATTRIBUTE = 'data-seo-nosnippet';
+
+/** Every attribute this extractor parks on the document; none is quoted. */
+const PARKED_ATTRIBUTES = [
+  NAME_ATTRIBUTE,
+  INDEX_ATTRIBUTE,
+  MAIN_ATTRIBUTE,
+  NOSNIPPET_ATTRIBUTE,
+].join(' ');
+
+/** Google honours `data-nosnippet` on span, div and section only. */
+const NOSNIPPET_HOLDERS =
+  'span[data-nosnippet], div[data-nosnippet], section[data-nosnippet]';
+
+/**
+ * A meta element that declares the encoding, in either of its two forms — `<meta
+ * charset>` or an http-equiv Content-Type whose content names a charset. Both carry
+ * `charset=`; an http-equiv that names no charset declares no encoding.
+ */
+const CHARSET_DECLARATION = /<meta\b[^>]*?\bcharset\s*=[^>]*>/i;
 
 /** A selection, as cheerio returns one. */
 type TSelection = ReturnType<CheerioAPI>;
@@ -195,7 +239,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   // links the author meant.
   const baseUrl = baseOf($, pageUrl);
   const clientRendered = looksClientRendered($);
-  const elementCount = $('*').length;
+  const elementCount = $('body *').length;
   // Before anything is read, and on the whole document, because h1s are read outside the
   // main content: strip what no reader sees, and the controls sitting inside headings.
   // A link's name may be text only a screen reader sees ("Read more<span
@@ -212,6 +256,9 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   $(HIDDEN_TEXT).remove();
   $(HEADINGS).find(HEADING_CONTROLS).remove();
 
+  $(NOSNIPPET_HOLDERS).each((index, element) => {
+    $(element).attr(NOSNIPPET_ATTRIBUTE, String(index));
+  });
   const main = mainContent($);
   // `.text()` concatenates siblings: "Title</h1><p>One" would read as "TitleOne". This runs
   // BEFORE anything is collected, or the headings and blocks never see the separators and
@@ -260,7 +307,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     // and nothing is hidden behind it.
     if (
       (/^\s*javascript:/i.test(raw) && !DO_NOTHING_SCRIPT.test(raw)) ||
-      (/#[!/]/.test(raw) &&
+      (/#[!/][^\s]/.test(raw) &&
         !WIDGET_FRAGMENT.test(raw) &&
         sameHostAs(absolute(raw, baseUrl), pageUrl))
     ) {
@@ -284,10 +331,11 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   if (blocks.length === 0 && mainText) blocks.push(mainText);
 
   const images: IPageImage[] = [];
-  main.find('img').each((_, element) => {
+  (postArticleIn($, main) ?? main).find('img').each((_, element) => {
     const image = $(element);
     images.push({
       src: image.attr('src') ?? null,
+      srcset: orNull(image.attr('srcset')),
       alt: image.attr('alt') ?? null,
       loading: image.attr('loading')?.trim().toLowerCase() || null,
       sized: isSized(image),
@@ -296,14 +344,23 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   });
 
   const canonicals = canonicalsOf($, 'head', baseUrl);
-  const { jsonLd, jsonLdErrors, authors, dates } = structuredDataOf($);
+  const openGraph = openGraphOf($);
+  const structured = structuredDataOf($, baseUrl);
+  const scriptedSchemaTypes = scriptedSchemaTypesOf($);
+  const { jsonLd, jsonLdErrors, authors, dates } = structured;
+  const microdata = readMicrodata($, baseUrl);
+  const wordCount = countWords(mainText);
 
   return {
     title: orNull($('head > title').first().text()),
-    metaDescription: orNull(metaContent($, 'name', 'description')),
-    metaRobots: orNull(metaContent($, 'name', 'robots')),
-    metaGooglebot: orNull(metaContent($, 'name', 'googlebot')),
+    metaDescription: orNull(metaContent($, 'name', 'description', 'head')),
+    metaDescriptionGap: metaDescriptionGapOf($),
+    metaRobots: metaContents($, 'robots'),
+    metaGooglebot: metaContents($, 'googlebot'),
     metaRefresh: orNull(httpEquivContent($, 'refresh')),
+    metaContentSecurityPolicy: orNull(
+      httpEquivContent($, 'content-security-policy'),
+    ),
     viewport: orNull(metaContent($, 'name', 'viewport')),
     canonicals,
     canonicalsOutsideHead: canonicalsOf($, 'body', baseUrl),
@@ -311,14 +368,28 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .map((_, element) => collapse($(element).attr('href') ?? ''))
       .get()
       .filter((href) => href && !HAS_SCHEME.test(href)),
-    alternates: alternatesOf($, baseUrl),
-    openGraph: openGraphOf($),
+    alternates: alternatesOf($, 'head', baseUrl),
+    alternatesOutsideHead: alternatesOf($, 'body', baseUrl),
+    openGraph,
+    shareImage: shareImageOf(openGraph),
     articleTags: $('meta[property="article:tag"]')
       .map((_, element) => collapse($(element).attr('content') ?? ''))
       .get()
       .filter(Boolean),
     jsonLd,
     jsonLdErrors,
+    scriptedSchemaTypes,
+    microdata: {
+      types: microdata.types,
+      articleFields: microdata.articleFields,
+    },
+    articleMarkup: structured.article ?? microdata.article,
+    breadcrumbs: structured.breadcrumbs,
+    logos: structured.logos,
+    websiteNames: [...structured.websiteNames, ...microdata.websiteNames],
+    icons: iconsOf($, baseUrl),
+    videos: videosOf($),
+    contentNosnippet: contentNosnippetOf($, main, wordCount),
     lang: orNull($('html').attr('lang')),
     h1s: $('body h1')
       .map((_, element) => collapse($(element).text()))
@@ -332,6 +403,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
         .get()
         .find((text) => text.length > 0) ?? null,
     images,
+    embeds: main.find(EMBED_SELECTOR).length,
     resourceUrls: urlsOf($, RESOURCE_ATTRIBUTES, baseUrl),
     links,
     nofollowLinks,
@@ -340,14 +412,18 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     renderResources: urlsOf($, RENDER_RESOURCE_ATTRIBUTES, baseUrl),
     clientRendered,
     blocks,
-    wordCount: countWords(mainText),
+    wordCount,
     authors: [...authors, ...authorsInMarkup($, baseUrl)],
     datePublished:
       dates.published ??
-      orNull(metaContent($, 'property', 'article:published_time')),
+      orNull(metaContent($, 'property', 'article:published_time')) ??
+      microdata.article?.datePublished ??
+      null,
     dateModified:
       dates.modified ??
-      orNull(metaContent($, 'property', 'article:modified_time')),
+      orNull(metaContent($, 'property', 'article:modified_time')) ??
+      microdata.article?.dateModified ??
+      null,
     contentHash: createHash('sha256').update(mainText).digest('hex'),
     charsetDeclarationEnd: charsetDeclarationEndOf(html),
     renderBlockingScripts: $('head script[src]')
@@ -360,6 +436,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .get(),
     elementCount,
     featuredImage: featuredImageOf($, baseUrl),
+    shareImageAsBackground: shownAsBackground($, shareImageOf(openGraph)),
   };
 }
 
@@ -534,30 +611,126 @@ function mainContent($: CheerioAPI): ReturnType<CheerioAPI> {
         ($('article').first().length
           ? $('article').first()
           : $('body').first())));
+  candidate.attr(MAIN_ATTRIBUTE, '');
   const main = candidate.clone();
+  main.find('iframe').replaceWith(`<${FRAME_MARKER}></${FRAME_MARKER}>`);
   main.find(NEVER_CONTENT).remove();
   const total = wordsIn($, main);
+  const scoped = candidate.is('main, article');
   // Document order, so a wrapper is judged before what it wraps: keeping a wrapper
   // still lets the furniture inside it be removed on its own terms.
   main.find(NON_CONTENT).each((_, element) => {
     const node = $(element);
     if (total > 0 && wordsIn($, node) > total * FURNITURE_MAX_SHARE) return;
+    if (scoped && isPostHeader(node)) return;
     node.remove();
   });
   return main;
+}
+
+/**
+ * The post's own header: a `<header>` holding the post's `<h1>`, inside the `<main>` or
+ * `<article>` the content was read from. HTML-AAM maps a header to the site banner only
+ * when it is not inside an article, aside, main, nav or section; inside one it is that
+ * section's own header — the post's title, byline, date and hero image. Removing it as
+ * furniture dropped the h1 from the outline (css-tricks.com: h1 then h3 read as h3, h3)
+ * and the hero from the images (yoast.com: "no images" under a full-width picture).
+ */
+function isPostHeader(node: ReturnType<CheerioAPI>): boolean {
+  return node.is('header') && node.find('h1').length > 0;
+}
+
+/** The share of the content's words an <article> needs to be the post on its own. */
+/**
+ * The post's own <article> inside the content, when the content is wider than it.
+ *
+ * semrush.com sets the h1, byline and date above the <article>, so `mainContent` cannot
+ * pick the article out by its h1 and reads the whole <main>, and below the article the
+ * same <main> carries a "preferred source" badge with an image. Counted as the post's
+ * image, it passed NO_IMAGES and IMAGES_MISSING_ALT on posts with no image at all —
+ * Lighthouse, finding no content image there, said not applicable. The images are
+ * therefore read from the post's <article>.
+ *
+ * The post is the largest top-level <article>, and only if it outweighs everything else:
+ * all the other articles together (so a listing's biggest card is not taken), the text
+ * outside any article (so a lone card beside a page's own text is not), and the bar
+ * `mainContent` sets an article with an h1. A share of half the words alone missed a
+ * short semrush post, 175 of whose 359 words were the post's.
+ *
+ * Images only. Moving the text to the article as well drops the author bio and the
+ * related-post teasers, which is right, but the keyword catalogue measured four
+ * labelled keywords lost on four semrush posts doing it (scoring is tuned on <main>), so
+ * that change waits for a retuning of its own.
+ */
+function postArticleIn(
+  $: CheerioAPI,
+  main: ReturnType<CheerioAPI>,
+): ReturnType<CheerioAPI> | null {
+  if (main.is('article')) return null;
+  const total = wordsIn($, main);
+  if (total === 0) return null;
+  const articles = main
+    .find('article')
+    .filter((_, element) => $(element).parents('article').length === 0)
+    .toArray()
+    .map((element) => ({ element, words: wordsIn($, $(element)) }))
+    .sort((a, b) => b.words - a.words);
+  const [largest, ...others] = articles;
+  if (!largest) return null;
+  const otherArticles = others.reduce((sum, { words }) => sum + words, 0);
+  const outside = total - largest.words - otherArticles;
+  return largest.words >= total * ARTICLE_MIN_SHARE &&
+    largest.words > otherArticles &&
+    largest.words > outside
+    ? $(largest.element)
+    : null;
+}
+
+/**
+ * Why the page has no description Google reads. Google takes page metadata from `<head>`
+ * only, so a description the parser finds in `<body>` — written there, or pushed there by
+ * an element that does not belong in `<head>` — is as good as none. An empty one is told
+ * apart because its fix differs: the tag is there and only the CMS field is blank.
+ */
+function metaDescriptionGapOf(
+  $: CheerioAPI,
+): IParsedPage['metaDescriptionGap'] {
+  const inHead = metaContent($, 'name', 'description', 'head');
+  if (inHead !== undefined) return orNull(inHead) === null ? 'empty' : null;
+  return metaContent($, 'name', 'description') === undefined
+    ? 'absent'
+    : 'outsideHead';
+}
+
+/**
+ * The content of every `<meta name>` with this name, anywhere in the document, collapsed,
+ * empty ones left out. Robots rules are read from the whole document because Google
+ * Search does not enforce their placement in `<head>`.
+ */
+function metaContents($: CheerioAPI, name: string): string[] {
+  return $('meta[name]')
+    .filter(
+      (_, element) => ($(element).attr('name') ?? '').toLowerCase() === name,
+    )
+    .map((_, element) => orNull($(element).attr('content')))
+    .get()
+    .filter((content): content is string => content !== null);
 }
 
 function metaContent(
   $: CheerioAPI,
   attribute: 'name' | 'property',
   value: string,
+  scope: 'head' | 'document' = 'document',
 ): string | undefined {
   let content: string | undefined;
-  $(`meta[${attribute}]`).each((_, element) => {
-    if (content !== undefined) return;
-    if (($(element).attr(attribute) ?? '').toLowerCase() === value)
-      content = $(element).attr('content');
-  });
+  $(`${scope === 'head' ? 'head ' : ''}meta[${attribute}]`).each(
+    (_, element) => {
+      if (content !== undefined) return;
+      if (($(element).attr(attribute) ?? '').toLowerCase() === value)
+        content = $(element).attr('content');
+    },
+  );
   return content;
 }
 
@@ -603,46 +776,86 @@ function canonicalsOf(
 
 /**
  * What a screen reader would announce for a link, in the order the accessible-name rules
- * take: aria-labelledby, aria-label, the content (with each image's alt in place, and
- * nothing marked aria-hidden), then the title attribute — which Google, too, falls back
- * to for an empty link.
+ * take: aria-labelledby, aria-label, the content, then the title attribute — which
+ * Google, too, falls back to for an empty link.
+ *
+ * In the content, nothing marked aria-hidden counts, and an element that carries a name
+ * of its own is read by it, as the rules read every node on the way down: an icon's
+ * aria-label (`<svg role="img" aria-label="Home">`), an image's alt or title, an
+ * `<svg>`'s `<title>`, an image button's alt. Reading only `img@alt` called such links
+ * empty where every browser and axe give them a name.
  */
 function accessibleNameOf($: CheerioAPI, anchor: TSelection): string {
-  const labelledBy = (anchor.attr('aria-labelledby') ?? '')
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((id) => collapse($(`[id="${id.replace(/"/g, '')}"]`).text()))
-    .join(' ');
-  if (collapse(labelledBy)) return collapse(labelledBy);
-  const label = collapse(anchor.attr('aria-label') ?? '');
-  if (label) return label;
+  const own = ownNameOf($, anchor);
+  if (own) return own;
   const content = anchor.clone();
   content.find('[aria-hidden="true"]').remove();
-  content.find('img').each((_, image) => {
-    $(image).replaceWith(` ${$(image).attr('alt') ?? ''} `);
-  });
+  content
+    .find('[aria-label], [aria-labelledby], img, svg, input[type="image" i]')
+    .each((_, element) => {
+      const node = $(element);
+      const name =
+        ownNameOf($, node) ||
+        (node.is('img, input')
+          ? collapse(node.attr('alt') ?? '') ||
+            collapse(node.attr('title') ?? '')
+          : '') ||
+        (node.is('svg') ? collapse(node.children('title').text()) : '');
+      if (name || node.is('img, svg, input')) node.replaceWith(` ${name} `);
+    });
   const text = collapse(content.text());
   if (text) return text;
   return collapse(anchor.attr('title') ?? '');
 }
 
-/** Script types a browser runs as classic JavaScript; anything else is data or a module. */
+/** An element's name from aria-labelledby, else aria-label; '' when it has neither. */
+function ownNameOf($: CheerioAPI, node: TSelection): string {
+  const labelledBy = collapse(
+    (node.attr('aria-labelledby') ?? '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((id) => $(`[id="${id.replace(/"/g, '')}"]`).text())
+      .join(' '),
+  );
+  return labelledBy || collapse(node.attr('aria-label') ?? '');
+}
+
+/**
+ * Script types a browser runs as classic JavaScript — HTML's JavaScript MIME type
+ * essence matches, legacy ones included; anything else is data or a module.
+ */
 const CLASSIC_SCRIPT_TYPES = new Set([
   '',
-  'text/javascript',
-  'application/javascript',
-  'text/ecmascript',
   'application/ecmascript',
+  'application/javascript',
+  'application/x-ecmascript',
+  'application/x-javascript',
+  'text/ecmascript',
+  'text/javascript',
+  'text/javascript1.0',
+  'text/javascript1.1',
+  'text/javascript1.2',
+  'text/javascript1.3',
+  'text/javascript1.4',
+  'text/javascript1.5',
+  'text/jscript',
+  'text/livescript',
+  'text/x-ecmascript',
+  'text/x-javascript',
 ]);
 
 /**
  * An external script the parser must stop for: classic JavaScript with neither `async`
- * nor `defer`. A module defers by default; JSON and templates never run.
+ * nor `defer`. A module defers by default; JSON and templates never run; and a classic
+ * `nomodule` script is never fetched by a browser that runs modules — HTML's "prepare the
+ * script element" returns before fetching it — so it blocks nothing in any browser that
+ * renders the page today.
  */
 function isParserBlocking(script: TSelection): boolean {
   const type = (script.attr('type') ?? '').trim().toLowerCase();
   return (
     CLASSIC_SCRIPT_TYPES.has(type) &&
+    script.attr('nomodule') === undefined &&
     script.attr('async') === undefined &&
     script.attr('defer') === undefined
   );
@@ -657,6 +870,21 @@ const imageStem = (url: string) =>
     .replace(/\.[a-z0-9]+$/i, '')
     .replace(/-\d+x\d+$/, '')
     .toLowerCase();
+
+/** Whether an inline `background-image` shows the share image, matched by file stem. */
+function shownAsBackground($: CheerioAPI, shareImage: string | null): boolean {
+  const stem = shareImage ? imageStem(shareImage) : '';
+  if (!stem) return false;
+  return $('[style*="url(" i]')
+    .toArray()
+    .some((element) =>
+      [
+        ...($(element).attr('style') ?? '').matchAll(
+          /url\(\s*['"]?([^'")]+)/gi,
+        ),
+      ].some(([, url]) => imageStem(url) === stem),
+    );
+}
 
 /** The `<img>` whose src or srcset shows the og:image, by file stem. */
 /**
@@ -712,7 +940,7 @@ function featuredImageOf(
   $: CheerioAPI,
   baseUrl: string,
 ): IParsedPage['featuredImage'] {
-  const og = absolute(metaContent($, 'property', 'og:image'), baseUrl);
+  const og = absolute(shareImageOf(openGraphOf($)) ?? undefined, baseUrl);
   const stem = og ? imageStem(og) : '';
   // The first of the images showing it that is not a thumbnail: neilpatel.com prints
   // the featured image twice, a 175-pixel lazy thumbnail first and the 700-pixel hero
@@ -727,11 +955,9 @@ function featuredImageOf(
             (candidate) =>
               !isThumbnail(candidate) &&
               [
-                candidate.attr('src'),
-                ...(candidate.attr('srcset') ?? '').split(','),
-              ]
-                .map((value) => (value ?? '').trim().split(/\s+/)[0])
-                .some((value) => value && imageStem(value) === stem),
+                candidate.attr('src')?.trim().split(/\s+/)[0],
+                ...srcsetUrls(candidate.attr('srcset')),
+              ].some((value) => value && imageStem(value) === stem),
           );
   const atTop = (image: TSelection) =>
     proseBefore($, image) <= FEATURED_IMAGE_MAX_PROSE_BEFORE;
@@ -756,10 +982,10 @@ function isSized(image: TSelection): boolean {
   );
 }
 
-/** An element as written, without the attribute this extractor parks on links. */
+/** An element as written, without the attributes this extractor parks on the document. */
 function quoteMarkup($: CheerioAPI, element: TSelection): string {
   const clone = element.clone();
-  clone.removeAttr(NAME_ATTRIBUTE).removeAttr(INDEX_ATTRIBUTE);
+  clone.find('*').addBack().removeAttr(PARKED_ATTRIBUTES);
   return collapse($.html(clone)).slice(0, MARKUP_QUOTE_MAX);
 }
 
@@ -788,8 +1014,17 @@ function relTokens(rel: string | undefined): string[] {
 }
 
 /**
- * An empty framework mount point, or a `<noscript>` asking for JavaScript. Read on the
- * whole document before anything is removed, because the `<noscript>` is the evidence.
+ * How many words a shell may hold outside its `<noscript>`: a loading line, a cookie
+ * notice. Substack's paid posts hold a hundred and more beside their banner (field
+ * audit, 2026-10-11), and a real shell holds none.
+ */
+const SHELL_MAX_WORDS = 20;
+
+/**
+ * An empty framework mount point, or a `<noscript>` asking for JavaScript in a body that
+ * holds next to nothing else. The banner alone is no evidence: Substack prints "This site
+ * requires JavaScript" on every page, server-rendered ones included. Read on the whole
+ * document before anything is removed, because the `<noscript>` is the evidence.
  */
 function looksClientRendered($: CheerioAPI): boolean {
   const emptyMount = $(APP_MOUNT_POINTS)
@@ -800,9 +1035,15 @@ function looksClientRendered($: CheerioAPI): boolean {
       return collapse(node.text()) === '';
     });
   if (emptyMount) return true;
-  return $('body noscript')
+  const asksForJavascript = $('body noscript')
     .toArray()
     .some((element) => /javascript/i.test($(element).text()));
+  if (!asksForJavascript) return false;
+  const body = $('body').clone();
+  body.find(NEVER_CONTENT).remove();
+  return (
+    collapse(body.text()).split(' ').filter(Boolean).length <= SHELL_MAX_WORDS
+  );
 }
 
 /** `http-equiv` is matched case-insensitively: `HTTP-EQUIV="Refresh"` is the same tag. */
@@ -821,20 +1062,29 @@ function httpEquivContent($: CheerioAPI, value: string): string | undefined {
  * different URLs has a defect the check is there to report, and de-duplicating here would
  * hide it before the check ever saw it.
  */
-function alternatesOf($: CheerioAPI, baseUrl: string): IAlternateLink[] {
+function alternatesOf(
+  $: CheerioAPI,
+  scope: 'head' | 'body',
+  baseUrl: string,
+): IAlternateLink[] {
   const alternates: IAlternateLink[] = [];
-  $('link[rel~="alternate"][hreflang]').each((_, element) => {
+  $(`${scope} link[rel~="alternate" i][hreflang]`).each((_, element) => {
     const lang = collapse($(element).attr('hreflang') ?? '');
-    const href = absolute($(element).attr('href'), baseUrl);
-    if (lang && href) alternates.push({ lang, href });
+    const raw = collapse($(element).attr('href') ?? '');
+    const href = absolute(raw, baseUrl);
+    if (lang && href)
+      alternates.push(
+        HAS_SCHEME.test(raw)
+          ? { lang, href }
+          : { lang, href, relativeHref: raw },
+      );
   });
   return alternates;
 }
 
 /**
- * Every subresource URL the given selectors name, de-duplicated. A `srcset` is a
- * comma-separated list of candidates with descriptors ("a.png 1x, b.png 2x"), so each
- * candidate's first token is the URL.
+ * Every subresource URL the given selectors name, de-duplicated. A `srcset` is a list of
+ * candidates with descriptors ("a.png 1x, b.png 2x"), read by `srcsetUrls`.
  */
 function urlsOf(
   $: CheerioAPI,
@@ -853,8 +1103,7 @@ function urlsOf(
         add(value);
         return;
       }
-      for (const candidate of (value ?? '').split(','))
-        add(candidate.trim().split(/\s+/)[0]);
+      for (const candidate of srcsetUrls(value)) add(candidate);
     });
   }
   return [...urls];
@@ -871,6 +1120,20 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
 }
 
 /**
+ * The image the page names for sharing, as written: og:image, or else og:image:url or
+ * og:image:secure_url — the protocol: "og:image:url – Identical to og:image". vercel.com's
+ * docs declare only that spelling, and Facebook reads it as the share image.
+ */
+function shareImageOf(openGraph: Record<string, string>): string | null {
+  return (
+    openGraph['og:image'] ??
+    openGraph['og:image:url'] ??
+    openGraph['og:image:secure_url'] ??
+    null
+  );
+}
+
+/**
  * Types and keywords of every JSON-LD node, `@graph` and nested arrays flattened, plus
  * the property names of the nodes that are articles.
  *
@@ -878,11 +1141,36 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
  * `"image": []` for fields nobody filled in, and treating a present-but-empty key as the
  * field being there would pass every page a CMS half-populated.
  */
-function structuredDataOf($: CheerioAPI): {
+/** `"@type":"X"`, as written or escaped inside a string (`\"@type\":\"X\"`). */
+const SCRIPTED_TYPE = /\\?"@type\\?"\s*:\s*\\?"([A-Za-z]+)\\?"/g;
+
+/** The properties through which a JSON-LD node holds the page's own nested items. */
+const NESTED_ITEM_PROPERTIES = ['mainEntity', 'breadcrumb'] as const;
+
+/** The schema.org types inline scripts other than JSON-LD blocks name. */
+function scriptedSchemaTypesOf($: CheerioAPI): string[] {
+  const types = new Set<string>();
+  $('script:not([src])')
+    .not('script[type="application/ld+json" i]')
+    .each((_, element) => {
+      for (const [, type] of $(element).text().matchAll(SCRIPTED_TYPE))
+        types.add(type);
+    });
+  return [...types];
+}
+
+function structuredDataOf(
+  $: CheerioAPI,
+  baseUrl: string,
+): {
   jsonLd: IParsedPage['jsonLd'];
   jsonLdErrors: string[];
   authors: string[];
   dates: { published: string | null; modified: string | null };
+  article: IArticleMarkup | null;
+  breadcrumbs: IParsedPage['breadcrumbs'];
+  logos: string[];
+  websiteNames: IParsedPage['websiteNames'];
 } {
   const types = new Set<string>();
   const keywords = new Set<string>();
@@ -890,6 +1178,8 @@ function structuredDataOf($: CheerioAPI): {
   // Authors are often a reference into the graph — `"author": {"@id": "#person"}` — so
   // names are resolved after every block is read, against the nodes that carry an @id.
   const namesById = new Map<string, string>();
+  const nodesById = new Map<string, TNode>();
+  const nodes: TNode[] = [];
   const authorRefs: unknown[] = [];
   const jsonLdErrors: string[] = [];
   const dates = {
@@ -903,12 +1193,14 @@ function structuredDataOf($: CheerioAPI): {
     }
     if (!node || typeof node !== 'object') return;
     const record = node as Record<string, unknown>;
-    const nodeTypes = [record['@type']].flat();
-    for (const type of nodeTypes) {
-      if (typeof type === 'string') types.add(type);
+    nodes.push(record);
+    const nodeTypes = typesOf(record);
+    for (const type of nodeTypes) types.add(type);
+    if (typeof record['@id'] === 'string') {
+      if (!nodesById.has(record['@id'])) nodesById.set(record['@id'], record);
+      if (typeof record.name === 'string')
+        namesById.set(record['@id'], collapse(record.name));
     }
-    if (typeof record['@id'] === 'string' && typeof record.name === 'string')
-      namesById.set(record['@id'], collapse(record.name));
     if (
       nodeTypes.some(
         (type) => typeof type === 'string' && ARTICLE_TYPES.has(type),
@@ -924,6 +1216,14 @@ function structuredDataOf($: CheerioAPI): {
     }
     for (const keyword of keywordsOf(record.keywords)) keywords.add(keyword);
     if (record['@graph'] !== undefined) visit(record['@graph']);
+    // Google: "Google Search understands multiple items on a page, whether you nest the
+    // items or specify each item individually." A WebPage carries its post as mainEntity
+    // and its trail as breadcrumb. Only these two are followed, and only into a typed
+    // node: a listing's ItemList of BlogPostings is not the page's article, and a bare
+    // {"@id"} reference would shadow the full node in the index.
+    for (const key of NESTED_ITEM_PROPERTIES)
+      for (const item of [record[key]].flat())
+        if (item && typeof item === 'object' && '@type' in item) visit(item);
   };
   // A block is read as Google reads it — a raw line break inside a string is forgiven
   // (`parseJsonLd`). What is still not JSON reaches Google as nothing, which is a finding,
@@ -958,6 +1258,9 @@ function structuredDataOf($: CheerioAPI): {
     if (name) names.add(name);
   };
   authorRefs.forEach(resolve);
+  const articleNode = nodes.find((node) =>
+    typesOf(node).some((type) => ARTICLE_TYPES.has(type)),
+  );
   return {
     jsonLd: {
       types: [...types],
@@ -967,7 +1270,125 @@ function structuredDataOf($: CheerioAPI): {
     jsonLdErrors,
     authors: [...names].map((name) => `JSON-LD author: ${name}`),
     dates,
+    article: articleNode
+      ? {
+          source: 'json-ld',
+          type: typesOf(articleNode).find((type) => ARTICLE_TYPES.has(type))!,
+          headline: orNull(
+            typeof articleNode.headline === 'string'
+              ? articleNode.headline
+              : undefined,
+          ),
+          datePublished: dateOf(articleNode.datePublished),
+          dateModified: dateOf(articleNode.dateModified),
+          authors: authorsOf(articleNode.author, nodesById, baseUrl),
+          images: imagesOf(articleNode.image, nodesById, baseUrl),
+        }
+      : null,
+    breadcrumbs: nodes
+      .filter((node) => typesOf(node).includes('BreadcrumbList'))
+      .map((node) => breadcrumbItemsOf(node, nodesById, baseUrl)),
+    logos: [
+      ...new Set(nodes.flatMap((node) => logosOf(node, nodesById, baseUrl))),
+    ],
+    websiteNames: nodes
+      .filter((node) => typesOf(node).includes('WebSite'))
+      .map(websiteNameOf)
+      .filter((names) => names !== null),
   };
+}
+
+/** The rel tokens that name a site icon Google reads for the favicon. */
+const ICON_RELS = ['icon', 'apple-touch-icon', 'apple-touch-icon-precomposed'];
+
+/**
+ * Icons the document declares, in order: `shortcut icon` is an `icon` too. Read from the
+ * whole document, not `<head>` alone: neilpatel.com writes its icon link after an
+ * element that ends the head for a parser (2026-10), and the icon is still the site's.
+ */
+function iconsOf($: CheerioAPI, baseUrl: string): IIconLink[] {
+  const icons: IIconLink[] = [];
+  $('link[rel][href]').each((_, element) => {
+    const rel = relTokens($(element).attr('rel')).find((token) =>
+      ICON_RELS.includes(token),
+    );
+    const href = absolute($(element).attr('href'), baseUrl);
+    if (!rel || !href) return;
+    icons.push({
+      rel,
+      href,
+      type: $(element).attr('type')?.trim().toLowerCase() || null,
+      sizes: orNull($(element).attr('sizes')),
+    });
+  });
+  return icons;
+}
+
+/** The video players whose iframe is a video on the page, by the address it loads. */
+const VIDEO_PLAYER =
+  /^https?:\/\/(?:[a-z0-9-]+\.)*(?:youtube\.com\/embed|youtube-nocookie\.com\/embed|player\.vimeo\.com\/video|fast\.wistia\.(?:net|com)\/embed|(?:[a-z0-9-]+\.)?wistia\.com\/medias|dailymotion\.com\/embed|geo\.dailymotion\.com\/player|rutube\.ru\/play\/embed|vk\.com\/video_ext|vkvideo\.ru\/video_ext|loom\.com\/embed|play\.vidyard\.com|players\.brightcove\.net|embed\.ted\.com)/i;
+
+/**
+ * Videos a reader can watch, outside the site's navigation and footer. A muted `<video>`
+ * with no controls is a moving background, not a video anyone came for — semrush.com's
+ * home page loops one, started by a script rather than `autoplay` (2026-10).
+ */
+function videosOf($: CheerioAPI): string[] {
+  const outsideFurniture = (element: TSelection) =>
+    element.closest('nav, header, footer, aside').length === 0;
+  const found: string[] = [];
+  $('body video').each((_, node) => {
+    const video = $(node);
+    const decorative =
+      video.attr('muted') !== undefined && video.attr('controls') === undefined;
+    if (!decorative && outsideFurniture(video))
+      found.push(quoteMarkup($, video));
+  });
+  $('body iframe').each((_, node) => {
+    const frame = $(node);
+    const src = (frame.attr('src') || frame.attr('data-src') || '').trim();
+    const url = src.startsWith('//') ? `https:${src}` : src;
+    if (VIDEO_PLAYER.test(url) && outsideFurniture(frame))
+      found.push(quoteMarkup($, frame));
+  });
+  return found;
+}
+
+/**
+ * Share of the main content a `data-nosnippet` element must hold to be the article
+ * rather than a passage in it. A passage kept out of the snippet is an editor's choice;
+ * the whole text kept out is a page Google can quote nothing from.
+ */
+const NOSNIPPET_MIN_SHARE = 0.5;
+
+/**
+ * The `data-nosnippet` element holding most of the main content, or null. Only the words
+ * it holds INSIDE the main content count — or all of them, when it wraps the main content:
+ * a comments block kept out of the snippet holds many words, and none of the article's.
+ */
+function contentNosnippetOf(
+  $: CheerioAPI,
+  main: TSelection,
+  wordCount: number,
+): string | null {
+  if (wordCount === 0) return null;
+  const holder = $(NOSNIPPET_HOLDERS)
+    .toArray()
+    .map((element) => $(element))
+    .find((element) => {
+      if (element.is(`[${MAIN_ATTRIBUTE}]`)) return true;
+      if (element.find(`[${MAIN_ATTRIBUTE}]`).length > 0) return true;
+      const inside = main.find(
+        `[${NOSNIPPET_ATTRIBUTE}="${element.attr(NOSNIPPET_ATTRIBUTE)}"]`,
+      );
+      return (
+        inside.length > 0 &&
+        wordsIn($, inside.first()) >= wordCount * NOSNIPPET_MIN_SHARE
+      );
+    });
+  if (!holder) return null;
+  const opening = /^<[^>]*>/.exec(quoteMarkup($, holder.clone().empty()));
+  return opening ? opening[0] : quoteMarkup($, holder);
 }
 
 /** Why strict JSON refuses the text, in the parser's words: they name the position. */
@@ -1005,10 +1426,21 @@ function isAuthorArchive(href: string, baseUrl: string): boolean {
 }
 
 /**
+ * A visible byline as themes mark it: WordPress core's post-author-name block (every
+ * wordpress.org/news post names Matt Mullenweg in one, and was reported as naming no
+ * one), and the `byline` and `author-name` classes themes give theirs.
+ */
+const BYLINE =
+  '.wp-block-post-author-name, .wp-block-post-author, [class~="byline" i], [class*="author-name" i], [class*="author_name" i]';
+
+/** A site's credits file, which moz.com links as rel="author": no person wrote the post. */
+const CREDITS_FILE = /\/humans\.txt$/i;
+
+/**
  * The author as the HTML itself names it: `<meta name="author">`, a `rel="author"` link,
- * an element marked `itemprop="author"`, or a byline that links to the author's archive
- * on this site — `<a href="/author/jane-doe/">Jane Doe</a>`, the way blog.cloudflare.com
- * names its authors with nothing else. Each quoted as written.
+ * an element marked `itemprop="author"`, a byline a theme marks as one, or a link to the
+ * author's archive on this site — `<a href="/author/jane-doe/">Jane Doe</a>`, the way
+ * blog.cloudflare.com names its authors with nothing else. Each quoted as written.
  */
 function authorsInMarkup($: CheerioAPI, baseUrl: string): string[] {
   const found: string[] = [];
@@ -1017,9 +1449,14 @@ function authorsInMarkup($: CheerioAPI, baseUrl: string): string[] {
   $('a[rel~="author" i][href], link[rel~="author" i][href]').each(
     (_, element) => {
       const href = absolute($(element).attr('href'), baseUrl);
-      if (href) found.push(`<${element.tagName} rel="author" href="${href}">`);
+      if (href && !CREDITS_FILE.test(new URL(href).pathname))
+        found.push(`<${element.tagName} rel="author" href="${href}">`);
     },
   );
+  $(BYLINE).each((_, element) => {
+    const name = collapse($(element).text()).replace(/^by\s+/i, '');
+    if (name && name.length <= 100) found.push(`byline: ${name}`);
+  });
   $('[itemprop~="author"]').each((_, element) => {
     const name =
       collapse($(element).find('[itemprop~="name"]').first().text()) ||

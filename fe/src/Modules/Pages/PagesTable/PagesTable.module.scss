@@ -11,3 +11,7 @@
 	opacity: 0.6;
 	transition: opacity 150ms ease;
 }
+
+.legend {
+	border-top: 1px solid var(--mantine-color-default-border);
+}

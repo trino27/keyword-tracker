@@ -14,10 +14,11 @@ import { KpiCards } from "./KpiCards/KpiCards";
 import { PageDetailHeader } from "./PageDetailHeader/PageDetailHeader";
 import { PositionHistory } from "./PositionHistory/PositionHistory";
 import { ScoreExplainer } from "./ScoreExplainer/ScoreExplainer";
+import { SpeedSection } from "./SpeedSection/SpeedSection";
 
 /**
- * One page: header with summary metrics, then its position history, then what was
- * checked, how the score follows from it, and finally what to fix.
+ * One page: header with summary metrics, its speed, then its position history, then what
+ * was checked, how the score follows from it, and finally what to fix.
  */
 export function PageDetailScreen() {
 	const { pageId: rawPageId } = useParams({ from: "/app/pages/$pageId" });
@@ -75,6 +76,11 @@ export function PageDetailScreen() {
 				<PageDetailHeader detail={vm.detail} timeZone={timeZone} />
 				<KpiCards detail={vm.detail} />
 			</Stack>
+			<SpeedSection
+				pageSpeedByStrategy={vm.detail.pageSpeedByStrategy}
+				availability={vm.detail.pageSpeedAvailability}
+				timeZone={timeZone}
+			/>
 			<PositionHistory
 				history={vm.history}
 				status={vm.historyStatus}
@@ -108,8 +114,27 @@ export function PageDetailScreen() {
 			/>
 			{/* Above the issues, because they answer "what was examined" and "what does the
 			    number mean"; the issues answer "what do I fix", which reads last. */}
-			<ChecksSection checks={vm.detail.checks} />
-			<ScoreExplainer score={vm.detail.score} />
+			<ChecksSection
+				checksByOwner={vm.detail.checksByOwner}
+				context={{
+					crawledAt: vm.detail.page.crawledAt,
+					// Lighthouse's verdicts come from the mobile answer, whichever device the
+					// Speed block shows.
+					lighthouseMeasuredAt:
+						vm.detail.pageSpeedByStrategy.mobile?.measurement?.measuredAt ?? null,
+					pageSpeedState: vm.detail.pageSpeedAvailability.state,
+				}}
+				timeZone={timeZone}
+			/>
+			<ScoreExplainer
+				score={vm.detail.score}
+				lighthouse={{
+					state: vm.detail.pageSpeedAvailability.state,
+					measuredAt:
+						vm.detail.pageSpeedByStrategy.mobile?.measurement?.measuredAt ?? null,
+					timeZone,
+				}}
+			/>
 			<IssuesSection issues={vm.detail.issues} currentPages={vm.detail.client.currentPages} />
 		</Stack>
 	);

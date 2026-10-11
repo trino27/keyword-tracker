@@ -6,14 +6,17 @@ import {
   type IPageDetail,
   type IPageIssueCounts,
   type IPageListResponse,
+  type IPageScore,
 } from '@app/contracts';
 import { escapeLike } from '@core/utils/escape-like/escape-like';
+import { PageSpeedAvailabilityService } from '@infrastructure/config/page-speed-settings/page-speed-availability/page-speed-availability.service';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import { ClientsService } from '@modules/clients/services/clients/clients.service';
 import { normalizeText } from '@modules/page-analysis/services/text/normalize-text/normalize-text';
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
 import { PageNotFoundException } from '../../exceptions/pages.exceptions';
 import { PageDetailRepository } from '../../repositories/page-detail/page-detail.repository';
+import type { ILighthousePoints } from '../../repositories/page-score/score-points';
 import {
   PageListRepository,
   type IPageKeywordRow,
@@ -21,6 +24,7 @@ import {
 } from '../../repositories/page-list/page-list.repository';
 import { pickBestPosition } from '../best-position/pick-best-position';
 import { composePageChecks } from '../page-checks/compose-page-checks';
+import { pageSpeedSummaryOf } from '../page-speed-summary/page-speed-summary-of';
 
 const contains = (text: string) => `%${escapeLike(text)}%`;
 
@@ -52,6 +56,7 @@ export class PageReadService {
     private readonly list: PageListRepository,
     private readonly detail: PageDetailRepository,
     private readonly clients: ClientsService,
+    private readonly pageSpeed: PageSpeedAvailabilityService,
   ) {}
 
   /**
@@ -119,7 +124,7 @@ export class PageReadService {
           client: { id: row.clientId, name: row.clientName },
           keywords,
           bestPosition: pickBestPosition(keywords),
-          score: pageScoreOf(row.checksApplicable, row.checksFailed),
+          score: scoreOf(row),
           // A page nobody shares a finding with says zero, not nothing.
           issues: issuesByPage.get(row.id) ?? {
             total: 0,
@@ -128,12 +133,14 @@ export class PageReadService {
             notice: 0,
             siteWide: 0,
           },
+          pageSpeed: pageSpeedSummaryOf(row.pageSpeed),
           lastCapturedAt: lastCapturedAtOf(keywords),
         };
       }),
       page: query.page,
       pageSize: query.pageSize,
       total,
+      pageSpeedAvailability: this.pageSpeed.current(),
     };
   }
 
@@ -148,6 +155,7 @@ export class PageReadService {
       this.clients.getClient(scope, page.clientId),
     ]);
     const keywords = keywordRows.map(toKeywordPosition);
+    const issueCodes = issues.map(({ code }) => code);
 
     return {
       page: {
@@ -171,17 +179,64 @@ export class PageReadService {
       },
       keywords,
       bestPosition: pickBestPosition(keywords),
-      score: pageScoreOf(page.checksApplicable, page.checksFailed),
-      checks: composePageChecks(
-        page.checksJudged,
-        page.checksNotApplicable,
-        issues.map(({ code }) => code),
-      ),
+      score: scoreOf(page),
+      checksByOwner: {
+        crawl: composePageChecks(
+          'crawl',
+          page.checksJudged,
+          page.checksNotApplicable,
+          issueCodes,
+        ),
+        lighthouse: composePageChecks(
+          'lighthouse',
+          page.lighthouseJudged,
+          page.lighthouseNotApplicable,
+          issueCodes,
+        ),
+      },
       issues: [...issues].sort(
         (a, b) =>
           SEO_ISSUE_CODES.indexOf(a.code) - SEO_ISSUE_CODES.indexOf(b.code),
       ),
       lastCrawl: client.latestRun,
+      pageSpeedByStrategy: {
+        mobile: pageSpeedSummaryOf(page.pageSpeedByStrategy.mobile),
+        desktop: pageSpeedSummaryOf(page.pageSpeedByStrategy.desktop),
+      },
+      pageSpeedAvailability: this.pageSpeed.current(),
     };
   }
+}
+
+/**
+ * The page's score over every scored owner (lighthouse-checks D9), each check weighed by
+ * its severity: the crawl's counters and points, and Lighthouse's active checks counted
+ * and weighed from the measurement — absent until the page has been measured with
+ * Lighthouse's categories.
+ */
+function scoreOf(page: {
+  checksApplicable: number;
+  checksFailed: number;
+  pointsPossible: number;
+  pointsLost: number;
+  lighthousePoints: ILighthousePoints | null;
+}): IPageScore {
+  const points = page.lighthousePoints;
+  return pageScoreOf({
+    crawl: {
+      applicable: page.checksApplicable,
+      failed: page.checksFailed,
+      pointsPossible: page.pointsPossible,
+      pointsLost: page.pointsLost,
+    },
+    lighthouse:
+      points === null
+        ? null
+        : {
+            applicable: points.applicable,
+            failed: points.failed,
+            pointsPossible: points.possible,
+            pointsLost: points.lost,
+          },
+  });
 }

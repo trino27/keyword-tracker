@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { TSeoIssue, TSeoIssueCode } from '@app/contracts';
+import type { TCrawlIssueCode, TCrawlSeoIssue } from '@app/contracts';
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import { KeywordsRepository } from '../../repositories/keywords/keywords.repository';
 import {
@@ -13,7 +13,7 @@ import {
 } from '../../repositories/pages/pages.repository';
 import {
   SeoIssuesRepository,
-  type TNewSeoIssue,
+  type TNewCrawlIssue,
 } from '../../repositories/seo-issues/seo-issues.repository';
 
 /** One crawled post as the pages module stores it. */
@@ -31,13 +31,14 @@ export interface IRunPage {
   sitemapPosition: number;
   /** Normalized terms; relevance in (0, 1]. */
   keywords: { term: string; relevance: number }[];
-  issues: TSeoIssue[];
+  /** Crawl findings only: the PageSpeed worker writes the speed codes. */
+  issues: TCrawlSeoIssue[];
   /** Written in the same statement as the page, in the same transaction as the issues. */
   checksApplicable: number;
   checksFailed: number;
   /** WHICH ones, disjoint — together the catalogue as of this crawl. */
-  checksJudged: TSeoIssueCode[];
-  checksNotApplicable: TSeoIssueCode[];
+  checksJudged: TCrawlIssueCode[];
+  checksNotApplicable: TCrawlIssueCode[];
   /** Kept for the next crawl to compare against. */
   contentHash: string;
   dateModified: string | null;
@@ -134,13 +135,13 @@ export class CrawlResultsService {
     );
     await this.pageKeywords.upsertManyForWorker(tx, pairs);
 
-    const issues: TNewSeoIssue[] = results.pages.flatMap((page) =>
+    const issues: TNewCrawlIssue[] = results.pages.flatMap((page) =>
       page.issues.map((issue) => ({
         pageId: pageIds.get(page.url)!,
         ...issue,
       })),
     );
-    await this.seoIssues.replaceForPagesForWorker(
+    await this.seoIssues.replaceCrawlFindingsForWorker(
       tx,
       [...pageIds.values()],
       issues,

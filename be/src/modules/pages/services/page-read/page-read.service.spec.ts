@@ -1,4 +1,10 @@
-import { SEO_ISSUE_CODES, type TSeoIssueCode } from '@app/contracts';
+import {
+  ACTIVE_ISSUE_CODES,
+  ACTIVE_LIGHTHOUSE_CODES,
+  type TSeoIssueCode,
+} from '@app/contracts';
+import { PageSpeedAvailabilityService } from '@infrastructure/config/page-speed-settings/page-speed-availability/page-speed-availability.service';
+import { PageSpeedRuntimeState } from '@infrastructure/config/page-speed-settings/page-speed-runtime-state';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type { ClientsService } from '@modules/clients/services/clients/clients.service';
 import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-query.dto';
@@ -26,6 +32,9 @@ const setup = (rowCount: number) => {
     // most checks and each later row fails fewer.
     checksApplicable: 18,
     checksFailed: Math.min(18, Math.max(0, rowCount - 1 - i)),
+    pointsPossible: 60,
+    pointsLost: 3 * Math.min(18, Math.max(0, rowCount - 1 - i)),
+    lighthousePoints: null,
   }));
   const list = {
     listSlice: (_scope: IUserScope, filter: IPageListFilter) => {
@@ -80,6 +89,10 @@ const setup = (rowCount: number) => {
     list,
     {} as PageDetailRepository,
     clients as unknown as ClientsService,
+    new PageSpeedAvailabilityService(
+      { apiKey: 'k' },
+      new PageSpeedRuntimeState(),
+    ),
   );
   const query = (overrides: Partial<ListPagesQueryDto> = {}) => ({
     page: 1,
@@ -155,6 +168,34 @@ describe('PageReadService.listPages', () => {
   });
 });
 
+/** A measured row's figures, all absent: the tests below set what they read. */
+const NO_SPEED_FIGURES = {
+  lastError: null,
+  lcpMs: null,
+  lcpSource: null,
+  inpMs: null,
+  inpSource: null,
+  cls: null,
+  clsSource: null,
+  performanceScore: null,
+  measuredAt: null,
+  ttfbMs: null,
+  ttfbSource: null,
+  lcpGoodShare: null,
+  lcpPoorShare: null,
+  inpGoodShare: null,
+  inpPoorShare: null,
+  clsGoodShare: null,
+  clsPoorShare: null,
+  ttfbGoodShare: null,
+  ttfbPoorShare: null,
+  lcpBreakdown: null,
+  seoScore: null,
+  accessibilityScore: null,
+  lighthouseApplicable: null,
+  lighthouseFailed: null,
+};
+
 const detailSetup = (
   overrides: Partial<{
     checksJudged: TSeoIssueCode[] | null;
@@ -163,6 +204,15 @@ const detailSetup = (
     checksFailed: number;
     issueCodes: TSeoIssueCode[];
     page: unknown;
+    lighthouseJudged: TSeoIssueCode[] | null;
+    lighthouseNotApplicable: TSeoIssueCode[] | null;
+    lighthousePoints: {
+      applicable: number;
+      failed: number;
+      possible: number;
+      lost: number;
+    } | null;
+    pageSpeedByStrategy: { mobile: unknown; desktop: unknown };
   }> = {},
 ) => {
   const issueCodes = overrides.issueCodes ?? ['LANG_MISSING', 'TITLE_MISSING'];
@@ -177,11 +227,13 @@ const detailSetup = (
     wordCount: 800,
     httpStatus: 200,
     responseMs: 120,
-    checksApplicable: overrides.checksApplicable ?? SEO_ISSUE_CODES.length,
+    checksApplicable: overrides.checksApplicable ?? ACTIVE_ISSUE_CODES.length,
     checksFailed: overrides.checksFailed ?? issueCodes.length,
+    pointsPossible: 100,
+    pointsLost: 11,
     checksJudged:
       overrides.checksJudged === undefined
-        ? [...SEO_ISSUE_CODES]
+        ? [...ACTIVE_ISSUE_CODES]
         : overrides.checksJudged,
     checksNotApplicable:
       overrides.checksNotApplicable === undefined
@@ -192,6 +244,13 @@ const detailSetup = (
     clientName: 'Site',
     clientWebsiteUrl: 'https://a.example',
     clientCurrentPages: 15,
+    lighthouseJudged: overrides.lighthouseJudged ?? null,
+    lighthousePoints: overrides.lighthousePoints ?? null,
+    lighthouseNotApplicable: overrides.lighthouseNotApplicable ?? null,
+    pageSpeedByStrategy: overrides.pageSpeedByStrategy ?? {
+      mobile: null,
+      desktop: null,
+    },
   };
   const detail = {
     findCurrentPage: () =>
@@ -214,15 +273,75 @@ const detailSetup = (
   const clients = {
     getClient: jest.fn(() => Promise.resolve({ latestRun })),
   };
+  const runtime = new PageSpeedRuntimeState();
   const service = new PageReadService(
     list,
     detail,
     clients as unknown as ClientsService,
+    new PageSpeedAvailabilityService({ apiKey: 'k' }, runtime),
   );
-  return { service, clients, latestRun };
+  return { service, clients, latestRun, runtime };
 };
 
 describe('PageReadService.getPage', () => {
+  /** D27: one function answers every read path, so the screens cannot disagree. */
+  it('the availability state comes from pageSpeedAvailabilityOf', async () => {
+    const { service, runtime } = detailSetup();
+
+    expect((await service.getPage(scope, 1)).pageSpeedAvailability).toEqual({
+      state: 'active',
+    });
+    runtime.markKeyRejected();
+    expect((await service.getPage(scope, 1)).pageSpeedAvailability).toEqual({
+      state: 'keyRejected',
+    });
+  });
+
+  it('a page never queued for PageSpeed has no summary', async () => {
+    const { service } = detailSetup();
+
+    expect((await service.getPage(scope, 1)).pageSpeedByStrategy).toEqual({
+      mobile: null,
+      desktop: null,
+    });
+  });
+
+  it('the detail carries a summary per strategy, null where never queued', async () => {
+    const { service } = detailSetup({
+      pageSpeedByStrategy: {
+        mobile: { ...NO_SPEED_FIGURES, status: 'queued' },
+        desktop: null,
+      },
+    });
+
+    expect((await service.getPage(scope, 1)).pageSpeedByStrategy).toEqual({
+      mobile: { status: 'queued', measurement: null, lastError: null },
+      desktop: null,
+    });
+  });
+
+  /** D49: the score and Lighthouse's share come from the mobile row alone. */
+  it('the score reads the mobile row whatever the desktop row holds', async () => {
+    const { service } = detailSetup({
+      checksApplicable: 16,
+      checksFailed: 2,
+      pageSpeedByStrategy: {
+        mobile: null,
+        desktop: {
+          ...NO_SPEED_FIGURES,
+          status: 'done',
+          lighthouseApplicable: 9,
+          lighthouseFailed: 9,
+        },
+      },
+    });
+
+    const { score } = await service.getPage(scope, 1);
+
+    expect(score.byOwner.lighthouse).toBeNull();
+    expect(score.applicable).toBe(16);
+  });
+
   it('refuses a page the scope cannot reach, exactly like a missing one', async () => {
     const { service } = detailSetup({ page: null });
 
@@ -234,16 +353,20 @@ describe('PageReadService.getPage', () => {
   it('answers for every catalogue check', async () => {
     const { service } = detailSetup();
 
-    const { checks } = await service.getPage(scope, 1);
+    const {
+      checksByOwner: { crawl: checks },
+    } = await service.getPage(scope, 1);
 
-    expect(checks?.map(({ code }) => code)).toEqual(SEO_ISSUE_CODES);
+    expect(checks?.map(({ code }) => code)).toEqual(ACTIVE_ISSUE_CODES);
   });
 
   /** The composition reads the issue codes, so a finding is never reported as a pass. */
   it('marks a finding failed and leaves the rest passed', async () => {
     const { service } = detailSetup({ issueCodes: ['NOINDEX'] });
 
-    const { checks } = await service.getPage(scope, 1);
+    const {
+      checksByOwner: { crawl: checks },
+    } = await service.getPage(scope, 1);
     const status = (code: string) =>
       checks?.find((check) => check.code === code)?.status;
 
@@ -252,7 +375,7 @@ describe('PageReadService.getPage', () => {
   });
 
   it('separates a skipped check from a passed one', async () => {
-    const judged = SEO_ISSUE_CODES.filter((code) => code !== 'HEADING_SKIP');
+    const judged = ACTIVE_ISSUE_CODES.filter((code) => code !== 'HEADING_SKIP');
     const { service } = detailSetup({
       checksJudged: judged,
       checksNotApplicable: ['HEADING_SKIP'],
@@ -261,15 +384,84 @@ describe('PageReadService.getPage', () => {
       checksFailed: 0,
     });
 
-    const { checks, score } = await service.getPage(scope, 1);
+    const {
+      checksByOwner: { crawl: checks },
+      score,
+    } = await service.getPage(scope, 1);
 
     expect(checks?.find((check) => check.code === 'HEADING_SKIP')?.status).toBe(
       'notApplicable',
     );
-    expect(score.applicable).toBe(SEO_ISSUE_CODES.length - 1);
+    expect(score.applicable).toBe(ACTIVE_ISSUE_CODES.length - 1);
   });
 
   /** A page whose crawl predates the record cannot be enumerated, and says so. */
+  /** PAGES-012, PAGES-009: Lighthouse is a second owner of checks, and of the score. */
+  it("lists Lighthouse's checks from the measurement and counts them in the score", async () => {
+    const judged: TSeoIssueCode[] = ACTIVE_LIGHTHOUSE_CODES.slice(0, 7);
+    const { service } = detailSetup({
+      issueCodes: ['TITLE_MISSING', 'LH_DOCUMENT_TITLE'],
+      checksApplicable: 16,
+      checksFailed: 1,
+      lighthouseJudged: judged,
+      lighthouseNotApplicable: ACTIVE_LIGHTHOUSE_CODES.slice(7, 9),
+      // The lateral counts the active codes only; the seven judged weigh 10 + 6 × 1.
+      lighthousePoints: { applicable: 7, failed: 1, possible: 16, lost: 1 },
+      pageSpeedByStrategy: {
+        mobile: { ...NO_SPEED_FIGURES, status: 'done' },
+        desktop: null,
+      },
+    });
+
+    const { checksByOwner, score } = await service.getPage(scope, 1);
+    const status = (code: string) =>
+      checksByOwner.lighthouse?.find((check) => check.code === code)?.status;
+
+    expect(checksByOwner.lighthouse).toHaveLength(
+      ACTIVE_LIGHTHOUSE_CODES.length,
+    );
+    expect(status('LH_DOCUMENT_TITLE')).toBe('failed');
+    expect(status(ACTIVE_LIGHTHOUSE_CODES[8])).toBe('notApplicable');
+    expect(status(ACTIVE_LIGHTHOUSE_CODES[9])).toBe('notYetChecked');
+    expect(
+      checksByOwner.crawl?.find((check) => check.code === 'TITLE_MISSING')
+        ?.status,
+    ).toBe('failed');
+    // The fixture's crawl points are 100 possible, 11 lost; Lighthouse adds 16 and 1.
+    expect(score).toEqual({
+      value: 90,
+      applicable: 23,
+      failed: 2,
+      pointsPossible: 116,
+      pointsLost: 12,
+      byOwner: {
+        crawl: {
+          applicable: 16,
+          failed: 1,
+          pointsPossible: 100,
+          pointsLost: 11,
+        },
+        lighthouse: {
+          applicable: 7,
+          failed: 1,
+          pointsPossible: 16,
+          pointsLost: 1,
+        },
+      },
+    });
+  });
+
+  it('scores a page Lighthouse has not measured on the crawl alone, and says so', async () => {
+    const { service } = detailSetup({ checksApplicable: 16, checksFailed: 2 });
+
+    const { score, checksByOwner } = await service.getPage(scope, 1);
+
+    expect(score.byOwner.lighthouse).toBeNull();
+    // The fixture's crawl points alone: 100 × 89 ÷ 100.
+    expect(score.value).toBe(89);
+    expect(checksByOwner.lighthouse).toBeNull();
+  });
+
   it('answers null when the crawl predates the record', async () => {
     const { service } = detailSetup({
       checksJudged: null,
@@ -277,7 +469,7 @@ describe('PageReadService.getPage', () => {
     });
 
     await expect(service.getPage(scope, 1)).resolves.toMatchObject({
-      checks: null,
+      checksByOwner: { crawl: null, lighthouse: null },
     });
   });
 

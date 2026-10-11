@@ -3,7 +3,6 @@ import {
 	CartesianGrid,
 	Line,
 	LineChart,
-	ReferenceArea,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
@@ -26,13 +25,6 @@ interface IPositionChartProps {
 	today: string;
 }
 
-/** Core updates re-weigh everything, so they stand out; spam and other updates less. */
-const UPDATE_COLOR: Record<TSearchUpdate["kind"], string> = {
-	core: "var(--mantine-color-red-5)",
-	spam: "var(--mantine-color-orange-5)",
-	other: "var(--mantine-color-gray-5)",
-};
-
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** "2026-10-03" → "Oct 3" — the day is already the user's calendar day. */
@@ -47,7 +39,8 @@ const shortDay = (day: string) => {
  */
 export function PositionChart({ history, hidden, searchUpdates, today }: IPositionChartProps) {
 	const rows = toChartRows(history);
-	// Bands behind the lines: the first question of a drop is whether Google moved.
+	// Named under the chart rather than shaded behind the lines: the first question of a
+	// drop is whether Google moved, and a link answers it without colouring the data.
 	const bands = placeSearchUpdates(
 		rows.map(({ day }) => day),
 		searchUpdates,
@@ -64,17 +57,6 @@ export function PositionChart({ history, hidden, searchUpdates, today }: IPositi
 				<ResponsiveContainer width="100%" height="100%">
 					<LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: -8 }}>
 						<CartesianGrid strokeDasharray="3 3" stroke="var(--mantine-color-gray-2)" />
-						{bands.map((band) => (
-							<ReferenceArea
-								key={band.id}
-								x1={band.from}
-								x2={band.to}
-								fill={UPDATE_COLOR[band.kind]}
-								fillOpacity={0.12}
-								stroke="none"
-								ifOverflow="hidden"
-							/>
-						))}
 						<XAxis
 							dataKey="day"
 							tickFormatter={shortDay}
@@ -116,21 +98,15 @@ export function PositionChart({ history, hidden, searchUpdates, today }: IPositi
 						Google updates in this range:
 					</Text>
 					{bands.map((band) => (
-						<Group key={band.id} gap={4} wrap="nowrap">
-							<span
-								aria-hidden
-								style={{
-									width: 10,
-									height: 10,
-									borderRadius: 2,
-									background: UPDATE_COLOR[band.kind],
-									opacity: 0.6,
-								}}
-							/>
-							<Anchor href={band.url} target="_blank" rel="noreferrer" size="xs">
-								{`${band.title} (${shortDay(band.began)}–${band.ongoing ? "ongoing" : shortDay(band.ended)})`}
-							</Anchor>
-						</Group>
+						<Anchor
+							key={band.id}
+							href={band.url}
+							target="_blank"
+							rel="noreferrer"
+							size="xs"
+						>
+							{`${band.title} (${shortDay(band.began)}–${band.ongoing ? "ongoing" : shortDay(band.ended)})`}
+						</Anchor>
 					))}
 				</Group>
 			)}

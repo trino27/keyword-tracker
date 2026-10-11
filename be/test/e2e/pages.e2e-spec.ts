@@ -115,7 +115,13 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     const response = await list('?pageSize=20').expect(200);
 
     for (const item of response.body.items as {
-      score: { value: number; applicable: number; failed: number };
+      score: {
+        value: number;
+        applicable: number;
+        failed: number;
+        pointsPossible: number;
+        pointsLost: number;
+      };
     }[]) {
       expect(item.score.applicable).toBeGreaterThanOrEqual(
         ACTIVE_ISSUE_CODES.length - CONDITIONAL_ISSUE_CODES.length,
@@ -124,10 +130,18 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
         ACTIVE_ISSUE_CODES.length,
       );
       expect(item.score.failed).toBeLessThanOrEqual(item.score.applicable);
+      // Every check weighs at least 1, and a failure costs no more than it was worth.
+      expect(item.score.pointsPossible).toBeGreaterThanOrEqual(
+        item.score.applicable,
+      );
+      expect(item.score.pointsLost).toBeGreaterThanOrEqual(item.score.failed);
+      expect(item.score.pointsLost).toBeLessThanOrEqual(
+        item.score.pointsPossible,
+      );
       expect(item.score.value).toBe(
         Math.round(
-          (100 * (item.score.applicable - item.score.failed)) /
-            item.score.applicable,
+          (100 * (item.score.pointsPossible - item.score.pointsLost)) /
+            item.score.pointsPossible,
         ),
       );
     }
@@ -162,6 +176,21 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
     }
   });
 
+  /** D21: the detail carries both devices' summaries; the crawl queued both. */
+  it('the detail carries pageSpeedByStrategy', async () => {
+    const { body } = await list('?pageSize=1').expect(200);
+    const detail = await http()
+      .get(`/api/pages/${body.items[0].id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    expect(detail.body).not.toHaveProperty('pageSpeed');
+    expect(detail.body.pageSpeedByStrategy).toEqual({
+      mobile: { status: 'queued', measurement: null, lastError: null },
+      desktop: { status: 'queued', measurement: null, lastError: null },
+    });
+  });
+
   /**
    * The one assertion that covers the crawl, the upsert, the read and the serialization
    * together: a freshly crawled page must account for every catalogue code, and its
@@ -176,7 +205,10 @@ describe('pages list (e2e, recorded yoast crawl)', () => {
       .set('Cookie', cookie)
       .expect(200);
 
-    const checks = detail.body.checks as { code: string; status: string }[];
+    const checks = detail.body.checksByOwner.crawl as {
+      code: string;
+      status: string;
+    }[];
     expect(checks.map(({ code }) => code)).toEqual(ACTIVE_ISSUE_CODES);
 
     const count = (status: string) =>

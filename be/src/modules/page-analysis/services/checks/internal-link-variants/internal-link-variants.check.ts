@@ -1,33 +1,25 @@
 import { evidence } from '../_shared/evidence';
+import { linkVerdictOf } from '../_shared/link-verdict';
+import { variantsOf } from '../_shared/link-variants';
 import { internalLinks } from '../_shared/same-site';
-import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
+import {
+  defineCheck,
+  fails,
+  NOT_APPLICABLE,
+  PASS,
+  type ICheckInput,
+} from '../check.interface';
 
-/**
- * Query parameters that identify a visit, not a page; each one turns a link into a new
- * URL with the same content. Only names that mean nothing else are listed: `ref`, `id`
- * and `sid` are too often real parameters to accuse.
- */
-const TRACKING_PARAMETER =
-  /^(utm_[a-z_]+|gclid|fbclid|msclkid|yclid|dclid|mc_cid|mc_eid|_ga|_gl|sessionid|phpsessid|jsessionid)$/i;
-
-/** Why one internal link is not the URL the site serves, or nothing when it is. */
-function variantsOf(href: string, served: URL): string[] {
-  const link = new URL(href);
-  const reasons: string[] = [];
-  if (served.protocol === 'https:' && link.protocol === 'http:')
-    reasons.push('plain HTTP on an HTTPS site');
-  if (link.hostname !== served.hostname)
-    reasons.push(
-      `host ${link.hostname}, while this page is served from ${served.hostname}`,
-    );
-  const tracking = [...link.searchParams.keys()].filter((name) =>
-    TRACKING_PARAMETER.test(name),
-  );
-  if (tracking.length > 0)
-    reasons.push(
-      `tracking parameter${tracking.length === 1 ? '' : 's'} ${tracking.join(', ')}`,
-    );
-  return reasons;
+/** Whether the crawl found the link dead: then it is BROKEN_LINKS' finding alone. */
+function isBroken(page: ICheckInput, href: string): boolean {
+  try {
+    const url = new URL(href);
+    url.hash = '';
+    const outcome = page.linkStatuses.links.get(url.href);
+    return outcome !== undefined && linkVerdictOf(outcome, true) === 'broken';
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -39,7 +31,9 @@ function variantsOf(href: string, served: URL): string[] {
  * Trailing slashes are not judged: `/post` and `/post/` are both common as the served
  * form, and which one a site uses cannot be read from one page.
  *
- * Not applicable without internal links, as INTERNAL_LINKS_NOFOLLOW is.
+ * Not applicable without internal links, as INTERNAL_LINKS_NOFOLLOW is. A link the crawl
+ * found dead is BROKEN_LINKS' alone: how a dead link's address is written no longer
+ * matters (field audit, 2026-10-11, cossa.ru).
  */
 export const INTERNAL_LINK_VARIANTS_CHECK = defineCheck(
   'INTERNAL_LINK_VARIANTS',
@@ -48,6 +42,7 @@ export const INTERNAL_LINK_VARIANTS_CHECK = defineCheck(
     if (internal.length === 0) return NOT_APPLICABLE;
     const served = new URL(page.finalUrl);
     const variants = internal
+      .filter((href) => !isBroken(page, href))
       .map((href) => ({ href, reasons: variantsOf(href, served) }))
       .filter(({ reasons }) => reasons.length > 0);
     return variants.length === 0

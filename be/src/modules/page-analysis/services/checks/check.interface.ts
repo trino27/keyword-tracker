@@ -3,7 +3,11 @@ import type {
   TRunIssueCode,
   TSeoIssueCode,
 } from '@app/contracts';
-import type { IParsedPage } from '../../interfaces/parsed-page.interface';
+import type {
+  IParsedPage,
+  IPreviewImage,
+} from '../../interfaces/parsed-page.interface';
+import type { IOutboundFacts } from '../../interfaces/outbound-facts.interface';
 import type { IRobotsRules } from '../../interfaces/robots-rules.interface';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 
@@ -27,8 +31,24 @@ export interface ICheckInput {
   headers: Record<string, string>;
   /** When the response arrived: the "now" every date a check compares against. */
   fetchedAt: Date;
+  /**
+   * What the crawl's outbound stage learned: the status of each content link, and what
+   * each canonical target and hreflang alternate declares (plan D4). Empty when nothing
+   * was asked, which leaves every check that reads it not applicable.
+   */
+  linkStatuses: IOutboundFacts;
+  /**
+   * The client owner's IANA zone. A check that says "this year" reads `fetchedAt` in it,
+   * so the year turns at the owner's midnight, not the server's (TZ-003).
+   */
+  timeZone: string;
   htmlBytes: number;
   parsed: IParsedPage;
+  /**
+   * The image the page names for itself, measured from the file the crawl fetched; null
+   * when the page names none or it could not be asked for.
+   */
+  previewImage: IPreviewImage | null;
   /**
    * What the client's previous crawl recorded for this URL, or null when this is the
    * first crawl to see it. Read before the run's transaction opens, so the analysis

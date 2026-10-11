@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { IPageSpeedAvailability } from "@app/contracts";
 import { describeError } from "@Core/Helpers/DescribeError/describeError";
 import { gateways } from "@Gateways/gateways";
 import type { IPageListQuery } from "@Gateways/PageGateway/PageGateway";
@@ -15,6 +16,8 @@ interface IPagesState {
 	status: TLoadStatus;
 	error: string | null;
 	emptyKind: TEmptyKind | null;
+	/** What an empty speed cell means; "active" until the first answer says otherwise. */
+	pageSpeedAvailability: IPageSpeedAvailability;
 	requestId: number;
 }
 
@@ -39,6 +42,7 @@ const initialState: IPagesState = {
 	status: "idle",
 	error: null,
 	emptyKind: null,
+	pageSpeedAvailability: { state: "active" },
 	requestId: 0,
 };
 
@@ -57,6 +61,7 @@ export const usePagesViewModel = create<IPagesViewModel>()((set, get) => {
 				status: "ready",
 				error: null,
 				emptyKind: toEmptyKind(response.total, query, clientCount),
+				pageSpeedAvailability: response.pageSpeedAvailability,
 			});
 		} catch (error: unknown) {
 			if (get().requestId !== requestId || silent) return;

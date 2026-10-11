@@ -42,7 +42,13 @@ function contradictionOf(entry: IFetchedEntry): string | null {
   const redirected = issue('REDIRECTED');
   if (redirected) return `redirects to ${String(redirected.details.to)}`;
   if (issue('NOINDEX')) return 'is set to noindex';
-  const canonical = issue('CANONICAL_MISMATCH');
+  // Whichever check carries the contradiction: CANONICAL_MISMATCH steps aside for the
+  // page's own http:// twin (CANONICAL_TO_HTTP) and for a broken target
+  // (CANONICAL_TARGET_BROKEN) — plan D32, D34, D37.
+  const canonical =
+    issue('CANONICAL_MISMATCH') ??
+    issue('CANONICAL_TO_HTTP') ??
+    issue('CANONICAL_TARGET_BROKEN');
   if (canonical)
     return `names ${String(canonical.details.canonical)} as canonical`;
   return null;

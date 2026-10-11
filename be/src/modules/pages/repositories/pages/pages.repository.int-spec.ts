@@ -1,4 +1,4 @@
-import { SEO_ISSUE_CODES } from '@app/contracts';
+import { ACTIVE_ISSUE_CODES } from '@app/contracts';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
 import { pages } from '@persistence/schema/tables/pages/pages.schema';
@@ -51,7 +51,8 @@ const page = (
 ): IUpsertPage => {
   // The database now ties the denominator to the judged list's length, so a fixture
   // cannot name one without the other: the first N codes judged, the remainder skipped.
-  const checksApplicable = overrides.checksApplicable ?? SEO_ISSUE_CODES.length;
+  const checksApplicable =
+    overrides.checksApplicable ?? ACTIVE_ISSUE_CODES.length;
   return {
     clientId,
     url: 'https://yoast.com/how-to-remove-www-from-your-url/',
@@ -68,8 +69,8 @@ const page = (
     htmlBytes: 190_000,
     checksApplicable,
     checksFailed: 3,
-    checksJudged: SEO_ISSUE_CODES.slice(0, checksApplicable),
-    checksNotApplicable: SEO_ISSUE_CODES.slice(checksApplicable),
+    checksJudged: ACTIVE_ISSUE_CODES.slice(0, checksApplicable),
+    checksNotApplicable: ACTIVE_ISSUE_CODES.slice(checksApplicable),
     sitemapPosition: 1,
     lastSeenRunId: runId,
     crawledAt: new Date(),
@@ -196,7 +197,7 @@ describe('PagesRepository (postgres)', () => {
     // `checksApplicable`, so a literal here goes stale the day a check is added.
     const [before] = await testDb.db.select().from(pages);
     expect(before.checksNotApplicable).toHaveLength(
-      SEO_ISSUE_CODES.length - JUDGED,
+      ACTIVE_ISSUE_CODES.length - JUDGED,
     );
 
     await testDb.db.transaction((tx) =>
@@ -205,7 +206,7 @@ describe('PagesRepository (postgres)', () => {
 
     const [after] = await testDb.db.select().from(pages);
     expect(after.checksNotApplicable).toEqual([]);
-    expect(after.checksJudged).toEqual([...SEO_ISSUE_CODES]);
+    expect(after.checksJudged).toEqual([...ACTIVE_ISSUE_CODES]);
   });
 
   it('refuses a page whose denominator disagrees with its judged list', async () => {
@@ -216,7 +217,7 @@ describe('PagesRepository (postgres)', () => {
         repository.upsertManyForWorker(tx, [
           page(clientId, firstRunId, {
             checksApplicable: 16,
-            checksJudged: [...SEO_ISSUE_CODES],
+            checksJudged: [...ACTIVE_ISSUE_CODES],
           }),
         ]),
       ),

@@ -1,0 +1,139 @@
+# Tasks — client-issue-report
+
+Generated from the plan `issue-report-and-pagespeed` (`docs/_plans/`), Phase 4. Correct it through
+the plan; record a wrong task with an `AMENDED during implementation:` line and an already-satisfied
+one as `VERIFIED, NOT BUILT`. A test named "first" is run and seen failing for the stated reason,
+then lands in the same commit as the code that turns it green.
+
+`issue-catalogue-owners` and `page-speed-measurement` must be closed before task 1.1.
+`core-web-vitals-display` need not be.
+
+## 1. Every finding explained in plain words (4a) — ANALYSIS-013
+
+- [x] 1.1 Write first `packages/contracts/src/domain/seo/issue-plain-copy.test.ts` over `SEO_ISSUE_CATALOGUE` and `SITE_CHECK_CATALOGUE`: "every page and site entry carries what, why and fix", "no plain copy contains < or >", "plain copy stays within its bounds" (named `PLAIN_COPY_LIMITS` beside it), "every fix says who does it" (named `FIX_AUDIENCE_WORDS`: CMS, editor, plugin, developer, host…); they fail (no `plain`). Verify: `pnpm --filter @app/contracts test:ci -- issue-plain-copy` fails
+  AMENDED during implementation: each rule is an `it.each` over every entry, so a failure names
+  the code — "%s carries what, why and fix", "%s has no < or > in its plain copy", "%s stays
+  within its bounds", "%s says in its fix who does it" — plus "covers every page, speed and site
+  entry" and "gives no two entries the same title". `PLAIN_COPY_LIMITS` and `FIX_AUDIENCE_WORDS`
+  live with the shape they constrain, `packages/contracts/src/domain/seo/plain-copy.interface.ts`
+  (`IPlainCopy`), not beside the test.
+- [x] 1.2 Required `plain: { what; why; fix }` on `ISeoIssueDefinition` and `ISiteCheckDefinition`, written for all 56 page entries and 9 site entries in the voice of plan §1.2: the consequence in visibility, traffic or clicks; a gloss for any term a marketer would not know; the fix naming who acts. The five HTML Core Web Vitals risk checks say they are risks read from the HTML, not measurements (O4). `label`, `hint`, `explanation` and `sources` are not touched. Verify: `pnpm --filter @app/contracts test:ci && pnpm typecheck`
+- [x] 1.3 The curated fields are unchanged. Verify: `git diff main -- packages/contracts/src/domain/seo/seo-issue-catalogue.constant.ts packages/contracts/src/domain/site/site-check-catalogue.constant.ts | grep -E "^[-+]\s+(label|hint|explanation):"` prints nothing
+  AMENDED during implementation: against `main` the command prints the `label`, `hint` and
+  `explanation` lines of the six Core Web Vitals entries, which phase 1 ADDED on this branch. The
+  check the task means — that the plain-copy work edited no curated field — is the same diff taken
+  from the commit before the copy (`git diff 4e1b23d~1 -- …`), and that prints nothing.
+- [x] 1.4 A reading pass, aloud, against plan §1.2's voice — the test cannot judge tone. Record the entries rewritten after the pass as an `AMENDED during implementation:` line if more than a handful changed. Verify: the line, or "VERIFIED, NOT BUILT: read and kept", is written under this task
+  AMENDED during implementation: three entries changed after the copy was written, all speed
+  codes — the `why` of `CWV_LCP_NEEDS_IMPROVEMENT`, `CWV_LCP_POOR` and `CWV_CLS_POOR` (`cfdb9f1`).
+  They claimed "many mobile visitors" waited, but a speed value may be the whole site's or a lab
+  run's; they now say "by Google's measurement" and the report names the source beside each row.
+  The other 62 were kept.
+- [x] 1.5 Commit: `feat(contracts): what, why and fix in plain words for every finding`. Verify: `pnpm lint && pnpm typecheck && pnpm test`
+  AMENDED during implementation: three commits — `a4969d6 feat(contracts): the shape of a finding
+  in a marketer's words` (`IPlainCopy`, the limits, the audience words), `4e1b23d feat(contracts):
+  every finding explained in a marketer's words` (all 65 entries) and `cfdb9f1` (1.4).
+
+## 2. The report endpoint (4b) — REPORT-001 … REPORT-004
+
+- [x] 2.1 Write first the row `'GET /api/clients/:id/issues'` in `be/test/e2e/isolation-matrix.e2e-spec.ts` (ISO-005); with no route yet the static case "covers every route that takes an id or a clientId" fails, because the matrix names a route the app does not register. The row's own comparison would pass on two identical `NOT_FOUND`s — the static case is the guard. Verify: `pnpm --filter be test:db -- isolation-matrix` fails on the static case
+- [x] 2.2 Write first `be/src/modules/issue-report/services/collapse-origin-findings/collapse-origin-findings.spec.ts`: "folds origin findings into one row per code with the page count", "keeps url and lab findings per page", "takes the details of the most recently measured page"; fails (no module). Then `collapse-origin-findings.ts`. Verify: `pnpm --filter be test:ci -- collapse-origin-findings`
+  AMENDED during implementation: the third case reads "carries the details of the most recently
+  measured page"; added "keeps crawl findings per page, untouched" and "lets one code appear both
+  as a whole-site row and per page" (one code from origin data on some pages, from URL data on
+  another).
+- [x] 2.3 Write first `be/src/modules/issue-report/repositories/issue-report/issue-report.repository.int-spec.ts`: "reads site checks of the current run only — not of a newer failed run", "reads only failed site checks", "reads only current pages' findings", "never reads another user's client"; fail. Then the repository (current-run CTE as `page-list.repository.ts`'s, `clients.user_id = scope.userId` in every statement). Verify: `pnpm --filter be test:db -- issue-report`
+  AMENDED during implementation: the fourth case reads "answers another user's client with
+  nothing".
+- [x] 2.4 Contracts `issue-report/client-issue-report.interface.ts` (plan §5: only a speed finding may carry the all-pages location). `IssueReportService` (404 via `ClientNotFoundException`, collapse, `pageSpeedAvailability` from `pageSpeedAvailabilityOf(settings, runtime)` — plan D27, `currentPages`), `IssueReportController` (`@Controller('clients')`, `@Get(':id/issues')`, `ParseIdPipe`), `IssueReportModule` in `app.module.ts`. Verify: `pnpm typecheck && pnpm --filter be test:ci -- src/modules/issue-report && pnpm --filter be lint`
+  AMENDED during implementation: the 404 comes from `ClientsService.getClient`, asked first, so
+  the report says "not found" with the same exception and body as every other client route; the
+  module imports `ClientsModule` and nothing of `page-speed`.
+- [x] 2.5 Write first `be/test/e2e/issue-report.e2e-spec.ts`: "returns one snapshot of page, speed and site findings", "an origin speed finding on 15 pages is one Whole site row", "a client with no finished crawl has generatedFrom null and no issues", "the report carries the PageSpeed state, keyRejected after Google refused the key", "another user's client is the same 404 as a missing one", "reading the report requests nothing and writes nothing"; they pass only once 2.4 is in. Verify: `pnpm --filter be test:db -- issue-report isolation-matrix default-deny`
+  AMENDED during implementation: two cases live in `be/test/e2e/page-speed.e2e-spec.ts`, which
+  has the stack with a key and the refusing fixture, and landed after review in `8bd0589`: "after
+  Google rejects the key every row is still queued and the state is keyRejected" now also reads
+  the report's `keyRejected`, and "opening the list, the detail and the report requests nothing
+  from PageSpeed and writes nothing" covers REPORT-004. Here: the first three cases as named, "the
+  report carries the PageSpeed state" (`active`) and "a missing client is a 404"; the cross-user
+  404 is the isolation-matrix row of 2.1 rather than a second copy. The same review made the
+  report one read-only, repeatable-read transaction (`IssueReportRepository.snapshot`).
+- [x] 2.6 On the seeded stack. Verify: sign in as each seed user with `curl -c`, then `curl -s -b a.txt http://localhost:8080/api/clients/<A's id>/issues | head -c 600` shows the snapshot, and `curl -s -b b.txt http://localhost:8080/api/clients/<A's id>/issues` equals `curl -s -b b.txt http://localhost:8080/api/clients/2000000000/issues`
+  VERIFIED on the rebuilt stack: the owner gets the snapshot; the other user's request for it and
+  for `2000000000` both answer `404 CLIENT_NOT_FOUND` with the same body.
+- [x] 2.7 Commit: `feat(issue-report): one snapshot of a client's findings, scoped to its owner`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
+  Committed as `a1a1791`.
+
+## 3. The report screen (4c) — ISSUESUI-001 … ISSUESUI-006, SHELL-004
+
+- [x] 3.1 Write first: `fe/src/ViewModels/IssueReportViewModel/Services/FilterReport/filterReport.test.ts` → "a page filter keeps site and whole-site rows", "Improvement is hidden by the default levels", "type speed keeps only pageSpeed codes"; `GroupByIssue/groupByIssue.test.ts` → "orders codes by affected pages, a Whole site row counting its N"; `GroupByPage/groupByPage.test.ts` → "Whole site first, then pages by Critical, Important, Improvement"; `IssueTypeOf/issueTypeOf.test.ts` → "the five HTML speed-risk checks are SEO" (O4 pinned on purpose); `fe/src/App/Router/SearchSchemas/IssuesSearchSchema/issuesSearchSchema.test.ts` → "defaults to By issue without Improvement", "a malformed value falls back"; all fail (no modules). Verify: `pnpm --filter fe test:ci -- filterReport groupByIssue groupByPage issueTypeOf issuesSearchSchema` fails
+  AMENDED during implementation: the default levels are the URL's, not the filter's, so
+  "Improvement is hidden by default" is `issuesSearchSchema.test.ts` -> "defaults to grouping by
+  issue, Critical and Important only, every type"; `filterReport.test.ts` holds "keeps only the
+  chosen levels", "keeps only the chosen type" (type `speed`), "a page filter keeps site and
+  whole-site rows" and "searches page URLs and titles, case-insensitively, keeping whole-site
+  rows". As built elsewhere: "orders a level by pages affected, a whole-site row counting its
+  pages"; "leads with the whole-site rows" and "orders pages by their Critical, then Important,
+  then Improvement counts"; "files the HTML speed risks under SEO"; "falls back to the defaults
+  on malformed values".
+- [x] 3.2 The four services and the search schema. Verify: `pnpm --filter fe test:ci -- filterReport groupByIssue groupByPage issueTypeOf issuesSearchSchema`
+- [x] 3.3 Write first `fe/src/Gateways/IssueReportGateway/IssueReportGateway.test.ts` → "a 404 CLIENT_NOT_FOUND is notFound, not an error"; `fe/src/ViewModels/IssueReportViewModel/IssueReportViewModel.test.ts` → "drops a superseded answer", "exposes one view per state of plan §12"; fail. Then `IssueReportGateway` (+ `Validation/IssueReportSchemas.ts`, `satisfies z.ZodType<IClientIssueReport>`, one line in `gateways.ts`) and `IssueReportViewModel` (reset on sign-out with the others — SHELL-003). Verify: `pnpm --filter fe test:ci -- IssueReport SessionViewModel`
+  AMENDED during implementation: which of the screen's eight states to show is a pure service,
+  `Services/ReportViewOf/reportViewOf.ts`, pinned by `reportViewOf.test.ts` (seven cases over the
+  states) — the ViewModel only holds the load. As built: "turns CLIENT_NOT_FOUND into notFound",
+  "drops a superseded answer — the earlier client's report", "reset on sign-out forgets the
+  report"; the gateway adds "refuses a whole-site row that is not a speed finding".
+- [x] 3.4 `Core/Constants/severityLabel.ts` (`Record<TSeoIssueSeverity, { label; color }>`, plan D28); the header's PageSpeed notice from `Core/Constants/pageSpeedAvailabilityCopy.ts` (created by `core-web-vitals-display` 2.2, or here if this change runs first) for each of `notConfigured`, `active`, `keyRejected` (plan D27); the `/issues` route under the `app` layout in `router.tsx`; `Modules/Issues/**` (screen, header with client selector and generated-from line, rubric, filters, cards with plain what/why/fix and collapsed Technical details, by-issue and by-page views, locations with the finding's sentence from `Core/Helpers/DescribeIssue`, the lab "may vary" note); `AppLayout.tsx` `NAVIGATION` gains Issues between Pages and Clients. Then `IssuesScreen.test.tsx` → one case per view, "the rubric is always shown", "Technical details are collapsed", "shows the notice of each PageSpeed state"; `router.test.tsx` → "/issues requires a session". Verify: `pnpm --filter fe test:ci -- IssuesScreen router AppLayout && pnpm --filter fe lint`
+  AMENDED during implementation: two named cases were missing from `3744ee4` and landed after
+  review in `b2aa7e1`: Technical details start folded — `IssueCard/IssueCard.test.tsx` -> "keeps
+  the technical account folded until asked" — and the rejected-key notice —
+  `IssuesScreen.test.tsx` -> "says, in red, that Google rejected the key", beside "says speed is
+  not configured when there is no key"; `active` shows no notice. The same commit added
+  `IssuesByPage/IssuesByPage.test.tsx`. Built in `3744ee4`: every
+  piece of the task, the search box moved to `fe/src/Modules/_Shared/SearchInput` for the second
+  screen that needed it, and the `TechnicalDetails` component. The rubric is asserted in the rows
+  view ("explains each problem in plain words, worst first, with the rubric in view"), not in
+  every state; "/issues requires a session" is `IssuesScreen.test.tsx` -> "is behind the session
+  guard" rather than a case in `router.test.tsx`.
+- [ ] 3.5 Browser walk of plan §11 C. Verify: `docker compose up -d --build`; open Issues, switch clients, By page, tick Improvement, search a URL — Whole site rows stay; no console error
+  NOT DONE: no browser was available. Verified instead through the report payload on the rebuilt
+  stack and the screen and service tests above; the walk is open.
+- [x] 3.6 Commits: `feat(fe): the issue report — by issue or by page, filtered in memory` · `feat(fe): Issues in the navigation`. Verify: `pnpm lint && pnpm typecheck && pnpm test`
+  AMENDED during implementation: one commit, `3744ee4 feat(fe): the Issues report — every problem
+  of a client, worst first`, the navigation item included.
+
+## 4. Entry points and one severity vocabulary (4d) — PAGELIST-009, CLIENTSUI-006, PAGEDETAIL-005
+
+- [x] 4.1 Write first: `PagesTable.test.tsx` → "the issue count opens the report filtered to this page"; `ClientsTable.test.tsx` → "View issues opens the client's report"; `IssuesSection.test.tsx` → "groups read Critical, Important, Improvement"; they fail. Verify: `pnpm --filter fe test:ci -- PagesTable ClientsTable IssuesSection` fails on those cases
+  AMENDED during implementation: the PagesTable case reads "links a row's issue count to the
+  report, filtered to the page"; after review (`b2aa7e1`) the link also names every level, so a
+  row whose findings are all Improvements does not open on an empty report. The other two were assertions added to existing cases rather
+  than new ones: `ClientsTable.test.tsx` -> "disables re-crawl while a crawl runs, and links each
+  client to its pages" now also expects the "View issues" link to `/issues?clientId=…`, and
+  `IssuesSection.test.tsx` -> "groups by severity, worst first, with the sentence and the fix"
+  now expects the headings Critical and Important.
+- [x] 4.2 `IssueCounts.tsx` (link and `severityLabel`), `ClientsTable.tsx` (View issues), `IssuesSection.tsx` and `RunLog/SiteChecks/SiteChecks.tsx` (`severityLabel`) — one vocabulary everywhere (plan D28). Verify: `pnpm --filter fe test:ci && git grep -n -E "\"(Errors|Warnings|Notices)\"" -- fe/src` prints nothing
+  AMENDED during implementation: `KpiCards.tsx` too — its issues card read "N errors" / "No
+  errors" and now reads "N Critical" / "Nothing Critical". The grep prints nothing.
+- [x] 4.3 PAGEDETAIL-005 (stored-bound sentences) and PAGEDETAIL-008 ("on 5 of 15 pages") still hold. Verify: `pnpm --filter fe test:ci -- IssuesSection`
+- [x] 4.4 README "Decisions, and why": the issue report and the severity rubric verbatim from plan §1.2. Verify: `git diff main -- README.md` shows both
+- [ ] 4.5 Browser walk. Verify: a list row's issue count opens the report filtered with Whole site rows kept; Clients → View issues; a page's groups read Critical / Important / Improvement
+  NOT DONE: no browser was available. The links and labels are pinned by the component tests of
+  4.1; the walk is open.
+- [x] 4.6 Commits: `feat(fe): reach the report from a page row and from a client` · `feat(fe): one name per severity — Critical, Important, Improvement` · `docs(readme): the issue report and its severity rubric`. Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
+  AMENDED during implementation: `8fb21d8 feat(fe): ways into the report, and one name for each
+  level` (both fe commits in one) and `bd7cb3d docs(readme): the Issues report, and how severity
+  is decided`.
+
+## 5. Phase acceptance
+
+- [x] 5.1 Verify: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`
+- [x] 5.2 Verify: `docker compose up -d --build && curl -fsS http://localhost:8080/api/health`, then the clean-clone path of the README from a scratch directory (`docker compose -p skt-clean …`, no `-v` on `down`)
+  VERIFIED: the rebuilt dev stack answers `{"status":"ok","database":"up"}`, and the fresh-clone
+  stack of `page-speed-measurement` 7.2 (`skt-fresh`, `2891b42`) served the report: signed in as
+  the Yoast demo user, `GET /api/clients/:id/issues` answered 200 with `currentPages` 15,
+  `pageSpeedAvailability.state` `notConfigured` and 23 issues, and the SPA's `/issues` answered 200.
+- [x] 5.3 Archive and deposit are plan phase 5: harvest into `be/src/modules/issue-report/ISSUE_REPORT_MODULE.md` (new), `CLIENTS_MODULE.md`, `PAGE_ANALYSIS_MODULE.md` per plan §18 before archiving; after it, fold SHELL-004 and PAGEDETAIL-005 by hand, rewrite the new headings into the `[ID]` form, deposit, and archive the plan. Verify: `pnpm exec openspec validate --specs` and `git grep -n "invariant: REPORT-" -- '*.md'`
+  AMENDED during implementation: harvest, archive, fold and deposit are done; the PLAN is not
+  archived — a further phase (live verification against a real PageSpeed key) was added to it, so
+  it stays active in `docs/_plans/`.

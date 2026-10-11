@@ -2,7 +2,7 @@ import { MantineProvider } from "@mantine/core";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PagesFilterBar } from "./PagesFilterBar";
-import { SEARCH_DEBOUNCE_MS } from "./SearchInput/SearchInput";
+import { SEARCH_DEBOUNCE_MS } from "@Modules/_Shared/SearchInput/SearchInput";
 
 const renderBar = (onChange = vi.fn()) => {
 	render(
@@ -48,5 +48,37 @@ describe("PagesFilterBar", () => {
 		fireEvent.click(screen.getByLabelText("Clear search"));
 
 		expect(onChange).toHaveBeenCalledWith({ q: undefined });
+	});
+
+	it("keeps the search box focused when its own query comes back from the URL", () => {
+		const onChange = vi.fn();
+		const { rerender } = render(
+			<MantineProvider>
+				<PagesFilterBar
+					search={{ page: 1, pageSize: 20 }}
+					clients={[]}
+					onChange={onChange}
+				/>
+			</MantineProvider>,
+		);
+		const input = screen.getByLabelText("Search pages");
+		input.focus();
+		fireEvent.change(input, { target: { value: "seo" } });
+		act(() => {
+			vi.advanceTimersByTime(SEARCH_DEBOUNCE_MS);
+		});
+
+		rerender(
+			<MantineProvider>
+				<PagesFilterBar
+					search={{ page: 1, pageSize: 20, q: "seo" }}
+					clients={[]}
+					onChange={onChange}
+				/>
+			</MantineProvider>,
+		);
+
+		expect(screen.getByLabelText("Search pages")).toBe(input);
+		expect(input).toHaveFocus();
 	});
 });

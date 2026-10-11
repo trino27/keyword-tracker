@@ -2,8 +2,11 @@ import type { ICrawlRunSummary } from '../crawl/crawl-run.interface.js';
 import type { TSeoIssue } from '../seo/seo-issue.interface.js';
 import type { IBestPosition } from './best-position.interface.js';
 import type { IKeywordPosition } from './keyword-position.interface.js';
-import type { IPageCheck } from './page-check.interface.js';
+import type { TChecksByOwner } from './page-check.interface.js';
 import type { IPageScore } from './page-score/page-score.util.js';
+import type { IPageSpeedAvailability } from '../page-speed/page-speed-availability.interface.js';
+import type { IPageSpeedSummary } from '../page-speed/page-speed-summary.interface.js';
+import type { TPsiStrategy } from '../page-speed/psi-strategy.enum.js';
 
 export interface IPageDetail {
   page: {
@@ -37,19 +40,19 @@ export interface IPageDetail {
   /** The share of the checks that could apply to THIS page and passed. Always present. */
   score: IPageScore;
   /**
-   * Every catalogue check with its outcome, in catalogue order — what the score's
-   * denominator is made of, enumerated rather than summarised.
+   * Every check of every scored owner with its outcome, each owner's list in its
+   * catalogue's order — what the score's denominator is made of, enumerated rather than
+   * summarised. The screen puts counterparts on one row (`ISSUE_COUNTERPARTS`).
    *
-   * Composed here rather than on the screen because only this side holds
-   * `checksApplicable`, and without it a check the catalogue gained after this page's
-   * crawl is indistinguishable from one that passed.
+   * Composed here rather than on the screen because only this side holds the stored
+   * lists, and without them a check the catalogue gained after the owner last judged the
+   * page is indistinguishable from one that passed.
    *
-   * Null while the page's last crawl predates per-check recording: the stored row holds
-   * no canonical, no images and no headings, so which checks were skipped cannot be
-   * recovered from it, and a re-crawl is the only honest way to learn. Phase 2 drops
-   * the null once every client has been re-crawled.
+   * The crawl's is null while the page's last crawl predates per-check recording: a
+   * re-crawl is the only honest way to learn which checks were skipped. Lighthouse's is
+   * null until the page is measured with its categories.
    */
-  checks: IPageCheck[] | null;
+  checksByOwner: TChecksByOwner;
   /**
    * Catalogue order: errors, then warnings, then notices. `pagesAffected` is how many of
    * the client's current pages carry this code, including this one — so 1 means it is
@@ -58,4 +61,11 @@ export interface IPageDetail {
   issues: (TSeoIssue & { pagesAffected: number })[];
   /** The client's latest run, whatever its status. */
   lastCrawl: ICrawlRunSummary | null;
+  /**
+   * Each device's measurement; null for a device the page was never queued on (a page
+   * crawled before desktop existed reads desktop null until its next crawl). Never part
+   * of `score`, which reads Lighthouse from the mobile measurement alone.
+   */
+  pageSpeedByStrategy: Record<TPsiStrategy, IPageSpeedSummary | null>;
+  pageSpeedAvailability: IPageSpeedAvailability;
 }

@@ -1,7 +1,7 @@
 import { Group, Select } from "@mantine/core";
 import type { TPagesSearch } from "@App/Router/SearchSchemas/PagesSearchSchema/pagesSearchSchema";
 import type { TClient } from "@Gateways/ClientGateway/Validation/ClientSchemas";
-import { SearchInput } from "./SearchInput/SearchInput";
+import { SearchInput } from "@Modules/_Shared/SearchInput/SearchInput";
 
 export type TPagesFilterChange = Partial<Pick<TPagesSearch, "clientId" | "q">>;
 
@@ -16,11 +16,7 @@ export function PagesFilterBar({ search, clients, onChange }: IPagesFilterBarPro
 	return (
 		<Group gap="sm" align="flex-end" wrap="wrap">
 			{/* Remounted when the URL's q changes from outside (e.g. "Clear filters"). */}
-			<SearchInput
-				key={search.q ?? ""}
-				initial={search.q ?? ""}
-				onCommit={(q) => onChange({ q })}
-			/>
+			<SearchInput initial={search.q ?? ""} onCommit={(q) => onChange({ q })} />
 			<Select
 				aria-label="Client"
 				placeholder="All clients"

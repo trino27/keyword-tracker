@@ -20,8 +20,12 @@ const ROW: TPageListItem = {
 		},
 	],
 	bestPosition: null,
-	score: { value: 83, applicable: 18, failed: 3 },
+	score: pageScoreOf({
+		crawl: { applicable: 18, failed: 3, pointsPossible: 18, pointsLost: 3 },
+		lighthouse: null,
+	}),
 	issues: { total: 0, error: 0, warning: 0, notice: 0, siteWide: 0 },
+	pageSpeed: null,
 	lastCapturedAt: null,
 };
 
@@ -31,7 +35,15 @@ const withScore = (applicable: number, failed: number): TPageListItem => ({
 	...ROW,
 	id: applicable * 100 + failed,
 	url: `https://yoast.com/post-${applicable}-${failed}/`,
-	score: pageScoreOf(applicable, failed),
+	score: pageScoreOf({
+		crawl: {
+			applicable: applicable,
+			failed: failed,
+			pointsPossible: applicable,
+			pointsLost: failed,
+		},
+		lighthouse: null,
+	}),
 });
 
 const renderTable = (props: Partial<Parameters<typeof PagesTable>[0]>) =>
@@ -42,6 +54,7 @@ const renderTable = (props: Partial<Parameters<typeof PagesTable>[0]>) =>
 			error={null}
 			emptyKind={null}
 			timeZone="America/Toronto"
+			pageSpeedAvailability={{ state: "active" }}
 			showClient
 			onRetry={vi.fn()}
 			onClearSearch={vi.fn()}
@@ -123,7 +136,7 @@ describe("PagesTable", () => {
 			],
 		});
 
-		expect(await screen.findByText("1 error")).toBeInTheDocument();
+		expect(await screen.findByLabelText("1 Critical")).toHaveTextContent("1");
 		expect(screen.queryByText(/site-wide/)).not.toBeInTheDocument();
 	});
 
@@ -136,5 +149,59 @@ describe("PagesTable", () => {
 		expect(badges.map((badge) => badge.textContent)).toEqual(["35", "68", "94"]);
 		expect(badges[0]).toHaveAttribute("data-band", "poor");
 		expect(badges[2]).toHaveAttribute("data-band", "good");
+	});
+
+	it("the header says PageSpeed is not configured, and the cells are dashes", async () => {
+		renderTable({ items: [ROW], pageSpeedAvailability: { state: "notConfigured" } });
+
+		expect(await screen.findByText("PageSpeed not configured")).toBeInTheDocument();
+		expect(screen.getByLabelText("PageSpeed not configured")).toHaveTextContent("—");
+	});
+
+	it("the header says the key was rejected, and stored badges stay", async () => {
+		renderTable({
+			items: [
+				{
+					...ROW,
+					pageSpeed: {
+						status: "done",
+						lastError: null,
+						measurement: {
+							measuredAt: "2026-10-09T12:00:00.000Z",
+							lcp: { value: 1800, band: "good", source: "url", share: null },
+							inp: { value: 150, band: "good", source: "url", share: null },
+							cls: { value: 0.01, band: "good", source: "url", share: null },
+							performanceScore: 90,
+							ttfb: null,
+							lcpBreakdown: null,
+							seoScore: null,
+							accessibilityScore: null,
+						},
+					},
+				},
+			],
+			pageSpeedAvailability: { state: "keyRejected" },
+		});
+
+		expect(await screen.findByText("PageSpeed key rejected")).toBeInTheDocument();
+		expect(screen.getByText("LCP")).toBeInTheDocument();
+	});
+
+	it("explains the colours under the table", async () => {
+		renderTable({ items: [ROW] });
+
+		expect(
+			await screen.findByText(/Speed is scored separately from the SEO score/),
+		).toBeInTheDocument();
+	});
+
+	it("links a row's issue count to the report, filtered to the page", async () => {
+		renderTable({
+			items: [{ ...ROW, issues: { total: 1, error: 1, warning: 0, notice: 0, siteWide: 0 } }],
+		});
+
+		expect(
+			await screen.findByRole("link", { name: "See this page's 1 issues" }),
+		).toHaveAttribute("href", "/issues?clientId=7&pageId=42");
 	});
 });

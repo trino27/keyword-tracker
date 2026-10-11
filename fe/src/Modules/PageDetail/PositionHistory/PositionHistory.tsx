@@ -13,6 +13,7 @@ import { KeywordTogglesSkeleton } from "./KeywordTogglesSkeleton/KeywordTogglesS
 import { PositionChart } from "./PositionChart/PositionChart";
 import { PositionTable } from "./PositionTable/PositionTable";
 import { RangeControls } from "./RangeControls/RangeControls";
+import { POSITION_SOURCE } from "@Core/Constants/positionSource";
 
 interface IPositionHistoryProps {
 	history: TPositionHistory | null;
@@ -78,7 +79,7 @@ export function PositionHistory(props: IPositionHistoryProps) {
 
 	return (
 		<Stack gap="sm">
-			<Title order={4}>Position history</Title>
+			<Title order={4}>Position history ({POSITION_SOURCE})</Title>
 			<RangeControls {...props} />
 			{fillError && (
 				<Alert color="red" variant="light" title="Could not generate positions">

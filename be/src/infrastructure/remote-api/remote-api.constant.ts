@@ -5,6 +5,8 @@ export const CRAWLER_USER_AGENT = `${CRAWLER_USER_AGENT_TOKEN}/1.0 (+https://git
 export const REMOTE_API_LIMITS = {
   /** Per hop, from sending the request to the last body byte. */
   timeoutMs: 10_000,
+  /** The longest a caller may declare instead (REMOTE-002): an API that runs a browser. */
+  maxTimeoutMs: 90_000,
   maxRedirects: 5,
   /** Retries after the first attempt — three attempts in all. */
   maxRetries: 2,

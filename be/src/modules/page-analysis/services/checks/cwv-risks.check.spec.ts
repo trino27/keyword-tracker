@@ -97,7 +97,7 @@ describe('DOM_SIZE_LARGE', () => {
 
     expect(verdict).toEqual(failsWith({ value: 2_487, max: 1_400 }));
     expect(evidenceOf(verdict)).toEqual([
-      '2,487 elements in the HTML as served',
+      '2,487 elements inside <body> of the HTML as served',
     ]);
     expect(
       DOM_SIZE_LARGE_CHECK.evaluate(

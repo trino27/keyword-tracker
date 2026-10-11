@@ -18,10 +18,16 @@ import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 export const STRUCTURED_DATA_INCOMPLETE_CHECK = defineCheck(
   'STRUCTURED_DATA_INCOMPLETE',
   ({ parsed }) => {
-    if (!parsed.jsonLd.types.some((type) => ARTICLE_TYPES.has(type)))
-      return NOT_APPLICABLE;
+    // The JSON-LD article when there is one, as the extractor reads it first; else the
+    // Microdata article, which Google reads as well.
+    const fields = parsed.jsonLd.types.some((type) => ARTICLE_TYPES.has(type))
+      ? parsed.jsonLd.articleFields
+      : parsed.microdata.types.some((type) => ARTICLE_TYPES.has(type))
+        ? parsed.microdata.articleFields
+        : null;
+    if (!fields) return NOT_APPLICABLE;
 
-    const present = new Set(parsed.jsonLd.articleFields);
+    const present = new Set(fields);
     const missing = RECOMMENDED_ARTICLE_FIELDS.filter(
       (field) => !present.has(field),
     );
@@ -30,7 +36,7 @@ export const STRUCTURED_DATA_INCOMPLETE_CHECK = defineCheck(
       : fails({
           missing,
           evidence: evidence([
-            `Article properties present: ${parsed.jsonLd.articleFields.join(', ') || 'none'}`,
+            `Article properties present: ${fields.join(', ') || 'none'}`,
           ]),
         });
   },

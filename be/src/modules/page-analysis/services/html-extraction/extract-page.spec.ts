@@ -49,6 +49,23 @@ describe('extractPage', () => {
     expect(parsed.jsonLd.types).toContain('CollectionPage');
   });
 
+  // css-tricks: five CodePen demos are frames, and no <img>. A frame in the sidebar is
+  // furniture, not the post's.
+  it("counts the content's frames and videos as embeds, not the sidebar's", () => {
+    const parsed = page(
+      '<main><h1>Random in CSS</h1><p>Text.</p>' +
+        '<iframe src="https://codepen.io/anon/embed/x">See the Pen</iframe>' +
+        '<video src="/demo.mp4"></video></main>' +
+        '<aside><iframe src="https://ads.example/frame"></iframe></aside>',
+    );
+
+    expect(parsed.embeds).toBe(2);
+    // The marker a frame leaves is not text: the count is the page's without its frames.
+    expect(parsed.wordCount).toBe(
+      page('<main><h1>Random in CSS</h1><p>Text.</p></main>').wordCount,
+    );
+  });
+
   it('reads main content without nav, header, footer and aside', () => {
     const parsed = page(
       `<header><h1>Site name</h1></header><nav><p>Menu words here</p></nav>
@@ -87,6 +104,48 @@ describe('extractPage', () => {
     );
 
     expect(parsed.blocks).toEqual(['Rome is warm.']);
+  });
+
+  it('reads the images of the <article> that holds the post when its h1 sits above it', () => {
+    // semrush.com puts the h1, the byline and the date above the <article>, and a
+    // "preferred source" badge with an image below it in the same <main>. Reading <main>
+    // counted the badge as the post's image, so NO_IMAGES passed a post without one.
+    const parsed = page(
+      '<main><h1>AI Marketing Guide</h1>' +
+        '<article><p>AI drafts the copy, people decide what it says and to whom.</p>' +
+        '<p>Start with one channel, measure it, then widen the scope.</p></article>' +
+        '<section><img src="/badge.png" alt="Add us as a preferred source"></section>' +
+        '</main>',
+    );
+
+    expect(parsed.images).toEqual([]);
+    expect(parsed.blocks[0]).toContain('AI drafts the copy');
+  });
+
+  it('reads the article of a short post whose teasers carry nearly as many words', () => {
+    // semrush.com/blog/what-is-keyword-analysis/, live 2026-10-11: 175 of the content's 359
+    // words are the post's; the h1 block and three related-post cards are the rest. A bar
+    // of half the words missed it and counted the badge below as the post's image.
+    const words = (n: number, word: string) => Array(n).fill(word).join(' ');
+    const parsed = page(
+      `<main><h1>What Is Keyword Analysis?</h1><p>${words(60, 'byline')}</p>` +
+        `<article><p>${words(120, 'keyword')}</p></article>` +
+        `<article><p>${words(40, 'teaser')}</p></article>` +
+        `<article><p>${words(40, 'teaser')}</p></article>` +
+        '<section><img src="/badge.png" alt="Add us as a preferred source"></section></main>',
+    );
+
+    expect(parsed.images).toEqual([]);
+  });
+
+  it('reads no image into a semrush post whose article has none (recorded)', () => {
+    const parsed = recorded(
+      'semrush/blog/what-is-ai-marketing/index.html',
+      'https://www.semrush.com/blog/what-is-ai-marketing/',
+    );
+
+    expect(parsed.images).toEqual([]);
+    expect(parsed.h1s).toHaveLength(1);
   });
 
   it('does not mistake a related-post card for the article, h1 and all', () => {
@@ -186,7 +245,7 @@ describe('extractPage', () => {
     expect(parsed).toMatchObject({
       title: 'A title',
       metaDescription: 'The description',
-      metaRobots: 'noindex, follow',
+      metaRobots: ['noindex, follow'],
       canonicals: ['https://a.example/canonical/'],
       openGraph: { 'og:title': 'OG' },
       articleTags: ['SEO'],
@@ -235,6 +294,140 @@ describe('extractPage', () => {
 
     expect(parsed.headings).toEqual([{ level: 2, text: 'Rankings' }]);
     expect(parsed.blocks).toEqual(['Visible copy.']);
+  });
+
+  /**
+   * A header inside <main> or <article> is that section's own (HTML-AAM): css-tricks.com
+   * puts the post's h1 in one, yoast.com its hero image. The site's banner, outside
+   * them, is still furniture.
+   */
+  it("keeps the post's own header, with its h1 and hero, and drops the site's", () => {
+    const parsed = page(
+      '<header><h1>Site</h1><img src="/logo.png" alt="Site"></header>' +
+        '<main><header class="mega-header"><h1>Use initial-scale=1</h1>' +
+        '<img src="/hero.png" alt="A phone"></header>' +
+        '<h3>I already do this</h3><p>Copy.</p></main>',
+    );
+
+    expect(parsed.headings).toEqual([
+      { level: 1, text: 'Use initial-scale=1' },
+      { level: 3, text: 'I already do this' },
+    ]);
+    expect(parsed.images.map(({ src }) => src)).toEqual(['/hero.png']);
+  });
+
+  /**
+   * Google reads metadata from <head> only. An <img> in <head> ends it for the parser,
+   * as for Google, so the description written after it lands in <body> and counts for
+   * nothing — the same rule the title is read by.
+   */
+  it('reads the description from <head> only, and says why there is none', () => {
+    expect(
+      page('', '<meta name="description" content="About links.">'),
+    ).toMatchObject({
+      metaDescription: 'About links.',
+      metaDescriptionGap: null,
+    });
+    expect(page('', '<meta name="description" content="  ">')).toMatchObject({
+      metaDescription: null,
+      metaDescriptionGap: 'empty',
+    });
+    expect(
+      page('', '<img src="/x.png"><meta name="description" content="Late.">'),
+    ).toMatchObject({
+      metaDescription: null,
+      metaDescriptionGap: 'outsideHead',
+    });
+    expect(page('')).toMatchObject({
+      metaDescription: null,
+      metaDescriptionGap: 'absent',
+    });
+  });
+
+  /** The protocol: "og:image:url – Identical to og:image" (vercel.com writes only that). */
+  it('takes og:image:url as the share image, leaving the tags as written', () => {
+    const parsed = page(
+      '',
+      '<meta content="https://a.example/og.png" property="og:image:url">',
+    );
+
+    expect(parsed.shareImage).toBe('https://a.example/og.png');
+    expect(parsed.openGraph).toEqual({
+      'og:image:url': 'https://a.example/og.png',
+    });
+  });
+
+  /** troyhunt.com shows the post's image as a header background, which Google does not index. */
+  it('notices the share image shown as a CSS background', () => {
+    const parsed = page(
+      '<div class="post_header" style="background-image:url(\'/content/02ce55ab.png\')"></div><main><p>Text.</p></main>',
+      '<meta property="og:image" content="https://a.example/content/02ce55ab.png">',
+    );
+
+    expect(parsed.shareImageAsBackground).toBe(true);
+    expect(page('<main><p>Text.</p></main>').shareImageAsBackground).toBe(
+      false,
+    );
+  });
+
+  /**
+   * Google: "Google Search understands multiple items on a page, whether you nest the
+   * items or specify each item individually." A listing's ItemList is not followed.
+   */
+  it('reads an article and a trail nested in a WebPage, and IRI types', () => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">' +
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Blog',
+                item: 'https://a.example/blog/',
+              },
+              { '@type': 'ListItem', position: 2, name: 'Post' },
+            ],
+          },
+          mainEntity: {
+            '@type': 'https://schema.org/BlogPosting',
+            headline: 'Nested post',
+            datePublished: '2026-10-01T09:00:00Z',
+          },
+        }) +
+        '</script>',
+    );
+
+    expect(parsed.articleMarkup).toMatchObject({
+      type: 'BlogPosting',
+      headline: 'Nested post',
+    });
+    expect(parsed.breadcrumbs).toHaveLength(1);
+    expect(parsed.jsonLd.types).toEqual(
+      expect.arrayContaining(['WebPage', 'BreadcrumbList', 'BlogPosting']),
+    );
+    expect(parsed.datePublished).toBe('2026-10-01T09:00:00Z');
+  });
+
+  it("does not take a listing's first card for the page's article", () => {
+    const parsed = page(
+      '',
+      '<script type="application/ld+json">' +
+        JSON.stringify({
+          '@type': 'CollectionPage',
+          hasPart: {
+            '@type': 'ItemList',
+            itemListElement: [{ '@type': 'BlogPosting', headline: 'Card' }],
+          },
+        }) +
+        '</script>',
+    );
+
+    expect(parsed.articleMarkup).toBeNull();
   });
 
   it('separates adjacent blocks so their words never fuse', () => {
@@ -295,6 +488,23 @@ describe('extractPage', () => {
     ]);
   });
 
+  /**
+   * HTML's "prepare the script element" returns early for a classic `nomodule` script, so
+   * no browser that runs modules fetches it (vercel.com's legacy chunk); the legacy
+   * JavaScript MIME types are still classic JavaScript the parser waits for.
+   */
+  it('passes over a nomodule script, and blocks on a legacy JavaScript type', () => {
+    const parsed = page(
+      '',
+      '<script src="/legacy.js" noModule=""></script>' +
+        '<script type="application/x-javascript" src="/old.js"></script>',
+    );
+
+    expect(parsed.renderBlockingScripts).toEqual([
+      '<script type="application/x-javascript" src="/old.js"></script>',
+    ]);
+  });
+
   it('reads the viewport and the meta refresh, however the tag is cased', () => {
     const parsed = page(
       '',
@@ -322,8 +532,23 @@ describe('extractPage', () => {
           '<link rel="alternate" href="/feed/" type="application/rss+xml">',
       ).alternates,
     ).toEqual([
-      { lang: 'en', href: 'https://a.example/post/' },
+      { lang: 'en', href: 'https://a.example/post/', relativeHref: '/post/' },
       { lang: 'en_US', href: 'https://a.example/us/' },
+    ]);
+  });
+
+  /** Google reads hreflang only in <head>; one in <body> is kept apart, to be reported. */
+  it('keeps hreflang written outside <head> apart from the alternates', () => {
+    const parsed = page(
+      '<link rel="alternate" hreflang="fr" href="https://a.example/fr/">',
+      '<link rel="alternate" hreflang="en" href="https://a.example/post/">',
+    );
+
+    expect(parsed.alternates).toEqual([
+      { lang: 'en', href: 'https://a.example/post/' },
+    ]);
+    expect(parsed.alternatesOutsideHead).toEqual([
+      { lang: 'fr', href: 'https://a.example/fr/' },
     ]);
   });
 
@@ -341,7 +566,7 @@ describe('extractPage', () => {
         '<img data-src="http://a.example/lazy.png" src="/placeholder.gif">' +
         '</main>',
       '<script src="http://cdn.example/t.js"></script>' +
-        '<link rel="stylesheet" href="/site.css">',
+        '<link rel="Stylesheet" href="/site.css">',
     );
 
     expect([...parsed.resourceUrls].sort()).toEqual([
@@ -441,7 +666,7 @@ describe('extractPage', () => {
     expect(
       page('<p>x</p>', '<meta name="Googlebot" content="noindex">')
         .metaGooglebot,
-    ).toBe('noindex');
+    ).toEqual(['noindex']);
   });
 
   /**
@@ -465,6 +690,8 @@ describe('extractPage', () => {
         // cossa.ru and scripting.com: controls whose script names no destination.
         '<a href="javascript:void(0);">Login</a><a onclick="chatToggleConnect ();"></a>' +
         '<a href="https://a.example/resources/#/portal/signup">Subscribe</a>' +
+        // A bare #! or #/ names no route: a menu toggle or a "top" link, no page behind it.
+        '<a href="#!">Menu</a><a href="#/">Top</a>' +
         '</p></main>',
     );
 
@@ -475,6 +702,9 @@ describe('extractPage', () => {
       'https://forum.b.example/#!topic/1',
       // A widget's fragment: to Google, a link to the page before the #.
       'https://a.example/resources/#/portal/signup',
+      // A bare fragment is a link back into this page, as any #section is.
+      'https://a.example/post/#!',
+      'https://a.example/post/#/',
     ]);
     expect(parsed.nofollowLinks).toEqual(['https://a.example/two/']);
     expect(parsed.uncrawlableLinks).toEqual([
@@ -522,6 +752,32 @@ describe('extractPage', () => {
       recorded(
         'semrush/blog/seo-specialist/index.html',
         'https://www.semrush.com/blog/seo-specialist/',
+      ).clientRendered,
+    ).toBe(false);
+  });
+
+  // Field audit, 2026-10-11: vercel.com's posts carry their JSON-LD inside the Next.js
+  // payload, escaped in a string; React writes the ld+json block in the browser.
+  it('reads the schema types an inline script will insert, escaped or not', () => {
+    expect(
+      page(
+        '<script>self.__next_f.push([1,"{\\"@context\\":\\"https://schema.org\\",\\"@type\\":\\"BreadcrumbList\\"}"])</script>' +
+          '<script>window.data = {"@type": "Organization"}</script>' +
+          '<script type="application/ld+json">{"@type":"Article"}</script>',
+      ).scriptedSchemaTypes,
+    ).toEqual(['BreadcrumbList', 'Organization']);
+  });
+
+  // Field audit, 2026-10-11: every Substack page carries a "This site requires JavaScript"
+  // banner in <noscript>, the server-rendered ones too. A paid post is short because of
+  // its paywall, not its scripts — the banner beside real text is no shell.
+  it('does not take a JavaScript banner beside server-rendered text for a shell', () => {
+    expect(
+      page(
+        '<noscript><div id="nojs-banner">This site requires JavaScript to run correctly.</div></noscript>' +
+          '<article><h1>Community Wisdom: getting value from personal AI agents</h1>' +
+          '<p>Hello and welcome to this week’s edition of Community Wisdom, a subscriber-only email, delivered every Saturday, highlighting the most helpful conversations in our members-only Slack community.</p>' +
+          '<p>This post is for paid subscribers. Subscribe. Already a paid subscriber? Sign in.</p></article>',
       ).clientRendered,
     ).toBe(false);
   });
@@ -575,6 +831,22 @@ describe('extractPage', () => {
       'byline: <a href="https://a.example/author/marc-selwan/">Marc Selwan</a>',
       'byline: <a href="https://www.a.example/authors/micah-wylde/">Micah Wylde</a>',
     ]);
+  });
+
+  /**
+   * wordpress.org/news, 2026-10: WordPress core's author block names Matt Mullenweg,
+   * linked to his profile on another site, and every post was reported as naming no one.
+   * moz.com's rel="author" names its humans.txt, a credits file, not a person.
+   */
+  it("names the author from a theme's byline, and not from a credits file", () => {
+    const parsed = page(
+      '<article><div class="wp-block-post-author-name">' +
+        '<a href="https://profiles.wordpress.org/matt/" class="wp-block-post-author-name__link">Matt Mullenweg</a>' +
+        '</div><p>x</p></article>',
+      '<link rel="author" href="https://a.example/humans.txt">',
+    );
+
+    expect(parsed.authors).toEqual(['byline: Matt Mullenweg']);
   });
 
   it('falls back to the article:* dates when the markup has none', () => {
@@ -831,6 +1103,13 @@ describe('extractPage', () => {
         '<a href="/label/" aria-label="Close"></a>' +
         '<a href="/titled/" title="Archive"></a>' +
         '<a href="/hidden/"><span aria-hidden="true">→</span></a>' +
+        // A name carried by what the link holds, as the accessible-name rules read it.
+        '<a href="/svg-label/"><svg role="img" aria-label="Home"></svg></a>' +
+        '<a href="/svg-title/"><svg><title>Search</title></svg></a>' +
+        '<a href="/img-label/"><img src="h.png" aria-label="Home"></a>' +
+        '<a href="/img-title/"><img src="h.png" title="Home"></a>' +
+        '<a href="/span-label/"><span role="img" aria-label="Cart"></span></a>' +
+        '<a href="/svg-bare/"><svg><path d="M0 0"></path></svg></a>' +
         '</p></main>',
     );
 
@@ -842,6 +1121,10 @@ describe('extractPage', () => {
       {
         href: 'https://a.example/hidden/',
         markup: '<a href="/hidden/"><span aria-hidden="true">→</span></a>',
+      },
+      {
+        href: 'https://a.example/svg-bare/',
+        markup: '<a href="/svg-bare/"><svg><path d="M0 0"></path></svg></a>',
       },
     ]);
   });
@@ -875,5 +1158,16 @@ describe('extractPage', () => {
     ).toBeLessThan(200);
     expect(late.charsetDeclarationEnd).toBeGreaterThan(1024);
     expect(page('<p>x</p>').charsetDeclarationEnd).toBeNull();
+    expect(
+      page(
+        '<p>x</p>',
+        '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">',
+      ).charsetDeclarationEnd,
+    ).toBeLessThan(200);
+    // An http-equiv that names no charset declares no encoding.
+    expect(
+      page('<p>x</p>', '<meta http-equiv="Content-Type" content="text/html">')
+        .charsetDeclarationEnd,
+    ).toBeNull();
   });
 });

@@ -62,19 +62,51 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   Every considered entry is logged; the log ends at the 15th post.
 - **The site checks' own requests** (`SiteProbeService`): after the posts, the home page at the
   site's other scheme and www-variants (none for a subdomain: nobody types
-  `www.blog.cloudflare.com`) and one made-up address, at most four requests, never a
-  failure of the run. Discovery keeps what the site checks read — robots.txt as answered, the
+  `www.blog.cloudflare.com`) and one made-up address, then the served host's home page and the
+  icon it declares (or `/favicon.ico`, its first 64 KiB), at most seven requests, never a
+  failure of the run. Selection also fetches the first 64 KiB of each crawled post's own image
+  (og:image, else the article markup's) for its pixel size — one request per post, skipped when
+  robots.txt forbids it. Discovery keeps what the site checks read — robots.txt as answered, the
   candidates' `<lastmod>` — and the verdicts are written with the run, in its transaction.
 - **What the analysis is handed beyond the page:** every redirect hop with its status, the
   run's robots.txt as `IRobotsRules`, so the checks can ask it about Googlebot and the AI search
   crawlers — the crawl itself only ever asks about its own name — and what the client's previous
   crawl recorded for each URL, read before the transaction opens.
+- **The `outbound` stage asks the posts' links for their status** (`OutboundChecksService`),
+  between `fetch` and `analysis`, so every request is made before the persist transaction
+  opens and the checks stay pure: `BROKEN_LINKS`, `LINKS_TO_REDIRECTS`,
+  `CANONICAL_TARGET_BROKEN` and `HREFLANG_NOT_RECIPROCAL` read its `IOutboundFacts`. Each
+  content link is asked once per run, in sitemap order and then document order, so two
+  crawls of an unchanged site check the same links; a link to one of the run's own posts is
+  answered from that post's fetch. A link is asked for its status only, with no body read
+  (`SiteHttpClient.checkLink`); canonical targets, then hreflang alternates, are read whole.
+  `OUTBOUND_CHECK_LIMITS` bounds it: 300 link URLs and 30 documents per run, 8 requests in
+  flight, 2 per host, 5 s per request, 60 s for the stage. Anything past those reads
+  "unchecked" with its reason (budget, deadline, robots), never fine and never broken. The
+  run's robots.txt answers for the client's origin and for the origin its request redirected
+  to (www, https); every other host's — the posts' own host included, when the file does not
+  govern it — is fetched once per run, in one attempt within the 5 s, and obeyed for the
+  crawler's own name. A link the deadline caught while its robots.txt was loading reads
+  "deadline", not "robots". The stage asks exactly the links the checks read
+  (`contentLinksOf`). The site probe reads the served host's rules the same way.
+  No failure of the stage fails the run. There is no queue, as PageSpeed has, because a link
+  check has neither Google's quota nor its minute-long answers. A queue would also change a
+  page's issues after its crawl, and race the next crawl. Measured on 2026-10-11 over 29
+  live sites, 6 posts each: median 9.6 s, slowest 60.0 s. react.dev reached the deadline
+  with 1 of 233 links unchecked, after 17 requests to other hosts timed out or failed. On
+  the stack a full 15-post crawl of semrush.com spent 19.5 s in `outbound`
+  (`"Crawl run stages"`).
 - **Outbound HTTP** goes through `SiteHttpClient` (extends `RemoteApiCore`): per-kind size caps,
-  `.gz` sitemaps inflated under a second cap, retries for 429/5xx/network only, private and
-  metadata addresses refused at connect time.
+  `.gz` sitemaps inflated under a second cap, retries for a timeout, a network error, 408, 429 and
+  500/502/503/504 only (`RETRYABLE_STATUSES`), private and metadata addresses refused at connect
+  time. The crawl takes the core's defaults (10 s, two retries); `PsiClient` declares its own.
+- **Finalize queues the run's pages for PageSpeed** (`PageSpeedQueueService.enqueueForWorker`), in
+  the same transaction that makes them current, after the pages and before the outcome; a
+  superseded attempt queues nothing, and a rolled-back finalize queues nothing. The crawl never
+  waits for Google — the PageSpeed worker measures later
+  (`be/src/modules/page-speed/PAGE_SPEED_MODULE.md`).
 - **Tests never touch the network:** `createTestApp` swaps in `FixtureHttpTransport`; an unknown
   URL is a 404. `node be/test/fixtures/record-fixtures.ts` refreshes the recordings.
-
 
 ## Specified invariants
 
@@ -83,22 +115,41 @@ and what pins it. Kept as a trailing section so the set is greppable — the que
 named, the requirement lives in `openspec/specs/be/src/modules/crawl/spec.md`.
 
 <!-- invariant: CRAWL-004 -->
+
 **The blog sitemap is chosen by score from robots and well-known sources before any page URL is fetched.** Pinned by `services/sitemap-discovery/sitemap-discovery.service.spec.ts` -> "no page URL is requested before selection" and "semrush: selects /blog/sitemap/ and never reads another subdomain"; `services/sitemap-scoring/sitemap-scoring.spec.ts` -> `describe("selectBlogGroup")`.
 
 <!-- invariant: CRAWL-005 -->
+
 **Only the client’s own site is crawled: a foreign sitemap, a foreign URL and an off-site redirect are all refused.** Pinned by `sitemap-discovery.service.spec.ts` -> "semrush: selects /blog/sitemap/ and never reads another subdomain"; `services/post-selection/post-selection.service.spec.ts` -> "logs and skips each kind of non-post, then keeps going".
 
 <!-- invariant: CRAWL-006 -->
+
 **At most 15 crawled posts out of at most 30 candidates, taken in sitemap order despite fetching in parallel.** Pinned by `post-selection.service.spec.ts` -> "takes the first 15 posts in order and stops the log at the 15th" and "considers at most 30 entries"; `be/test/e2e/crawl.e2e-spec.ts` -> "crawls yoast: 15 posts, 16 log lines, /seo-blog/ skipped as a listing".
 
 <!-- invariant: CRAWL-007 -->
+
 **Every considered candidate becomes exactly one log row carrying its reason, and the next candidate is still tried.** Pinned by `post-selection.service.spec.ts` -> "logs and skips each kind of non-post, then keeps going"; the CHECKs `crawl_run_items_page_required` and `crawl_run_items_reason_required`.
 
 <!-- invariant: CRAWL-008 -->
+
 **A run ends succeeded at 15 posts, partial at 1–14 and failed at none, each with a catalogued error code.** Pinned by `crawl-run-executor.service.spec.ts` -> `describe("outcomeOf")`, its "%d posts → %s" cases and its error-code cases; `be/test/e2e/crawl.e2e-spec.ts` -> "a site with no sitemap finalizes failed SITEMAP_NOT_FOUND".
 
 <!-- invariant: CRAWL-010 -->
+
 **No seed client’s name, host or path appears anywhere in crawl, discovery or analysis code.** Pinned by NOT pinned by a test — this document records a manual `git grep` guard, and nothing in CI, ESLint or a spec runs it.
 
 <!-- invariant: SEED-002 -->
+
 **The seed enqueues a `trigger=seed` run executed by the same worker as a UI run, waits for it, and fails loudly naming the error code. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "a failed crawl makes the seed fail with its error code"; `seed-runner.service.spec.ts` -> "enqueues a seed crawl and polls until it ends" and "waits for a run already in flight instead of enqueueing another". The non-zero process exit is NOT pinned — no test runs the CLI.
+
+<!-- invariant: CRAWL-011 -->
+
+**A crawl's outbound requests run in their own stage, after fetch and before analysis, outside the transaction, within fixed bounds — 300 link URLs, 30 documents, 8 in flight, 2 per host, each URL asked once — and a stage that fails or times out never fails the run. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `services/outbound-checks/outbound-checks.service.spec.ts` -> "checks at most 300 link URLs and marks the rest unchecked: budget", "reads at most 30 documents, canonical targets first", "never has more than 8 in flight, nor more than 2 for one host", "asks each URL once, without retry, however many posts link to it", "orders by sitemap position, then document order" and "a host refusing every connection leaves outcomes, not an error"; `services/crawl-run-executor/crawl-run-executor.service.spec.ts` -> "runs the outbound stage after fetch and before analysis, outside the transaction" and "an outbound stage that times out leaves the run succeeded".
+
+<!-- invariant: CRAWL-012 -->
+
+**robots.txt is honoured for every host a crawl asks: the run's own from discovery — for the client's origin and the one its robots.txt redirected to — each other fetched once; a 4xx allows, a 5xx, a 429, a challenge or no answer disallows. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `services/outbound-checks/host-robots-cache.spec.ts` -> "answers the run's own origin from the run's robots.txt, without a request", "answers an origin the run's file governs through its redirect, and fetches the rest", "fetches each external host's robots.txt once, however many ask at once", "a 4xx robots.txt allows the host; a 5xx, a 429 or no answer disallows it" and "a bot challenge on robots.txt disallows the host"; `outbound-checks.service.spec.ts` -> "never requests a disallowed URL", "reads the posts' host's own robots.txt when the run's file does not govern it" and "treats an unreachable robots.txt as disallowing the host"; `sitemap-discovery.service.spec.ts` -> "applies a robots.txt that redirected to www to both hosts".
+
+<!-- invariant: CRAWL-013 -->
+
+**What a crawl did not check — its budget, robots.txt, the deadline — is marked unchecked with the reason, never presented as checked. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `outbound-checks.service.spec.ts` -> "checks at most 300 link URLs and marks the rest unchecked: budget" and "stops at the deadline and marks the rest unchecked: deadline"; `be/src/modules/page-analysis/services/checks/broken-links/broken-links.check.spec.ts` -> "an unchecked link is neither broken nor fine, and the evidence says checked N of M".

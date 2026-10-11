@@ -36,4 +36,12 @@ describe('validateEnv', () => {
       validateEnv({ ...valid, CRAWL_WORKER_ENABLED: 'yes' }),
     ).toThrow(/CRAWL_WORKER_ENABLED/);
   });
+
+  /** No key is a working configuration: the app runs and says speed is not configured. */
+  it('accepts an empty PAGESPEED_API_KEY', () => {
+    expect(validateEnv({ ...valid, PAGESPEED_API_KEY: '' })).toBeDefined();
+    expect(
+      validateEnv({ ...valid, PAGESPEED_API_KEY: 'any-non-empty-value' }),
+    ).toBeDefined();
+  });
 });

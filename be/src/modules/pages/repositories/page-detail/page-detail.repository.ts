@@ -1,16 +1,32 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import {
-  CURRENT_CRAWL_RUN_STATUSES,
   type TSeoIssue,
   type TSeoIssueCode,
   type TSeoIssueSeverity,
+  type TPsiStrategy,
 } from '@app/contracts';
+import { CURRENT_RUN_STATUSES_SQL } from '@persistence/sql/current-run-statuses';
 import {
   DATABASE_CONNECTION,
   type Database,
 } from '@persistence/connections/postgres/database-provider/database.provider';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
+import {
+  PAGE_SPEED_COLUMNS,
+  pageSpeedColumns,
+  pageSpeedRowOf,
+  type IDesktopPageSpeedColumns,
+  type IPageSpeedColumns,
+  type IPageSpeedRow,
+} from '../page-speed/page-speed-read';
+import {
+  LIGHTHOUSE_SCORE_POINTS_LATERAL,
+  SCORE_POINTS_LATERAL,
+  lighthousePointsOf,
+  type ILighthousePoints,
+  type ILighthousePointsColumns,
+} from '../page-score/score-points';
 
 export interface ICurrentPageRecord {
   id: number;
@@ -25,15 +41,29 @@ export interface ICurrentPageRecord {
   responseMs: number;
   checksApplicable: number;
   checksFailed: number;
+  /** The score's weighed denominator and what the failed checks cost. */
+  pointsPossible: number;
+  pointsLost: number;
+  /** Lighthouse's, null until the page is measured with its categories. */
+  lighthousePoints: ILighthousePoints | null;
   /** Null together when the page's last crawl predates per-check recording. */
   checksJudged: TSeoIssueCode[] | null;
   checksNotApplicable: TSeoIssueCode[] | null;
+  /**
+   * Lighthouse's record from the page's measurement, null together when the page was
+   * never measured with Lighthouse's categories. Read here, not in `PAGE_SPEED_COLUMNS`:
+   * only the detail lists checks, so only the detail carries the lists.
+   */
+  lighthouseJudged: TSeoIssueCode[] | null;
+  lighthouseNotApplicable: TSeoIssueCode[] | null;
   crawledAt: Date;
   clientId: number;
   clientName: string;
   clientWebsiteUrl: string;
   /** Pages on the client's current run — the denominator of "on 5 of 15 pages". */
   clientCurrentPages: number;
+  /** Each device's row; the score and Lighthouse's lists read the mobile one. */
+  pageSpeedByStrategy: Record<TPsiStrategy, IPageSpeedRow | null>;
 }
 
 /**
@@ -51,7 +81,12 @@ export interface IHistoryRow {
   position: number | null;
 }
 
-interface IPageRow extends Record<string, unknown> {
+interface IPageRow
+  extends
+    Record<string, unknown>,
+    IPageSpeedColumns,
+    IDesktopPageSpeedColumns,
+    ILighthousePointsColumns {
   id: string;
   url: string;
   final_url: string;
@@ -64,8 +99,12 @@ interface IPageRow extends Record<string, unknown> {
   response_ms: number;
   checks_applicable: number;
   checks_failed: number;
+  points_possible: string;
+  points_lost: string;
   checks_judged: string[] | null;
   checks_not_applicable: string[] | null;
+  lighthouse_judged: string[] | null;
+  lighthouse_not_applicable: string[] | null;
   crawled_at: string | Date;
   client_id: string;
   client_name: string;
@@ -79,11 +118,6 @@ interface IHistoryDbRow extends Record<string, unknown> {
   captured_at: string | Date | null;
   position: number | null;
 }
-
-const CURRENT_STATUSES = sql.join(
-  CURRENT_CRAWL_RUN_STATUSES.map((status) => sql`${status}`),
-  sql`, `,
-);
 
 @Injectable()
 export class PageDetailRepository {
@@ -101,17 +135,28 @@ export class PageDetailRepository {
       select p.id, p.url, p.final_url, p.title, p.meta_description, p.h1, p.lang,
              p.word_count, p.http_status, p.response_ms,
              p.checks_applicable, p.checks_failed,
+             pts.points_possible, pts.points_lost,
+             lpts.lighthouse_applicable, lpts.lighthouse_failed,
+             lpts.lighthouse_points_possible, lpts.lighthouse_points_lost,
              p.checks_judged, p.checks_not_applicable, p.crawled_at,
+             ps.lighthouse_judged, ps.lighthouse_not_applicable,
              c.id as client_id, c.name as client_name, c.website_url as client_website_url,
              (select count(*) from pages sib
                where sib.client_id = p.client_id
-                 and sib.last_seen_run_id = p.last_seen_run_id) as client_current_pages
+                 and sib.last_seen_run_id = p.last_seen_run_id) as client_current_pages,
+             ${PAGE_SPEED_COLUMNS}, ${pageSpeedColumns('psd')}
       from pages p
       join clients c on c.id = p.client_id and c.user_id = ${scope.userId}
+      cross join lateral (${SCORE_POINTS_LATERAL}) pts
+      -- The mobile row: the summary, Lighthouse's checks and the score read it.
+      left join page_speed ps on ps.page_id = p.id and ps.strategy = 'mobile'
+      -- The desktop row, for the Speed block's other tab alone.
+      left join page_speed psd on psd.page_id = p.id and psd.strategy = 'desktop'
+      left join lateral (${LIGHTHOUSE_SCORE_POINTS_LATERAL}) lpts on true
       where p.id = ${pageId}
         and p.last_seen_run_id = (
           select r.id from crawl_runs r
-          where r.client_id = p.client_id and r.status in (${CURRENT_STATUSES})
+          where r.client_id = p.client_id and r.status in (${CURRENT_RUN_STATUSES_SQL})
           order by r.finished_at desc, r.id desc
           limit 1
         )
@@ -131,16 +176,27 @@ export class PageDetailRepository {
       responseMs: Number(row.response_ms),
       checksApplicable: Number(row.checks_applicable),
       checksFailed: Number(row.checks_failed),
+      pointsPossible: Number(row.points_possible),
+      pointsLost: Number(row.points_lost),
+      lighthousePoints: lighthousePointsOf(row),
       // Cast, like `details_json` below: the driver hands back plain strings, and this
       // is the one place a stored code becomes a catalogue code.
       checksJudged: (row.checks_judged ?? null) as TSeoIssueCode[] | null,
       checksNotApplicable: (row.checks_not_applicable ?? null) as
+        TSeoIssueCode[] | null,
+      lighthouseJudged: (row.lighthouse_judged ?? null) as
+        TSeoIssueCode[] | null,
+      lighthouseNotApplicable: (row.lighthouse_not_applicable ?? null) as
         TSeoIssueCode[] | null,
       crawledAt: new Date(row.crawled_at),
       clientId: Number(row.client_id),
       clientName: row.client_name,
       clientWebsiteUrl: row.client_website_url,
       clientCurrentPages: Number(row.client_current_pages),
+      pageSpeedByStrategy: {
+        mobile: pageSpeedRowOf(row),
+        desktop: pageSpeedRowOf(row, 'psd'),
+      },
     };
   }
 

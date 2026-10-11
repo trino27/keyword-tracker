@@ -1,0 +1,84 @@
+/* The header is 60px and fixed: a jumped-to heading lands below it, with air. */
+$header-clearance: 84px;
+/* Mantine's md breakpoint; Sass compiles before PostCSS, so its variable is not in scope here. */
+$md: 62em;
+
+.layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--mantine-spacing-lg);
+
+	@media (min-width: $md) {
+		grid-template-columns: 280px minmax(0, 1fr);
+		align-items: start;
+	}
+}
+
+.aside {
+	@media (min-width: $md) {
+		position: sticky;
+		top: $header-clearance;
+	}
+}
+
+.navScroll {
+	max-height: 40vh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+
+	@media (min-width: $md) {
+		max-height: calc(100vh - #{$header-clearance} - 110px);
+	}
+}
+
+.navItem {
+	border-radius: var(--mantine-radius-sm);
+	padding-block: 4px;
+}
+
+.content {
+	min-width: 0;
+}
+
+.anchor {
+	scroll-margin-top: $header-clearance;
+}
+
+/* Long text stays readable on a wide screen. */
+.prose {
+	max-width: 880px;
+	font-size: var(--mantine-font-size-sm);
+	line-height: 1.6;
+}
+
+.verdict {
+	padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+	border-radius: var(--mantine-radius-sm);
+	border-left: 3px solid var(--mantine-color-gray-4);
+	background: var(--mantine-color-gray-0);
+
+	&[data-color="teal"] {
+		border-left-color: var(--mantine-color-teal-6);
+		background: var(--mantine-color-teal-0);
+	}
+
+	&[data-color="red"] {
+		border-left-color: var(--mantine-color-red-6);
+		background: var(--mantine-color-red-0);
+	}
+}
+
+.example {
+	white-space: pre-wrap;
+	word-break: break-word;
+	font-size: var(--mantine-font-size-xs);
+	border-left: 3px solid var(--mantine-color-gray-4);
+
+	&[data-color="teal"] {
+		border-left-color: var(--mantine-color-teal-6);
+	}
+
+	&[data-color="red"] {
+		border-left-color: var(--mantine-color-red-6);
+	}
+}

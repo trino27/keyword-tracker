@@ -18,6 +18,8 @@ Owns `clients`, `crawl_runs` (the crawl queue) and `crawl_run_items` (the run lo
 - **A run owns its site checks.** `site_checks` holds one row per site check per run — passed,
   failed or not applicable, with the evidence — written by finalize beside the run log and read
   with it, scoped to the run's owner in the query. A run that never reached the site has none.
+  The issue report (`be/src/modules/issue-report/`) also reads them: the FAILED site checks of
+  the client's current run, never of a newer failed one.
 - **The fence:** every write of an execution carries `AND attempts = <its attempt>`; finalize
   locks the run on that condition first. A superseded executor (a zombie after a lease expiry)
   writes nothing.

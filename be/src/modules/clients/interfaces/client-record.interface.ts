@@ -59,11 +59,13 @@ export interface IClaimedRun {
   attempts: number;
 }
 
-/** Where a run crawls. */
+/** Where a run crawls, and the zone its owner reads dates in. */
 export interface IRunTarget {
   clientId: number;
   websiteUrl: string;
   siteKey: string;
+  /** The owner's IANA zone (TZ-003): "this year" for a check is the owner's year. */
+  timeZone: string;
 }
 
 export interface IRunDiscovery {

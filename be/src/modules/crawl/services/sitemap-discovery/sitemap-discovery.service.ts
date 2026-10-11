@@ -329,7 +329,12 @@ export class SitemapDiscoveryService {
       return {
         robots:
           response.status === 200
-            ? RobotsPolicy.parse(`${origin}/robots.txt`, response.text)
+            ? RobotsPolicy.parse(
+                `${origin}/robots.txt`,
+                response.text,
+                // Redirected (to www, to https): the file is that origin's own too.
+                [`${new URL(response.finalUrl).origin}/robots.txt`],
+              )
             : RobotsPolicy.allowAll(),
       };
     } catch (error) {

@@ -1,5 +1,8 @@
 import type { TCrawlItemStatus } from '@app/contracts';
-import type { IParsedPage } from '@modules/page-analysis/interfaces/parsed-page.interface';
+import type {
+  IParsedPage,
+  IPreviewImage,
+} from '@modules/page-analysis/interfaces/parsed-page.interface';
 import type { IRobotsRules } from '@modules/page-analysis/interfaces/robots-rules.interface';
 
 /** A post that was fetched and read: what finalize stores and the analysis judges. */
@@ -21,6 +24,8 @@ export interface ICrawledPage {
   responseMs: number;
   htmlBytes: number;
   parsed: IParsedPage;
+  /** The page's own image, measured from the file; null when it names none or may not be fetched. */
+  previewImage: IPreviewImage | null;
 }
 
 /** One considered sitemap entry, as the run log records it. */
@@ -30,6 +35,11 @@ export interface ISelectedItem {
   status: TCrawlItemStatus;
   reason: string | null;
   httpStatus: number | null;
+  /**
+   * Skipped because its content is drawn by JavaScript: the HTML is an empty shell. A
+   * structured fact, so the site check counts the flag and never parses `reason`.
+   */
+  clientRendered: boolean;
   page: ICrawledPage | null;
 }
 

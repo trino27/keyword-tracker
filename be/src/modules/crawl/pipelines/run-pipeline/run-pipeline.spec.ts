@@ -83,6 +83,7 @@ describe('runCrawlPipeline', () => {
             clientId: 1,
             websiteUrl: 'https://a.example',
             siteKey: 'a.example',
+            timeZone: 'America/Toronto',
           };
           return Promise.resolve();
         },

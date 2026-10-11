@@ -8,6 +8,7 @@ import {
 import { UserAccountsService } from '@modules/auth/services/user-accounts/user-accounts.service';
 import { ClientCrawlRunsService } from '@modules/clients/services/client-crawl-runs/client-crawl-runs.service';
 import { MIN_SNAPSHOTS } from '@modules/pages/constants/rank-capture.constant';
+import { PageSpeedQueueService } from '@modules/pages/services/page-speed-queue/page-speed-queue.service';
 import {
   PositionSeedService,
   type IPositionFill,
@@ -36,6 +37,11 @@ export interface ISeedCrawl {
 export interface ISeedReport {
   crawls: ISeedCrawl[];
   positions: IPositionFill;
+  /**
+   * Current pages that had never been queued for PageSpeed and now are — non-zero only
+   * on a database crawled before PageSpeed existed. A crawl queues its own pages.
+   */
+  pageSpeedQueued: number;
 }
 
 export interface ISeedTiming {
@@ -66,6 +72,7 @@ export class SeedRunner {
     private readonly accounts: UserAccountsService,
     private readonly runs: ClientCrawlRunsService,
     private readonly positions: PositionSeedService,
+    private readonly pageSpeedQueue: PageSpeedQueueService,
     @InjectPinoLogger(SeedRunner.name) private readonly logger: PinoLogger,
     @Optional() @Inject(SEED_TIMING) timing?: ISeedTiming,
   ) {
@@ -76,6 +83,10 @@ export class SeedRunner {
     const crawls = options.positionsOnly
       ? []
       : await this.seedAccounts(options.password);
+    // The seed does not wait for measurements: the API's worker takes them from here.
+    const pageSpeedQueued = options.positionsOnly
+      ? 0
+      : await this.pageSpeedQueue.backfillForWorker();
 
     const positions = await this.positions.fillForWorker(this.timing.now());
     this.logger.info(positions, 'Positions filled');
@@ -84,7 +95,7 @@ export class SeedRunner {
         `Only ${positions.total} rank snapshots exist; at least ${MIN_SNAPSHOTS} are required.`,
       );
     }
-    return { crawls, positions };
+    return { crawls, positions, pageSpeedQueued };
   }
 
   private async seedAccounts(password: string): Promise<ISeedCrawl[]> {

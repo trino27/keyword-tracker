@@ -10,17 +10,23 @@ import { REDACT_CENSOR, REDACT_PATHS } from './redact/redact.config';
 const isProd = process.env.NODE_ENV === 'production';
 const level = process.env.LOG_LEVEL ?? (isProd ? 'info' : 'debug');
 
-/** Pretty output for a developer's terminal, JSON lines everywhere else. */
-const transport: pino.TransportSingleOptions | undefined = isProd
-  ? undefined
-  : {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'SYS:HH:MM:ss.l',
-        ignore: 'pid,hostname',
-      },
-    };
+/**
+ * Pretty output for a developer's terminal, JSON lines everywhere else — tests included:
+ * pino-pretty runs in a worker thread per logger, and a test suite builds an app per case,
+ * so its threads could outlive `app.close()` and keep Jest from exiting.
+ */
+const isTest = process.env.NODE_ENV === 'test';
+const transport: pino.TransportSingleOptions | undefined =
+  isProd || isTest
+    ? undefined
+    : {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'SYS:HH:MM:ss.l',
+          ignore: 'pid,hostname',
+        },
+      };
 
 export const pinoHttpOptions: PinoModuleParams['pinoHttp'] = {
   level,

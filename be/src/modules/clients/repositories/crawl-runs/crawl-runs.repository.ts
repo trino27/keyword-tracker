@@ -13,6 +13,7 @@ import {
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import { clients } from '@persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '@persistence/schema/tables/crawl-runs/crawl-runs.schema';
+import { users } from '@persistence/schema/tables/users/users.schema';
 import { CRAWL_QUEUED_CHANNEL } from '@shared/crawl-queue/crawl-queue.constant';
 import type { IUserScope } from '@shared/user-scope/user-scope.interface';
 import type {
@@ -280,9 +281,11 @@ export class CrawlRunsRepository {
         clientId: clients.id,
         websiteUrl: clients.websiteUrl,
         siteKey: clients.siteKey,
+        timeZone: users.timeZone,
       })
       .from(crawlRuns)
       .innerJoin(clients, eq(clients.id, crawlRuns.clientId))
+      .innerJoin(users, eq(users.id, clients.userId))
       .where(eq(crawlRuns.id, runId))
       .limit(1);
     return row ?? null;

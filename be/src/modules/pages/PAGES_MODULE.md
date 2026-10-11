@@ -1,20 +1,47 @@
 # Pages module
 
-Owns `pages`, `keywords`, `page_keywords`, `seo_issues` and `rank_snapshots`; serves the pages
-list, the page detail and the position history.
+Owns `pages`, `keywords`, `page_keywords`, `seo_issues`, `rank_snapshots` and `page_speed`;
+serves the pages list, the page detail and the position history.
 
-- **Current = on the client's latest succeeded/partial run.** A page or keyword pair a re-crawl no
+- **Three owners of `seo_issues` codes, each replace taking only its own.** The catalogue is a
+  registry of owners (`ISSUE_CATALOGUES`): the crawl's replace (`replaceCrawlFindingsForWorker`)
+  deletes crawl codes only, the PageSpeed worker's two replaces one device's speed codes
+  (`replacePageSpeedFindingsForWorker(…, strategy, …)`, `PAGE_SPEED_CODES_BY_STRATEGY`) and
+  Lighthouse codes (`replaceLighthouseFindingsForWorker`, mobile completions only) — so a
+  re-crawl never erases a measurement's findings, a desktop measurement never erases mobile's or
+  Lighthouse's, nor the other way. Pinned by `seo-issues.repository.int-spec.ts`.
+- **`page_speed` is the PageSpeed queue and the cache of the last good measurement**, one row
+  per page and device (`strategy`, keyed `(page_id, strategy)`); see
+  `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`. Every join names its device: the list, its
+  badges, the score and Lighthouse's checks read the mobile row (`ps.strategy = 'mobile'`) — a
+  join by page id alone would list a page once per device. The list carries the mobile
+  `pageSpeed` summary; the detail carries `pageSpeedByStrategy`, both devices (a second join,
+  `psd`, read back through the same `pageSpeedRowOf`), null for a device never queued. Bands are
+  derived at read time, and the `pageSpeedAvailability` state comes from
+  `PageSpeedAvailabilityService`. A speed finding — a Core Web Vitals band of either device, or
+  image delivery — counts among the page's issues by severity and in its code's client-wide
+  spread like any other, and never enters the score, the checks list or the order. A Lighthouse
+  finding counts in all of them: the score and the order sum the crawl's points with
+  Lighthouse's active checks weighed the same way (`LIGHTHOUSE_SCORE_POINTS_LATERAL` over the
+  mobile row; `pageScoreOf` over the scored owners), and the detail lists each scored owner's
+  checks with its own null (`checksByOwner`) — a Lighthouse finding repeating a crawl one is
+  counted on both sides (lighthouse-checks D9, D11).
+
+- **Current = on the client's latest succeeded/partial run** — one SQL fragment,
+  `CURRENT_RUN_STATUSES_SQL` (`be/src/persistence/sql/current-run-statuses.ts`), for the list,
+  the detail, the issue report and the PageSpeed claim, so they agree on which pages are current. A page or keyword pair a re-crawl no
   longer finds keeps its `last_seen_run_id` and its history and simply stops being read. Nothing
   deletes pages or pairs (guard: `git grep -n -E "\.delete\((pages|pageKeywords)\)" -- be/src ':!*spec.ts'`);
   issues describe the latest fetch and are replaced.
 - **Positions are read, never stored twice.** The latest position per pair is a `LATERAL …
-  ORDER BY captured_at DESC LIMIT 1` on the snapshot primary key; the best position is picked in
+ORDER BY captured_at DESC LIMIT 1` on the snapshot primary key; the best position is picked in
   `pickBestPosition` (lowest, then more relevant, then alphabetical). Measured on the seed
   (~56 000 snapshots): a 15-page slice, 79 pairs, `Index Scan Backward using rank_snapshots_pk`,
   0.8 ms (`be/test/explain/pages-list.explain.sql`). Sorting the list by position would need a
   stored latest position — the trigger to reopen this (D7).
-- **The list is four statements whatever the page size** (slice, total, keywords, issue counts);
-  a `describe('cost')` test counts them. Search matches the raw text against URLs and its
+- **The list is five statements whatever the page size** (slice — with its `page_speed` row —
+  total, keywords, issue counts, the site-wide spread); a `describe('cost')` test counts them.
+  Search matches the raw text against URLs and its
   normalized form against keywords, `%`/`_` escaped, served by trigram GIN indexes.
 - **History** turns the user's calendar days into UTC bounds once (`dayRangeToUtc`, the user's
   zone from the session — a `timeZone` parameter is refused) and scans one key range per pair.
@@ -26,9 +53,14 @@ list, the page detail and the position history.
   and a composition that could hide one is worse than one that reports a contradiction the
   disjointness constraint already forbids. The status is composed HERE and not on the screen,
   because only this side holds `checks_applicable`.
+
 <!-- invariant: PAGES-012 -->
-**A page answers every catalogue check with one of four statuses.** Composed on the backend, in
-catalogue order, from the lists the crawl stored; a page whose crawl predates the recording says
+
+**A page answers every crawl-owned catalogue check with one of four statuses.** Composed on the
+backend, in catalogue order, from the lists the crawl stored; a speed code is never a check
+entry (the composition iterates `ACTIVE_ISSUE_CODES`, crawl codes only, and `IPageCheck.code` is
+a `TCrawlIssueCode`; `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts` -> "refuses a
+speed code"); a page whose crawl predates the recording says
 so rather than reporting a status it never observed. Pinned by
 `be/src/modules/pages/services/page-checks/compose-page-checks.spec.ts` (the four statuses, the
 catalogue order, the retired code, the null case),
@@ -52,7 +84,6 @@ Specified in `openspec/specs/be/src/modules/pages/spec.md`.
   reads as "nothing to compare", never as a change.
 - **Every read is scoped**; a foreign or non-current id is the same 404 as a missing one.
 
-
 ## Specified invariants
 
 Deposited after archive (`openspec/README.md` §4 and §8): the permanent id, what must stay true,
@@ -60,52 +91,81 @@ and what pins it. Kept as a trailing section so the set is greppable — PAGES-0
 named, the requirement lives in `openspec/specs/be/src/modules/pages/spec.md`.
 
 <!-- invariant: PAGES-001 -->
+
 **A rank snapshot is keyed by page, keyword and UTC instant, belongs to a real pair, and sits in 1–100.** Pinned by the CHECK `rank_snapshots_position_range` and the composite FK, by `repositories/rank-snapshots/rank-snapshots.repository.int-spec.ts` -> "refuses position %d" and "refuses a snapshot for a pair the page does not have".
 
 <!-- invariant: PAGES-002 -->
+
 **The list returns only the user’s current pages, filterable by client, paginated at a page size of at most 50, with a total.** Pinned by `repositories/page-list/page-list.repository.int-spec.ts` -> "lists only pages of the latest succeeded or partial run", "a failed or running re-crawl keeps showing the previous run’s pages", "never lists another user’s pages"; `be/test/e2e/pages.e2e-spec.ts` -> the `?pageSize=51` case.
 
 <!-- invariant: PAGES-003 -->
+
 **Search matches a page’s URL or a current keyword, case-insensitively, with `%` and `_` matching themselves.** Pinned by `page-list.repository.int-spec.ts` -> "search matches the URL or a current keyword, not a dropped one" and "an escaped % or _ matches only itself"; `be/src/core/utils/escape-like/escape-like.spec.ts`.
 
 <!-- invariant: PAGES-004 -->
+
 **Latest and best positions are computed at read time from the snapshot key, never stored a second time.** Pinned by `services/best-position/pick-best-position.spec.ts` -> "picks the lowest position" and "breaks a tie by relevance, then by term"; `page-list.repository.int-spec.ts` -> "keywords carry their latest position; issue counts group by severity".
 
 <!-- invariant: PAGES-005 -->
+
 **A `clientId` the user does not own answers exactly like a missing one.** Pinned by `services/page-read/page-read.service.spec.ts` -> "checks a clientId belongs to the user before listing"; `be/test/e2e/pages.e2e-spec.ts` -> "another user’s clientId is a 404, and their list is empty"; `be/test/e2e/isolation-matrix.e2e-spec.ts`.
 
 <!-- invariant: PAGES-006 -->
+
 **The detail returns a current page of the user with its keywords, issues and last run; anything else is the same 404 as a missing page.** Pinned by `services/page-read/page-read.service.spec.ts` -> `describe("PageReadService.getPage")`, notably "refuses a page the scope cannot reach, exactly like a missing one" and "returns the issues in catalogue order, not the order stored"; `be/test/e2e/pages-history.e2e-spec.ts` -> "a page a newer crawl no longer found is a 404, like a missing one".
 
 <!-- invariant: PAGES-007 -->
+
 **The history returns one time-ordered series per current keyword, and a keyword with no points keeps an empty series rather than disappearing.** Pinned by `services/position-history/position-history.service.spec.ts` -> "groups points per keyword and keeps a keyword without points"; `be/test/e2e/pages-history.e2e-spec.ts` -> "the spring-forward day (23 h) too; a keyword without points keeps its empty series".
 
 <!-- invariant: PAGES-008 -->
+
 **The history range defaults to 30 days in the user’s zone, clamps a future end, and refuses an inverted or over-long span.** Pinned by `services/position-history/resolve-history-range.spec.ts` -> "defaults to the 30 days ending today in the user’s zone", "clamps a future `to` to today", "refuses %j with INVALID_DATE_RANGE", "accepts exactly 366 days".
 
 <!-- invariant: PAGES-009 -->
-**A page’s score is the rounded share of applicable checks that passed, always reported with the denominator it came from.** Pinned by `packages/contracts/src/domain/pages/page-score/page-score.util.test.ts` -> "rounds half up, so a page is never quietly marked down" and "carries the denominator it was computed from"; `be/test/e2e/pages.e2e-spec.ts` -> "every item carries a score and the denominator it came from". "One implementation serves both sides" is NOT pinned — it rests on both workspaces importing `@app/contracts`.
+
+**A page’s score is the rounded share of the applicable checks’ points it kept — each check weighing its severity (`SEVERITY_WEIGHT`: Critical 10, Important 3, Improvement 1) — always reported with the counts and points it came from.** The points are weighed at read time by `repositories/page-score/score-points.ts`, one lateral subquery both the list and the detail join, so the order and the number on screen are one formula and a weight changes without a migration. Pinned by `packages/contracts/src/domain/pages/page-score/page-score.util.test.ts` -> "rounds half up, so a page is never quietly marked down", "weighs a Critical failure above an Important one, and that above an Improvement" and "carries the counts and the points it was computed from"; `page-list.repository.int-spec.ts` -> "weighs a Critical failure above an Improvement, and a speed finding not at all"; `be/test/e2e/pages.e2e-spec.ts` -> "every item carries a score and the denominator it came from". "One implementation serves both sides" is NOT pinned — it rests on both workspaces importing `@app/contracts`.
 
 <!-- invariant: PAGES-010 -->
-**The list is ordered score ascending, then failures descending, ending on a unique key so a full walk returns each page exactly once.** Pinned by `page-list.repository.int-spec.ts` -> "orders worst first: the lowest score is row one", "compares scores as fractions, not as integer division", "walking every page at pageSize 3 returns each id exactly once"; `be/test/e2e/pages.e2e-spec.ts` -> "pages through the 15 posts, worst first and each exactly once".
+
+**The list is ordered score ascending, then points lost descending, ending on a unique key so a full walk returns each page exactly once.** Pinned by `page-list.repository.int-spec.ts` -> "orders worst first: the lowest score is row one", "weighs a Critical failure above an Improvement, and a speed finding not at all", "compares scores as fractions, not as integer division", "walking every page at pageSize 3 returns each id exactly once"; `be/test/e2e/pages.e2e-spec.ts` -> "pages through the 15 posts, worst first and each exactly once".
 
 <!-- invariant: PAGES-011 -->
+
 **Each finding reports how many of the client’s current pages carry it — over the whole client, never over the slice on screen.** Pinned by `page-list.repository.int-spec.ts` -> `describe("the site-wide spread")`, notably "a search matching one page still reports the code on five" and "never reports another user’s spread"; the no-query-per-row half by `page-read.service.spec.ts` -> `describe("cost")`.
 
+<!-- invariant: PAGES-013 -->
+
+**A Core Web Vitals finding counts among a page's issues — by severity and in the detail — and never moves its score, its counters or its place in the list. A Lighthouse finding does all three: `be/test/e2e/page-speed.e2e-spec.ts` -> "a Lighthouse finding counts among the issues, in the spread and in the score", `page-list.repository.int-spec.ts` -> "orders by the score summed over the crawl and Lighthouse's checks".** Pinned by `be/test/e2e/page-speed.e2e-spec.ts` -> "a speed finding counts among the issues and leaves the score and the order unchanged" and "a measured page has its speed findings in the detail". The client-wide spread of a speed code is not asserted on its own: it is the one statement over every code that PAGES-011's pins hold.
+
+<!-- invariant: PAGES-014 -->
+
+**The list carries each page's mobile speed summary and the detail both devices' (`pageSpeedByStrategy`) — bands derived when read, never stored; the failure reason only for a failed row; null for a device never queued — and PageSpeed's state from `pageSpeedAvailabilityOf`.** The device half is pinned by `services/page-read/page-read.service.spec.ts` -> "the detail carries a summary per strategy, null where never queued" and "the score reads the mobile row whatever the desktop row holds", `page-list.repository.int-spec.ts` -> "lists a page once, with its mobile summary and score, when both strategies are stored", and `be/test/e2e/pages.e2e-spec.ts` -> "the detail carries pageSpeedByStrategy". The rest is pinned by `services/page-speed-summary/page-speed-summary-of.spec.ts` -> "a summary carries each metric's band from the thresholds", "a never-measured page has a null measurement", "INP without field data is null inside a measurement", "lastError is null unless failed", "a page never queued has no summary"; `services/page-read/page-read.service.spec.ts` -> "the availability state comes from pageSpeedAvailabilityOf" (through `PageSpeedAvailabilityService`); `be/test/e2e/page-speed.e2e-spec.ts` -> "the list and the detail carry the PageSpeed state", "every non-good badge in the list has its finding in the detail, and no good one does" and, for `keyRejected` on the list, "after Google rejects the key every row is still queued and the state is keyRejected". The frontend refuses an unknown band or state: `fe/src/Gateways/PageGateway/Validation/PageSchemas.test.ts` -> "refuses a summary with an unknown band" and "refuses an unknown availability state".
+
 <!-- invariant: CRAWL-009 -->
+
 **A re-crawl upserts and deletes nothing; "current" is whatever the latest succeeded or partial run saw. (`openspec/specs/be/src/modules/crawl/spec.md`)** Pinned by `repositories/pages/pages.repository.int-spec.ts` -> "upserts on (client_id, url): a re-crawl keeps the id and moves last_seen_run_id"; `page-list.repository.int-spec.ts` -> "a failed or running re-crawl keeps showing the previous run’s pages"; `be/test/e2e/crawl.e2e-spec.ts` -> "a re-crawl keeps a post the sitemap no longer lists, at its old run".
 
 <!-- invariant: ANALYSIS-007 -->
-**A re-crawl replaces a page’s issues and its check counters together, and refreshes its keyword pairs without deleting any. (`openspec/specs/be/src/modules/page-analysis/spec.md`)** Pinned by `services/crawl-results/crawl-results.service.spec.ts` -> "replaces the issues of every re-fetched page, even a page with none now" and "upserts every pair with the new relevance and run — and deletes none"; `repositories/pages/pages.repository.int-spec.ts` -> "a re-crawl refreshes the check counters with the issues, not only the page".
+
+**A re-crawl replaces a page’s crawl-owned issues and its check counters together — never another writer’s findings — and refreshes its keyword pairs without deleting any. (`openspec/specs/be/src/modules/page-analysis/spec.md`)** Pinned by `services/crawl-results/crawl-results.service.spec.ts` -> "replaces the issues of every re-fetched page, even a page with none now" and "upserts every pair with the new relevance and run — and deletes none"; `repositories/seo-issues/seo-issues.repository.int-spec.ts` -> "a crawl's replace leaves the page's speed findings"; `repositories/pages/pages.repository.int-spec.ts` -> "a re-crawl refreshes the check counters with the issues, not only the page".
 
 <!-- invariant: SEED-003 -->
+
 **Every current pair gets a deterministic daily history, and re-running the seed adds no duplicates. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `services/position-generator/history-days/history-days.spec.ts` -> the "%d pairs → %d days" cases; `generate-positions/generate-positions.spec.ts` -> "the same pair and days give an identical series"; `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "a second run on the same day adds no rows and crawls nothing".
 
 <!-- invariant: SEED-004 -->
+
 **Every seeded snapshot is captured at 12:00 UTC, and the newest is the last noon not after the seed ran. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `history-days.spec.ts` -> `describe("latestCapture")` -> the "at %s → %s" cases; `generate-positions.spec.ts` -> "captures daily at 12:00 UTC and keeps every value in 1..100"; `seed-runner.int-spec.ts`, whose SQL asserts no row has a UTC hour other than 12.
 
 <!-- invariant: SEED-005 -->
+
 **A pair’s baseline follows its relevance, and each day walks from the previous position with pull, noise and a rare jump, clamped to 1–100. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `services/position-generator/baseline/baseline.spec.ts` -> "puts the strongest keyword at 3–15" and "puts a weak keyword (relevance 0.2) around 64–76"; `generate-positions.spec.ts` -> "stays near the baseline: a strong pair averages in the top 20"; the CHECK `rank_snapshots_position_range`.
 
+<!-- invariant: SEED-006 -->
+
+**The seed queues every current page, once per device, that has no `page_speed` row for it, and waits for no measurement. (`openspec/specs/be/src/seed/spec.md`)** Pinned by `be/src/seed/seed-runner/seed-runner.int-spec.ts` -> "the backfill queues each current page once per strategy, and a second run queues none"; `repositories/page-speed/page-speed.repository.int-spec.ts` -> "queues each current page once, and a second run queues none" (called with the strategies it is given). Not waiting is structural: the seed process does not import `PageSpeedModule`.
+
 <!-- invariant: TZ-003 -->
+
 **The zone is `users.time_zone` carried by the session scope; no request parameter or header may choose it. (`openspec/specs/_root/time-zones/spec.md`)** Pinned by `be/test/e2e/pages-history.e2e-spec.ts` -> the `?timeZone=Asia/Tokyo` case answering 400; `be/src/modules/auth/guards/session/session.guard.spec.ts` -> "attaches a scope with userId and timeZone, and the session user". Structurally, `forbidNonWhitelisted: true` on the global validation pipe.

@@ -3,11 +3,16 @@ import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
  * The crawlers that decide whether an AI assistant can find and cite a page — each one
- * the SEARCH crawler of its company, never the training one. GPTBot and Google-Extended
- * govern training, and closing them costs no visibility, so they are not judged.
- * Bingbot is here because Copilot answers from Bing's index.
+ * the SEARCH crawler of its company, never the training one. GPTBot, ClaudeBot and
+ * Google-Extended govern training, and closing them costs no visibility, so they are not
+ * judged. Bingbot is here because Copilot answers from Bing's index.
  */
-const AI_SEARCH_CRAWLERS = ['OAI-SearchBot', 'PerplexityBot', 'bingbot'];
+const AI_SEARCH_CRAWLERS = [
+  'OAI-SearchBot',
+  'PerplexityBot',
+  'Claude-SearchBot',
+  'bingbot',
+];
 
 /**
  * Which AI search crawlers the site's robots.txt keeps from this page. Not applicable

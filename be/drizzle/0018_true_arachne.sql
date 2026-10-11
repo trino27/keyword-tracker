@@ -1,0 +1,1 @@
+ALTER TABLE "page_speed" ALTER COLUMN "strategy" DROP DEFAULT;

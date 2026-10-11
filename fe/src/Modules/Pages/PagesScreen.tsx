@@ -8,6 +8,7 @@ import { ButtonLink } from "@Modules/_Shared/RouterLink/RouterLink";
 import { useClientsViewModel } from "@ViewModels/ClientsViewModel/ClientsViewModel";
 import { useCrawlStatusViewModel } from "@ViewModels/CrawlStatusViewModel/CrawlStatusViewModel";
 import { usePagesViewModel } from "@ViewModels/PagesViewModel/PagesViewModel";
+import { useScreenFiltersViewModel } from "@ViewModels/ScreenFiltersViewModel/ScreenFiltersViewModel";
 import { describeResultRange } from "@ViewModels/PagesViewModel/Services/DescribeResultRange/describeResultRange";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
 import { CrawlBanner } from "./CrawlBanner/CrawlBanner";
@@ -48,6 +49,10 @@ export function PagesScreen() {
 	useEffect(() => {
 		if (clientsStatus === "idle") void fetchClients();
 	}, [clientsStatus, fetchClients]);
+
+	// Remembered, so the navigation brings the reader back to the list as they left it.
+	const rememberPages = useScreenFiltersViewModel((state) => state.rememberPages);
+	useEffect(() => rememberPages(search), [search, rememberPages]);
 
 	const { fetchPages, refreshPages } = pages;
 	useEffect(() => {
@@ -110,6 +115,7 @@ export function PagesScreen() {
 				error={pages.error}
 				emptyKind={pages.emptyKind}
 				timeZone={timeZone}
+				pageSpeedAvailability={pages.pageSpeedAvailability}
 				showClient={search.clientId === undefined}
 				onRetry={() => void fetchPages(query, clients.length)}
 				onClearSearch={() => update({ q: undefined })}

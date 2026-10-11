@@ -29,6 +29,16 @@ export const SNIPPET_RESTRICTED_CHECK = defineCheck(
           evidence: evidence([found.quote]),
         });
     }
+    // The article wrapped in data-nosnippet: no text from inside it reaches the snippet,
+    // which leaves the page as quotable as a nosnippet rule would.
+    if (page.parsed.contentNosnippet)
+      return fails({
+        source: 'markup',
+        rule: 'data-nosnippet',
+        evidence: evidence([
+          `${page.parsed.contentNosnippet} — holds most of the article's text`,
+        ]),
+      });
     return PASS;
   },
 );

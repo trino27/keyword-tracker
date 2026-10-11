@@ -1,0 +1,532 @@
+{
+  "_source": "Lighthouse 13.5.0 core/config/default-config.js (https://unpkg.com/lighthouse@13.5.0/core/config/default-config.js), the version PageSpeed Insights ran on 2026-10-11; scoreDisplayMode from be/test/fixtures/pagespeed/lighthouse-url-field.json. Re-derive when PageSpeed reports a new lighthouseVersion.",
+  "lighthouseVersion": "13.5.0",
+  "categories": {
+    "seo": [
+      {
+        "id": "is-crawlable",
+        "weight": 4.043,
+        "group": "seo-crawl",
+        "mode": "binary"
+      },
+      {
+        "id": "document-title",
+        "weight": 1,
+        "group": "seo-content",
+        "mode": "binary"
+      },
+      {
+        "id": "meta-description",
+        "weight": 1,
+        "group": "seo-content",
+        "mode": "binary"
+      },
+      {
+        "id": "http-status-code",
+        "weight": 1,
+        "group": "seo-crawl",
+        "mode": "binary"
+      },
+      {
+        "id": "link-text",
+        "weight": 1,
+        "group": "seo-content",
+        "mode": "binary"
+      },
+      {
+        "id": "crawlable-anchors",
+        "weight": 1,
+        "group": "seo-crawl",
+        "mode": "binary"
+      },
+      {
+        "id": "robots-txt",
+        "weight": 1,
+        "group": "seo-crawl",
+        "mode": "binary"
+      },
+      {
+        "id": "image-alt",
+        "weight": 1,
+        "group": "seo-content",
+        "mode": "binary"
+      },
+      {
+        "id": "hreflang",
+        "weight": 1,
+        "group": "seo-content",
+        "mode": "binary"
+      },
+      {
+        "id": "canonical",
+        "weight": 1,
+        "group": "seo-content",
+        "mode": "binary"
+      },
+      {
+        "id": "structured-data",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      }
+    ],
+    "accessibility": [
+      {
+        "id": "accesskeys",
+        "weight": 7,
+        "group": "a11y-navigation",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-allowed-attr",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-command-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-conditional-attr",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-deprecated-role",
+        "weight": 1,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-dialog-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-hidden-body",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-hidden-focus",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-input-field-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-meter-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-progressbar-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-prohibited-attr",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-required-attr",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-required-children",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-required-parent",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-roles",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-text",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-toggle-field-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-tooltip-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-treeitem-name",
+        "weight": 7,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-valid-attr-value",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "aria-valid-attr",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "binary"
+      },
+      {
+        "id": "button-name",
+        "weight": 10,
+        "group": "a11y-names-labels",
+        "mode": "binary"
+      },
+      {
+        "id": "bypass",
+        "weight": 7,
+        "group": "a11y-navigation",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "color-contrast",
+        "weight": 7,
+        "group": "a11y-color-contrast",
+        "mode": "binary"
+      },
+      {
+        "id": "definition-list",
+        "weight": 7,
+        "group": "a11y-tables-lists",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "dlitem",
+        "weight": 7,
+        "group": "a11y-tables-lists",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "document-title",
+        "weight": 7,
+        "group": "a11y-names-labels",
+        "mode": "binary"
+      },
+      {
+        "id": "duplicate-id-aria",
+        "weight": 10,
+        "group": "a11y-aria",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "form-field-multiple-labels",
+        "weight": 3,
+        "group": "a11y-names-labels",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "frame-title",
+        "weight": 7,
+        "group": "a11y-names-labels",
+        "mode": "binary"
+      },
+      {
+        "id": "heading-order",
+        "weight": 3,
+        "group": "a11y-navigation",
+        "mode": "binary"
+      },
+      {
+        "id": "html-has-lang",
+        "weight": 7,
+        "group": "a11y-language",
+        "mode": "binary"
+      },
+      {
+        "id": "html-lang-valid",
+        "weight": 7,
+        "group": "a11y-language",
+        "mode": "binary"
+      },
+      {
+        "id": "html-xml-lang-mismatch",
+        "weight": 3,
+        "group": "a11y-language",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "image-alt",
+        "weight": 10,
+        "group": "a11y-names-labels",
+        "mode": "binary"
+      },
+      {
+        "id": "input-button-name",
+        "weight": 10,
+        "group": "a11y-names-labels",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "input-image-alt",
+        "weight": 10,
+        "group": "a11y-names-labels",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "label",
+        "weight": 10,
+        "group": "a11y-names-labels",
+        "mode": "binary"
+      },
+      {
+        "id": "link-in-text-block",
+        "weight": 7,
+        "group": "a11y-color-contrast",
+        "mode": "binary"
+      },
+      {
+        "id": "link-name",
+        "weight": 7,
+        "group": "a11y-names-labels",
+        "mode": "binary"
+      },
+      {
+        "id": "list",
+        "weight": 7,
+        "group": "a11y-tables-lists",
+        "mode": "binary"
+      },
+      {
+        "id": "listitem",
+        "weight": 7,
+        "group": "a11y-tables-lists",
+        "mode": "binary"
+      },
+      {
+        "id": "meta-refresh",
+        "weight": 10,
+        "group": "a11y-best-practices",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "meta-viewport",
+        "weight": 10,
+        "group": "a11y-best-practices",
+        "mode": "binary"
+      },
+      {
+        "id": "object-alt",
+        "weight": 7,
+        "group": "a11y-names-labels",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "select-name",
+        "weight": 10,
+        "group": "a11y-names-labels",
+        "mode": "binary"
+      },
+      {
+        "id": "skip-link",
+        "weight": 3,
+        "group": "a11y-names-labels",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "tabindex",
+        "weight": 7,
+        "group": "a11y-navigation",
+        "mode": "binary"
+      },
+      {
+        "id": "target-size",
+        "weight": 7,
+        "group": "a11y-best-practices",
+        "mode": "binary"
+      },
+      {
+        "id": "td-headers-attr",
+        "weight": 7,
+        "group": "a11y-tables-lists",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "th-has-data-cells",
+        "weight": 7,
+        "group": "a11y-tables-lists",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "valid-lang",
+        "weight": 7,
+        "group": "a11y-language",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "video-caption",
+        "weight": 10,
+        "group": "a11y-audio-video",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "landmark-one-main",
+        "weight": 3,
+        "group": "a11y-best-practices",
+        "mode": "binary"
+      },
+      {
+        "id": "autocomplete-valid",
+        "weight": 1,
+        "group": "a11y-best-practices",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "presentation-role-conflict",
+        "weight": 1,
+        "group": "a11y-best-practices",
+        "mode": "binary"
+      },
+      {
+        "id": "svg-img-alt",
+        "weight": 1,
+        "group": "a11y-best-practices",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "focusable-controls",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "interactive-element-affordance",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "logical-tab-order",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "visual-order-follows-dom",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "focus-traps",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "managed-focus",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "use-landmarks",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "offscreen-content-hidden",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "custom-controls-labels",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "custom-controls-roles",
+        "weight": 0,
+        "group": null,
+        "mode": "manual"
+      },
+      {
+        "id": "table-duplicate-name",
+        "weight": 0,
+        "group": "a11y-best-practices",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "empty-heading",
+        "weight": 0,
+        "group": "a11y-best-practices",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "aria-allowed-role",
+        "weight": 0,
+        "group": "a11y-best-practices",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "image-redundant-alt",
+        "weight": 0,
+        "group": "a11y-names-labels",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "identical-links-same-purpose",
+        "weight": 0,
+        "group": "a11y-best-practices",
+        "mode": "informative"
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "weight": 0,
+        "group": "hidden",
+        "mode": "binary"
+      },
+      {
+        "id": "table-fake-caption",
+        "weight": 0,
+        "group": "hidden",
+        "mode": "notApplicable"
+      },
+      {
+        "id": "td-has-header",
+        "weight": 0,
+        "group": "hidden",
+        "mode": "notApplicable"
+      }
+    ]
+  }
+}

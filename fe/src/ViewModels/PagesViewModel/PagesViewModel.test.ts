@@ -8,6 +8,7 @@ const response = (total: number): TPageListResponse => ({
 	page: 1,
 	pageSize: 20,
 	total,
+	pageSpeedAvailability: { state: "active" },
 });
 const QUERY = { page: 1, pageSize: 20 };
 const vm = () => usePagesViewModel.getState();

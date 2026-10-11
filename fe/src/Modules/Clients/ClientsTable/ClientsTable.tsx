@@ -193,6 +193,14 @@ export function ClientsTable({ expandedClientId, onToggle }: IClientsTableProps)
 												>
 													View pages
 												</ButtonLink>
+												<ButtonLink
+													to="/issues"
+													search={{ clientId: client.id }}
+													size="xs"
+													variant="light"
+												>
+													View issues
+												</ButtonLink>
 												<Tooltip
 													label="A crawl is already running"
 													disabled={!crawling}

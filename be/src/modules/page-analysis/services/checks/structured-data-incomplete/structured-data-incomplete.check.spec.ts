@@ -26,7 +26,7 @@ describe('STRUCTURED_DATA_INCOMPLETE', () => {
       STRUCTURED_DATA_INCOMPLETE_CHECK.evaluate(
         article(['headline', 'image', 'datePublished']),
       ),
-    ).toEqual(failsWith({ missing: ['dateModified', 'author', 'publisher'] }));
+    ).toEqual(failsWith({ missing: ['dateModified', 'author'] }));
   });
 
   // The page with no article markup is already failing STRUCTURED_DATA_MISSING; telling
@@ -68,5 +68,25 @@ describe('STRUCTURED_DATA_INCOMPLETE', () => {
         makeCheckInput({ url, finalUrl: url, parsed }),
       ),
     ).toEqual(PASSES);
+  });
+
+  it('reads the Microdata article when there is no JSON-LD one', () => {
+    expect(
+      STRUCTURED_DATA_INCOMPLETE_CHECK.evaluate(
+        makeCheckInput({
+          parsed: {
+            jsonLd: { types: [], keywords: [], articleFields: [] },
+            microdata: {
+              types: ['BlogPosting'],
+              articleFields: ['headline', 'datePublished'],
+            },
+          },
+        }),
+      ),
+    ).toEqual(
+      failsWith({
+        missing: ['image', 'dateModified', 'author'],
+      }),
+    );
   });
 });

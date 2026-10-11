@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { SEO_ISSUE_CODES } from "@app/contracts";
-import { pageCheckSchema, seoIssueSchema } from "./PageSchemas";
+import { CRAWL_ISSUE_CODES, PAGE_SPEED_ISSUE_CODES } from "@app/contracts";
+import {
+	checksByOwnerSchema,
+	pageCheckSchema,
+	pageSpeedAvailabilitySchema,
+	pageSpeedByStrategySchema,
+	pageSpeedSummarySchema,
+	seoIssueSchema,
+} from "./PageSchemas";
 
 describe("seoIssueSchema", () => {
 	it("parses a measured finding with its stored bounds", () => {
@@ -57,11 +64,103 @@ describe("seoIssueSchema", () => {
 
 		expect(parsed.details).toEqual({ types: ["Organization"] });
 	});
+
+	it("parses a Lighthouse finding", () => {
+		expect(
+			seoIssueSchema.parse({ code: "LH_IMAGE_ALT", severity: "warning", details: {} }).code,
+		).toBe("LH_IMAGE_ALT");
+	});
+
+	it("parses a speed finding with its source; refuses one without", () => {
+		const finding = {
+			code: "CWV_LCP_POOR",
+			severity: "warning",
+			details: { value: 5200, max: 4000, source: "url" },
+		};
+
+		expect(seoIssueSchema.parse(finding).details).toEqual(finding.details);
+		expect(
+			seoIssueSchema.safeParse({ ...finding, details: { value: 5200, max: 4000 } }).success,
+		).toBe(false);
+		expect(
+			seoIssueSchema.safeParse({ ...finding, details: { value: 5200, source: "guess" } })
+				.success,
+		).toBe(false);
+	});
+});
+
+describe("the image-delivery finding", () => {
+	const finding = (images: number) => ({
+		code: "IMAGE_DELIVERY_INEFFICIENT",
+		severity: "notice",
+		details: {
+			value: 162_175,
+			min: 102_400,
+			images: Array.from({ length: images }, (_, i) => ({
+				url: `https://a.example/${i}.jpg`,
+				savingsBytes: 20_000 - i,
+			})),
+		},
+	});
+
+	/** At most ten images travel with it; more is contract drift, not a longer list. */
+	it("parses an image-delivery finding; refuses one with 11 images", () => {
+		expect(seoIssueSchema.parse(finding(8)).details).toEqual(finding(8).details);
+		expect(seoIssueSchema.safeParse(finding(11)).success).toBe(false);
+	});
+});
+
+describe("the PageSpeed summary", () => {
+	const SUMMARY = {
+		status: "done",
+		lastError: null,
+		measurement: {
+			measuredAt: "2026-10-09T12:00:00.000Z",
+			lcp: { value: 3100, band: "needsImprovement", source: "url", share: null },
+			inp: null,
+			cls: { value: 0.02, band: "good", source: "lab", share: null },
+			performanceScore: 72,
+			ttfb: null,
+			lcpBreakdown: null,
+			seoScore: null,
+			accessibilityScore: null,
+		},
+	};
+
+	it("parses a measured summary", () => {
+		expect(pageSpeedSummarySchema.parse(SUMMARY)).toEqual(SUMMARY);
+	});
+
+	/** D21: the detail names both devices; one never queued is null, not absent. */
+	it("parses a detail with a desktop summary and a null one", () => {
+		const both = { mobile: SUMMARY, desktop: null };
+
+		expect(pageSpeedByStrategySchema.parse(both)).toEqual(both);
+		expect(pageSpeedByStrategySchema.safeParse({ mobile: SUMMARY }).success).toBe(false);
+	});
+
+	/** A band the screen has no colour for is contract drift, not a grey badge. */
+	it("refuses a summary with an unknown band", () => {
+		expect(
+			pageSpeedSummarySchema.safeParse({
+				...SUMMARY,
+				measurement: {
+					...SUMMARY.measurement,
+					lcp: { value: 3100, band: "meh", source: "url", share: null },
+				},
+			}).success,
+		).toBe(false);
+	});
+
+	it("refuses an unknown availability state", () => {
+		expect(pageSpeedAvailabilitySchema.safeParse({ state: "maybe" }).success).toBe(false);
+		expect(pageSpeedAvailabilitySchema.safeParse({ state: "keyRejected" }).success).toBe(true);
+	});
 });
 
 describe("pageCheckSchema", () => {
-	it("accepts every catalogue code with every status", () => {
-		for (const code of SEO_ISSUE_CODES) {
+	it("accepts every crawl code with every status", () => {
+		for (const code of CRAWL_ISSUE_CODES) {
 			for (const status of ["passed", "failed", "notApplicable", "notYetChecked"]) {
 				expect(pageCheckSchema.safeParse({ code, status }).success).toBe(true);
 			}
@@ -79,9 +178,43 @@ describe("pageCheckSchema", () => {
 		);
 	});
 
+	/** A speed finding is not a check; a check row for one is contract drift. */
+	it("refuses a speed code", () => {
+		for (const code of PAGE_SPEED_ISSUE_CODES) {
+			expect(pageCheckSchema.safeParse({ code, status: "failed" }).success).toBe(false);
+		}
+	});
+
 	it("refuses a code the catalogue does not have", () => {
 		expect(pageCheckSchema.safeParse({ code: "MADE_UP", status: "passed" }).success).toBe(
 			false,
 		);
+	});
+});
+
+describe("the checks per owner", () => {
+	/** PAGEDETAIL-009, lighthouse-checks D12: each owner's null is its own. */
+	it("accepts a detail whose Lighthouse list is null while ours is not", () => {
+		expect(
+			checksByOwnerSchema.parse({
+				crawl: [{ code: "TITLE_MISSING", status: "passed" }],
+				lighthouse: null,
+			}).lighthouse,
+		).toBeNull();
+	});
+
+	it("refuses a Core Web Vitals code as a check, and a crawl code in Lighthouse's list", () => {
+		expect(
+			checksByOwnerSchema.safeParse({
+				crawl: [{ code: "CWV_LCP_POOR", status: "failed" }],
+				lighthouse: null,
+			}).success,
+		).toBe(false);
+		expect(
+			checksByOwnerSchema.safeParse({
+				crawl: null,
+				lighthouse: [{ code: "TITLE_MISSING", status: "passed" }],
+			}).success,
+		).toBe(false);
 	});
 });

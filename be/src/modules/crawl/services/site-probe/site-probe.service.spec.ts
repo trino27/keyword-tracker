@@ -27,6 +27,7 @@ describe('SiteProbeService (recorded answers)', () => {
     const probes = await service.probe(
       'https://yoast.com',
       RobotsPolicy.allowAll(),
+      'https://yoast.com',
       7,
       AbortSignal.timeout(10_000),
     );
@@ -69,6 +70,7 @@ describe('SiteProbeService (recorded answers)', () => {
         'https://yoast.com/robots.txt',
         'User-agent: *\nDisallow: /\n',
       ),
+      'https://yoast.com',
       7,
       AbortSignal.timeout(10_000),
     );
@@ -77,6 +79,50 @@ describe('SiteProbeService (recorded answers)', () => {
     expect(transport.requests.some((url) => url.includes('missing-page'))).toBe(
       false,
     );
+  });
+});
+
+describe("SiteProbeService (a served host the run's robots.txt does not govern)", () => {
+  it("reads the served host's own robots.txt, and asks nothing of a host whose file cannot be read", async () => {
+    const { service, transport } = setup();
+    transport.override('https://blog.yoast.com/robots.txt', { status: 503 });
+
+    const probes = await service.probe(
+      'https://blog.yoast.com',
+      RobotsPolicy.parse('https://yoast.com/robots.txt', 'User-agent: *\n'),
+      'https://yoast.com',
+      7,
+      AbortSignal.timeout(10_000),
+    );
+
+    expect(transport.requests).toContain('https://blog.yoast.com/robots.txt');
+    expect(probes).toMatchObject({
+      missingPage: null,
+      home: null,
+      favicon: null,
+      faviconFallback: null,
+    });
+    expect(transport.requests).not.toContain('https://blog.yoast.com/');
+  });
+
+  it("applies the served host's own rules to its home page", async () => {
+    const { service, transport } = setup();
+    transport.override('https://blog.yoast.com/robots.txt', {
+      status: 200,
+      headers: { 'content-type': 'text/plain' },
+      body: 'User-agent: *\nDisallow: /\n',
+    });
+
+    const probes = await service.probe(
+      'https://blog.yoast.com',
+      RobotsPolicy.allowAll(),
+      'https://yoast.com',
+      7,
+      AbortSignal.timeout(10_000),
+    );
+
+    expect(probes.home).toBeNull();
+    expect(transport.requests).not.toContain('https://blog.yoast.com/');
   });
 });
 

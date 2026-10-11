@@ -50,6 +50,13 @@ const NOT_FOUND: IFixtureEntry = {
 };
 
 /**
+ * What an unrecorded URL answers when it is only asked for its status (`maxBytes: 0`):
+ * recorded posts link to hundreds of pages nobody recorded, and as 404s every one would
+ * read as a broken link in every crawl test. A test that wants a broken link records it.
+ */
+const STATUS_ONLY: IFixtureEntry = { status: 200, headers: {}, body: '' };
+
+/**
  * Serves recorded sites to everything above the transport — RemoteApiCore's redirects
  * and retries run for real. A URL the manifest does not know is a 404, never a network
  * call, so a test can never pass by reaching the live site.
@@ -78,7 +85,10 @@ export class FixtureHttpTransport implements IHttpTransport {
   send(request: IHttpRequest): Promise<IHttpResponse> {
     this.requests.push(request.url);
     const entry =
-      this.entries.get(request.url) ?? this.fromPattern(request.url);
+      this.entries.get(request.url) ??
+      (request.maxBytes === 0 && !this.matchesPattern(request.url)
+        ? STATUS_ONLY
+        : this.fromPattern(request.url));
     if (entry.error === 'timeout')
       return Promise.reject(new RemoteApiTimeoutError(request.url));
     if (entry.error === 'unavailable')
@@ -100,6 +110,10 @@ export class FixtureHttpTransport implements IHttpTransport {
       ttfbMs: entry.ttfbMs ?? 50,
       ...(tooLarge ? { truncated: true } : {}),
     });
+  }
+
+  private matchesPattern(url: string): boolean {
+    return this.patterns.some(({ regex }) => regex.test(url));
   }
 
   private fromPattern(url: string): IFixtureEntry {

@@ -36,12 +36,9 @@ const normalize = (rule: string) =>
   rule.trim().toLowerCase().replace(/\s+/g, '');
 
 /**
- * The rules of an X-Robots-Tag value that Google obeys. A prefix scopes the rules after
- * it to one crawler, so `bingbot: noindex` keeps a page out of Bing and in Google.
- *
- * Several headers arrive joined by commas, so a rule after a scoped one is read as
- * belonging to the same crawler, where Google reads them as separate headers. That can
- * miss a page-wide rule written after a crawler-scoped header; it cannot invent one.
+ * The rules of one X-Robots-Tag header that Google obeys. A prefix scopes the rules after
+ * it to one crawler, so `bingbot: noindex` keeps a page out of Bing and in Google. Each
+ * header starts unscoped: the transport keeps repeated headers apart by a line break.
  */
 function headerRulesForGoogle(value: string): string[] {
   let agent: string | null = null;
@@ -78,18 +75,20 @@ function unavailableAfterOf(rawRules: string[]): Date | null {
 
 /**
  * Every robots declaration Google reads on this page, in the order a reader would look:
- * `<meta name="robots">`, `<meta name="googlebot">` — Google obeys its own name as it
- * obeys the generic one — then the X-Robots-Tag header.
+ * each `<meta name="robots">`, each `<meta name="googlebot">` — Google obeys its own
+ * name as it obeys the generic one, and combines several tags — then each X-Robots-Tag
+ * header.
  */
 export function robotsDirectivesForGoogle({
   parsed,
   headers,
-}: ICheckInput): IRobotsDirectives[] {
+}: Pick<ICheckInput, 'parsed' | 'headers'>): IRobotsDirectives[] {
   const found: IRobotsDirectives[] = [];
-  for (const [name, content] of [
-    ['robots', parsed.metaRobots],
-    ['googlebot', parsed.metaGooglebot],
-  ] as const) {
+  const tags = [
+    ...parsed.metaRobots.map((content) => ['robots', content] as const),
+    ...parsed.metaGooglebot.map((content) => ['googlebot', content] as const),
+  ];
+  for (const [name, content] of tags) {
     if (content) {
       const raw = content.split(',').map((rule) => rule.trim());
       found.push({
@@ -102,8 +101,8 @@ export function robotsDirectivesForGoogle({
       });
     }
   }
-  const header = headers['x-robots-tag'];
-  if (header) {
+  const lines = (headers['x-robots-tag'] ?? '').split('\n');
+  for (const header of lines.map((line) => line.trim()).filter(Boolean)) {
     const raw = headerRulesForGoogle(header);
     found.push({
       source: 'header',

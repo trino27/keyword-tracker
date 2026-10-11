@@ -322,6 +322,28 @@ describe('SitemapDiscoveryService (recorded and synthetic sites)', () => {
     expect(result.robots.isAllowed('https://yoast.com/admin/x')).toBe(true);
   });
 
+  it('applies a robots.txt that redirected to www to both hosts', async () => {
+    const { transport, discover } = setup();
+    transport.override('https://yoast.com/robots.txt', {
+      status: 301,
+      headers: { location: 'https://www.yoast.com/robots.txt' },
+      body: '',
+    });
+    transport.override('https://www.yoast.com/robots.txt', {
+      status: 200,
+      headers: { 'content-type': 'text/plain' },
+      body: 'User-agent: *\nDisallow: /blocked/\n',
+    });
+
+    const result = await discover('https://yoast.com');
+
+    expect(result.robots.isAllowed('https://yoast.com/blocked/x')).toBe(false);
+    expect(result.robots.isAllowed('https://www.yoast.com/blocked/x')).toBe(
+      false,
+    );
+    expect(result.robots.isAllowed('https://www.yoast.com/post/')).toBe(true);
+  });
+
   it.each([
     ['https://no-sitemap.example', 'SITEMAP_NOT_FOUND'],
     ['https://unreachable.example', 'SITE_UNREACHABLE'],

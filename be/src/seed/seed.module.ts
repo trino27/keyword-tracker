@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { PER_MINUTE_THROTTLE } from '@core/constants/throttle.constant';
 import { validateEnv } from '@infrastructure/config/env.schema/env.schema';
+import { PageSpeedSettingsModule } from '@infrastructure/config/page-speed-settings/page-speed-settings.module';
 import { pinoHttpOptions } from '@infrastructure/observability/logger/_config/logger.config';
 import { DatabaseModule } from '@persistence/connections/postgres/database.module';
 import { AuthModule } from '@modules/auth/auth.module';
@@ -27,6 +28,7 @@ import { SeedRunner } from './seed-runner/seed-runner.service';
     LoggerModule.forRoot({ pinoHttp: pinoHttpOptions }),
     ThrottlerModule.forRoot([PER_MINUTE_THROTTLE]),
     DatabaseModule,
+    PageSpeedSettingsModule,
     AuthModule,
     ClientsModule,
     PagesModule,

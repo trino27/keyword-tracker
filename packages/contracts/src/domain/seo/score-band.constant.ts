@@ -1,7 +1,7 @@
 /**
- * Lighthouse's published bands, adopted because its model is public and ours matches it:
- * a share of equally weighted binary audits. Borrowing the thresholds means a user who
- * has seen one of these numbers before reads this one the same way.
+ * Lighthouse's published bands, adopted because its model is public and ours is close to
+ * it: a share of weighted binary audits. Borrowing the thresholds means a user who has
+ * seen one of these numbers before reads this one the same way.
  */
 export const SCORE_BANDS = [
   { max: 49, band: 'poor' },

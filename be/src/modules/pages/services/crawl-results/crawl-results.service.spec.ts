@@ -1,4 +1,4 @@
-import { SEO_ISSUE_CODES } from '@app/contracts';
+import { ACTIVE_ISSUE_CODES } from '@app/contracts';
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
 import type { KeywordsRepository } from '../../repositories/keywords/keywords.repository';
 import type {
@@ -10,7 +10,7 @@ import type {
   PagesRepository,
 } from '../../repositories/pages/pages.repository';
 import type {
-  TNewSeoIssue,
+  TNewCrawlIssue,
   SeoIssuesRepository,
 } from '../../repositories/seo-issues/seo-issues.repository';
 import { CrawlResultsService, type IRunPage } from './crawl-results.service';
@@ -32,9 +32,9 @@ const page = (overrides: Partial<IRunPage> = {}): IRunPage => ({
     { term: 'outreach', relevance: 0.4 },
   ],
   issues: [{ code: 'LANG_MISSING', severity: 'notice', details: {} }],
-  checksApplicable: SEO_ISSUE_CODES.length,
+  checksApplicable: ACTIVE_ISSUE_CODES.length,
   checksFailed: 1,
-  checksJudged: [...SEO_ISSUE_CODES],
+  checksJudged: [...ACTIVE_ISSUE_CODES],
   checksNotApplicable: [],
   contentHash: 'a'.repeat(64),
   dateModified: '2026-02-01T09:00:00Z',
@@ -46,7 +46,7 @@ describe('CrawlResultsService', () => {
     const calls = {
       pages: [] as IUpsertPage[][],
       pairs: [] as IUpsertPageKeyword[][],
-      issues: [] as { pageIds: number[]; rows: TNewSeoIssue[] }[],
+      issues: [] as { pageIds: number[]; rows: TNewCrawlIssue[] }[],
     };
     const pages = {
       upsertManyForWorker: (_tx: Transaction, rows: IUpsertPage[]) => {
@@ -69,10 +69,10 @@ describe('CrawlResultsService', () => {
       },
     } as unknown as PageKeywordsRepository;
     const seoIssues = {
-      replaceForPagesForWorker: (
+      replaceCrawlFindingsForWorker: (
         _tx: Transaction,
         pageIds: number[],
-        rows: TNewSeoIssue[],
+        rows: TNewCrawlIssue[],
       ) => {
         calls.issues.push({ pageIds, rows });
         return Promise.resolve();

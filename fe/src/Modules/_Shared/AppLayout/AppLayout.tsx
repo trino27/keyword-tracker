@@ -1,23 +1,31 @@
 import { AppShell, Avatar, Container, Group, Menu, Text, UnstyledButton } from "@mantine/core";
 import { IconChartLine, IconChevronDown, IconLogout } from "@tabler/icons-react";
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import {
+	issuesSearchToRestore,
+	useScreenFiltersViewModel,
+} from "@ViewModels/ScreenFiltersViewModel/ScreenFiltersViewModel";
 import { useSessionViewModel } from "@ViewModels/SessionViewModel/SessionViewModel";
 import styles from "./AppLayout.module.scss";
 
 /** How wide the content may run before the page keeps it off the window edge. */
 const CONTENT_WIDTH = 1600;
 
-/** The screens the navigation offers; a screen joins it when it is finished. */
-const NAVIGATION = [
-	{ to: "/pages", label: "Pages" },
-	{ to: "/clients", label: "Clients" },
-] as const;
-
 /** The frame every signed-in screen renders inside: brand, navigation, the user. */
 export function AppLayout() {
 	const user = useSessionViewModel((state) => state.user);
 	const signOut = useSessionViewModel((state) => state.signOut);
 	const navigate = useNavigate();
+	// Each list screen reopens as it was last left: its filters are not reset by navigating.
+	const pages = useScreenFiltersViewModel((state) => state.pages);
+	const issues = useScreenFiltersViewModel((state) => state.issues);
+	const pagesSearch = pages ?? {};
+	const issuesSearch = issuesSearchToRestore({ pages, issues });
+	const navLink = {
+		className: styles.navLink,
+		activeProps: { className: styles.navLinkActive },
+		activeOptions: { includeSearch: false },
+	};
 
 	const handleSignOut = async () => {
 		await signOut();
@@ -30,7 +38,12 @@ export function AppLayout() {
 				<Container size={CONTENT_WIDTH} h="100%">
 					<Group h="100%" justify="space-between" wrap="nowrap">
 						<Group gap="xl" wrap="nowrap">
-							<Link to="/pages" className={styles.brand} aria-label="Keyword Tracker">
+							<Link
+								to="/pages"
+								search={pagesSearch}
+								className={styles.brand}
+								aria-label="Keyword Tracker"
+							>
 								<IconChartLine size={22} />
 								{/* On a phone the mark stands for the brand on its own: with the
 								    name beside it the navigation had no room left and fell to a
@@ -40,17 +53,18 @@ export function AppLayout() {
 								</Text>
 							</Link>
 							<Group gap={4} wrap="nowrap" component="nav" aria-label="Main">
-								{NAVIGATION.map((item) => (
-									<Link
-										key={item.to}
-										to={item.to}
-										className={styles.navLink}
-										activeProps={{ className: styles.navLinkActive }}
-										activeOptions={{ includeSearch: false }}
-									>
-										{item.label}
-									</Link>
-								))}
+								<Link to="/pages" search={pagesSearch} {...navLink}>
+									Pages
+								</Link>
+								<Link to="/issues" search={issuesSearch} {...navLink}>
+									Issues
+								</Link>
+								<Link to="/clients" {...navLink}>
+									Clients
+								</Link>
+								<Link to="/info" {...navLink}>
+									Info
+								</Link>
 							</Group>
 						</Group>
 						{user && (

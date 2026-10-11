@@ -1,4 +1,5 @@
 import { evidence } from '../_shared/evidence';
+import { instantOf } from '../_shared/iso-date';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
@@ -38,27 +39,26 @@ export const DATES_INCONSISTENT_CHECK = defineCheck(
   ({ parsed, finalUrl, fetchedAt }) => {
     const { datePublished, dateModified } = parsed;
     if (!datePublished) return NOT_APPLICABLE;
-    const published = Date.parse(datePublished);
+    const published = instantOf(datePublished);
+    // A date that does not read as one has nothing to contradict: its form is
+    // ARTICLE_DATE_FORMAT_INVALID's finding, and reporting it here too said it twice.
+    if (Number.isNaN(published)) return NOT_APPLICABLE;
     const contradictions: string[] = [];
-    if (Number.isNaN(published)) {
-      contradictions.push(`datePublished "${datePublished}" is not a date`);
-    } else {
-      const modified = dateModified ? Date.parse(dateModified) : NaN;
-      if (!Number.isNaN(modified) && modified < published - MODIFIED_SLACK_MS)
-        contradictions.push(
-          `dateModified ${dateModified} is earlier than datePublished ${datePublished}`,
-        );
-      if (published > fetchedAt.getTime() + FUTURE_SLACK_MS)
-        contradictions.push(
-          `datePublished ${datePublished} is after the page was fetched (${fetchedAt.toISOString().slice(0, 10)})`,
-        );
-      const urlYear = YEAR_SEGMENT.exec(new URL(finalUrl).pathname)?.[1];
-      const year = yearOf(datePublished, published);
-      if (urlYear && urlYear !== year)
-        contradictions.push(
-          `The URL says ${urlYear}; datePublished says ${year} (${datePublished})`,
-        );
-    }
+    const modified = dateModified ? instantOf(dateModified) : NaN;
+    if (!Number.isNaN(modified) && modified < published - MODIFIED_SLACK_MS)
+      contradictions.push(
+        `dateModified ${dateModified} is earlier than datePublished ${datePublished}`,
+      );
+    if (published > fetchedAt.getTime() + FUTURE_SLACK_MS)
+      contradictions.push(
+        `datePublished ${datePublished} is after the page was fetched (${fetchedAt.toISOString().slice(0, 10)})`,
+      );
+    const urlYear = YEAR_SEGMENT.exec(new URL(finalUrl).pathname)?.[1];
+    const year = yearOf(datePublished, published);
+    if (urlYear && urlYear !== year)
+      contradictions.push(
+        `The URL says ${urlYear}; datePublished says ${year} (${datePublished})`,
+      );
     return contradictions.length === 0
       ? PASS
       : fails({

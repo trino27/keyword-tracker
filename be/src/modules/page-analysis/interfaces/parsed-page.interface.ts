@@ -9,10 +9,18 @@ export interface IAlternateLink {
   lang: string;
   /** Absolute, resolved against the page, as a browser would resolve it. */
   href: string;
+  /**
+   * The href as written, when it has no scheme. Google requires alternate URLs to be
+   * "fully-qualified, including the transport method", so such a link is a defect even
+   * though a browser resolves it — quoted as written, so the author can find it.
+   */
+  relativeHref?: string;
 }
 
 export interface IPageImage {
   src: string | null;
+  /** The `srcset` attribute as written; null when absent. */
+  srcset: string | null;
   /** null: the attribute is absent. '' is a deliberate decorative image, not a miss. */
   alt: string | null;
   /** The `loading` attribute as written, lower-cased; null when absent. */
@@ -26,16 +34,99 @@ export interface IPageImage {
   markup: string;
 }
 
+/**
+ * One author as the article's structured data states it. `asText` is an author given as
+ * a bare string — a name with no type and nowhere to read more about the person.
+ */
+export interface IMarkupAuthor {
+  name: string | null;
+  /** The first `@type` (or Microdata `itemtype`) the author carries; null when none. */
+  type: string | null;
+  /** `url` and every `sameAs`, in that order: the pages that say who the author is. */
+  urls: string[];
+  asText: boolean;
+}
+
+/** An image the article's structured data names, with the size it declares, if any. */
+export interface IMarkupImage {
+  url: string;
+  width: number | null;
+  height: number | null;
+}
+
+/**
+ * The page's article node as its structured data states it — the first JSON-LD node
+ * typed as an article, or else the first Microdata item. Read as written, so a check can
+ * judge the FORM of what is declared, not only whether a property is there.
+ */
+export interface IArticleMarkup {
+  source: 'json-ld' | 'microdata';
+  type: string;
+  headline: string | null;
+  datePublished: string | null;
+  dateModified: string | null;
+  authors: IMarkupAuthor[];
+  images: IMarkupImage[];
+}
+
+/** One `ListItem` of a JSON-LD `BreadcrumbList`, with what Google requires of it. */
+export interface IBreadcrumbItem {
+  /** Null when absent or not an integer. */
+  position: number | null;
+  /** `name`, or the name of the `item` it points at. */
+  name: string | null;
+  /** The URL the step leads to: `item` as a string, or its `@id` or `url`. */
+  item: string | null;
+}
+
+/** A `<link>` naming an icon for the site. */
+export interface IIconLink {
+  /** The rel token that made it an icon: `icon`, `apple-touch-icon`, … */
+  rel: string;
+  /** Absolute, resolved against the page. */
+  href: string;
+  /** The `type` attribute, lower-cased; null when absent. */
+  type: string | null;
+  /** The `sizes` attribute as written; null when absent. */
+  sizes: string | null;
+}
+
+/**
+ * The image the page names for itself — og:image, or else the article markup's first
+ * image — as the crawl read it from the file: its pixel size comes from the file's own
+ * header, because the sizes a page declares are often not the image's.
+ */
+export interface IPreviewImage {
+  url: string;
+  /** Null when no HTTP answer came back at all. */
+  status: number | null;
+  width: number | null;
+  height: number | null;
+}
+
 /** What the analysis reads from one page's HTML; every string is whitespace-collapsed. */
 export interface IParsedPage {
   /** From `head > title` only — an SVG <title> in the body is not the page title. */
   title: string | null;
+  /** From `<head>` only: Google reads page metadata there and nowhere else. */
   metaDescription: string | null;
-  metaRobots: string | null;
-  /** `<meta name="googlebot">` content: Google obeys it exactly as it obeys `robots`. */
-  metaGooglebot: string | null;
+  /**
+   * Why `metaDescription` is null: no tag at all, a tag in `<head>` with no words in it,
+   * or a tag only outside `<head>`, where Google does not read it. Null when there is one.
+   */
+  metaDescriptionGap: 'absent' | 'empty' | 'outsideHead' | null;
+  /**
+   * The content of every `<meta name="robots">`, in document order, empty ones left out.
+   * Google combines several tags, and where they conflict the more restrictive rule wins,
+   * so the first tag alone can hide a `noindex` written after it.
+   */
+  metaRobots: readonly string[];
+  /** `<meta name="googlebot">` contents: Google obeys them exactly as it obeys `robots`. */
+  metaGooglebot: readonly string[];
   /** `<meta http-equiv="refresh">` content, as written; null when there is none. */
   metaRefresh: string | null;
+  /** `<meta http-equiv="Content-Security-Policy">` content, as written; null when none. */
+  metaContentSecurityPolicy: string | null;
   /** `<meta name="viewport">` content, as written; null when the tag is absent. */
   viewport: string | null;
   /**
@@ -50,9 +141,21 @@ export interface IParsedPage {
   canonicalsOutsideHead: string[];
   /** Canonical hrefs in `<head>` written as a path rather than a full URL, as written. */
   relativeCanonicals: string[];
+  /** hreflang links in `<head>`: the only place Google reads them in the HTML. */
   alternates: IAlternateLink[];
+  /**
+   * hreflang links outside `<head>`. Google: "The `<link>` tags must be inside a
+   * well-formed `<head>` section", so these are language versions the author believes
+   * the page declares and it does not.
+   */
+  alternatesOutsideHead: IAlternateLink[];
   /** `og:*` properties by name, e.g. `og:title`. */
   openGraph: Record<string, string>;
+  /**
+   * The image the page names for sharing, as written: og:image, or else og:image:url or
+   * og:image:secure_url, which the protocol calls identical to it. Null when none.
+   */
+  shareImage: string | null;
   articleTags: string[];
   /**
    * `articleFields` are the property names carried by the nodes typed as an article —
@@ -63,6 +166,39 @@ export interface IParsedPage {
   jsonLd: { types: string[]; keywords: string[]; articleFields: string[] };
   /** JSON-LD blocks that are not JSON, each as the start of its text and the error. */
   jsonLdErrors: string[];
+  /**
+   * schema.org types named in an ordinary inline script rather than a JSON-LD block —
+   * structured data a framework inserts in the browser (Next.js carries it in its RSC
+   * payload). Google renders it and reads it; this crawler cannot confirm it, so a check
+   * that would call such a type missing is not applicable instead.
+   */
+  scriptedSchemaTypes: string[];
+  /**
+   * The same two facts read from Microdata (`itemscope itemtype`), which Google reads as
+   * it reads JSON-LD: the schema.org types, and the properties of the article item.
+   */
+  microdata: { types: string[]; articleFields: string[] };
+  articleMarkup: IArticleMarkup | null;
+  /** Every JSON-LD `BreadcrumbList`, each as its items in the order written. */
+  breadcrumbs: IBreadcrumbItem[][];
+  /** Every `logo` a structured data node declares — the publisher's, the organization's. */
+  logos: string[];
+  /** Every `WebSite` node's `name` and `alternateName`, JSON-LD or Microdata. */
+  websiteNames: { name: string; alternateNames: string[] }[];
+  /** Icons the document declares for the site, in order. */
+  icons: IIconLink[];
+  /**
+   * Videos the page shows outside its navigation and footer — a `<video>` a reader can
+   * play, or a known player's `<iframe>` (YouTube, Vimeo, Wistia…) — each as its markup.
+   * A muted video without controls is decoration, not a video, and not here.
+   */
+  videos: string[];
+  /**
+   * The `data-nosnippet` element holding most of the main content, as its markup; null
+   * when there is none. Google shows no text from inside it, so wrapping the article in
+   * one is a nosnippet rule written another way.
+   */
+  contentNosnippet: string | null;
   /** `<html lang>`, as written. */
   lang: string | null;
   /** Every h1 of the document, in order. */
@@ -71,6 +207,11 @@ export interface IParsedPage {
   headings: IHeading[];
   firstParagraph: string | null;
   images: IPageImage[];
+  /**
+   * Frames, videos and plugin objects in the main content — a CodePen demo, a YouTube
+   * player, an embedded chart. Visual content a post shows instead of an `<img>`.
+   */
+  embeds: number;
   /**
    * Absolute URLs of everything the DOCUMENT loads — images, scripts, stylesheets,
    * frames, media. The whole document and not the main content: a tracking script in
@@ -123,7 +264,10 @@ export interface IParsedPage {
    * identifies as the author: a class name like "author-box" is a theme's guess.
    */
   authors: string[];
-  /** The article's declared dates as written (JSON-LD first, then `article:*` meta). */
+  /**
+   * The article's declared dates as written: JSON-LD first, then `article:*` meta, then
+   * Microdata. Both date checks read these, so a date is judged once whatever declares it.
+   */
   datePublished: string | null;
   dateModified: string | null;
   /**
@@ -144,7 +288,11 @@ export interface IParsedPage {
   renderBlockingScripts: string[];
   /** `<link rel="preload" as="font">` without `crossorigin`, each as its markup. */
   fontPreloadsWithoutCrossorigin: string[];
-  /** Elements in the document as served, before anything is removed. */
+  /**
+   * Elements inside `<body>` as served, before anything is removed — what web.dev and
+   * Lighthouse count for DOM size; `<html>`, `<head>` and its tags are not the page's DOM
+   * a reader interacts with.
+   */
   elementCount: number;
   /**
    * The `<img>` showing the page's featured image — the one `og:image` names — wherever
@@ -152,4 +300,9 @@ export interface IParsedPage {
    * the top of a post, and so the likeliest Largest Contentful Paint.
    */
   featuredImage: { loading: string | null; markup: string } | null;
+  /**
+   * The share image is shown by an inline CSS `background-image` (troyhunt.com's post
+   * header). A reader sees it; Google does not index CSS images.
+   */
+  shareImageAsBackground: boolean;
 }

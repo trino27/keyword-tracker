@@ -1,75 +1,129 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { SEO_ISSUE_CODES } from "@app/contracts";
-import type { TPageCheck } from "@Gateways/PageGateway/Validation/PageSchemas";
+import {
+	ACTIVE_ISSUE_CODES,
+	ACTIVE_LIGHTHOUSE_CODES,
+	type TCheckStatus,
+	type TChecksByOwner,
+} from "@app/contracts";
+import { CHECK_TOPICS, CHECK_TOPIC_OF } from "@Core/Constants/checkTopics";
 import { renderWithProviders } from "@Modules/_Shared/_Testing/renderWithProviders";
 import { ChecksSection } from "./ChecksSection";
 
-const allPassing = (): TPageCheck[] =>
-	SEO_ISSUE_CODES.map((code) => ({ code, status: "passed" as const }));
+type TStatuses = Partial<Record<string, TCheckStatus>>;
 
-const withStatus = (code: string, status: TPageCheck["status"]): TPageCheck[] =>
-	allPassing().map((check) => (check.code === code ? { ...check, status } : check));
+const crawl = (statuses: TStatuses = {}) =>
+	ACTIVE_ISSUE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
 
-const render = (checks: TPageCheck[] | null) =>
-	renderWithProviders(() => <ChecksSection checks={checks} />);
+const lighthouse = (statuses: TStatuses = {}) =>
+	ACTIVE_LIGHTHOUSE_CODES.map((code) => ({ code, status: statuses[code] ?? "passed" }));
+
+const render = (byOwner: Partial<TChecksByOwner> = {}) =>
+	renderWithProviders(() => (
+		<ChecksSection
+			checksByOwner={{ crawl: crawl(), lighthouse: lighthouse(), ...byOwner }}
+			context={{
+				crawledAt: "2026-10-10T16:00:00Z",
+				lighthouseMeasuredAt:
+					"lighthouse" in byOwner && byOwner.lighthouse === null
+						? null
+						: "2026-10-11T16:00:00Z",
+				pageSpeedState: "active",
+			}}
+			timeZone="America/Toronto"
+		/>
+	));
+
+const CRAWL = ACTIVE_ISSUE_CODES.length;
 
 describe("ChecksSection", () => {
-	it("renders one row per catalogue check", async () => {
-		render(allPassing());
-
-		expect(await screen.findByText("Title is missing")).toBeInTheDocument();
-		expect(screen.getByText("Not served over HTTPS")).toBeInTheDocument();
-	});
-
-	it("shows the denominator as a subtitle", async () => {
-		render(withStatus("HEADING_SKIP", "notApplicable"));
+	/** PAGEDETAIL-009 "a page with two skipped checks and two failures", Lighthouse unmeasured. */
+	it("lists our checks with the denominator, the skip reason, and one line for Lighthouse", async () => {
+		render({
+			crawl: crawl({
+				IMAGES_MISSING_ALT: "notApplicable",
+				HEADING_SKIP: "notApplicable",
+				TITLE_LENGTH: "failed",
+				LANG_MISSING: "failed",
+			}),
+			lighthouse: null,
+		});
 
 		expect(
-			await screen.findByText(`${SEO_ISSUE_CODES.length - 1} judged · 1 not applicable`),
+			await screen.findByText(`Our checks: ${CRAWL - 2} judged · 2 not applicable`),
+		).toBeInTheDocument();
+		expect(screen.getByText("The page has no images.")).toBeInTheDocument();
+		expect(screen.getAllByText("Lighthouse has not checked this page yet.")).toHaveLength(1);
+		expect(
+			screen.getByText("Details for the 2 failed checks are in SEO issues below."),
 		).toBeInTheDocument();
 	});
 
-	it("says why a check was skipped", async () => {
-		render(withStatus("IMAGES_MISSING_ALT", "notApplicable"));
+	it("dates each column in the user's zone", async () => {
+		render();
 
-		expect(await screen.findByText("The page has no images.")).toBeInTheDocument();
+		expect(await screen.findByText("Oct 10, 2026")).toBeInTheDocument();
+		expect(screen.getByText("Oct 11, 2026")).toBeInTheDocument();
 	});
 
-	it("says a check is newer than the crawl rather than calling it passed", async () => {
-		render(withStatus("NOT_HTTPS", "notYetChecked"));
+	/** PAGEDETAIL-009 "the canonical group". */
+	it("puts our five canonical checks beside Lighthouse's one, and says when they disagree", async () => {
+		render({ lighthouse: lighthouse({ LH_CANONICAL: "failed" }) });
 
+		const lighthouseLabel = await screen.findByText("Canonical URL is invalid or misdirected");
+		const row = lighthouseLabel.closest("[data-disagree]") as HTMLElement;
+		expect(row).not.toBeNull();
+		expect(within(row).getByText("Canonical URL is declared")).toBeInTheDocument();
+		expect(within(row).getByText("Canonical URL is absolute")).toBeInTheDocument();
+		expect(within(row).getByText("Sources disagree")).toBeInTheDocument();
+		// The reason is said in full under the marker, not hidden in a tooltip.
 		expect(
-			await screen.findByText("Added after this page was last crawled."),
+			within(row).getByText(/Lighthouse does not judge a missing canonical/),
 		).toBeInTheDocument();
-		expect(screen.getByText("Not served over HTTPS")).toHaveAttribute(
-			"data-status",
-			"notYetChecked",
-		);
+		expect(lighthouseLabel).toHaveAttribute("data-status", "failed");
 	});
 
-	it("points at the issues section when something failed", async () => {
-		render(withStatus("TITLE_LENGTH", "failed"));
+	/** PAGEDETAIL-009 "a Lighthouse-only failure". */
+	it("lists a Lighthouse-only failure first under its heading, with no cell of ours", async () => {
+		render({ lighthouse: lighthouse({ LH_LINK_TEXT: "failed" }) });
 
 		expect(
-			await screen.findByText("Details for the 1 failed check are in SEO issues below."),
+			await screen.findByText(
+				CHECK_TOPICS.find(({ id }) => id === CHECK_TOPIC_OF.LH_LINK_TEXT)!.title,
+			),
 		).toBeInTheDocument();
+		const failed = screen.getByText('Links with generic text like "click here"');
+		expect(failed).toHaveAttribute("data-status", "failed");
+		// The checks only Lighthouse runs continue the list: no block heading sets them apart.
+		expect(screen.queryByText("Lighthouse audits")).not.toBeInTheDocument();
+		// Nothing of ours judges link wording, so there is nothing to disagree with.
+		expect(screen.queryByText("Sources disagree")).not.toBeInTheDocument();
 	});
 
 	/** The line would point at an empty section, so it is not rendered. */
 	it("points nowhere when nothing failed", async () => {
-		render(allPassing());
+		render();
 
-		await screen.findByText("Title is missing");
+		await screen.findAllByText("Title is present");
 		expect(screen.queryByText(/are in SEO issues below/)).not.toBeInTheDocument();
+		expect(screen.queryByText("Sources disagree")).not.toBeInTheDocument();
 	});
 
-	it("asks for a re-crawl instead of inventing verdicts", async () => {
-		render(null);
+	it("asks for a re-crawl instead of inventing our verdicts", async () => {
+		render({ crawl: null });
 
 		expect(
 			await screen.findByText("Re-crawl this page to see each check."),
 		).toBeInTheDocument();
-		expect(screen.queryByText("Title is missing")).not.toBeInTheDocument();
+		expect(screen.queryByText("Thin content")).not.toBeInTheDocument();
+		expect(screen.getByText("Canonical URL is valid")).toBeInTheDocument();
+	});
+
+	it("says a Lighthouse audit was not recorded rather than calling it passed", async () => {
+		render({ lighthouse: lighthouse({ LH_ROBOTS_TXT: "notYetChecked" }) });
+
+		expect(
+			await screen.findByText("Lighthouse did not report this audit in its last run."),
+		).toBeInTheDocument();
 	});
 });

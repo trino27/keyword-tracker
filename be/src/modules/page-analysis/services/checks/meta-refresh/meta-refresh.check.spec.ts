@@ -14,6 +14,10 @@ describe('META_REFRESH', () => {
     ['0; url=/elsewhere/', '/elsewhere/'],
     ['5;URL=https://b.example/', 'https://b.example/'],
     ["0; url='/quoted/'", '/quoted/'],
+    // HTML's refresh steps: a comma may separate, and url= may be left out.
+    ['0; https://b.example/new/', 'https://b.example/new/'],
+    ['0,url=https://b.example/new/', 'https://b.example/new/'],
+    ['1.5 ; "/quoted/" trailing', '/quoted/'],
   ])('reports the target of %j', (content, to) => {
     expect(META_REFRESH_CHECK.evaluate(withRefresh(content))).toEqual(
       failsWith({ content, to }),
@@ -24,5 +28,16 @@ describe('META_REFRESH', () => {
   // the redirect this check is about, and reporting it as one would be a false statement.
   it('passes a refresh that names no target', () => {
     expect(META_REFRESH_CHECK.evaluate(withRefresh('30'))).toEqual(PASSES);
+    expect(META_REFRESH_CHECK.evaluate(withRefresh('30; '))).toEqual(PASSES);
+  });
+
+  /** A content that does not start with a time is no refresh at all for a browser. */
+  it('passes a tag a browser does not act on', () => {
+    expect(META_REFRESH_CHECK.evaluate(withRefresh('url=/elsewhere/'))).toEqual(
+      PASSES,
+    );
+    expect(
+      META_REFRESH_CHECK.evaluate(withRefresh('5x; url=/elsewhere/')),
+    ).toEqual(PASSES);
   });
 });

@@ -1,4 +1,4 @@
-import { SEO_ISSUE_CODES } from '@app/contracts';
+import { ACTIVE_ISSUE_CODES } from '@app/contracts';
 import { clients } from '../../src/persistence/schema/tables/clients/clients.schema';
 import { crawlRuns } from '../../src/persistence/schema/tables/crawl-runs/crawl-runs.schema';
 import { keywords } from '../../src/persistence/schema/tables/keywords/keywords.schema';
@@ -71,8 +71,9 @@ export async function seedCurrentPage(
       checksFailed: counters.checksFailed,
       // A current page always carries the record, because only the upsert makes a page
       // current — a directly written fixture has to hold the same line.
-      checksJudged: SEO_ISSUE_CODES.slice(0, counters.checksApplicable),
-      checksNotApplicable: SEO_ISSUE_CODES.slice(counters.checksApplicable),
+      // The crawl's codes: a speed code is never a check, so it is never judged.
+      checksJudged: ACTIVE_ISSUE_CODES.slice(0, counters.checksApplicable),
+      checksNotApplicable: ACTIVE_ISSUE_CODES.slice(counters.checksApplicable),
       lastSeenRunId: run.id,
       crawledAt: now,
     })

@@ -51,6 +51,9 @@ export const envSchema = z.object({
       `SEED_USER_PASSWORD must be at least ${MIN_SEED_PASSWORD_LENGTH} characters`,
     )
     .optional(),
+  // Optional, and empty counts as absent: without a key the app runs and every screen
+  // says PageSpeed is not configured (plan D12). Never logged.
+  [K.PAGESPEED_API_KEY]: z.string().optional(),
   [K.LOG_LEVEL]: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .optional(),
