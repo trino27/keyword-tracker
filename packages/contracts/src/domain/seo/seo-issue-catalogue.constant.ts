@@ -447,25 +447,7 @@ export const SEO_ISSUE_CATALOGUE = {
       'The HTML standard no longer allows several <h1> elements to describe one document, and MDN advises one per page: a page with several main headings tells screen-reader users that it is about several things. Google says it copes with any heading structure, so the cost is clarity for readers and assistive technology rather than a ranking penalty.',
     sources: [SOURCE.mdnHeadings, SOURCE.starterGuide],
   },
-  H1_LENGTH: {
-    // A notice, and an industry number: Google publishes no length for headings and says
-    // their structure does not matter to Search. The bounds are the audit checklist's.
-    owner: 'crawl',
-    severity: 'notice',
-    label: 'H1 length',
-    plain: {
-      what: 'The main heading is very short or very long',
-      why: 'A heading of a word or two rarely tells a reader what the post covers, and one longer than a sentence is hard to take in at a glance. Google sets no length for headings, so treat this as a prompt to reread it, not a rule.',
-      fix: "The writer or editor can rewrite the post's main heading in the CMS to roughly 15–70 characters that say what the post covers.",
-    },
-    hint: 'Main headings outside 15–70 characters are too vague or too long to scan.',
-    explanation:
-      "The post's main heading (<h1>) is under 15 or over 70 characters. Google publishes no length for headings and states that heading structure does not matter to Search; the range is the audit industry's working rule, taken from Productive Shop's enterprise audit checklist, which flags an H1 over 70 characters and asks for 15–60. A heading too short to say what the post is about, or too long to read at a glance, costs readers rather than rankings. The heading measured is the first <h1> of the main content, or of the document when the content has none.",
-    sources: [SOURCE.productiveShopAudit, SOURCE.starterGuide],
-    min: 15,
-    max: 70,
-    skipReason: 'No main heading to measure.',
-  },
+
   HEADING_SKIP: {
     owner: 'crawl',
     severity: 'notice',

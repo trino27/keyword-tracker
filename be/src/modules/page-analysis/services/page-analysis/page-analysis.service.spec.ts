@@ -41,10 +41,6 @@ describe('PageAnalysisService', () => {
     expect(first.keywords[0].relevance).toBe(1);
     expect(first.issues).toEqual([]);
     expect(second.keywords[0].term).toBe('widget pricing');
-    // "Widget pricing" is 14 characters, one short of H1_LENGTH's floor.
-    expect(second.issues.map((issue) => issue.code)).toEqual([
-      'H1_LENGTH',
-      'THIN_CONTENT',
-    ]);
+    expect(second.issues.map((issue) => issue.code)).toEqual(['THIN_CONTENT']);
   });
 });

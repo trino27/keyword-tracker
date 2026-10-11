@@ -15,7 +15,6 @@ import { DEVELOPMENT_HOST_REFERENCES_CHECK } from './development-host-references
 import { DATES_INCONSISTENT_CHECK } from './dates-inconsistent/dates-inconsistent.check';
 import { DATE_BUMPED_WITHOUT_CHANGES_CHECK } from './date-bumped-without-changes/date-bumped-without-changes.check';
 import { H1_MISSING_CHECK } from './h1-missing/h1-missing.check';
-import { H1_LENGTH_CHECK } from './h1-length/h1-length.check';
 import { H1_MULTIPLE_CHECK } from './h1-multiple/h1-multiple.check';
 import { HEADING_SKIP_CHECK } from './heading-skip/heading-skip.check';
 import { HREFLANG_INVALID_CHECK } from './hreflang-invalid/hreflang-invalid.check';
@@ -84,7 +83,6 @@ export const CHECKS: TCheckRegistry = {
   META_DESCRIPTION_LENGTH: META_DESCRIPTION_LENGTH_CHECK,
   H1_MISSING: H1_MISSING_CHECK,
   H1_MULTIPLE: H1_MULTIPLE_CHECK,
-  H1_LENGTH: H1_LENGTH_CHECK,
   HEADING_SKIP: HEADING_SKIP_CHECK,
   NO_SUBHEADINGS: NO_SUBHEADINGS_CHECK,
   CANONICAL_MISSING: CANONICAL_MISSING_CHECK,

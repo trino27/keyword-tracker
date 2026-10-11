@@ -59,8 +59,6 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`The description is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	H1_MISSING: () => "The page has no H1 heading.",
 	H1_MULTIPLE: (d) => `The page has ${num(d, "count")} H1 headings.`,
-	H1_LENGTH: (d) =>
-		`The main heading is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	HEADING_SKIP: (d) =>
 		`"${text(d, "heading")}" jumps from ${text(d, "from").toUpperCase()} to ${text(d, "to").toUpperCase()}.`,
 	NO_SUBHEADINGS: (d) => `${num(d, "words")} words of content run under no subheading.`,

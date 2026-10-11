@@ -125,8 +125,7 @@ describe('evaluateChecks', () => {
               metaDescription: null,
               canonicals: [],
               images: [],
-              // One heading, so no outline to judge — and not an h1, so no h1 to measure.
-              headings: [{ level: 2, text: 'Only one heading' }],
+              headings: [{ level: 1, text: 'Only one heading' }],
               alternates: [],
               jsonLd: { types: [], keywords: [], articleFields: [] },
               // No links to another page of the site, so neither link check that
@@ -138,7 +137,6 @@ describe('evaluateChecks', () => {
               featuredImage: null,
               // And too short a text to be asked for sections, images or sources.
               wordCount: 120,
-              h1s: [],
             },
             // A robots.txt that governs no host this page touches: neither robots
             // check has a rule to read.

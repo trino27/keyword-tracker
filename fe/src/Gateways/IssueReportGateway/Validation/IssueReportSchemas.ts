@@ -49,7 +49,7 @@ const siteRowSchema = z.object({
 
 /**
  * Each branch is checked against its contract type above; the union of the three is cast,
- * because TypeScript gives up expanding a union of 60 intersected variants — the same
+ * because TypeScript gives up expanding a union of 59 intersected variants — the same
  * limit the page schemas work around per code.
  */
 export const reportIssueSchema = z.union([
