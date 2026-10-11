@@ -130,6 +130,7 @@ export class PageListRepository {
       ${this.currentPages(scope, filter)}
       select p.id, p.url, p.title, p.checks_applicable, p.checks_failed,
              pts.points_possible, pts.points_lost,
+             lpts.lighthouse_applicable, lpts.lighthouse_failed,
              lpts.lighthouse_points_possible, lpts.lighthouse_points_lost,
              c.id as client_id, c.name as client_name,
              ${PAGE_SPEED_COLUMNS}

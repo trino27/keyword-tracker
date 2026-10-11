@@ -17,7 +17,6 @@ import type { ListPagesQueryDto } from '../../dto/list-pages-query/list-pages-qu
 import { PageNotFoundException } from '../../exceptions/pages.exceptions';
 import { PageDetailRepository } from '../../repositories/page-detail/page-detail.repository';
 import type { ILighthousePoints } from '../../repositories/page-score/score-points';
-import type { IPageSpeedRow } from '../../repositories/page-speed/page-speed-read';
 import {
   PageListRepository,
   type IPageKeywordRow,
@@ -208,8 +207,8 @@ export class PageReadService {
 
 /**
  * The page's score over every scored owner (lighthouse-checks D9), each check weighed by
- * its severity: the crawl's counters and points, and Lighthouse's judged list, failed
- * count and points from the measurement — absent until the page has been measured with
+ * its severity: the crawl's counters and points, and Lighthouse's active checks counted
+ * and weighed from the measurement — absent until the page has been measured with
  * Lighthouse's categories.
  */
 function scoreOf(page: {
@@ -218,10 +217,7 @@ function scoreOf(page: {
   pointsPossible: number;
   pointsLost: number;
   lighthousePoints: ILighthousePoints | null;
-  pageSpeed: IPageSpeedRow | null;
 }): IPageScore {
-  const applicable = page.pageSpeed?.lighthouseApplicable ?? null;
-  const failed = page.pageSpeed?.lighthouseFailed ?? null;
   const points = page.lighthousePoints;
   return pageScoreOf({
     crawl: {
@@ -231,11 +227,11 @@ function scoreOf(page: {
       pointsLost: page.pointsLost,
     },
     lighthouse:
-      applicable === null || failed === null || points === null
+      points === null
         ? null
         : {
-            applicable,
-            failed,
+            applicable: points.applicable,
+            failed: points.failed,
             pointsPossible: points.possible,
             pointsLost: points.lost,
           },

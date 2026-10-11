@@ -1,6 +1,6 @@
 import {
   ACTIVE_ISSUE_CODES,
-  LIGHTHOUSE_ISSUE_CODES,
+  ACTIVE_LIGHTHOUSE_CODES,
   type IPageCheck,
   type TCheckStatus,
   type TIssueCodeOf,
@@ -10,18 +10,20 @@ import {
 
 /**
  * The codes each scored owner lists as checks today: the crawl's minus what it retired,
- * and every Lighthouse code — Lighthouse retires an audit by no longer reporting it.
+ * and Lighthouse's SEO audits — its accessibility ones are retired, and Lighthouse retires
+ * an audit of its own by no longer reporting it.
  */
 const ACTIVE_CODES: { [O in TScoredIssueOwner]: readonly TIssueCodeOf<O>[] } = {
   crawl: ACTIVE_ISSUE_CODES,
-  lighthouse: LIGHTHOUSE_ISSUE_CODES,
+  lighthouse: ACTIVE_LIGHTHOUSE_CODES,
 };
 
 /**
  * Every check one scored owner still runs, with what that owner last concluded about it
  * on this page — the crawl from the lists on `pages`, Lighthouse from the lists on the
  * page's measurement (lighthouse-checks D6). Codes of any other owner in `failed` are
- * ignored, so the caller passes every finding of the page. Retired checks are left out entirely rather than given a status: there is no true
+ * ignored, so the caller passes every finding of the page. Retired checks are left out
+ * entirely rather than given a status: there is no true
  * thing to say about a check the reader can no longer act on, and `notYetChecked` would
  * claim it was added after the crawl.
  *

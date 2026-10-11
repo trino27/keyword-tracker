@@ -1,5 +1,6 @@
 import {
   ACTIVE_ISSUE_CODES,
+  ACTIVE_LIGHTHOUSE_CODES,
   LIGHTHOUSE_ISSUE_CODES,
   type TSeoIssueCode,
 } from '@app/contracts';
@@ -78,7 +79,7 @@ describe('composePageChecks', () => {
   });
 
   describe("Lighthouse's checks", () => {
-    it('covers every Lighthouse code once, in its catalogue order, and no crawl or speed code', () => {
+    it('covers every active Lighthouse code once, in its catalogue order, and no crawl or speed code', () => {
       const checks = composePageChecks(
         'lighthouse',
         [...LIGHTHOUSE_ISSUE_CODES],
@@ -86,19 +87,34 @@ describe('composePageChecks', () => {
         ['TITLE_MISSING', 'CWV_LCP_POOR', 'LH_IMAGE_ALT'],
       );
 
-      expect(checks?.map(({ code }) => code)).toEqual(LIGHTHOUSE_ISSUE_CODES);
+      expect(checks?.map(({ code }) => code)).toEqual(ACTIVE_LIGHTHOUSE_CODES);
       expect(statusOf(checks, 'LH_IMAGE_ALT')).toBe('failed');
       expect(statusOf(checks, 'LH_CANONICAL')).toBe('passed');
     });
 
+    /**
+     * A measurement stored before the accessibility audits were retired still lists and
+     * fails them; the list shows what is checked today.
+     */
+    it('lists no retired accessibility audit, even one a stored measurement failed', () => {
+      const checks = composePageChecks(
+        'lighthouse',
+        [...LIGHTHOUSE_ISSUE_CODES],
+        [],
+        ['LH_COLOR_CONTRAST'],
+      );
+
+      expect(statusOf(checks, 'LH_COLOR_CONTRAST')).toBeUndefined();
+    });
+
     /** An audit that errored is in neither stored list: it was not recorded, not passed. */
     it('calls a code the measurement did not record notYetChecked', () => {
-      const judged = LIGHTHOUSE_ISSUE_CODES.filter(
-        (code) => code !== 'LH_COLOR_CONTRAST',
+      const judged = ACTIVE_LIGHTHOUSE_CODES.filter(
+        (code) => code !== 'LH_ROBOTS_TXT',
       );
       const checks = composePageChecks('lighthouse', judged, [], []);
 
-      expect(statusOf(checks, 'LH_COLOR_CONTRAST')).toBe('notYetChecked');
+      expect(statusOf(checks, 'LH_ROBOTS_TXT')).toBe('notYetChecked');
     });
 
     it('is null for a page Lighthouse has not measured', () => {

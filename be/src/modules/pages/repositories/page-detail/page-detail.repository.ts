@@ -128,6 +128,7 @@ export class PageDetailRepository {
              p.word_count, p.http_status, p.response_ms,
              p.checks_applicable, p.checks_failed,
              pts.points_possible, pts.points_lost,
+             lpts.lighthouse_applicable, lpts.lighthouse_failed,
              lpts.lighthouse_points_possible, lpts.lighthouse_points_lost,
              p.checks_judged, p.checks_not_applicable, p.crawled_at,
              ps.lighthouse_judged, ps.lighthouse_not_applicable,

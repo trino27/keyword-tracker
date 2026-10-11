@@ -1,15 +1,16 @@
 import { z } from 'zod';
 import {
+  ACTIVE_LIGHTHOUSE_CODES,
   LIGHTHOUSE_CATALOGUE,
-  LIGHTHOUSE_ISSUE_CODES,
   type TLighthouseIssueCode,
   type TLighthouseSeoIssue,
 } from '@app/contracts';
 
 /**
- * What Lighthouse's SEO and accessibility categories said about the page, in the shape
- * the crawl records its own checks in: the codes judged, the codes that did not apply, and
- * a finding per judged code that failed.
+ * What Lighthouse's SEO category said about the page, in the shape the crawl records its
+ * own checks in: the codes judged, the codes that did not apply, and a finding per judged
+ * code that failed. Of the accessibility category only its score is kept: its audits are
+ * retired (`ACTIVE_LIGHTHOUSE_CODES`), and the page shows the score as an overview.
  */
 export interface ILighthouseRecord {
   judged: TLighthouseIssueCode[];
@@ -18,7 +19,7 @@ export interface ILighthouseRecord {
   /** 0..100, or null when the answer lacks the category. */
   seoScore: number | null;
   accessibilityScore: number | null;
-  /** Audits the answer scored that the catalogue does not know: a stale catalogue. */
+  /** SEO audits the answer scored that no active code reads: a stale catalogue. */
   unknownAudits: string[];
 }
 
@@ -48,16 +49,16 @@ const answerSchema = z.object({
   }),
 });
 
-/** The catalogue's codes by the audit id an answer reports them under. */
+/** The active codes by the audit id an answer reports them under. */
 const CODE_OF_AUDIT: ReadonlyMap<string, TLighthouseIssueCode> = new Map(
-  LIGHTHOUSE_ISSUE_CODES.map((code) => [
+  ACTIVE_LIGHTHOUSE_CODES.map((code) => [
     LIGHTHOUSE_CATALOGUE[code].audit,
     code,
   ]),
 );
 
 /**
- * Each catalogued audit as the answer reports it (lighthouse-checks D13):
+ * Each active code's audit as the answer reports it (lighthouse-checks D13):
  *
  * - `binary` scored 1 is judged and passed; scored 0, judged and a finding;
  * - `notApplicable` is listed as such;
@@ -76,7 +77,7 @@ export function extractLighthouse(body: unknown): ILighthouseRecord | null {
   const judged: TLighthouseIssueCode[] = [];
   const notApplicable: TLighthouseIssueCode[] = [];
   const findings: TLighthouseSeoIssue[] = [];
-  for (const code of LIGHTHOUSE_ISSUE_CODES) {
+  for (const code of ACTIVE_LIGHTHOUSE_CODES) {
     const audit = audits[LIGHTHOUSE_CATALOGUE[code].audit];
     if (audit?.scoreDisplayMode === 'notApplicable') notApplicable.push(code);
     if (audit?.scoreDisplayMode !== 'binary') continue;
@@ -87,15 +88,13 @@ export function extractLighthouse(body: unknown): ILighthouseRecord | null {
         code,
         severity: LIGHTHOUSE_CATALOGUE[code].severity,
         details: {},
-      } as TLighthouseSeoIssue);
+      });
   }
 
-  const scored = [categories.seo, categories.accessibility].flatMap(
-    (category) =>
-      category?.auditRefs
-        .filter(({ weight }) => weight > 0)
-        .map(({ id }) => id) ?? [],
-  );
+  const scored =
+    categories.seo?.auditRefs
+      .filter(({ weight }) => weight > 0)
+      .map(({ id }) => id) ?? [];
   return {
     judged,
     notApplicable,

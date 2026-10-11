@@ -1,6 +1,6 @@
 import {
   ACTIVE_ISSUE_CODES,
-  LIGHTHOUSE_ISSUE_CODES,
+  ACTIVE_LIGHTHOUSE_CODES,
   type TSeoIssueCode,
 } from '@app/contracts';
 import { PageSpeedAvailabilityService } from '@infrastructure/config/page-speed-settings/page-speed-availability/page-speed-availability.service';
@@ -34,6 +34,7 @@ const setup = (rowCount: number) => {
     checksFailed: Math.min(18, Math.max(0, rowCount - 1 - i)),
     pointsPossible: 60,
     pointsLost: 3 * Math.min(18, Math.max(0, rowCount - 1 - i)),
+    lighthousePoints: null,
   }));
   const list = {
     listSlice: (_scope: IUserScope, filter: IPageListFilter) => {
@@ -205,7 +206,12 @@ const detailSetup = (
     page: unknown;
     lighthouseJudged: TSeoIssueCode[] | null;
     lighthouseNotApplicable: TSeoIssueCode[] | null;
-    lighthousePoints: { possible: number; lost: number } | null;
+    lighthousePoints: {
+      applicable: number;
+      failed: number;
+      possible: number;
+      lost: number;
+    } | null;
     pageSpeed: unknown;
   }> = {},
 ) => {
@@ -350,20 +356,16 @@ describe('PageReadService.getPage', () => {
   /** A page whose crawl predates the record cannot be enumerated, and says so. */
   /** PAGES-012, PAGES-009: Lighthouse is a second owner of checks, and of the score. */
   it("lists Lighthouse's checks from the measurement and counts them in the score", async () => {
-    const judged: TSeoIssueCode[] = LIGHTHOUSE_ISSUE_CODES.slice(0, 20);
+    const judged: TSeoIssueCode[] = ACTIVE_LIGHTHOUSE_CODES.slice(0, 7);
     const { service } = detailSetup({
       issueCodes: ['TITLE_MISSING', 'LH_DOCUMENT_TITLE'],
       checksApplicable: 16,
       checksFailed: 1,
       lighthouseJudged: judged,
-      lighthouseNotApplicable: LIGHTHOUSE_ISSUE_CODES.slice(20, 26),
-      lighthousePoints: { possible: 60, lost: 3 },
-      pageSpeed: {
-        ...NO_SPEED_FIGURES,
-        status: 'done',
-        lighthouseApplicable: 20,
-        lighthouseFailed: 1,
-      },
+      lighthouseNotApplicable: ACTIVE_LIGHTHOUSE_CODES.slice(7, 9),
+      // The lateral counts the active codes only; the seven judged weigh 10 + 6 × 1.
+      lighthousePoints: { applicable: 7, failed: 1, possible: 16, lost: 1 },
+      pageSpeed: { ...NO_SPEED_FIGURES, status: 'done' },
     });
 
     const { checksByOwner, score } = await service.getPage(scope, 1);
@@ -371,22 +373,22 @@ describe('PageReadService.getPage', () => {
       checksByOwner.lighthouse?.find((check) => check.code === code)?.status;
 
     expect(checksByOwner.lighthouse).toHaveLength(
-      LIGHTHOUSE_ISSUE_CODES.length,
+      ACTIVE_LIGHTHOUSE_CODES.length,
     );
     expect(status('LH_DOCUMENT_TITLE')).toBe('failed');
-    expect(status(LIGHTHOUSE_ISSUE_CODES[21])).toBe('notApplicable');
-    expect(status(LIGHTHOUSE_ISSUE_CODES[30])).toBe('notYetChecked');
+    expect(status(ACTIVE_LIGHTHOUSE_CODES[8])).toBe('notApplicable');
+    expect(status(ACTIVE_LIGHTHOUSE_CODES[9])).toBe('notYetChecked');
     expect(
       checksByOwner.crawl?.find((check) => check.code === 'TITLE_MISSING')
         ?.status,
     ).toBe('failed');
-    // The fixture's crawl points are 100 possible, 11 lost; Lighthouse adds 60 and 3.
+    // The fixture's crawl points are 100 possible, 11 lost; Lighthouse adds 16 and 1.
     expect(score).toEqual({
-      value: 91,
-      applicable: 36,
+      value: 90,
+      applicable: 23,
       failed: 2,
-      pointsPossible: 160,
-      pointsLost: 14,
+      pointsPossible: 116,
+      pointsLost: 12,
       byOwner: {
         crawl: {
           applicable: 16,
@@ -395,10 +397,10 @@ describe('PageReadService.getPage', () => {
           pointsLost: 11,
         },
         lighthouse: {
-          applicable: 20,
+          applicable: 7,
           failed: 1,
-          pointsPossible: 60,
-          pointsLost: 3,
+          pointsPossible: 16,
+          pointsLost: 1,
         },
       },
     });

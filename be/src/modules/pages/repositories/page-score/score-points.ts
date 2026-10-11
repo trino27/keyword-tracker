@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { CHECK_WEIGHTS } from '@app/contracts';
+import { ACTIVE_LIGHTHOUSE_CODES, CHECK_WEIGHTS } from '@app/contracts';
 
 /**
  * A lateral subquery over `pages p`: `points_possible` and `points_lost`, the weighed
@@ -31,10 +31,27 @@ export const SCORE_POINTS_LATERAL = sql`
 `;
 
 /**
+ * The weight of each Lighthouse code that is a check (`ACTIVE_LIGHTHOUSE_CODES`), as one
+ * jsonb parameter: a code absent from it is a retired accessibility audit, and counts for
+ * nothing.
+ */
+const ACTIVE_LIGHTHOUSE_WEIGHTS = JSON.stringify(
+  Object.fromEntries(
+    ACTIVE_LIGHTHOUSE_CODES.map((code) => [code, CHECK_WEIGHTS[code]]),
+  ),
+);
+
+/**
  * The same over `page_speed ps`, for Lighthouse's share of the score (lighthouse-checks
- * D9): its judged list weighed by the catalogue, and its findings among them. Both null
- * when the page was never measured with Lighthouse's categories, so that owner adds
- * nothing. LEFT JOIN LATERAL it after `page_speed ps`.
+ * D9): its judged checks, its failed ones, and the points of each, weighed by the
+ * catalogue. All null when the page was never measured with Lighthouse's categories, so
+ * that owner adds nothing. LEFT JOIN LATERAL it after `page_speed ps`.
+ *
+ * Only the active codes count. A measurement stored before the accessibility audits were
+ * retired still lists them in `lighthouse_judged` and keeps their findings until it is
+ * re-measured; reading through the active weights drops them now, rather than leaving the
+ * score to count checks the page no longer lists. That is why the counts are taken here
+ * and not from `cardinality(lighthouse_judged)` and `lighthouse_failed`.
  *
  * Lighthouse's codes are never in `checks_judged`, so the crawl's lateral above never
  * counts them, and the crawl's codes are never in `lighthouse_judged`: no finding is
@@ -43,24 +60,39 @@ export const SCORE_POINTS_LATERAL = sql`
 export const LIGHTHOUSE_SCORE_POINTS_LATERAL = sql`
   select
     case when ps.lighthouse_judged is null then null
-         else (select coalesce(sum(coalesce((${JSON.stringify(CHECK_WEIGHTS)}::jsonb ->> j.code)::int, 1)), 0)
+         else (select count(*)
+               from unnest(ps.lighthouse_judged) j(code)
+               where ${ACTIVE_LIGHTHOUSE_WEIGHTS}::jsonb ->> j.code is not null)
+    end as lighthouse_applicable,
+    case when ps.lighthouse_judged is null then null
+         else (select count(*)
+               from seo_issues i
+               where i.page_id = p.id and i.code = any(ps.lighthouse_judged)
+                 and ${ACTIVE_LIGHTHOUSE_WEIGHTS}::jsonb ->> i.code is not null)
+    end as lighthouse_failed,
+    case when ps.lighthouse_judged is null then null
+         else (select coalesce(sum((${ACTIVE_LIGHTHOUSE_WEIGHTS}::jsonb ->> j.code)::int), 0)
                from unnest(ps.lighthouse_judged) j(code))
     end as lighthouse_points_possible,
     case when ps.lighthouse_judged is null then null
-         else (select coalesce(sum(coalesce((${JSON.stringify(CHECK_WEIGHTS)}::jsonb ->> i.code)::int, 1)), 0)
+         else (select coalesce(sum((${ACTIVE_LIGHTHOUSE_WEIGHTS}::jsonb ->> i.code)::int), 0)
                from seo_issues i
                where i.page_id = p.id and i.code = any(ps.lighthouse_judged))
     end as lighthouse_points_lost
 `;
 
-/** Lighthouse's weighed share of a page's score. */
+/** Lighthouse's share of a page's score: its active checks, counted and weighed. */
 export interface ILighthousePoints {
+  applicable: number;
+  failed: number;
   possible: number;
   lost: number;
 }
 
 /** The raw columns `LIGHTHOUSE_SCORE_POINTS_LATERAL` adds to a row. */
 export interface ILighthousePointsColumns {
+  lighthouse_applicable: string | number | null;
+  lighthouse_failed: string | number | null;
   lighthouse_points_possible: string | number | null;
   lighthouse_points_lost: string | number | null;
 }
@@ -68,10 +100,14 @@ export interface ILighthousePointsColumns {
 export function lighthousePointsOf(
   row: ILighthousePointsColumns,
 ): ILighthousePoints | null {
-  return row.lighthouse_points_possible === null ||
+  return row.lighthouse_applicable === null ||
+    row.lighthouse_failed === null ||
+    row.lighthouse_points_possible === null ||
     row.lighthouse_points_lost === null
     ? null
     : {
+        applicable: Number(row.lighthouse_applicable),
+        failed: Number(row.lighthouse_failed),
         possible: Number(row.lighthouse_points_possible),
         lost: Number(row.lighthouse_points_lost),
       };
