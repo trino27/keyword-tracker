@@ -282,6 +282,8 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       })),
       hostVariants: context.siteProbes?.hostVariants ?? null,
       missingPage: context.siteProbes?.missingPage ?? null,
+      home: context.siteProbes?.home ?? null,
+      favicon: context.siteProbes?.favicon ?? null,
     });
     context.outcome = outcomeOf(
       selection.pages.length,

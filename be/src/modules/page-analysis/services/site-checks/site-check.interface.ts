@@ -1,4 +1,29 @@
 import type { TCrawlItemStatus, TSiteCheckCode } from '@app/contracts';
+import type { IIconLink } from '../../interfaces/parsed-page.interface';
+
+/**
+ * What the home page of the served host says about the site as a whole: its icons and
+ * its names. Read from that host because Google reads both per hostname — a blog on a
+ * subdomain has a favicon and a site name of its own.
+ */
+export interface IHomePage {
+  /** The address that answered, after redirects. */
+  url: string;
+  icons: readonly IIconLink[];
+  websiteNames: readonly { name: string; alternateNames: string[] }[];
+  ogSiteName: string | null;
+}
+
+/** The favicon the home page declares, as the crawl fetched it. */
+export interface IFaviconAnswer {
+  url: string;
+  /** Null when no HTTP answer came back at all. */
+  status: number | null;
+  /** The first bytes of the body, enough to read the file's format and size. */
+  head: Uint8Array;
+  /** The robots.txt rule keeping Googlebot-Image from the file, quoted; null when none. */
+  blockedBy: string | null;
+}
 
 /** One answer to a request the crawl made of the site, redirects followed. */
 export interface IProbeAnswer {
@@ -43,6 +68,10 @@ export interface ISiteCheckInput {
   hostVariants: readonly IProbeAnswer[] | null;
   /** A URL that cannot exist on the site; null when it could not be asked. */
   missingPage: IProbeAnswer | null;
+  /** The served host's home page; null when it could not be read. */
+  home: IHomePage | null;
+  /** The icon the home page declares; null when none was fetched. */
+  favicon: IFaviconAnswer | null;
 }
 
 export type TSiteVerdict =

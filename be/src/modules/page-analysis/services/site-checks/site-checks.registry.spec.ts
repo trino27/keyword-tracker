@@ -4,6 +4,17 @@ import { evaluateSite, SITE_CHECKS } from './site-checks.registry';
 
 const SERVED = 'https://www.a.example';
 
+/** The first 24 bytes of a PNG of the given size: signature, then the IHDR chunk. */
+function pngHead(width: number, height: number): Uint8Array {
+  const bytes = new Uint8Array(24);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  bytes.set([0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52], 8);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(16, width);
+  view.setUint32(20, height);
+  return bytes;
+}
+
 /** A site that passes every site check. */
 const healthySite = (
   overrides: Partial<ISiteCheckInput> = {},
@@ -58,6 +69,25 @@ const healthySite = (
     redirects: [],
     finalUrl: `${SERVED}/seo-keyword-tracker-missing-page-1/`,
   },
+  home: {
+    url: `${SERVED}/`,
+    icons: [
+      {
+        rel: 'icon',
+        href: `${SERVED}/favicon.png`,
+        type: 'image/png',
+        sizes: '48x48',
+      },
+    ],
+    websiteNames: [{ name: 'A Example', alternateNames: ['AE'] }],
+    ogSiteName: 'A Example',
+  },
+  favicon: {
+    url: `${SERVED}/favicon.png`,
+    status: 200,
+    head: pngHead(48, 48),
+    blockedBy: null,
+  },
   ...overrides,
 });
 
@@ -93,6 +123,8 @@ describe('SITE_CHECKS', () => {
         fetched: [],
         hostVariants: null,
         missingPage: null,
+        home: null,
+        favicon: null,
       }),
     );
 

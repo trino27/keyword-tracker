@@ -166,6 +166,51 @@ export const SITE_CHECK_CATALOGUE = {
     skipReason:
       'The crawl could not ask for a missing page (robots.txt forbids it, or there was no answer).',
   },
+  FAVICON_INVALID: {
+    // A warning: the icon sits beside every result from the site, and a default one in
+    // its place is visible on every search the site appears in.
+    severity: 'warning',
+    label: 'Favicon Google cannot show',
+    plain: {
+      what: "Google cannot use your site's icon, so results show a generic one",
+      why: 'Google shows the site icon beside every result from it. When the icon is missing, blocked, broken or in a format Google does not read, a plain default icon appears instead, which makes your results easier to overlook.',
+      fix: 'Ask your developer to declare a square PNG or ICO icon of at least 48 pixels on the home page and keep it open to Google in robots.txt; most CMS themes have a site icon setting.',
+    },
+    hint: 'Declare a square PNG, ICO or GIF favicon with <link rel="icon"> on the home page, crawlable by Googlebot-Image.',
+    explanation:
+      'Google shows a favicon beside every result from the site and reads it from a <link rel="icon"> (or apple-touch-icon) on the home page. Its requirements: a format it supports — BMP, GIF, ICO, PNG, JPEG, PPM or TIFF, so an SVG-only icon is not used — a square of at least 8×8 px, and a file Googlebot-Image may crawl. The check reads the home page\'s icon links, asks robots.txt about the first one in a supported format, fetches it and reads its size from the file. Failing any requirement, Google shows a default icon instead; it recommends more than 48×48 px so the icon looks good everywhere.',
+    sources: [SOURCE.favicon],
+    skipReason: 'The crawl could not read the home page.',
+  },
+  SITE_NAME_NOT_DECLARED: {
+    severity: 'notice',
+    label: 'No site name declared for Google',
+    plain: {
+      what: 'The home page does not tell Google what your site is called',
+      why: 'Google shows a site name above every result. Without a declared name it picks one from the page, sometimes the domain or a slogan, and searchers may not recognise your brand.',
+      fix: 'An SEO plugin such as Yoast SEO adds this from the site title setting; otherwise ask your developer to add WebSite markup with the site name to the home page.',
+    },
+    hint: 'Add WebSite structured data with name (and alternateName) to the home page.',
+    explanation:
+      "The home page carries no WebSite structured data with a name. Google's site name documentation names that markup as the way to state the name it shows above results, beside og:site_name, the title and the headings, which it also reads. It is optional — Google picks a name anyway — but the declared one is the strongest hint, and alternateName offers the variants (an acronym, a shorter form) Google may use instead.",
+    sources: [SOURCE.siteNames],
+    skipReason: 'The crawl could not read the home page.',
+  },
+  SITE_NAME_INCONSISTENT: {
+    severity: 'notice',
+    label: 'Site name differs between home page sources',
+    plain: {
+      what: 'Your home page gives Google two different names for the site',
+      why: 'Google picks the site name shown above every result from the home page and asks for one name used consistently. Given two, it may pick the one you did not intend.',
+      fix: "Ask your developer, or check your SEO plugin's site name settings, so the site name markup and the sharing name match, or the other is listed as an alternate name.",
+    },
+    hint: 'Make WebSite name and og:site_name the same, or list one as alternateName.',
+    explanation:
+      "The home page's WebSite structured data names the site one way and its og:site_name another, and neither appears among the markup's alternateName values. Google's site name documentation says it reads both, and asks for the same name to be used consistently across the home page and its structured data. Letter case, spacing and punctuation are ignored in the comparison.",
+    sources: [SOURCE.siteNames],
+    skipReason:
+      'The home page lacks WebSite markup with a name, or an og:site_name, to compare.',
+  },
 } as const satisfies Record<string, ISiteCheckDefinition>;
 
 export type TSiteCheckCode = keyof typeof SITE_CHECK_CATALOGUE;
