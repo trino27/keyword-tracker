@@ -208,6 +208,12 @@ export const ISSUE_SOURCES = {
     title: 'Ahrefs: Keyword cannibalization',
     url: 'https://ahrefs.com/blog/keyword-cannibalization/',
   },
+  // Opened and read on 2026-10-11 for the checks drawn from Ahrefs' recommendations; an
+  // industry source, so a check backed by it alone is at most a notice (plan D1).
+  ahrefsOnPage: {
+    title: 'Ahrefs: On-page SEO',
+    url: 'https://ahrefs.com/blog/on-page-seo/',
+  },
   articleMarkup: {
     title: 'Google Search Central: Article structured data',
     url: 'https://developers.google.com/search/docs/appearance/structured-data/article',
@@ -455,6 +461,23 @@ export const SEO_ISSUE_CATALOGUE = {
     max: 160,
     skipReason: 'No description to measure.',
   },
+  META_DESCRIPTION_REPEATS_TITLE: {
+    // A notice: Ahrefs names the rule; Google asks only that a description summarise
+    // its page, which a copy of the title rarely does (plan D2).
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Description repeats the title',
+    plain: {
+      what: "The page's search description says the same thing as its title",
+      why: 'The title and the description sit one above the other in a search result. When they match, the second line tells a searcher nothing new, and Google is more likely to replace it with a passage of its own choosing.',
+      fix: 'In the SEO description field of your CMS, the writer or editor can add what the title leaves out: who the post is for, what it answers, what the reader gets.',
+    },
+    hint: 'Write a description that adds to the title instead of restating it.',
+    explanation:
+      "The meta description is the same text as the title once case, punctuation and the site's name after the separator are set aside. Google asks for a description that is a short, relevant summary of the specific page; a restated title summarises nothing the result does not already show, so Google tends to build the snippet from the page text instead. Ahrefs' on-page guidance names the rule directly: expand on the title rather than repeat it. A description that adds even one clause passes — how long it is, META_DESCRIPTION_LENGTH judges.",
+    sources: [SOURCE.snippets, SOURCE.ahrefsOnPage],
+    skipReason: 'No title or no description to compare.',
+  },
   H1_MISSING: {
     // A warning, not an error, by the line ranking-signals.md draws: an error is for what
     // keeps a page out of the running, and Google states heading structure does not
@@ -552,6 +575,23 @@ export const SEO_ISSUE_CATALOGUE = {
       'This page tells Google that another URL is the preferred version of its content, so Google will usually index that URL and leave this one out of results. That is correct when the page really is a copy; on an original post it is usually a template bug — a canonical built from the wrong variable, or pointing to the HTTP or the www version. The sitemap listing this URL while the page names another one is itself a conflicting signal.',
     sources: [SOURCE.canonical, SOURCE.sitemaps],
     skipReason: 'No canonical to disagree with.',
+  },
+  CANONICAL_TO_HTTP: {
+    // A warning: the page asks Google to prefer the insecure copy of itself, against
+    // Google's own default, and the request can win (plan D2).
+    owner: 'crawl',
+    severity: 'warning',
+    label: 'Canonical points to HTTP',
+    plain: {
+      what: 'This secure page names the insecure http:// address as its main version',
+      why: 'Google prefers secure addresses, and this page asks it to prefer the insecure one. That sends mixed signals about which address to show, and can put the http:// version — the one browsers warn about — in search results.',
+      fix: 'Ask your developer, or check the site URL setting in your CMS or SEO plugin, so the canonical address starts with https://.',
+    },
+    hint: 'Make the canonical URL of an HTTPS page an https:// address.',
+    explanation:
+      'The page is served over HTTPS, but the canonical it declares — in <head>, or in the Link header when the head has none — starts with http://. Google prefers HTTPS pages over equivalent HTTP pages as canonical, and a canonical that names the HTTP copy is a signal against that preference: Google may follow it, or weigh it against the redirects and sitemap and pick either. The cause is almost always a site address set to http:// in the CMS or SEO plugin, which every page then repeats. A page served over HTTP is not judged here; NOT_HTTPS reports it.',
+    sources: [SOURCE.canonical, SOURCE.httpsSignal],
+    skipReason: 'No canonical declared, or the page is not served over HTTPS.',
   },
   CANONICAL_CONFLICT: {
     // A warning: conflicting canonicals leave the page where CANONICAL_MISSING would — a
@@ -989,6 +1029,21 @@ export const SEO_ISSUE_CATALOGUE = {
       'Open Graph tags decide the title, description and image shown when the post is shared on social networks and in messengers. They do not affect Google rankings. Without them each platform guesses, and a shared link often shows the site logo or no image at all.',
     sources: [SOURCE.openGraph],
   },
+  OG_URL_MISMATCH: {
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'og:url differs from the canonical',
+    plain: {
+      what: "The page's sharing address differs from its main address",
+      why: 'Social networks count likes and shares under the sharing address, and Google ranks the main one. When they differ, one post has two identities: shares can be counted for the wrong page, and a shared link can open a different address than search shows.',
+      fix: 'Most SEO plugins set the sharing address from the canonical automatically; ask your developer to make the theme do the same if it writes og:url itself.',
+    },
+    hint: 'Set og:url to the canonical URL of the page.',
+    explanation:
+      "The page's og:url names a different document from its canonical URL — or, when it declares no canonical, from the address it was served at; a trailing slash is not counted as a difference. The Open Graph protocol defines og:url as the canonical URL of the object, the permanent ID social platforms use to collect its likes and shares. When it disagrees with the canonical, shares and search results describe two addresses for one post. It does not affect Google rankings. The usual cause is a theme that writes og:url from the request address, with tracking parameters or a different host.",
+    sources: [SOURCE.openGraph, SOURCE.canonical],
+    skipReason: 'The page declares no og:url.',
+  },
   PREVIEW_IMAGE_TOO_SMALL: {
     owner: 'crawl',
     severity: 'notice',
@@ -1380,6 +1435,22 @@ export const SEO_ISSUE_CATALOGUE = {
     sources: [SOURCE.structuredDataPolicies, SOURCE.aiFeatures],
     skipReason:
       'The article markup has no headline, or the page has neither a title nor an h1 to compare it with.',
+  },
+  BREADCRUMB_MISSING: {
+    // A notice: Google documents the feature, but a page without it loses a display
+    // option, not its place in results (plan D2).
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'No breadcrumb markup',
+    plain: {
+      what: "The page doesn't tell Google where it sits in the site",
+      why: 'Google can show a breadcrumb trail such as Blog › SEO in place of the bare address, which tells a searcher what kind of page they are about to open. Without breadcrumb details on the page, Google shows the plain address instead.',
+      fix: 'Turn on breadcrumbs in your SEO plugin (Yoast SEO and Rank Math both have them), or ask your developer to add BreadcrumbList structured data to the theme.',
+    },
+    hint: 'Add a BreadcrumbList in JSON-LD or Microdata.',
+    explanation:
+      "The page declares no BreadcrumbList, neither in JSON-LD (an @graph included) nor in Microdata. Google uses breadcrumb markup to categorise a page within its site and can show the trail in place of the URL in a result. The markup is optional and a page without it is not demoted; it only gives up the trail. RDFa is not read, so a trail declared only there is reported here. Whether a declared trail is complete is BREADCRUMB_INVALID's question.",
+    sources: [SOURCE.breadcrumbMarkup],
   },
   BREADCRUMB_INVALID: {
     // A warning, as a broken JSON-LD block is: the markup is there and Google ignores it.

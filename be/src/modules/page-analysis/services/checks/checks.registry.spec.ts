@@ -96,8 +96,8 @@ describe('evaluateChecks', () => {
 
   it('does not count against a page a check that could not be judged', () => {
     // No title: TITLE_LENGTH has nothing to measure, TITLE_SCRIPT_MISMATCH no script to
-    // read and TITLE_DUPLICATE nothing to compare. Passing any would reward the page for
-    // the very thing TITLE_MISSING is failing it for.
+    // read, and META_DESCRIPTION_REPEATS_TITLE and TITLE_DUPLICATE nothing to compare.
+    // Passing any would reward the page for the very thing TITLE_MISSING is failing it for.
     const run = twoUnrelatedPages();
     const { issues, checksApplicable, checksFailed, checksNotApplicable } =
       evaluateChecks(
@@ -107,7 +107,7 @@ describe('evaluateChecks', () => {
         ),
       )[0];
 
-    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 3);
+    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 4);
     expect(issues.map(({ code }) => code)).toEqual(['TITLE_MISSING']);
     expect(checksFailed).toBe(1);
     // Named, not counted: the screen quotes this code's reason back to the reader, so
@@ -115,6 +115,7 @@ describe('evaluateChecks', () => {
     expect(checksNotApplicable).toEqual([
       'TITLE_LENGTH',
       'TITLE_SCRIPT_MISMATCH',
+      'META_DESCRIPTION_REPEATS_TITLE',
       'TITLE_DUPLICATE',
     ]);
   });
@@ -288,7 +289,8 @@ describe('evaluateChecks', () => {
         htmlBytes: 2_000_000,
         parsed: {
           title: 'Shared title',
-          metaDescription: 'Too short',
+          // Too short, shared with the other broken page, and the title again.
+          metaDescription: 'Shared title',
           metaRobots: 'noindex, nosnippet',
           relativeCanonicals: ['/x/'],
           featuredImage: {
@@ -315,7 +317,7 @@ describe('evaluateChecks', () => {
           blocks: sameText,
           metaRefresh: '0; url=/elsewhere/',
           viewport: null,
-          canonicals: ['https://a.example/x/', 'https://a.example/y/'],
+          canonicals: ['http://a.example/x/', 'https://a.example/y/'],
           alternates: [{ lang: 'english', href: 'https://a.example/en/' }],
           openGraph: { 'og:url': 'https://staging.a.example/post/' },
           jsonLd: { types: [], keywords: [], articleFields: [] },
@@ -368,6 +370,7 @@ describe('evaluateChecks', () => {
         featuredImage: null,
         links: [],
         jsonLd: { types: ['Article'], keywords: [], articleFields: [] },
+        breadcrumbs: [],
         // A time with no zone, and an author written as a bare string.
         datePublished: '2026-10-03T09:00:00',
         articleMarkup: {

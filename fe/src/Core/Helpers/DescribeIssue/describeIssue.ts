@@ -61,6 +61,8 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`The description is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	H1_MISSING: () => "The page has no H1 heading.",
 	H1_MULTIPLE: (d) => `The page has ${num(d, "count")} H1 headings.`,
+	META_DESCRIPTION_REPEATS_TITLE: (d) =>
+		`The description "${text(d, "description")}" only repeats the title.`,
 	HEADING_SKIP: (d) =>
 		`"${text(d, "heading")}" jumps from ${text(d, "from").toUpperCase()} to ${text(d, "to").toUpperCase()}.`,
 	NO_SUBHEADINGS: (d) => `${num(d, "words")} words of content run under no subheading.`,
@@ -70,6 +72,7 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 			: "The page names no canonical URL.",
 	CANONICAL_MISMATCH: (d) =>
 		`The ${text(d, "source") === "header" ? "Link header" : "canonical link"} names ${text(d, "canonical")}, not this page.`,
+	CANONICAL_TO_HTTP: (d) => `The canonical names ${text(d, "canonical")}, the insecure address.`,
 	CANONICAL_CONFLICT: (d) =>
 		`The page declares ${urls(d, "canonicals").length} different canonical URLs.`,
 	NOINDEX: (d) =>
@@ -152,6 +155,8 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	},
 	VIEWPORT_MISSING: () => "The page has no viewport meta tag.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
+	OG_URL_MISMATCH: (d) =>
+		`og:url names ${text(d, "ogUrl")}; the page's address is ${text(d, "expected")}.`,
 	PREVIEW_IMAGE_TOO_SMALL: (d) =>
 		`The page's own image is ${num(d, "value")} px wide; Discover asks for at least ${num(d, "min")} px.`,
 	PREVIEW_IMAGE_IS_LOGO: () => "The image the page names for itself is the site's logo.",
@@ -206,6 +211,7 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${list(d, "fields")} in the article markup ${urls(d, "fields").length === 1 ? "is" : "are"} not ISO 8601 with a time zone.`,
 	ARTICLE_HEADLINE_MISMATCH: (d) =>
 		`The markup's headline "${text(d, "headline")}" matches neither the title nor the H1.`,
+	BREADCRUMB_MISSING: () => "The page declares no BreadcrumbList.",
 	BREADCRUMB_INVALID: (d) => {
 		const count = num(d, "count");
 		return `${count} breadcrumb step${count === 1 ? " lacks" : "s lack"} a property Google requires.`;

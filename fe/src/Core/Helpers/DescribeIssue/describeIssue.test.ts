@@ -52,6 +52,29 @@ describe("describeIssue", () => {
 		);
 	});
 
+	it("names the addresses a canonical or sharing tag points to", () => {
+		expect(describeIssue("CANONICAL_TO_HTTP", { canonical: "http://a.example/post/" })).toBe(
+			"The canonical names http://a.example/post/, the insecure address.",
+		);
+		expect(
+			describeIssue("OG_URL_MISMATCH", {
+				ogUrl: "https://a.example/?utm=x",
+				expected: "https://a.example/post/",
+			}),
+		).toBe(
+			"og:url names https://a.example/?utm=x; the page's address is https://a.example/post/.",
+		);
+	});
+
+	it("says what a missing breadcrumb or repeated description is", () => {
+		expect(describeIssue("BREADCRUMB_MISSING", {})).toBe(
+			"The page declares no BreadcrumbList.",
+		);
+		expect(
+			describeIssue("META_DESCRIPTION_REPEATS_TITLE", { description: "How to build links." }),
+		).toBe('The description "How to build links." only repeats the title.');
+	});
+
 	it("counts in the singular and the plural", () => {
 		expect(describeIssue("ARTICLE_DATE_FORMAT_INVALID", { fields: ["datePublished"] })).toBe(
 			"datePublished in the article markup is not ISO 8601 with a time zone.",

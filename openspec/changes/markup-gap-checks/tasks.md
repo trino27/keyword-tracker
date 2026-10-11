@@ -38,7 +38,7 @@ Each code gets one commit containing:
 - its sentence in `fe/src/Core/Helpers/DescribeIssue/describeIssue.ts`, with a case in
   `describeIssue.test.ts`.
 
-- [ ] 2.1 `CANONICAL_TO_HTTP` (warning, Google consolidate-duplicate-URLs source). Write first
+- [x] 2.1 `CANONICAL_TO_HTTP` (warning, Google consolidate-duplicate-URLs source). Write first
   `canonical-to-http.check.spec.ts`:
   - "fails an https page whose canonical is http://";
   - "passes an https canonical";
@@ -47,14 +47,14 @@ Each code gets one commit containing:
 
   Then the check per plan §10.7. Verify: `pnpm --filter be test:ci -- canonical-to-http &&
   pnpm --filter fe test:ci -- describeIssue && pnpm typecheck`.
-- [ ] 2.2 `OG_URL_MISMATCH` (notice, ogp.me). Write first:
+- [x] 2.2 `OG_URL_MISMATCH` (notice, ogp.me). Write first:
   - "fails og:url naming another page";
   - "compares with the canonical when one is declared";
   - "passes a trailing-slash difference";
   - "is not applicable without og:url".
 
   Then the check. Verify: `pnpm --filter be test:ci -- og-url-mismatch && pnpm typecheck`.
-- [ ] 2.3 `META_DESCRIPTION_REPEATS_TITLE` (notice; Ahrefs source, VERIFY the URL as cited).
+- [x] 2.3 `META_DESCRIPTION_REPEATS_TITLE` (notice; Ahrefs source, VERIFY the URL as cited).
   Write first:
   - "fails a description equal to the title without its brand suffix";
   - "passes a description that adds words";
@@ -63,12 +63,19 @@ Each code gets one commit containing:
   Then the check. Verify: `pnpm --filter be test:ci -- meta-description-repeats-title &&
   pnpm --filter @app/contracts test:ci`. The contracts run includes the inclusion bar, which this
   entry must pass as a notice.
-- [ ] 2.4 `BREADCRUMB_MISSING` (notice, Google breadcrumb documentation). Write first:
+- [x] 2.4 `BREADCRUMB_MISSING` (notice, Google breadcrumb documentation). Write first:
   - "fails a page declaring none";
   - "passes a BreadcrumbList inside @graph";
   - "passes a Microdata BreadcrumbList".
 
   Then the check. Verify: `pnpm --filter be test:ci -- breadcrumb && pnpm typecheck`.
+  AMENDED during implementation: the four codes land in one commit — the catalogue is one
+  file and the conditional-codes list one pinned test, so a commit per code would split one
+  reviewed edit four ways. The fixtures moved with them: `makeCheckInput` writes `og:url` as
+  the page's own address (so a clean page applies OG_URL_MISMATCH), and the registry spec's
+  failing pages carry an http canonical, a description equal to the title and no breadcrumb.
+  On the 43 recorded posts the four fired once (BREADCRUMB_MISSING on a Semrush product
+  page that declares none) — a corpus read, not the D12 field audit, which is 6.1.
 - [ ] 2.5 Re-read the catalogue-size claims. Verify: `git grep -n -E "sixty-one|61 checks|50 page
   checks" -- README.md be/src/modules/page-analysis/PAGE_ANALYSIS_MODULE.md`, and note in the
   harvest list each line to correct.

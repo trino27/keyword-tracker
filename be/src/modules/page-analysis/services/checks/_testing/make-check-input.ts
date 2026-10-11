@@ -52,6 +52,8 @@ export function makeCheckInput(
         { lang: 'fr', href: `${finalUrl}fr/` },
       ],
       openGraph: {
+        // The page's own address, derived for the reason the alternates are.
+        'og:url': finalUrl,
         'og:title': 'Link building',
         'og:description': 'A guide',
         'og:image': 'https://a.example/i.png',
