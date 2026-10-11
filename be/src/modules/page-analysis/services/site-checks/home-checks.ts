@@ -70,13 +70,17 @@ function declaredFormatOf(icon: IIconLink): string | null {
  * say. A home page declaring none is judged by `/favicon.ico`, the address browsers fall
  * back to: ghost.org and moz.com declare no icon at all and serve one there (2026-10).
  * Null when every declared icon is in a format Google does not support.
+ *
+ * An icon inlined as a `data:` URI is no address Googlebot-Image can crawl, so it counts
+ * as no icon declared: asked as one, it read as "unreachable" with the whole URI quoted.
  */
 export function faviconTargetOf(
   home: Pick<IHomePage, 'url' | 'icons'>,
 ): { href: string; icon: IIconLink | null } | null {
-  if (home.icons.length === 0)
+  const icons = home.icons.filter(({ href }) => /^https?:/i.test(href));
+  if (icons.length === 0)
     return { href: new URL('/favicon.ico', home.url).href, icon: null };
-  const icon = home.icons.find((candidate) => {
+  const icon = icons.find((candidate) => {
     const format = declaredFormatOf(candidate);
     return format === null || FAVICON_FORMATS.has(format);
   });

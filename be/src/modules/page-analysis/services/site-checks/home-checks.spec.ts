@@ -83,6 +83,29 @@ describe('faviconTargetOf', () => {
     });
   });
 
+  it('reads an icon inlined as a data: URI as no icon declared', () => {
+    const inline = {
+      rel: 'icon',
+      href: 'data:image/png;base64,iVBORw0KGgo=',
+      type: 'image/png',
+      sizes: null,
+    };
+    expect(faviconTargetOf(home({ icons: [inline] }))).toEqual({
+      href: `${HOME}favicon.ico`,
+      icon: null,
+    });
+    expect(
+      faviconTargetOf(
+        home({
+          icons: [
+            inline,
+            { rel: 'icon', href: `${HOME}i.png`, type: null, sizes: null },
+          ],
+        }),
+      )?.href,
+    ).toBe(`${HOME}i.png`);
+  });
+
   it('has nothing to fetch when every icon is SVG', () => {
     expect(
       faviconTargetOf(
