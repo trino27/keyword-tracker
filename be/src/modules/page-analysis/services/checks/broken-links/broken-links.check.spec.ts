@@ -81,6 +81,18 @@ describe('BROKEN_LINKS', () => {
     expect(BROKEN_LINKS_CHECK.evaluate(page({}))).toEqual(NOT_APPLICABLE);
   });
 
+  // techcrunch.com, 2026-10-11: Cloudflare hides e-mail addresses behind this path and
+  // swaps in the mailto: in the browser; it is no page, and answers a crawler 404.
+  it("skips Cloudflare's /cdn-cgi/ addresses, which are no pages", () => {
+    expect(
+      BROKEN_LINKS_CHECK.evaluate(
+        page({
+          'https://a.example/cdn-cgi/l/email-protection#abc': answered(404),
+        }),
+      ),
+    ).toEqual(NOT_APPLICABLE);
+  });
+
   it("skips a link to this site's development host — that is DEVELOPMENT_HOST_REFERENCES's", () => {
     expect(
       BROKEN_LINKS_CHECK.evaluate(
