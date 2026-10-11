@@ -62,8 +62,11 @@ Executes crawl runs; owns no table. Discovery → selection → analysis → one
   Every considered entry is logged; the log ends at the 15th post.
 - **The site checks' own requests** (`SiteProbeService`): after the posts, the home page at the
   site's other scheme and www-variants (none for a subdomain: nobody types
-  `www.blog.cloudflare.com`) and one made-up address, at most four requests, never a
-  failure of the run. Discovery keeps what the site checks read — robots.txt as answered, the
+  `www.blog.cloudflare.com`) and one made-up address, then the served host's home page and the
+  icon it declares (or `/favicon.ico`, its first 64 KiB), at most seven requests, never a
+  failure of the run. Selection also fetches the first 64 KiB of each crawled post's own image
+  (og:image, else the article markup's) for its pixel size — one request per post, skipped when
+  robots.txt forbids it. Discovery keeps what the site checks read — robots.txt as answered, the
   candidates' `<lastmod>` — and the verdicts are written with the run, in its transaction.
 - **What the analysis is handed beyond the page:** every redirect hop with its status, the
   run's robots.txt as `IRobotsRules`, so the checks can ask it about Googlebot and the AI search
