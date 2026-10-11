@@ -34,6 +34,12 @@ export function CwvBadges({ pageSpeed, availability, timeZone }: ICwvBadgesProps
 					Not measured
 				</Text>
 			);
+		case "queued":
+			return (
+				<Text size="xs" c="dimmed">
+					In queue
+				</Text>
+			);
 		case "measuring":
 			return (
 				<Text size="xs" c="dimmed">

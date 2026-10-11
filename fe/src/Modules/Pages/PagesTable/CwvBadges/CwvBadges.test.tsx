@@ -52,8 +52,14 @@ describe("CwvBadges", () => {
 		).toBeInTheDocument();
 	});
 
-	it("reads Measuring… while queued", async () => {
+	it("reads In queue while waiting its turn", async () => {
 		renderBadges({ status: "queued", measurement: null, lastError: null });
+
+		expect(await screen.findByText("In queue")).toBeInTheDocument();
+	});
+
+	it("reads Measuring… while Google is testing it", async () => {
+		renderBadges({ status: "running", measurement: null, lastError: null });
 
 		expect(await screen.findByText("Measuring…")).toBeInTheDocument();
 	});

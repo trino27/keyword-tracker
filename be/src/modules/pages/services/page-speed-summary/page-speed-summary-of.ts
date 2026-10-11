@@ -20,7 +20,7 @@ const reading = (
  * A page's PageSpeed row as the screens read it. Bands come from the thresholds at read
  * time — the same `cwvBandOf` the worker used to choose the finding, so a badge and its
  * issue agree. `lastError` is shown only once the page has been given up on: a row that
- * is merely waiting for its next try is "measuring", not "couldn't measure".
+ * is merely waiting for its next try is still in the queue, not "couldn't measure".
  */
 export function pageSpeedSummaryOf(
   row: IPageSpeedRow | null,

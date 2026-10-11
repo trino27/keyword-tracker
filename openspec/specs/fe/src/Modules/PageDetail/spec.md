@@ -185,14 +185,14 @@ Modified by `client-issue-report`: the group names follow the product's one seve
 
 ### Requirement [PAGEDETAIL-011]: the page shows its Core Web Vitals with their source and age
 
-The detail MUST show a "Speed (Core Web Vitals, mobile)" block with one card per metric — the
-value with its unit, the band in words and colour, the source in plain words and the date
-measured — and the Lighthouse lab performance score as a caption that says it is a lab figure. A
-lab-sourced value MUST say it may vary between runs; a missing INP MUST say why there is none. The
-block MUST state "Measuring…", "Couldn't refresh: <reason>, showing the measurement from <date>",
-"Couldn't measure: <reason>", "Not measured" and "PageSpeed not configured" in words, never as
-empty cards; when PageSpeed's state is `keyRejected` it MUST open with "Google rejected the
-PageSpeed key — speed measurements are paused. See the README." above whatever is stored.
+The detail MUST show a "Speed (Core Web Vitals, mobile)" block with one card per metric — the value
+with its unit, the band in words and colour, the source in plain words and the date measured — and
+the Lighthouse lab performance score as a caption that says it is a lab figure. A lab-sourced value
+MUST say it may vary between runs; a missing INP MUST say why there is none. The block MUST state
+"In queue for measurement", "Measuring…", "Couldn't refresh: <reason>, showing the measurement from
+<date>", "Couldn't measure: <reason>", "Not measured" and "PageSpeed not configured" in words,
+never as empty cards; when PageSpeed's state is `keyRejected` it MUST open with "Google rejected
+the PageSpeed key — speed measurements are paused. See the README." above whatever is stored.
 
 #### Scenario: an origin-sourced INP
 - **WHEN** the page's INP is 240 ms from the whole site's real visitors

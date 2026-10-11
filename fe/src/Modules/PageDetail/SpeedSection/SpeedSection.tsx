@@ -31,6 +31,7 @@ const FULL_NAME: Record<TCwvMetric, string> = {
 const STATE_SENTENCE = {
 	notMeasured:
 		"This page has not been measured yet: it was crawled before speed measurement existed. The next crawl or seed run queues it.",
+	queued: "In queue for measurement. Clients take turns, and pages are measured about five a minute, so a long queue can take an hour or more.",
 	measuring: "Measuring… Google's PageSpeed test takes up to a minute per page.",
 	paused: "Not measured yet, and paused until the PageSpeed key is fixed.",
 } as const;
@@ -58,6 +59,7 @@ export function SpeedSection({ pageSpeed, availability, timeZone }: ISpeedSectio
 				</Alert>
 			)}
 			{(view.kind === "notMeasured" ||
+				view.kind === "queued" ||
 				view.kind === "measuring" ||
 				view.kind === "paused") && (
 				<Text size="sm" c="dimmed">
