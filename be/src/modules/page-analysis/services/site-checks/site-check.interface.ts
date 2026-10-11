@@ -74,6 +74,11 @@ export interface ISiteCheckInput {
   home: IHomePage | null;
   /** The icon the home page declares; null when none was fetched. */
   favicon: IFaviconAnswer | null;
+  /**
+   * `/favicon.ico` at the root, asked when the declared icon is another file; null when
+   * it is the same file, or could not be asked. The file a client falls back to.
+   */
+  faviconFallback: IFaviconAnswer | null;
 }
 
 export type TSiteVerdict =

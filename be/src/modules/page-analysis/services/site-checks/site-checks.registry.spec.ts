@@ -89,6 +89,7 @@ const healthySite = (
     head: pngHead(48, 48),
     blockedBy: null,
   },
+  faviconFallback: null,
   ...overrides,
 });
 
@@ -126,6 +127,7 @@ describe('SITE_CHECKS', () => {
         missingPage: null,
         home: null,
         favicon: null,
+        faviconFallback: null,
       }),
     );
 

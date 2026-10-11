@@ -19,6 +19,8 @@ export interface ISiteProbes {
   home: IHomePage | null;
   /** The icon that home page declares, fetched; null when none could be. */
   favicon: IFaviconAnswer | null;
+  /** `/favicon.ico`, when the declared icon is another file. */
+  faviconFallback: IFaviconAnswer | null;
 }
 
 /** The crawler Google fetches favicons with, by its robots.txt product token. */
@@ -96,12 +98,20 @@ export class SiteProbeService {
       ? await this.ask(missing, signal)
       : null;
     const home = await this.readHome(`${servedOrigin}/`, robots, signal);
+    const target = home ? faviconTargetOf(home) : null;
+    const root = home ? new URL('/favicon.ico', home.url).href : null;
     return {
       servedOrigin,
       hostVariants,
       missingPage,
       home,
-      favicon: home ? await this.fetchFavicon(home, robots, signal) : null,
+      favicon: target
+        ? await this.fetchIcon(target.href, robots, signal)
+        : null,
+      faviconFallback:
+        root && root !== target?.href
+          ? await this.fetchIcon(root, robots, signal)
+          : null,
     };
   }
 
@@ -133,19 +143,16 @@ export class SiteProbeService {
   }
 
   /**
-   * The icon Google would use, asked of robots.txt for Googlebot-Image and fetched — the
-   * first bytes only, which carry the format and the size. Not fetched when robots.txt
-   * forbids this crawler, or when it already keeps Googlebot-Image out, which is the
-   * finding whatever the file holds.
+   * One icon file, asked of robots.txt for Googlebot-Image and fetched — the first bytes
+   * only, which carry the format and the size. Not fetched when robots.txt forbids this
+   * crawler, or when it already keeps Googlebot-Image out, which is the finding whatever
+   * the file holds.
    */
-  private async fetchFavicon(
-    home: IHomePage,
+  private async fetchIcon(
+    url: string,
     robots: RobotsPolicy,
     signal: AbortSignal,
   ): Promise<IFaviconAnswer | null> {
-    const target = faviconTargetOf(home);
-    if (!target) return null;
-    const url = target.href;
     if (robots.allows(url, GOOGLEBOT_IMAGE) === false)
       return {
         url,

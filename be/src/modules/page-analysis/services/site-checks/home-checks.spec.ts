@@ -47,7 +47,11 @@ const answer = (overrides: Partial<IFaviconAnswer> = {}): IFaviconAnswer => ({
 const input = (
   homePage: IHomePage | null,
   favicon: IFaviconAnswer | null = answer(),
-) => ({ home: homePage, favicon }) as ISiteCheckInput;
+  faviconFallback: IFaviconAnswer | null = null,
+) => ({ home: homePage, favicon, faviconFallback }) as ISiteCheckInput;
+
+const rootIcon = (overrides: Partial<IFaviconAnswer> = {}) =>
+  answer({ url: `${HOME}favicon.ico`, ...overrides });
 
 describe('faviconTargetOf', () => {
   it('takes the first icon in a format Google supports', () => {
@@ -182,6 +186,56 @@ describe('FAVICON_INVALID', () => {
         ),
       ),
     ).toEqual({ outcome: 'pass' });
+  });
+
+  // beachplumbingservices.com, 2026-10: the theme icon it declares is gone, the root
+  // one is there.
+  it('passes a broken declared icon while /favicon.ico is a usable one', () => {
+    expect(
+      faviconInvalid(
+        input(
+          home(),
+          answer({ status: 404, head: new Uint8Array() }),
+          rootIcon(),
+        ),
+      ),
+    ).toEqual({ outcome: 'pass' });
+  });
+
+  // oborot.ru, 2026-10: an SVG-only link, and an icon at the root.
+  it('passes an SVG-only declaration while /favicon.ico is a usable one', () => {
+    expect(
+      faviconInvalid(
+        input(
+          home({
+            icons: [
+              {
+                rel: 'icon',
+                href: `${HOME}i.svg`,
+                type: 'image/svg+xml',
+                sizes: null,
+              },
+            ],
+          }),
+          null,
+          rootIcon(),
+        ),
+      ),
+    ).toEqual({ outcome: 'pass' });
+  });
+
+  it('fails when the fallback is no icon either, and says what it answered', () => {
+    const result = faviconInvalid(
+      input(
+        home(),
+        answer({ status: 404, head: new Uint8Array() }),
+        rootIcon({ status: 404, head: new Uint8Array() }),
+      ),
+    );
+    expect(result).toEqual(failsWith({ reason: 'unreachable' }));
+    expect(evidenceOf(result).at(-1)).toBe(
+      `The fallback ${HOME}favicon.ico is no icon either: GET ${HOME}favicon.ico answered 404`,
+    );
   });
 
   it('cannot be judged without the home page, or without the icon fetched', () => {

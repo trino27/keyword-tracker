@@ -1,53 +1,29 @@
 import { attribute, evidence } from '../_shared/evidence';
-import { extensionOf, fileNameOf } from '../_shared/image-file';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
- * Image formats a camera, a phone or an editor saves that Google Images does not list
- * among the ones it indexes (BMP, GIF, JPEG, PNG, WebP, SVG, AVIF). Only formats KNOWN
- * to be outside the list: an address without an extension, or an unfamiliar one, may
- * well serve a JPEG, and is not reported.
- */
-const UNSUPPORTED_FORMATS: ReadonlySet<string> = new Set([
-  'heic',
-  'heif',
-  'tif',
-  'tiff',
-  'jxl',
-  'jp2',
-  'j2k',
-  'jpx',
-  'psd',
-  'raw',
-  'cr2',
-  'nef',
-  'dng',
-  'ico',
-]);
-
-/**
- * Content images Google cannot index: an `<img>` with a srcset and no src — no fallback
- * for a crawler that does not read srcset — or a file in a format Google Images does not
- * list. An image with no src that a script fills from `data-src` is not one of these:
+ * Content images with a srcset and no src: no fallback for a crawler or a browser that
+ * does not read srcset, which Google asks every responsive image to have.
+ *
+ * The file's format is NOT judged by its extension. An image CDN converts on the way out:
+ * shopify.com's `.heic` uploads are answered as JPEG to any client, Googlebot-Image's
+ * name included, and as WebP to a browser that accepts it (2026-10) — so a HEIC
+ * extension is no HEIC file, and reporting one would be wrong about the page.
+ *
+ * An image with no src that a script fills from `data-src` is not reported either:
  * Google renders the page and sees what the script sets.
  */
 export const IMAGES_NOT_INDEXABLE_CHECK = defineCheck(
   'IMAGES_NOT_INDEXABLE',
   ({ parsed }) => {
     if (parsed.images.length === 0) return NOT_APPLICABLE;
-    const reasons = parsed.images.flatMap((image) => {
-      if (!image.src?.trim() && image.srcset)
-        return [
-          `<img srcset="${attribute(image.srcset)}"> — srcset with no src fallback`,
-        ];
-      const name = image.src ? fileNameOf(image.src) : null;
-      const format = name ? extensionOf(name) : null;
-      return format && UNSUPPORTED_FORMATS.has(format)
+    const reasons = parsed.images.flatMap((image) =>
+      !image.src?.trim() && image.srcset
         ? [
-            `<img src="${attribute(image.src!)}"> — .${format} is not a format Google Images indexes`,
+            `<img srcset="${attribute(image.srcset)}"> — srcset with no src fallback`,
           ]
-        : [];
-    });
+        : [],
+    );
     return reasons.length === 0
       ? PASS
       : fails({

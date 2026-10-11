@@ -286,6 +286,7 @@ export class CrawlRunExecutorService implements ICrawlRunExecutor {
       missingPage: context.siteProbes?.missingPage ?? null,
       home: context.siteProbes?.home ?? null,
       favicon: context.siteProbes?.favicon ?? null,
+      faviconFallback: context.siteProbes?.faviconFallback ?? null,
     });
     context.outcome = outcomeOf(
       selection.pages.length,

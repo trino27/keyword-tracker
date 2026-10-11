@@ -316,7 +316,9 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   beside Cyrillic passes — fired on none of the Russian and Uzbek pages);
   `IMAGE_PREVIEW_NOT_LARGE` (no robots rule allows `max-image-preview:large`, which Discover
   needs for a large card — 24 of 58: semrush, moz, ahrefs, ghost, cloudflare, habr, vc.ru);
-  `IMAGES_NOT_INDEXABLE` (warning: srcset with no src, HEIC/TIFF/JPEG XL — 0 live);
+  `IMAGES_NOT_INDEXABLE` (warning: srcset with no src — 0 live. The format is NOT judged by
+  the extension: it was, and the one live finding was wrong — shopify.com's CDN answers its
+  `.heic` uploads as JPEG to every client, Googlebot-Image's name included);
   `IMAGE_FILENAMES_GENERIC` (IMG_0203, Screen-Shot-…, image-3, download (50) — 6, all right; a bare
   number is NOT one, moz numbers its authors' photos `/user/photo/10.jpg`); `VIDEO_WITHOUT_METADATA`
   (a YouTube/Vimeo/VK embed or a playable `<video>` with no VideoObject or og:video — 10; a muted
@@ -342,10 +344,27 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   is another hostname to Google) and its icon (one more): `FAVICON_INVALID` (warning: none, an
   SVG-only icon, blocked for Googlebot-Image, not answered, not square, under 8 px — read from
   the file. A page declaring no icon is judged by `/favicon.ico`, which ghost.org and moz.com
-  serve with no link at all; a WebP or AVIF answer is a CDN negotiating, as dev.to's does, and
-  no finding. Live: 1 of 30, blog.cloudflare.com's 99×96 favicon.ico); `SITE_NAME_NOT_DECLARED`
+  serve with no link at all; a declared icon that fails is no finding either while
+  `/favicon.ico` is a usable icon (one request more), since what results show is then not in
+  doubt — beachplumbingservices.com declares a theme icon that is gone, oborot.ru only an
+  SVG, and both serve one at the root. A WebP or AVIF answer is a CDN negotiating, as dev.to's
+  does, and no finding. Live: blog.cloudflare.com's 99×96 favicon.ico, on both audits);
+  `SITE_NAME_NOT_DECLARED`
   (no WebSite name — 17 of 30); `SITE_NAME_INCONSISTENT` (WebSite name against og:site_name,
   neither among the alternate names — 1: blog.google, "News from Google" and "blog.google").
+  A second audit ran the real pipeline — discovery, selection, the probes, the analysis —
+  over 40 sites, small businesses among them (plumbers, estate agents, Bitrix and Tilda
+  shops), 166 posts in sitemap order. Every firing was read, and the image sizes were
+  measured again from the files outside this code: all seven agreed. `PREVIEW_IMAGE_TOO_SMALL`
+  fired on 51 — older posts carry the small images of their day (dou.ua's 420×230, wpbeginner's
+  680×385); `ARTICLE_DATE_FORMAT_INVALID` on smashingmagazine's `0001-01-01 00:00:00 +0000 UTC`,
+  Hugo's zero time; `AUTHOR_MARKUP_INCOMPLETE` on shopify's "by Alicia Clark" (each author
+  written twice in one node, now counted once). It also found a crash, in no check: a body cut
+  at its cap was later aborted by its request's own timeout, and undici's error event on it
+  had no listener left — the transport now keeps one (`UndiciHttpTransport`). No live page
+  among the 224 read across both audits carries a TITLE_SCRIPT_MISMATCH, PREVIEW_IMAGE_IS_LOGO,
+  ARTICLE_HEADLINE_MISMATCH, BREADCRUMB_INVALID or data-nosnippet wrapper; those five are
+  proven by their specs alone.
   None reports what an older check already does. Where two could meet on one fact, the
   newer one steps aside, as STRUCTURED_DATA_INCOMPLETE does for STRUCTURED_DATA_MISSING: a
   date that does not read as one is ARTICLE_DATE_FORMAT_INVALID's alone (DATES_INCONSISTENT

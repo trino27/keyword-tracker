@@ -47,14 +47,15 @@ describe('IMAGES_NOT_INDEXABLE', () => {
     ]);
   });
 
-  it.each(['IMG_1234.HEIC', 'scan.tiff', 'photo.jxl'])(
-    'fails %s, a format Google Images does not list',
-    (src) => {
-      expect(verdict([makeImage({ src }), makeImage()])).toEqual(
-        failsWith({ count: 1, total: 2 }),
-      );
-    },
-  );
+  // shopify.com's CDN answers its .heic uploads as JPEG (2026-10): an extension is no
+  // format, and judging one would be wrong about the page.
+  it('does not judge a file by its extension', () => {
+    expect(
+      verdict([
+        makeImage({ src: 'https://cdn.shopify.com/files/Bette-1.heic?v=1' }),
+      ]),
+    ).toEqual(PASSES);
+  });
 
   it('cannot be judged on a page with no images', () => {
     expect(verdict([])).toEqual(NOT_APPLICABLE);

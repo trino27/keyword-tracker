@@ -4,6 +4,7 @@ import { readImageHeader } from '../checks/_shared/image-header';
 import {
   SITE_NOT_APPLICABLE,
   SITE_PASS,
+  type IFaviconAnswer,
   type IHomePage,
   type TSiteCheck,
   type TSiteVerdict,
@@ -101,46 +102,33 @@ const failing = (
   details: { reason, ...more, evidence: evidence(lines) },
 });
 
-/**
- * The favicon as Google would read it: declared on the home page (or served at
- * /favicon.ico), in a supported format, open to Googlebot-Image, answered with an image,
- * square and at least 8×8 px. Not applicable when the home page could not be read, or
- * the icon could not be fetched because this crawler's own robots.txt group forbids it.
- */
-export const faviconInvalid: TSiteCheck = (input) => {
-  const { home, favicon } = input;
-  if (!home) return SITE_NOT_APPLICABLE;
-  const target = faviconTargetOf(home);
-  if (!target)
-    return failing('format', [
-      ...home.icons.map(quoteIcon),
-      'Every icon is in a format Google Search does not support (BMP, GIF, ICO, PNG, JPEG, PPM, TIFF)',
-    ]);
-  if (!favicon || favicon.url !== target.href) return SITE_NOT_APPLICABLE;
-  const subject = target.icon
-    ? quoteIcon(target.icon)
-    : `${home.url} declares no <link rel="icon">, so ${target.href} was asked`;
-  if (favicon.blockedBy)
+/** What keeps Google from using one fetched icon, or null when it can. */
+function problemOf(
+  answer: IFaviconAnswer,
+  subject: string,
+  declared: boolean,
+): TSiteVerdict | null {
+  if (answer.blockedBy)
     return failing('blocked', [
       subject,
-      `robots.txt keeps Googlebot-Image from it: ${favicon.blockedBy}`,
+      `robots.txt keeps Googlebot-Image from it: ${answer.blockedBy}`,
     ]);
-  if (favicon.status !== 200)
-    return failing(target.icon ? 'unreachable' : 'none', [
+  if (answer.status !== 200)
+    return failing(declared ? 'unreachable' : 'none', [
       subject,
-      `GET ${favicon.url} answered ${favicon.status ?? 'nothing'}`,
+      `GET ${answer.url} answered ${answer.status ?? 'nothing'}`,
     ]);
-  const header = readImageHeader(favicon.head);
+  const header = readImageHeader(answer.head);
   if (
     header &&
     !FAVICON_FORMATS.has(header.format) &&
     !NEGOTIATED_FORMATS.has(header.format)
   )
-    return failing(target.icon ? 'format' : 'none', [
+    return failing(declared ? 'format' : 'none', [
       subject,
       header.format === 'html'
-        ? `${favicon.url} answered an HTML page, not an image`
-        : `${favicon.url} is a ${header.format.toUpperCase()} file, a format Google Search does not support`,
+        ? `${answer.url} answered an HTML page, not an image`
+        : `${answer.url} is a ${header.format.toUpperCase()} file, a format Google Search does not support`,
     ]);
   if (header?.width && header.height) {
     const size = `${header.width}×${header.height} px`;
@@ -148,17 +136,73 @@ export const faviconInvalid: TSiteCheck = (input) => {
     if (header.width !== header.height)
       return failing(
         'notSquare',
-        [subject, `${favicon.url} is ${size}, not square`],
+        [subject, `${answer.url} is ${size}, not square`],
         measured,
       );
     if (header.width < FAVICON_MIN_SIDE)
       return failing(
         'tooSmall',
-        [subject, `${favicon.url} is ${size}`],
+        [subject, `${answer.url} is ${size}`],
         measured,
       );
   }
-  return SITE_PASS;
+  return null;
+}
+
+/** The verdict with what the root file answered added to its evidence. */
+function withFallback(
+  verdict: TSiteVerdict,
+  fallback: IFaviconAnswer | null,
+): TSiteVerdict {
+  if (verdict.outcome !== 'fails' || !fallback) return verdict;
+  const said = problemOf(fallback, '', false);
+  const why =
+    said?.outcome === 'fails' ? said.details.evidence.slice(-1)[0] : '';
+  return {
+    ...verdict,
+    details: {
+      ...verdict.details,
+      evidence: evidence([
+        ...verdict.details.evidence,
+        `The fallback ${fallback.url} is no icon either: ${why}`,
+      ]),
+    },
+  };
+}
+
+/**
+ * The favicon as Google would read it: declared on the home page (or served at
+ * /favicon.ico), in a supported format, open to Googlebot-Image, answered with an image,
+ * square and at least 8×8 px. A declared icon that fails is no finding while the root
+ * /favicon.ico is a usable icon — beachplumbingservices.com declares a theme icon that is
+ * gone and serves one at the root, oborot.ru declares only an SVG and does the same
+ * (2026-10) — because what the reader sees in results is then not in doubt. Not
+ * applicable when the home page could not be read, or the icon could not be fetched
+ * because this crawler's own robots.txt group forbids it.
+ */
+export const faviconInvalid: TSiteCheck = (input) => {
+  const { home, favicon, faviconFallback } = input;
+  if (!home) return SITE_NOT_APPLICABLE;
+  const fallbackUsable =
+    faviconFallback !== null && problemOf(faviconFallback, '', false) === null;
+  const target = faviconTargetOf(home);
+  if (!target)
+    return fallbackUsable
+      ? SITE_PASS
+      : withFallback(
+          failing('format', [
+            ...home.icons.map(quoteIcon),
+            'Every icon is in a format Google Search does not support (BMP, GIF, ICO, PNG, JPEG, PPM, TIFF)',
+          ]),
+          faviconFallback,
+        );
+  if (!favicon || favicon.url !== target.href) return SITE_NOT_APPLICABLE;
+  const subject = target.icon
+    ? quoteIcon(target.icon)
+    : `${home.url} declares no <link rel="icon">, so ${target.href} was asked`;
+  const problem = problemOf(favicon, subject, target.icon !== null);
+  if (!problem || fallbackUsable) return SITE_PASS;
+  return withFallback(problem, faviconFallback);
 };
 
 /** Case, spacing and punctuation aside: "Search Engine Land" = "search-engine land". */
