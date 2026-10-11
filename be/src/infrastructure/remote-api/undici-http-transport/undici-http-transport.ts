@@ -1,5 +1,5 @@
 import { createBrotliDecompress, createGunzip, createInflate } from 'node:zlib';
-import type { Readable, Transform } from 'node:stream';
+import { pipeline, type Readable, type Transform } from 'node:stream';
 import { Agent, request } from 'undici';
 import type { createGuardedLookup } from '../guarded-lookup/guarded-lookup';
 import type {
@@ -53,8 +53,16 @@ export class UndiciHttpTransport implements IHttpTransport {
       const headers = normalizeHeaders(response.headers);
       const encoding = headers['content-encoding']?.trim().toLowerCase();
       const decompress = encoding ? DECOMPRESSORS[encoding] : undefined;
+      // undici answers a destroy of the body — ours at the cap, or the request's timeout
+      // signal firing after the body was read — with an error event. By then the reader
+      // has let go, and an error event nobody hears is an uncaught exception: the worker
+      // went down on preview images and favicons past the probe cap (2026-10). The reader
+      // still hears every error while it reads; this listener only hears what follows.
+      response.body.on('error', () => undefined);
+      // pipeline rather than pipe: an error on the body reaches the decoder, and so the
+      // reader, instead of leaving it waiting for an end that never comes.
       const stream: Readable = decompress
-        ? response.body.pipe(decompress())
+        ? pipeline(response.body, decompress(), () => undefined)
         : response.body;
       const { body, truncated } = await readCapped(stream, input, () =>
         response.body.destroy(),
