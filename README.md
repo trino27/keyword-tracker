@@ -83,12 +83,14 @@ pnpm test:db                 # the integration and e2e suites, against pnpm dev:
   nothing — pages it no longer finds keep their history.
 - **Time:** every instant is `timestamptz` in UTC and the user's zone is a column; the API turns a
   calendar range into UTC bounds in that zone, across DST, and the UI formats in it.
-- **The Issues report is written for a marketer.** One screen per client lists every finding
-  of its current crawl — page checks, speed, and the site's robots.txt, sitemap and host — each
-  problem once: what is wrong, why it costs traffic or clicks, what to do and who does it (the
-  CMS editor, the developer, the hosting provider), with the technical account and its sources
-  folded underneath. Group by problem or by page; filter by level, type (SEO, Speed, Site) and
-  page. Google's whole-site speed figures are one row ("whole site, 15 pages"), not fifteen.
+- **The Issues report is written for a marketer.** One screen lists every finding of a
+  client's current crawl (page checks, speed, and the site's robots.txt, sitemap and host), or
+  of all clients, one section per client. Each problem appears once: what is wrong, why it
+  costs traffic or clicks, what to do and who does it (the CMS editor, the developer, the
+  hosting provider), with the technical account and its sources folded underneath. Group by
+  problem or by page; filter by level (all three shown by default), type (SEO, Speed, Site)
+  and page; the filters are kept while moving between screens. Google's whole-site speed
+  figures are one row ("whole site, 15 pages"), not fifteen.
   **Severity, and why:** three levels, set per check in the catalogue and never computed —
   **Critical**: the page will not appear in search, or drops out of it (noindex, blocked by
   robots.txt, no title, not https); **Important**: it shows, but ranks or is clicked less than

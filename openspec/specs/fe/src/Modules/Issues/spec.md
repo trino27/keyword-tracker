@@ -2,21 +2,28 @@
 
 ## Purpose
 
-The Issues screen: one client's findings, worst first, explained in plain words, grouped by
-issue or by page and filtered in memory.
+The Issues screen: one client's findings — or every client's, one section each — worst first,
+explained in plain words, grouped by issue or by page and filtered in memory.
 
 ## Requirements
 
-### Requirement [ISSUESUI-001]: the report opens on the client the URL names
+### Requirement [ISSUESUI-001]: the report shows the client the URL names, else every client grouped by client
 
-The Issues screen MUST read its client from the URL; without one it MUST open the user's first
-client by name and write that client into the URL. It MUST offer every client of the user in a
-selector. A client the API answers as not found MUST show a not-found state with a link to Clients
-and no data; a user with no clients MUST be offered Add client.
+The Issues screen MUST read its client from the URL. Without one it MUST show every client of the
+user, one section per client ordered by name, each headed by the client's name and site, its crawl
+date and its count of findings under the current filters, with the same grouping and filters inside
+each section; the client's name MUST narrow the report to that client. It MUST offer every client
+of the user in a selector whose empty choice reads "All clients". A client the API answers as not
+found MUST show a not-found state with a link to Clients and no data; a user with no clients MUST
+be offered Add client.
 
-#### Scenario: opening Issues from the navigation
+Modified after `client-issue-report` (plan D31): the screen opened on the first client by name; the
+user asked for all clients, grouped by client.
+
+#### Scenario: opening Issues from the navigation for the first time
 - **WHEN** a user with clients "Semrush" and "Yoast" opens `/issues`
-- **THEN** the URL becomes `/issues?clientId=<Semrush's id>` and Semrush's report is shown
+- **THEN** a "Semrush" section and then a "Yoast" section are shown, each with its own findings,
+  and the URL names no client
 
 #### Scenario: another user's client id
 - **WHEN** user B opens `/issues?clientId=<A's client>`
@@ -44,9 +51,9 @@ count of Critical, then Important, then Improvement findings. The grouping MUST 
 - **WHEN** META_DESCRIPTION_MISSING affects 2 pages and a whole-site `CWV_LCP_POOR` row affects 15
 - **THEN** the LCP card comes first among Important issues
 
-### Requirement [ISSUESUI-004]: filters hide improvements by default and never hide the whole site
+### Requirement [ISSUESUI-004]: filters show every level by default and never hide the whole site
 
-The screen MUST filter by level, with Improvement hidden by default, by type (SEO, Speed, Site) and
+The screen MUST filter by level, with every level shown by default, by type (SEO, Speed, Site) and
 by URL, all in the URL, all applied to the one snapshot without a new request. A filter to one page
 — by URL search or by the page the user came from — MUST keep the whole-site rows (site checks and
 whole-site speed figures), because they affect that page too.
@@ -57,7 +64,10 @@ whole-site speed figures), because they affect that page too.
 
 #### Scenario: the default levels
 - **WHEN** the report opens without level parameters
-- **THEN** Critical and Important findings are shown and Improvement findings are not
+- **THEN** Critical, Important and Improvement findings are shown, and the type is All
+
+Modified after `client-issue-report` (plan D30): Improvement was hidden by default; the user asked
+for every level.
 
 ### Requirement [ISSUESUI-005]: each issue reads as what, why and what to do, with the technical text one click away
 

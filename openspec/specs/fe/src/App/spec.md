@@ -47,7 +47,9 @@ Every screen MUST render inside the AppShell (product name, Pages, Issues and Cl
 user menu with the email and Sign out) and open with a page header; crawl statuses MUST be coloured
 from one `Record` over the status set: queued grey, running blue with a loader, succeeded green,
 partial yellow, failed red; issue severities MUST be named and coloured from one `Record` over the
-severity set: error "Critical" red, warning "Important" yellow, notice "Improvement" grey.
+severity set: error "Critical" red, warning "Important" yellow, notice "Improvement" grey. The
+navigation's Pages and Issues MUST reopen each screen with the client, filters and grouping it was
+last left with in the session; a report never opened takes the client the pages list is filtered to.
 
 Modified by `client-issue-report`: the navigation gains Issues, and severity gains the same
 single-source vocabulary crawl statuses already have — the report introduces the names Critical,
@@ -65,3 +67,7 @@ scales.
 #### Scenario: the navigation
 - **WHEN** a signed-in user looks at the header
 - **THEN** it offers Pages, Issues and Clients in that order
+
+#### Scenario: leaving a filtered screen and coming back
+- **WHEN** the user filters Issues to Critical, grouped by page, opens Pages, then Issues again
+- **THEN** Issues shows Critical only, grouped by page, for the same client (plan D30)
