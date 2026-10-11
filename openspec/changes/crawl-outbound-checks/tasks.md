@@ -59,7 +59,7 @@ it green.
 
 ## 2. The outbound stage, its budgets and robots per host (3b) — CRAWL-011, CRAWL-012, CRAWL-013
 
-- [ ] 2.1 Write first `be/src/infrastructure/remote-api/_testing/fixture-http-transport.spec.ts` →
+- [x] 2.1 Write first `be/src/infrastructure/remote-api/_testing/fixture-http-transport.spec.ts` →
   "an unrecorded URL asked for its status only answers 200". It fails today: 404. Then add the
   rule to `fixture-http-transport.ts` with a comment saying why: without it, every recorded post's
   external links would read as broken. A request with `maxBytes === 0` and no entry answers 200
