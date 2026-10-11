@@ -45,6 +45,14 @@ const show = (over = {}) =>
 	);
 
 describe("PositionHistory", () => {
+	it("names where the positions come from beside its title", () => {
+		show({ history: HISTORY, status: "ready" });
+
+		expect(
+			screen.getByRole("heading", { name: "Position history (simulated)" }),
+		).toBeInTheDocument();
+	});
+
 	it("stands in for the keyword chips while the history loads", () => {
 		show();
 
