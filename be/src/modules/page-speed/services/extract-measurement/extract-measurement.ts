@@ -251,7 +251,8 @@ function lcpBreakdownOf(
   const table = items.find((item) => item.items !== undefined)?.items ?? [];
   const phases = LCP_PHASES.flatMap((phase: TLcpPhase) => {
     const row = table.find((r) => r.subpart === phase);
-    return row ? [{ phase, ms: Math.round(row.duration) }] : [];
+    // A phase is never shorter than nothing; the screen refuses a negative one.
+    return row ? [{ phase, ms: Math.max(0, Math.round(row.duration)) }] : [];
   });
   if (phases.length === 0) return null;
   const node = items.find((item) => item.type === 'node');

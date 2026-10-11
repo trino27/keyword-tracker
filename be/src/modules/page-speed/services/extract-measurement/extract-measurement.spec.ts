@@ -193,6 +193,26 @@ describe('extractDiagnostics', () => {
     });
   });
 
+  it('reads a phase Lighthouse puts below zero as zero, never negative', () => {
+    const body = readPageSpeedFixture('lighthouse-lab-only.json') as {
+      lighthouseResult: {
+        audits: {
+          'lcp-breakdown-insight': {
+            details: { items: { items?: { duration: number }[] }[] };
+          };
+        };
+      };
+    };
+    const table = body.lighthouseResult.audits[
+      'lcp-breakdown-insight'
+    ].details.items.find((item) => item.items)!.items!;
+    table[0].duration = -3.2;
+
+    expect(
+      extractDiagnostics(body)?.lcpBreakdown?.phases.map(({ ms }) => ms),
+    ).toEqual([0, 185]);
+  });
+
   /** The answers recorded before the app asked for more than performance. */
   it('has no breakdown when the answer has none, and still reads the field data', () => {
     const diagnostics = extractDiagnostics(

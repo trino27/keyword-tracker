@@ -137,7 +137,9 @@ export const PAGE_SPEED_COLUMNS = pageSpeedColumns('ps');
  */
 const lcpBreakdownSchema = z.object({
   element: z.object({ selector: z.string(), snippet: z.string() }).nullable(),
-  phases: z.array(z.object({ phase: z.enum(LCP_PHASES), ms: z.number() })),
+  phases: z.array(
+    z.object({ phase: z.enum(LCP_PHASES), ms: z.number().min(0) }),
+  ),
 }) satisfies z.ZodType<ILcpBreakdown>;
 
 const numberOrNull = (value: number | string | null): number | null =>
