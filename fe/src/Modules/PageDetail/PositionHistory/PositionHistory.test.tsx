@@ -51,8 +51,8 @@ describe("PositionHistory", () => {
 		expect(screen.getByLabelText("Loading keywords")).toBeInTheDocument();
 	});
 
-	// The first question of a drop: did Google move? The band is drawn on the chart and
-	// named, with a link to Google's own announcement, beneath it.
+	// The first question of a drop: did Google move? Each update the chart's days overlap is
+	// named beneath it, with a link to Google's own announcement — nothing is shaded on it.
 	it("names the Google updates the chart's days overlap, linked to the dashboard", () => {
 		show({
 			history: {
@@ -90,7 +90,7 @@ describe("PositionHistory", () => {
 
 		const link = screen.getByRole("link", { name: /September 2026 spam update/ });
 		expect(link).toHaveAttribute("href", "https://status.search.google.com/incidents/spam-sep");
-		// The rollout's own dates, not the two days of data the band is clipped to.
+		// The rollout's own dates, not the two days of data the chart shows of it.
 		expect(link).toHaveTextContent("September 2026 spam update (Sep 24–Oct 8)");
 		expect(screen.queryByText(/May 2026 core update/)).not.toBeInTheDocument();
 	});

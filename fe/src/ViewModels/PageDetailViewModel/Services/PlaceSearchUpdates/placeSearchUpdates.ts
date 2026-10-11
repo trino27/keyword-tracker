@@ -7,7 +7,7 @@ export interface IUpdateBand {
 	title: string;
 	kind: TSearchUpdate["kind"];
 	url: string;
-	/** Both are days present on the chart's axis, `from <= to`: where the band is drawn. */
+	/** Both are days present on the chart's axis, `from <= to`: the part of the rollout it shows. */
 	from: string;
 	to: string;
 	/**
