@@ -44,6 +44,11 @@ describe('UndiciHttpTransport (local server)', () => {
         response
           .writeHead(200, { 'content-encoding': 'gzip' })
           .end(gzipSync(Buffer.alloc(1024 * 1024, 'x')));
+      } else if (request.url === '/endless') {
+        // A body that never ends: a status check must not wait for it.
+        response.writeHead(200, { 'content-type': 'text/html' });
+        const timer = setInterval(() => response.write('x'.repeat(1024)), 5);
+        response.on('close', () => clearInterval(timer));
       } else if (request.url === '/moved') {
         response.writeHead(301, { location: '/target' }).end();
       } else {
@@ -96,6 +101,27 @@ describe('UndiciHttpTransport (local server)', () => {
     await expect(
       send(transport(permissiveLookup), '/big', 1024),
     ).rejects.toBeInstanceOf(RemoteApiTooLargeError);
+  });
+
+  // Link checks ask for the status alone (plan D5). Nine on one origin, past the agent's
+  // eight connections: a body left open would hold its connection until the timeout.
+  it('a zero-byte cap returns the head and frees the connection', async () => {
+    const checker = transport(permissiveLookup);
+    const answers = await Promise.all(
+      Array.from({ length: 9 }, () =>
+        checker.send({
+          url: `${base}/endless`,
+          headers: {},
+          signal: AbortSignal.timeout(2_000),
+          maxBytes: 0,
+          overflow: 'truncate',
+        }),
+      ),
+    );
+
+    expect(answers.map(({ status, body }) => [status, body.length])).toEqual(
+      Array.from({ length: 9 }, () => [200, 0]),
+    );
   });
 
   it('decodes a gzip body', async () => {

@@ -12,6 +12,7 @@ import {
 } from '@infrastructure/remote-api/remote-api.core';
 import { REMOTE_API_TIMING } from '@infrastructure/remote-api/remote-api.constant';
 import { RemoteApiTooLargeError } from '@infrastructure/remote-api/remote-api.errors';
+import { OUTBOUND_CHECK_LIMITS } from '../../constants/outbound-checks.constant';
 import { SITE_FETCH_LIMITS } from '../../constants/site-fetch.constant';
 
 /** A response with its body decoded to text; `bytes` is the decoded body size. */
@@ -105,6 +106,39 @@ export class SiteHttpClient extends RemoteApiCore {
         maxBytes: SITE_FETCH_LIMITS.feedBytes,
         accept:
           'application/rss+xml, application/atom+xml, application/feed+json, application/xml;q=0.9',
+        signal,
+      }),
+    );
+  }
+
+  /**
+   * A link asked for its status alone (plan D5): GET, the body never read, one attempt —
+   * a link that answers late or flakily reads as unknown, which is the check's call, not a
+   * retry's. Redirects are followed hop by hop, each checked by the address guard.
+   */
+  async checkLink(url: string, signal: AbortSignal) {
+    return this.get(url, {
+      maxBytes: 0,
+      overflow: 'truncate',
+      accept: 'text/html, */*;q=0.5',
+      maxRetries: 0,
+      timeoutMs: OUTBOUND_CHECK_LIMITS.timeoutMs,
+      signal,
+    });
+  }
+
+  /**
+   * A document another page names — a canonical target, a hreflang alternate — read to
+   * see what it declares: decoded as a post is, under the same cap, but asked once and
+   * within the outbound stage's timeout.
+   */
+  async readDocument(url: string, signal: AbortSignal): Promise<ISiteResponse> {
+    return toText(
+      await this.get(url, {
+        maxBytes: SITE_FETCH_LIMITS.htmlBytes,
+        accept: 'text/html, application/xhtml+xml;q=0.9, */*;q=0.5',
+        maxRetries: 0,
+        timeoutMs: OUTBOUND_CHECK_LIMITS.timeoutMs,
         signal,
       }),
     );
