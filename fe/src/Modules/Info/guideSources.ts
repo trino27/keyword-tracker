@@ -63,6 +63,14 @@ export const GUIDE_SOURCES = {
 		title: "Search Console Help: Manual actions report",
 		url: "https://support.google.com/webmasters/answer/9044175",
 	},
+	crawlBudget: {
+		title: "Google Search Central: Crawl budget management for large sites",
+		url: "https://developers.google.com/search/docs/crawling-indexing/large-site-managing-crawl-budget",
+	},
+	pageIndexing: {
+		title: "Search Console Help: Page indexing report",
+		url: "https://support.google.com/webmasters/answer/7440203",
+	},
 	keywordClustering: {
 		title: "Ahrefs: How to do keyword clustering",
 		url: "https://ahrefs.com/blog/keyword-clustering/",

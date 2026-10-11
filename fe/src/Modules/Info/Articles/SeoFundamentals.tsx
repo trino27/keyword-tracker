@@ -4,6 +4,12 @@ import { GuideSection } from "../GuideSection/GuideSection";
 import { GuidePart } from "../GuidePart/GuidePart";
 import { GUIDE_SECTIONS as S } from "../guideOutline";
 import { GUIDE_SOURCES as SRC } from "../guideSources";
+import {
+	CrawlIndexInDepth,
+	OnPageInDepth,
+	RobotsTxtInDepth,
+	SignalsInDepth,
+} from "./FundamentalsInDepth";
 import { LinkingSection, MetaRobotsSection, SemanticsSection } from "./LinksMetaSemantics";
 
 const STAGES = [
@@ -163,6 +169,8 @@ export function SeoFundamentals() {
 				</List>
 			</GuideSection>
 
+			<CrawlIndexInDepth />
+
 			<GuideSection
 				section={S.ranking}
 				sources={[
@@ -279,7 +287,11 @@ export function SeoFundamentals() {
 				</Table>
 			</GuideSection>
 
+			<OnPageInDepth />
+
 			<LinkingSection />
+
+			<SignalsInDepth />
 
 			<GuideSection
 				section={S.technical}
@@ -402,6 +414,8 @@ export function SeoFundamentals() {
 					</List.Item>
 				</List>
 			</GuideSection>
+
+			<RobotsTxtInDepth />
 
 			<MetaRobotsSection />
 		</GuidePart>
