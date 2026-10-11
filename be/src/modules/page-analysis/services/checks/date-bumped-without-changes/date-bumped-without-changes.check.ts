@@ -1,4 +1,5 @@
 import { evidence } from '../_shared/evidence';
+import { instantOf } from '../_shared/iso-date';
 import { defineCheck, fails, NOT_APPLICABLE, PASS } from '../check.interface';
 
 /**
@@ -15,7 +16,7 @@ const STORED_DATE_WIDTH = 64;
 function sameDate(before: string, now: string): boolean {
   const cut = now.slice(0, STORED_DATE_WIDTH);
   if (before === cut) return true;
-  const [a, b] = [Date.parse(before), Date.parse(now)];
+  const [a, b] = [instantOf(before), instantOf(now)];
   return !Number.isNaN(a) && a === b;
 }
 

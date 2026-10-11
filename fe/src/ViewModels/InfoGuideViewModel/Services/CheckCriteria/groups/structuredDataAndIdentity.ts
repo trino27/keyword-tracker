@@ -171,7 +171,7 @@ export const STRUCTURED_DATA_AND_IDENTITY_CRITERIA = {
 			lang: "json",
 		},
 		howChecked:
-			'The tracker reads the same datePublished and dateModified as DATES_INCONSISTENT — JSON-LD article, else article:published_time and article:modified_time meta tags, else Microdata — as written. A value passes when it is a real calendar date in the form YYYY-MM-DD, alone or followed by "T" and a time that ends in Z or an offset such as +01:00. Any other form fails as "not an ISO 8601 date", and a time with no zone fails on its own.',
+			'The tracker reads the same datePublished and dateModified as DATES_INCONSISTENT — JSON-LD article, else article:published_time and article:modified_time meta tags, else Microdata — as written. A value passes when it is a real calendar date in the form YYYY-MM-DD (no February 30th), alone or followed by "T" and a real time of day (no hour 25) that ends in Z or an offset such as +01:00, +0100 or +01. Any other form fails as "not an ISO 8601 date", and a time with no zone fails on its own.',
 		manualCheck: [
 			'Open View source (Ctrl+U) and find (Ctrl+F) "datePublished", "dateModified" and "published_time".',
 			"Check each value reads like 2026-03-12 or 2026-03-12T09:00:00+01:00, with a T between date and time and a Z or offset after the time.",
