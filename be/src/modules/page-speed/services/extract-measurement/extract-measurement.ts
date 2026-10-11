@@ -50,13 +50,20 @@ const fieldMetricSchema = z.object({
     .optional(),
 });
 
+/**
+ * One metric Google reports in an odd shape reads as that metric absent — the next
+ * source answers for it — not as an answer with no measurement at all: a malformed TTFB,
+ * a diagnostic, would otherwise have failed the page NO_MEASUREMENT.
+ */
+const optionalFieldMetric = fieldMetricSchema.optional().catch(undefined);
+
 const loadingExperienceSchema = z.object({
   metrics: z
     .object({
-      LARGEST_CONTENTFUL_PAINT_MS: fieldMetricSchema.optional(),
-      INTERACTION_TO_NEXT_PAINT: fieldMetricSchema.optional(),
-      CUMULATIVE_LAYOUT_SHIFT_SCORE: fieldMetricSchema.optional(),
-      EXPERIMENTAL_TIME_TO_FIRST_BYTE: fieldMetricSchema.optional(),
+      LARGEST_CONTENTFUL_PAINT_MS: optionalFieldMetric,
+      INTERACTION_TO_NEXT_PAINT: optionalFieldMetric,
+      CUMULATIVE_LAYOUT_SHIFT_SCORE: optionalFieldMetric,
+      EXPERIMENTAL_TIME_TO_FIRST_BYTE: optionalFieldMetric,
     })
     .optional(),
   origin_fallback: z.boolean().optional(),

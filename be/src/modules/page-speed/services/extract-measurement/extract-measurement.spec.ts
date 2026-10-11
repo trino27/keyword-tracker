@@ -37,6 +37,22 @@ describe('extractMeasurement', () => {
     expect(extractMeasurement(body)?.lcp.source).toBe('url');
   });
 
+  it('reads a malformed field metric as absent, and still measures', () => {
+    const body = readPageSpeedFixture('url-field.json') as {
+      loadingExperience: { metrics: Record<string, unknown> };
+    };
+    body.loadingExperience.metrics.EXPERIMENTAL_TIME_TO_FIRST_BYTE = {
+      percentile: 'slow',
+    };
+    body.loadingExperience.metrics.INTERACTION_TO_NEXT_PAINT = {};
+
+    expect(extractMeasurement(body)).toMatchObject({
+      lcp: { value: 3025, source: 'url' },
+      inp: { value: 231, source: 'origin' },
+    });
+    expect(extractDiagnostics(body)?.ttfb?.source).not.toBe('url');
+  });
+
   it('falls back to the lab for LCP and CLS, never for INP', () => {
     expect(extractMeasurement(readPageSpeedFixture('lab-only.json'))).toEqual({
       lcp: { value: 809, source: 'lab' },
