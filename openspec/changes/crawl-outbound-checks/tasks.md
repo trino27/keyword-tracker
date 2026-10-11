@@ -107,7 +107,7 @@ it green.
 
 ## 3. `BROKEN_LINKS` and `LINKS_TO_REDIRECTS` (3c) — ANALYSIS-024, ANALYSIS-025
 
-- [ ] 3.1 Move `variantsOf` from `internal-link-variants.check.ts:14-31` to
+- [x] 3.1 Move `variantsOf` from `internal-link-variants.check.ts:14-31` to
   `_shared/link-variants.ts`, unchanged. Commit: `refactor(page-analysis): link variants,
   shared`. Verify: `pnpm --filter be test:ci -- internal-link-variants`.
 - [ ] 3.2 Write first `_shared/link-verdict.spec.ts`:
