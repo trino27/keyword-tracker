@@ -11,6 +11,8 @@ import {
 import { CWV_ISSUE_CODES } from '../page-speed/cwv-issue-codes.constant';
 import { CWV_THRESHOLDS } from '../page-speed/cwv-thresholds.constant';
 import { CWV_METRICS } from '../page-speed/cwv-metric.enum';
+import { SITE_CHECK_CATALOGUE } from '../site/site-check-catalogue.constant';
+import { inclusionBarViolations } from './inclusion-bar/inclusion-bar.util';
 
 describe('the catalogue split by owner', () => {
   /**
@@ -120,6 +122,12 @@ describe('what the catalogue tells a reader', () => {
         explanation.split(/[.!?](\s|$)/).filter((s) => s.trim()).length,
       ).toBeGreaterThan(1);
     }
+  });
+
+  /** Plan D1: an industry reading of search, unbacked by a first party, is at most a notice. */
+  it('holds the inclusion bar: no industry-only check above notice', () => {
+    expect(inclusionBarViolations(SEO_ISSUE_CATALOGUE)).toEqual([]);
+    expect(inclusionBarViolations(SITE_CHECK_CATALOGUE)).toEqual([]);
   });
 
   it('backs every check with at least one https source', () => {

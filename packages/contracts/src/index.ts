@@ -45,6 +45,8 @@ export * from './domain/seo/measured-issue-codes.constant.js';
 export * from './domain/seo/conditional-issue-codes.constant.js';
 export * from './domain/seo/seo-issue.interface.js';
 export * from './domain/seo/score-band.constant.js';
+export * from './domain/seo/industry-source-hosts.constant.js';
+export * from './domain/seo/inclusion-bar/inclusion-bar.util.js';
 export * from './domain/time/iso-day.type.js';
 export * from './domain/time/history-range.constant.js';
 export * from './domain/time/is-iso-day/is-iso-day.util.js';
