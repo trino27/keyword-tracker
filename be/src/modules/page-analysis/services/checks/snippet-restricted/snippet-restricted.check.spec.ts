@@ -43,4 +43,18 @@ describe('SNIPPET_RESTRICTED', () => {
       ),
     ).toEqual(PASSES);
   });
+
+  it('fails an article wrapped in data-nosnippet', () => {
+    const verdict = SNIPPET_RESTRICTED_CHECK.evaluate(
+      makeCheckInput({
+        parsed: { contentNosnippet: '<div class="entry" data-nosnippet>' },
+      }),
+    );
+    expect(verdict).toEqual(
+      failsWith({ source: 'markup', rule: 'data-nosnippet' }),
+    );
+    expect(evidenceOf(verdict)).toEqual([
+      '<div class="entry" data-nosnippet> — holds most of the article\'s text',
+    ]);
+  });
 });

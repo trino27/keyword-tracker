@@ -52,6 +52,8 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		return `${others(d, "share")} most of this text (${share}% of its five-word sequences).`;
 	},
 	TITLE_MISSING: () => "The page has no <title> in its <head>.",
+	TITLE_SCRIPT_MISMATCH: (d) =>
+		`The title is written in ${list(d, "titleScripts")} script; the page's text is ${text(d, "pageScript")}.`,
 	TITLE_LENGTH: (d) =>
 		`The title is ${num(d, "value")} characters; aim for ${num(d, "min")}–${num(d, "max")}.`,
 	META_DESCRIPTION_MISSING: () => "The page has no meta description.",
@@ -79,7 +81,13 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		return `${count} reference${count === 1 ? "" : "s"} on the page point${count === 1 ? "s" : ""} at a development or staging host.`;
 	},
 	SNIPPET_RESTRICTED: (d) =>
-		`${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "rule")}".`,
+		text(d, "source") === "markup"
+			? "A data-nosnippet element holds most of the article, so Google can quote none of it."
+			: `${text(d, "source") === "header" ? "The X-Robots-Tag header" : `The ${text(d, "name") || "robots"} meta tag`} says "${text(d, "rule")}".`,
+	IMAGE_PREVIEW_NOT_LARGE: (d) =>
+		text(d, "rule")
+			? `The robots rules cap the image preview with "${text(d, "rule")}".`
+			: "No robots rule allows Google a large image preview (max-image-preview:large).",
 	ROBOTS_BLOCKS_AI_SEARCH: (d) => `robots.txt keeps ${list(d, "crawlers")} from this page.`,
 	ROBOTS_BLOCKS_GOOGLEBOT: (d) =>
 		`Googlebot may not fetch this page: ${text(d, "rule") ? `robots.txt ${text(d, "rule")}` : "robots.txt disallows it"}.`,
@@ -87,6 +95,18 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 		`${num(d, "count")} of ${num(d, "total")} scripts and stylesheets on this site's host are closed to Googlebot.`,
 	IMAGES_MISSING_ALT: (d) =>
 		`${num(d, "count")} of ${num(d, "total")} images in the content have no alt text.`,
+	IMAGES_NOT_INDEXABLE: (d) => {
+		const count = num(d, "count");
+		return `${count} of ${num(d, "total")} images ${count === 1 ? "has" : "have"} no src fallback or use a format Google Images does not index.`;
+	},
+	IMAGE_FILENAMES_GENERIC: (d) => {
+		const count = num(d, "count");
+		return `${count} of ${num(d, "total")} images keep a camera or placeholder file name.`;
+	},
+	VIDEO_WITHOUT_METADATA: (d) => {
+		const count = num(d, "count");
+		return `The page shows ${count === 1 ? "a video" : `${count} videos`} and declares no VideoObject or og:video.`;
+	},
 	THIN_CONTENT: (d) =>
 		`The content has ${num(d, "value")} words; aim for at least ${num(d, "min")}.`,
 	AUTHOR_MISSING: () => "Nothing on the page names who wrote it.",
@@ -123,6 +143,9 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	},
 	VIEWPORT_MISSING: () => "The page has no viewport meta tag.",
 	OG_TAGS_MISSING: (d) => `Missing: ${list(d, "missing")}.`,
+	PREVIEW_IMAGE_TOO_SMALL: (d) =>
+		`The page's own image is ${num(d, "value")} px wide; Discover asks for at least ${num(d, "min")} px.`,
+	PREVIEW_IMAGE_IS_LOGO: () => "The image the page names for itself is the site's logo.",
 	NOT_HTTPS: (d) => `The page is served from ${text(d, "url")}.`,
 	CHARSET_MISSING_OR_LATE: (d) =>
 		typeof d.declarationEnd === "number"
@@ -166,6 +189,18 @@ const DESCRIBE: Record<TSeoIssueCode, (details: TDetails) => string> = {
 	},
 	DATES_INCONSISTENT: () => "The page's dates contradict each other.",
 	STRUCTURED_DATA_INCOMPLETE: (d) => `The article markup omits ${list(d, "missing")}.`,
+	AUTHOR_MARKUP_INCOMPLETE: (d) => {
+		const count = num(d, "count");
+		return `${count} author entr${count === 1 ? "y falls" : "ies fall"} short of Google's author best practices.`;
+	},
+	ARTICLE_DATE_FORMAT_INVALID: (d) =>
+		`${list(d, "fields")} in the article markup ${urls(d, "fields").length === 1 ? "is" : "are"} not ISO 8601 with a time zone.`,
+	ARTICLE_HEADLINE_MISMATCH: (d) =>
+		`The markup's headline "${text(d, "headline")}" matches neither the title nor the H1.`,
+	BREADCRUMB_INVALID: (d) => {
+		const count = num(d, "count");
+		return `${count} breadcrumb step${count === 1 ? " lacks" : "s lack"} a property Google requires.`;
+	},
 	CWV_LCP_NEEDS_IMPROVEMENT: (d) => speed("lcp", "needsImprovement", d),
 	CWV_LCP_POOR: (d) => speed("lcp", "poor", d),
 	CWV_INP_NEEDS_IMPROVEMENT: (d) => speed("inp", "needsImprovement", d),

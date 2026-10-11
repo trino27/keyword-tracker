@@ -74,6 +74,19 @@ export class SiteHttpClient extends RemoteApiCore {
     });
   }
 
+  /**
+   * An image asked for to read what it is — the favicon. The first bytes carry the format
+   * and the size, so the body is cut at the probe cap and never decoded as text.
+   */
+  async getImageHead(url: string, signal: AbortSignal) {
+    return this.get(url, {
+      maxBytes: SITE_FETCH_LIMITS.probeBytes,
+      overflow: 'truncate',
+      accept: 'image/*',
+      signal,
+    });
+  }
+
   async getSitemap(url: string, signal: AbortSignal): Promise<ISiteResponse> {
     const response = await this.get(url, {
       maxBytes: SITE_FETCH_LIMITS.sitemapDownloadBytes,

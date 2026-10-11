@@ -13,6 +13,8 @@ export interface IAlternateLink {
 
 export interface IPageImage {
   src: string | null;
+  /** The `srcset` attribute as written; null when absent. */
+  srcset: string | null;
   /** null: the attribute is absent. '' is a deliberate decorative image, not a miss. */
   alt: string | null;
   /** The `loading` attribute as written, lower-cased; null when absent. */
@@ -24,6 +26,76 @@ export interface IPageImage {
   sized: boolean;
   /** The element as written, cut to 200 characters, for a finding to quote. */
   markup: string;
+}
+
+/**
+ * One author as the article's structured data states it. `asText` is an author given as
+ * a bare string — a name with no type and nowhere to read more about the person.
+ */
+export interface IMarkupAuthor {
+  name: string | null;
+  /** The first `@type` (or Microdata `itemtype`) the author carries; null when none. */
+  type: string | null;
+  /** `url` and every `sameAs`, in that order: the pages that say who the author is. */
+  urls: string[];
+  asText: boolean;
+}
+
+/** An image the article's structured data names, with the size it declares, if any. */
+export interface IMarkupImage {
+  url: string;
+  width: number | null;
+  height: number | null;
+}
+
+/**
+ * The page's article node as its structured data states it — the first JSON-LD node
+ * typed as an article, or else the first Microdata item. Read as written, so a check can
+ * judge the FORM of what is declared, not only whether a property is there.
+ */
+export interface IArticleMarkup {
+  source: 'json-ld' | 'microdata';
+  type: string;
+  headline: string | null;
+  datePublished: string | null;
+  dateModified: string | null;
+  authors: IMarkupAuthor[];
+  images: IMarkupImage[];
+}
+
+/** One `ListItem` of a JSON-LD `BreadcrumbList`, with what Google requires of it. */
+export interface IBreadcrumbItem {
+  /** Null when absent or not an integer. */
+  position: number | null;
+  /** `name`, or the name of the `item` it points at. */
+  name: string | null;
+  /** The URL the step leads to: `item` as a string, or its `@id` or `url`. */
+  item: string | null;
+}
+
+/** A `<link>` naming an icon for the site. */
+export interface IIconLink {
+  /** The rel token that made it an icon: `icon`, `apple-touch-icon`, … */
+  rel: string;
+  /** Absolute, resolved against the page. */
+  href: string;
+  /** The `type` attribute, lower-cased; null when absent. */
+  type: string | null;
+  /** The `sizes` attribute as written; null when absent. */
+  sizes: string | null;
+}
+
+/**
+ * The image the page names for itself — og:image, or else the article markup's first
+ * image — as the crawl read it from the file: its pixel size comes from the file's own
+ * header, because the sizes a page declares are often not the image's.
+ */
+export interface IPreviewImage {
+  url: string;
+  /** Null when no HTTP answer came back at all. */
+  status: number | null;
+  width: number | null;
+  height: number | null;
 }
 
 /** What the analysis reads from one page's HTML; every string is whitespace-collapsed. */
@@ -63,6 +135,32 @@ export interface IParsedPage {
   jsonLd: { types: string[]; keywords: string[]; articleFields: string[] };
   /** JSON-LD blocks that are not JSON, each as the start of its text and the error. */
   jsonLdErrors: string[];
+  /**
+   * The same two facts read from Microdata (`itemscope itemtype`), which Google reads as
+   * it reads JSON-LD: the schema.org types, and the properties of the article item.
+   */
+  microdata: { types: string[]; articleFields: string[] };
+  articleMarkup: IArticleMarkup | null;
+  /** Every JSON-LD `BreadcrumbList`, each as its items in the order written. */
+  breadcrumbs: IBreadcrumbItem[][];
+  /** Every `logo` a structured data node declares — the publisher's, the organization's. */
+  logos: string[];
+  /** Every `WebSite` node's `name` and `alternateName`, JSON-LD or Microdata. */
+  websiteNames: { name: string; alternateNames: string[] }[];
+  /** Icons the document declares for the site, in order. */
+  icons: IIconLink[];
+  /**
+   * Videos the page shows outside its navigation and footer — a `<video>` a reader can
+   * play, or a known player's `<iframe>` (YouTube, Vimeo, Wistia…) — each as its markup.
+   * A muted video without controls is decoration, not a video, and not here.
+   */
+  videos: string[];
+  /**
+   * The `data-nosnippet` element holding most of the main content, as its markup; null
+   * when there is none. Google shows no text from inside it, so wrapping the article in
+   * one is a nosnippet rule written another way.
+   */
+  contentNosnippet: string | null;
   /** `<html lang>`, as written. */
   lang: string | null;
   /** Every h1 of the document, in order. */

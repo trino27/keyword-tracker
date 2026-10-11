@@ -311,6 +311,28 @@ export const ISSUE_SOURCES = {
       'Google Search Central: Understanding page experience in Google Search results',
     url: 'https://developers.google.com/search/docs/appearance/page-experience',
   },
+  // The five below back the checks from Google's Search Appearance guides; opened and
+  // read on 2026-10-11.
+  discover: {
+    title: 'Google Search Central: Discover and your website',
+    url: 'https://developers.google.com/search/docs/appearance/google-discover',
+  },
+  breadcrumbMarkup: {
+    title: 'Google Search Central: Breadcrumb (BreadcrumbList) structured data',
+    url: 'https://developers.google.com/search/docs/appearance/structured-data/breadcrumb',
+  },
+  video: {
+    title: 'Google Search Central: Video SEO best practices',
+    url: 'https://developers.google.com/search/docs/appearance/video',
+  },
+  favicon: {
+    title: 'Google Search Central: Define a favicon to show in search results',
+    url: 'https://developers.google.com/search/docs/appearance/favicon-in-search',
+  },
+  siteNames: {
+    title: 'Google Search Central: Provide a site name to Google Search',
+    url: 'https://developers.google.com/search/docs/appearance/site-names',
+  },
 } as const satisfies Record<string, ISeoIssueSource>;
 
 const SOURCE = ISSUE_SOURCES;
@@ -354,6 +376,25 @@ export const SEO_ISSUE_CATALOGUE = {
     min: 30,
     max: 60,
     skipReason: 'No title to measure.',
+  },
+  TITLE_SCRIPT_MISMATCH: {
+    // A notice: Google rewrites the title link, it does not demote the page. Only a title
+    // with NO letter of the page's script is reported, because a Russian post titled
+    // "Google Analytics: полное руководство" mixes scripts on purpose and rightly.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Title is in another script than the page',
+    plain: {
+      what: "The page's title is written in a different alphabet from its text",
+      why: 'Google asks for titles in the same language and alphabet as the page. When they differ, it often replaces the title in results with text of its own, so the headline searchers see is not the one you chose.',
+      fix: 'The writer or editor can rewrite the title in the language of the post, keeping brand and product names as they are; ask your developer if the template sets it.',
+    },
+    hint: "Write the title in the language and script of the page's main text.",
+    explanation:
+      "The <title> holds no letter of the script the page's main text is written in — an English title over a Russian article, a transliterated one over a Greek post. Google's title-link guidance asks for a title in the same language and writing system as the page's primary content, and names a mismatch among the reasons it rewrites a title link. A title that mixes the page's script with a Latin brand or product name passes; only a title with no word in the page's own script is reported.",
+    sources: [SOURCE.titleLinks],
+    skipReason:
+      'The page has no title, or too little text to tell which script it is written in.',
   },
   META_DESCRIPTION_MISSING: {
     owner: 'crawl',
@@ -533,12 +574,28 @@ export const SEO_ISSUE_CATALOGUE = {
     plain: {
       what: 'This page stops Google from showing any of its text in results',
       why: 'The result appears with no description, which draws fewer clicks, and Google will not quote the page in AI Overviews either. Sometimes that is intended, but rarely on a blog post that wants readers.',
-      fix: 'Unless hiding the text is deliberate, ask your developer, or check your SEO plugin\'s advanced settings, to remove the "nosnippet" or zero-length snippet setting.',
+      fix: 'Unless hiding the text is deliberate, ask your developer, or check your SEO plugin\'s advanced settings, to remove the "nosnippet" or zero-length snippet setting, or the theme\'s no-snippet wrapper around the article.',
     },
-    hint: 'Remove nosnippet or max-snippet:0 unless hiding the text from results is the intent.',
+    hint: 'Remove nosnippet, max-snippet:0 or a data-nosnippet wrapper around the article unless hiding the text from results is the intent.',
     explanation:
-      'A nosnippet or max-snippet:0 rule — in a robots or googlebot meta tag, or an X-Robots-Tag header — tells Google to show no text from the page under its result, and Google applies the same controls to its AI features: the page cannot be quoted in an AI Overview. Sometimes that is the point; on a blog post that wants readers it usually is not, and a result with no description draws fewer clicks.',
+      'A nosnippet or max-snippet:0 rule — in a robots or googlebot meta tag, or an X-Robots-Tag header — tells Google to show no text from the page under its result, and Google applies the same controls to its AI features: the page cannot be quoted in an AI Overview. A data-nosnippet attribute on an element holding most of the article does the same by other means, since Google shows nothing from inside it; one around a passage is an editorial choice and is not reported. Sometimes hiding the text is the point; on a blog post that wants readers it usually is not, and a result with no description draws fewer clicks.',
     sources: [SOURCE.robotsMeta, SOURCE.aiFeatures],
+  },
+  IMAGE_PREVIEW_NOT_LARGE: {
+    // A notice: it decides how large the image beside the page may be, not whether the
+    // page ranks.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Large image previews not allowed',
+    plain: {
+      what: "Google is not allowed to show this page's image in large size",
+      why: 'Google Discover shows large images only for pages that allow them, and large-image cards draw more clicks than thumbnails. Without the setting the post can appear with a small image, or none, in Discover and in results.',
+      fix: "Ask your developer, or check your SEO plugin's settings, to add max-image-preview:large to the page's robots meta tag; WordPress adds it by default unless something removes it.",
+    },
+    hint: 'Add max-image-preview:large to the robots meta tag.',
+    explanation:
+      "No robots meta tag or X-Robots-Tag allows Google a large image preview: max-image-preview is absent, set to standard, or set to none. Google's Discover guidance names max-image-preview:large (or AMP) as the setting that enables large images there, and without the rule Google may show only a default-size preview. Where declarations disagree, the more restrictive one applies, so one tag saying none or standard overrides another saying large. It is not a ranking signal: it decides how large the image beside the page may be.",
+    sources: [SOURCE.discover, SOURCE.robotsMeta],
   },
   ROBOTS_BLOCKS_GOOGLEBOT: {
     // An error by the line ranking-signals.md draws: a page Googlebot may not fetch is out
@@ -602,6 +659,53 @@ export const SEO_ISSUE_CATALOGUE = {
       'Alt text is what a screen reader announces in place of an image and what a browser shows when the image fails to load. Google calls it the most important attribute for providing metadata about an image, and uses it together with the surrounding text for image search. An image that carries no information should have an empty alt="" so assistive technology skips it; an image without the attribute at all leaves the reader to guess.',
     sources: [SOURCE.images, SOURCE.waiImages],
     skipReason: 'The page has no images.',
+  },
+  IMAGES_NOT_INDEXABLE: {
+    owner: 'crawl',
+    severity: 'warning',
+    label: 'Images Google cannot index',
+    plain: {
+      what: 'Some images are in a form Google Images does not pick up',
+      why: "Google indexes images from an image element's main address, in the formats it supports. An image given only as a set of sizes, or saved as HEIC or TIFF, may never show in Google Images or beside the result, and some browsers cannot show it either.",
+      fix: 'Ask your developer to give every image a plain src fallback and to save images as JPEG, PNG, WebP or AVIF; an image plugin in the CMS can convert uploads automatically.',
+    },
+    hint: 'Give each <img> a src, and use BMP, GIF, JPEG, PNG, WebP, SVG or AVIF.',
+    explanation:
+      'Google finds images in the src attribute of <img> elements and indexes the formats it lists: BMP, GIF, JPEG, PNG, WebP, SVG and AVIF. An <img> carrying only srcset has no fallback for crawlers and browsers that do not read it — Google asks for an <img> with src in every responsive image — and a file in a format outside that list (HEIC, TIFF, JPEG XL, JPEG 2000) is not indexed for Google Images. Each image reported is quoted with the reason. An image a lazy-loading script sets from data-src is not reported: Google renders the page and sees what the script sets.',
+    sources: [SOURCE.images],
+    skipReason: 'The page has no images.',
+  },
+  IMAGE_FILENAMES_GENERIC: {
+    // A notice: a file name is a light hint, and Google says so.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Images with camera or placeholder file names',
+    plain: {
+      what: 'Some images keep file names like IMG_1234.jpg that say nothing',
+      why: "Google uses an image's file name as a small hint about what it shows. A camera default such as IMG_1234 or a placeholder like image1 gives image search nothing, while a few descriptive words help it understand the picture.",
+      fix: 'The writer or editor can rename images before uploading them, in a few words saying what each shows; an image plugin in the CMS can rename new uploads automatically.',
+    },
+    hint: 'Rename images in a few descriptive words: black-kitten.jpg, not IMG00023.JPG.',
+    explanation:
+      "Google's image guidance asks for short, descriptive file names, because the name is a light clue to the image's subject — my-new-black-kitten.jpg rather than IMG00023.JPG — and names generic ones such as image1.jpg and 1.jpg as the thing to avoid. Only names a camera, phone or tool gives by default (IMG_1234, DSC01234, PXL_20260101…, Screenshot 2026-…) and placeholders (image1, untitled, 1.jpg) are reported. Hashed names a CDN or platform generates are not: the author never chose them and cannot change them. A WordPress size suffix (-1024x768) is ignored.",
+    sources: [SOURCE.images],
+    skipReason: 'The page has no images with a file name.',
+  },
+  VIDEO_WITHOUT_METADATA: {
+    // A notice: eligibility for video features, never a defect of the page.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Video without video metadata',
+    plain: {
+      what: 'The page shows a video but tells Google nothing about it',
+      why: "Without video details Google has to guess the video's title, thumbnail and date, and the page is less likely to appear in video results or with a video preview. It does not affect the page's ordinary ranking.",
+      fix: 'An SEO or video plugin can add the video details to the page; otherwise ask your developer to add VideoObject markup with a name, a thumbnail and an upload date.',
+    },
+    hint: 'Add VideoObject structured data (name, thumbnailUrl, uploadDate) or og:video for each video.',
+    explanation:
+      'The page embeds a video — a <video> a reader can play, or a YouTube, Vimeo, Wistia or similar player — and declares neither VideoObject structured data nor an og:video tag. Google recommends providing video metadata through structured data, a video sitemap or Open Graph, so that it can find the video, show its thumbnail and consider it for video features such as key moments. A video sitemap is not visible from the page, so a site that lists its videos in one may see this reported and can set it aside. A muted video without controls is a moving background, not a video, and is not counted.',
+    sources: [SOURCE.video, SOURCE.structuredDataIntro],
+    skipReason: 'The page embeds no video.',
   },
   THIN_CONTENT: {
     // A notice: Google says it has no preferred word count, so a short page is a prompt
@@ -790,6 +894,38 @@ export const SEO_ISSUE_CATALOGUE = {
     explanation:
       'Open Graph tags decide the title, description and image shown when the post is shared on social networks and in messengers. They do not affect Google rankings. Without them each platform guesses, and a shared link often shows the site logo or no image at all.',
     sources: [SOURCE.openGraph],
+  },
+  PREVIEW_IMAGE_TOO_SMALL: {
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Preview image is narrower than 1200 px',
+    plain: {
+      what: 'The image chosen to represent this page is too small for Discover',
+      why: 'Google Discover asks for images at least 1,200 pixels wide. A smaller one can only appear as a thumbnail, and large-image cards draw more clicks.',
+      fix: 'The editor can set a featured image at least 1,200 pixels wide in the CMS; ask your developer if the SEO plugin or theme declares a resized copy instead of the original.',
+    },
+    hint: 'Use a representative image at least 1,200 px wide for og:image and the article markup.',
+    explanation:
+      "The widest image the page declares for itself — in og:image:width, or as the width of an ImageObject in its article markup — is under 1,200 pixels. Google's Discover guidance asks for images at least 1,200 px wide, specified through og:image or schema.org markup, and its Article guidance asks for high-resolution images. Only declared sizes are read: the image files are not downloaded, so a page is judged only when every image it names declares its width, or one of them is wide enough.",
+    sources: [SOURCE.discover, SOURCE.articleMarkup],
+    min: 1_200,
+    skipReason:
+      'The page names an image of no declared size, which may be the wide one Google needs.',
+  },
+  PREVIEW_IMAGE_IS_LOGO: {
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Preview image is the site logo',
+    plain: {
+      what: "The image chosen to represent this page is the site's logo",
+      why: 'Google advises against using a logo as the page image: it says nothing about the post, so in Discover and image results the page looks like every other page of the site and draws fewer clicks.',
+      fix: 'The editor can set a featured image showing what the post is about; ask your developer if the theme or SEO plugin falls back to the logo when none is set.',
+    },
+    hint: "Set og:image and the article image to a picture of the post's subject, not the logo.",
+    explanation:
+      "The image the page names for itself — og:image, or the image in its article markup — is the site's logo: the same URL as a logo its structured data declares, or a file named logo. Google's Discover guidance asks not to use generic images such as the site logo in og:image or schema.org markup, and its image guidance asks for a relevant, representative image. A theme usually does this when a post has no featured image and it falls back to the logo.",
+    sources: [SOURCE.discover, SOURCE.images],
+    skipReason: 'The page names no image for itself.',
   },
   CHARSET_MISSING_OR_LATE: {
     owner: 'crawl',
@@ -1100,6 +1236,70 @@ export const SEO_ISSUE_CATALOGUE = {
       'The article markup leaves out some of the properties Google recommends for Article: headline, image, datePublished, dateModified and author. None is required, but each one omitted is a fact Google has to guess — the date it shows, the author it attributes the post to — rather than read from you.',
     sources: [SOURCE.articleMarkup],
     skipReason: 'The page declares no article structured data.',
+  },
+  AUTHOR_MARKUP_INCOMPLETE: {
+    // A notice, like the two article checks above: Google requires no author markup, so a
+    // departure from its best practices costs attribution, never eligibility to rank.
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Author markup is incomplete',
+    plain: {
+      what: 'The article details name the author in a way Google cannot fully use',
+      why: 'Google uses the author in the markup to know who wrote the post. Without the type of author and a link to a page about them, or with several names or a title squeezed into one, it may credit the post wrongly or not at all.',
+      fix: "Ask your developer, or check your SEO plugin's author settings, to give each author a profile page and to list every author separately with only their name.",
+    },
+    hint: 'Give each author @type Person or Organization, a url or sameAs, and only their name in name.',
+    explanation:
+      "Google's Article guidance asks, for each author: a @type of Person or Organization, a url (or sameAs) leading to a page that identifies them, only the name in name — no 'By', no job title, no publisher — and one author entry per author, never several names merged into one. The check reads the article's author as its markup states it, following an @id reference into the graph, and reports each departure: an author given as a bare string, one with no type or a type other than Person or Organization, no url or sameAs, a url that is the site's home page rather than a page about the author, or a name that reads as several people or carries a prefix.",
+    sources: [SOURCE.articleMarkup],
+    skipReason: 'The article markup names no author.',
+  },
+  ARTICLE_DATE_FORMAT_INVALID: {
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Article dates are not in ISO 8601',
+    plain: {
+      what: 'The publish or update date in the article details is in a format Google may misread',
+      why: 'Google reads these dates to show when a post was published. A date written like October 3, 2026, or a time without its time zone, can be misread or shifted by hours, so results may show the wrong day.',
+      fix: 'Ask your developer to output datePublished and dateModified in ISO 8601 with a time zone, such as 2026-10-03T09:00:00+03:00; SEO plugins normally do this.',
+    },
+    hint: 'Write datePublished and dateModified in ISO 8601, with a time zone wherever a time is given.',
+    explanation:
+      "Google's Article guidance asks for datePublished and dateModified in ISO 8601 format with timezone information, and notes that without a time zone it reads the time in Googlebot's own. The check reports a date in the article markup that is not ISO 8601 at all — 03/10/2026, October 3, 2026 — and one that gives a time of day without an offset or Z. A date with no time (2026-10-03) passes: Google's byline guidance says the date is required and the time is not.",
+    sources: [SOURCE.articleMarkup, SOURCE.bylineDates],
+    skipReason: 'The article markup declares no date.',
+  },
+  ARTICLE_HEADLINE_MISMATCH: {
+    owner: 'crawl',
+    severity: 'notice',
+    label: 'Article headline does not match the page',
+    plain: {
+      what: 'The headline in the article details differs from the one on the page',
+      why: 'Google asks that the details given to it match what readers see. A headline about something else, often a template filling in the site name, can be ignored, and the post loses the details it was meant to give.',
+      fix: "Ask your developer, or check your SEO plugin's article settings, so the markup's headline is filled from the post's own title rather than a fixed, site-wide value.",
+    },
+    hint: "Fill headline from the post's title, as readers see it.",
+    explanation:
+      "The article markup's headline shares fewer than half its words with both the page's <title> and its <h1>. Google's structured data guidelines ask that markup describe content visible on the page and represent its main content, and its AI features guidance repeats that structured data should match the visible text. A shortened or reworded headline still shares most of its words and passes; what is reported is a headline about something else — usually a template printing the site's name, a category or a placeholder in every post.",
+    sources: [SOURCE.structuredDataPolicies, SOURCE.aiFeatures],
+    skipReason:
+      'The article markup has no headline, or the page has neither a title nor an h1 to compare it with.',
+  },
+  BREADCRUMB_INVALID: {
+    // A warning, as a broken JSON-LD block is: the markup is there and Google ignores it.
+    owner: 'crawl',
+    severity: 'warning',
+    label: 'Breadcrumb markup is missing required fields',
+    plain: {
+      what: "The page's breadcrumb details for Google are incomplete",
+      why: 'Google can show a breadcrumb trail in place of the bare address only when every step has its required details. With one missing it ignores the trail, and the result shows the plain address.',
+      fix: "Ask your developer, or check your SEO plugin's breadcrumb settings, so every step has a name, a position and a link; Google's Rich Results Test points to the faulty step.",
+    },
+    hint: 'Give the BreadcrumbList two or more ListItems, each with position, name and item (item optional on the last).',
+    explanation:
+      'A BreadcrumbList on the page breaks one of the rules Google\'s breadcrumb documentation marks as required: at least two ListItems, each with an integer position and a name, and an item URL on every step but the last. A trail that fails them is not eligible for the breadcrumb Google can show in place of the URL. Each faulty step is quoted with what it lacks. A trail of a single step — the lone "Home" Yoast SEO writes on a home page — is not reported: there is no trail to show, and Google shows none.',
+    sources: [SOURCE.breadcrumbMarkup, SOURCE.structuredDataPolicies],
+    skipReason: 'The page declares no BreadcrumbList.',
   },
   CWV_LCP_NEEDS_IMPROVEMENT: {
     owner: 'pageSpeed',

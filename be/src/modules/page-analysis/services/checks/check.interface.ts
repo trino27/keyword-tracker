@@ -3,7 +3,10 @@ import type {
   TRunIssueCode,
   TSeoIssueCode,
 } from '@app/contracts';
-import type { IParsedPage } from '../../interfaces/parsed-page.interface';
+import type {
+  IParsedPage,
+  IPreviewImage,
+} from '../../interfaces/parsed-page.interface';
 import type { IRobotsRules } from '../../interfaces/robots-rules.interface';
 import type { ISelectedKeyword } from '../keyword-extraction/select-keywords/select-keywords';
 
@@ -29,6 +32,11 @@ export interface ICheckInput {
   fetchedAt: Date;
   htmlBytes: number;
   parsed: IParsedPage;
+  /**
+   * The image the page names for itself, measured from the file the crawl fetched; null
+   * when the page names none or it could not be asked for.
+   */
+  previewImage: IPreviewImage | null;
   /**
    * What the client's previous crawl recorded for this URL, or null when this is the
    * first crawl to see it. Read before the run's transaction opens, so the analysis

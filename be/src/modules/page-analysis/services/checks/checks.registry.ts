@@ -5,6 +5,17 @@ import {
   type TCrawlSeoIssue,
   type TSeoIssueCode,
 } from '@app/contracts';
+import { ARTICLE_DATE_FORMAT_INVALID_CHECK } from './article-date-format-invalid/article-date-format-invalid.check';
+import { ARTICLE_HEADLINE_MISMATCH_CHECK } from './article-headline-mismatch/article-headline-mismatch.check';
+import { AUTHOR_MARKUP_INCOMPLETE_CHECK } from './author-markup-incomplete/author-markup-incomplete.check';
+import { BREADCRUMB_INVALID_CHECK } from './breadcrumb-invalid/breadcrumb-invalid.check';
+import { IMAGE_FILENAMES_GENERIC_CHECK } from './image-filenames-generic/image-filenames-generic.check';
+import { IMAGE_PREVIEW_NOT_LARGE_CHECK } from './image-preview-not-large/image-preview-not-large.check';
+import { IMAGES_NOT_INDEXABLE_CHECK } from './images-not-indexable/images-not-indexable.check';
+import { PREVIEW_IMAGE_IS_LOGO_CHECK } from './preview-image-is-logo/preview-image-is-logo.check';
+import { PREVIEW_IMAGE_TOO_SMALL_CHECK } from './preview-image-too-small/preview-image-too-small.check';
+import { TITLE_SCRIPT_MISMATCH_CHECK } from './title-script-mismatch/title-script-mismatch.check';
+import { VIDEO_WITHOUT_METADATA_CHECK } from './video-without-metadata/video-without-metadata.check';
 import { AUTHOR_MISSING_CHECK } from './author-missing/author-missing.check';
 import { CANONICAL_CONFLICT_CHECK } from './canonical-conflict/canonical-conflict.check';
 import { CANONICAL_RELATIVE_CHECK } from './canonical-relative/canonical-relative.check';
@@ -76,6 +87,7 @@ export type TCheckRegistry = { [K in TCrawlIssueCode]: TCheck<K> };
 export const CHECKS: TCheckRegistry = {
   TITLE_MISSING: TITLE_MISSING_CHECK,
   TITLE_LENGTH: TITLE_LENGTH_CHECK,
+  TITLE_SCRIPT_MISMATCH: TITLE_SCRIPT_MISMATCH_CHECK,
   META_DESCRIPTION_MISSING: META_DESCRIPTION_MISSING_CHECK,
   META_DESCRIPTION_LENGTH: META_DESCRIPTION_LENGTH_CHECK,
   H1_MISSING: H1_MISSING_CHECK,
@@ -88,10 +100,14 @@ export const CHECKS: TCheckRegistry = {
   CANONICAL_RELATIVE: CANONICAL_RELATIVE_CHECK,
   NOINDEX: NOINDEX_CHECK,
   SNIPPET_RESTRICTED: SNIPPET_RESTRICTED_CHECK,
+  IMAGE_PREVIEW_NOT_LARGE: IMAGE_PREVIEW_NOT_LARGE_CHECK,
   ROBOTS_BLOCKS_GOOGLEBOT: ROBOTS_BLOCKS_GOOGLEBOT_CHECK,
   ROBOTS_BLOCKS_RESOURCES: ROBOTS_BLOCKS_RESOURCES_CHECK,
   ROBOTS_BLOCKS_AI_SEARCH: ROBOTS_BLOCKS_AI_SEARCH_CHECK,
   IMAGES_MISSING_ALT: IMAGES_MISSING_ALT_CHECK,
+  IMAGES_NOT_INDEXABLE: IMAGES_NOT_INDEXABLE_CHECK,
+  IMAGE_FILENAMES_GENERIC: IMAGE_FILENAMES_GENERIC_CHECK,
+  VIDEO_WITHOUT_METADATA: VIDEO_WITHOUT_METADATA_CHECK,
   THIN_CONTENT: THIN_CONTENT_CHECK,
   AUTHOR_MISSING: AUTHOR_MISSING_CHECK,
   DATE_BUMPED_WITHOUT_CHANGES: DATE_BUMPED_WITHOUT_CHANGES_CHECK,
@@ -104,6 +120,8 @@ export const CHECKS: TCheckRegistry = {
   HREFLANG_INVALID: HREFLANG_INVALID_CHECK,
   VIEWPORT_MISSING: VIEWPORT_MISSING_CHECK,
   OG_TAGS_MISSING: OG_TAGS_MISSING_CHECK,
+  PREVIEW_IMAGE_TOO_SMALL: PREVIEW_IMAGE_TOO_SMALL_CHECK,
+  PREVIEW_IMAGE_IS_LOGO: PREVIEW_IMAGE_IS_LOGO_CHECK,
   CHARSET_MISSING_OR_LATE: CHARSET_MISSING_OR_LATE_CHECK,
   NOT_HTTPS: NOT_HTTPS_CHECK,
   MIXED_CONTENT: MIXED_CONTENT_CHECK,
@@ -124,6 +142,10 @@ export const CHECKS: TCheckRegistry = {
   DATES_INCONSISTENT: DATES_INCONSISTENT_CHECK,
   STRUCTURED_DATA_MISSING: STRUCTURED_DATA_MISSING_CHECK,
   STRUCTURED_DATA_INCOMPLETE: STRUCTURED_DATA_INCOMPLETE_CHECK,
+  AUTHOR_MARKUP_INCOMPLETE: AUTHOR_MARKUP_INCOMPLETE_CHECK,
+  ARTICLE_DATE_FORMAT_INVALID: ARTICLE_DATE_FORMAT_INVALID_CHECK,
+  ARTICLE_HEADLINE_MISMATCH: ARTICLE_HEADLINE_MISMATCH_CHECK,
+  BREADCRUMB_INVALID: BREADCRUMB_INVALID_CHECK,
 };
 
 /** What one pass over the checks concluded about a page. */

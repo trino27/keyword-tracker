@@ -25,4 +25,42 @@ describe("describeIssue", () => {
 			describeIssue("CWV_CLS_NEEDS_IMPROVEMENT", { value: 0.18, max: 0.1, source: "lab" }),
 		).toBe("CLS is 0.18 for a lab test, which may vary; good is 0.1 or less.");
 	});
+
+	it("tells a data-nosnippet wrapper from a robots rule", () => {
+		expect(
+			describeIssue("SNIPPET_RESTRICTED", { source: "markup", rule: "data-nosnippet" }),
+		).toBe(
+			"A data-nosnippet element holds most of the article, so Google can quote none of it.",
+		);
+		expect(describeIssue("SNIPPET_RESTRICTED", { source: "meta", rule: "nosnippet" })).toBe(
+			'The robots meta tag says "nosnippet".',
+		);
+	});
+
+	it("tells a missing large-preview rule from a cap", () => {
+		expect(describeIssue("IMAGE_PREVIEW_NOT_LARGE", { rule: null })).toBe(
+			"No robots rule allows Google a large image preview (max-image-preview:large).",
+		);
+		expect(
+			describeIssue("IMAGE_PREVIEW_NOT_LARGE", { rule: "max-image-preview:standard" }),
+		).toBe('The robots rules cap the image preview with "max-image-preview:standard".');
+	});
+
+	it("reads the measured width of the preview image", () => {
+		expect(describeIssue("PREVIEW_IMAGE_TOO_SMALL", { value: 683, min: 1200 })).toBe(
+			"The page's own image is 683 px wide; Discover asks for at least 1200 px.",
+		);
+	});
+
+	it("counts in the singular and the plural", () => {
+		expect(describeIssue("ARTICLE_DATE_FORMAT_INVALID", { fields: ["datePublished"] })).toBe(
+			"datePublished in the article markup is not ISO 8601 with a time zone.",
+		);
+		expect(describeIssue("BREADCRUMB_INVALID", { count: 2 })).toBe(
+			"2 breadcrumb steps lack a property Google requires.",
+		);
+		expect(describeIssue("AUTHOR_MARKUP_INCOMPLETE", { count: 1 })).toBe(
+			"1 author entry falls short of Google's author best practices.",
+		);
+	});
 });
