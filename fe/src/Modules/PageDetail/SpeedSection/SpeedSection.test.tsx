@@ -55,7 +55,7 @@ describe("SpeedSection", () => {
 		renderSection(MEASURED);
 
 		expect(
-			await screen.findByText(/Lighthouse performance score \(lab\): 72\/100/),
+			await screen.findByLabelText("Lighthouse Performance score 72 of 100"),
 		).toBeInTheDocument();
 	});
 
@@ -181,9 +181,9 @@ describe("SpeedSection", () => {
 			measurement: { ...MEASURED.measurement!, seoScore: 92, accessibilityScore: 78 },
 		});
 
-		expect(await screen.findByText("Lighthouse SEO score (lab): 92/100")).toBeInTheDocument();
+		expect(await screen.findByLabelText("Lighthouse SEO score 92 of 100")).toBeInTheDocument();
 		expect(
-			screen.getByText("Lighthouse accessibility score (lab): 78/100"),
+			screen.getByLabelText("Lighthouse Accessibility score 78 of 100"),
 		).toBeInTheDocument();
 	});
 });

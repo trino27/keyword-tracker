@@ -5,6 +5,7 @@ import {
 	Group,
 	Paper,
 	Progress,
+	RingProgress,
 	SimpleGrid,
 	Stack,
 	Text,
@@ -149,23 +150,7 @@ export function SpeedSection({ pageSpeed, availability, timeZone }: ISpeedSectio
 					{view.measurement.lcpBreakdown && (
 						<LcpBreakdown breakdown={view.measurement.lcpBreakdown} />
 					)}
-					<Stack gap={2}>
-						<Text size="xs" c="dimmed">
-							Lighthouse performance score (lab): {view.measurement.performanceScore}
-							/100 — a lab test, it may vary between runs.
-						</Text>
-						{view.measurement.seoScore !== null && (
-							<Text size="xs" c="dimmed">
-								Lighthouse SEO score (lab): {view.measurement.seoScore}/100
-							</Text>
-						)}
-						{view.measurement.accessibilityScore !== null && (
-							<Text size="xs" c="dimmed">
-								Lighthouse accessibility score (lab):{" "}
-								{view.measurement.accessibilityScore}/100
-							</Text>
-						)}
-					</Stack>
+					<LighthouseScores measurement={view.measurement} />
 				</>
 			)}
 		</Stack>
@@ -256,5 +241,73 @@ function LcpBreakdown({ breakdown }: { breakdown: ILcpBreakdown }) {
 				</Text>
 			</Stack>
 		</Paper>
+	);
+}
+
+/**
+ * Lighthouse's own colours for a category score: 0–49 poor, 50–89 needs improvement,
+ * 90–100 good — so a 47 reads as Lighthouse shows it in PageSpeed Insights.
+ */
+const lighthouseColor = (score: number) =>
+	score >= 90
+		? cwvBandColor.good
+		: score >= 50
+			? cwvBandColor.needsImprovement
+			: cwvBandColor.poor;
+
+/**
+ * Lighthouse's three category scores as cards: the number in a ring, coloured by
+ * Lighthouse's bands. Lab figures from one run on a phone — said once, under them — and
+ * never part of our SEO score, which counts Lighthouse's audits rather than its averages.
+ */
+function LighthouseScores({ measurement }: { measurement: IPageSpeedMeasurement }) {
+	const scores = [
+		{ name: "Performance", score: measurement.performanceScore },
+		{ name: "SEO", score: measurement.seoScore },
+		{ name: "Accessibility", score: measurement.accessibilityScore },
+	].filter((entry): entry is { name: string; score: number } => entry.score !== null);
+	return (
+		<Stack gap={6}>
+			<Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+				Lighthouse scores · lab
+			</Text>
+			<SimpleGrid cols={{ base: 1, xs: 3 }} spacing="md">
+				{scores.map(({ name, score }) => (
+					<Paper key={name} withBorder radius="md" p="md">
+						<Group gap="md" wrap="nowrap">
+							<RingProgress
+								size={72}
+								thickness={7}
+								roundCaps
+								sections={[{ value: score, color: lighthouseColor(score) }]}
+								label={
+									<Text
+										ta="center"
+										fw={700}
+										fz={20}
+										c={lighthouseColor(score)}
+										className="tabular"
+									>
+										{score}
+									</Text>
+								}
+								aria-label={`Lighthouse ${name} score ${score} of 100`}
+							/>
+							<Stack gap={0}>
+								<Text fw={600}>{name}</Text>
+								<Text size="xs" c="dimmed">
+									{`${score}/100`}
+								</Text>
+							</Stack>
+						</Group>
+					</Paper>
+				))}
+			</SimpleGrid>
+			<Text size="xs" c="dimmed">
+				From one Lighthouse run on a phone, as PageSpeed Insights tests the page — a lab
+				test that may vary between runs. Our SEO score counts Lighthouse&apos;s audits, not
+				these averages.
+			</Text>
+		</Stack>
 	);
 }
