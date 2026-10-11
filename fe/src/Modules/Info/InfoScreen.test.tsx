@@ -128,6 +128,15 @@ describe("InfoScreen", { timeout: 30_000 }, () => {
 		).toBeInTheDocument();
 	});
 
+	it("lists a broad search's many matches folded, not every card opened", async () => {
+		await renderAt("/info?q=page");
+
+		expect(
+			await screen.findByRole("heading", { name: /checks match “page”/ }),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Passes when")).not.toBeInTheDocument();
+	});
+
 	it("says when nothing matches, and goes back to the whole guide", async () => {
 		const router = await renderAt("/info?q=zzzz");
 

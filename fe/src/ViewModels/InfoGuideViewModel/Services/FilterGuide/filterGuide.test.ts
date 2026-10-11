@@ -12,13 +12,16 @@ describe("filterGuide", () => {
 		expect(filterGuide(ALL, "   ")).toBe(ALL);
 	});
 
-	it("finds a check by its code, with or without underscores, in any case", () => {
+	it("opens exactly one check for its code, in any case", () => {
+		expect(codesOf(filterGuide(ALL, "canonical_to_http"))).toEqual(["CANONICAL_TO_HTTP"]);
+		expect(codesOf(filterGuide(ALL, " CANONICAL_TO_HTTP "))).toEqual(["CANONICAL_TO_HTTP"]);
+	});
+
+	it("finds a check by the words of its code, with every check that names them", () => {
 		// CANONICAL_MISMATCH names CANONICAL_TO_HTTP in its own explanation, so it is found too.
-		expect(codesOf(filterGuide(ALL, "canonical_to_http"))).toEqual([
-			"CANONICAL_TO_HTTP",
-			"CANONICAL_MISMATCH",
-		]);
-		expect(codesOf(filterGuide(ALL, "Canonical to HTTP"))).toContain("CANONICAL_TO_HTTP");
+		expect(codesOf(filterGuide(ALL, "Canonical to HTTP"))).toEqual(
+			expect.arrayContaining(["CANONICAL_TO_HTTP", "CANONICAL_MISMATCH"]),
+		);
 	});
 
 	it("requires every word, and drops a chapter left empty", () => {

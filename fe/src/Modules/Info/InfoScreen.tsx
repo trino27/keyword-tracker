@@ -22,6 +22,9 @@ import styles from "./InfoScreen.module.scss";
 /** Where the active heading is judged from: just under the fixed header. */
 const SPY_OFFSET = 100;
 
+/** Search results open their cards only when this few match; more read better folded. */
+const OPEN_RESULTS_MAX = 10;
+
 /**
  * The guide to everything the tracker does and the SEO behind it: how it crawls and
  * judges a page, what every check, score, keyword, position and speed number means, what
@@ -93,11 +96,12 @@ export function InfoScreen() {
 						<GuidePart
 							title={`${view.matched} ${view.matched === 1 ? "check matches" : "checks match"} “${q}”`}
 						>
-							{/* Keyed by the search: the cards open on mount, so each new search opens its own. */}
+							{/* Keyed by the search: the cards open on mount, so each new search opens its own.
+							    A broad word matches most checks; opened at once, every panel would mount. */}
 							<CheckReference
 								key={q}
 								topics={[...view.reference, ...view.lighthouse]}
-								expanded
+								expanded={view.matched <= OPEN_RESULTS_MAX}
 							/>
 						</GuidePart>
 					)}
