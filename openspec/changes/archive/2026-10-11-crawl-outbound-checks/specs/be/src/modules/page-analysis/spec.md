@@ -3,10 +3,14 @@
 ### Requirement: ANALYSIS-024 — a broken link in the text is reported, and an external one only when it is certainly gone
 
 A page MUST be reported as `BROKEN_LINKS`, a notice, when a content link it checked is broken.
-An internal link (same site key) is broken on any final 4xx or 5xx, on a domain that does not
-exist, or on too many redirects. An external link is broken only on a final 404 or 410, or on a
-domain that does not exist. A 401, 403, 429, 999, 5xx, timeout, refused connection or temporary
-DNS failure on an external link MUST NOT be reported. The external rule MUST be stated in the
+An internal link (same site key) is broken on any final 4xx or 5xx except 401, 402, 403 and 429,
+which refuse the crawler rather than describe the page, on a domain that does not exist, or on
+too many redirects; an internal link that redirects off the site is judged as an external one.
+An external link is broken only on a final 404 or 410, or on a domain that does not exist. A
+401, 403, 429, 999, 5xx, timeout, refused connection or temporary DNS failure on an external
+link MUST NOT be reported, and neither MUST any answer reached through a third host on the way
+(a consent or login wall). Cloudflare's `/cdn-cgi/` addresses MUST NOT be checked: they are no
+pages. The external rule MUST be stated in the
 code's catalogue explanation and MUST be read from one constant. A test MUST tie the two. A link
 to this site's development, staging or preview host MUST be skipped, never counted as broken or
 checked: it is `DEVELOPMENT_HOST_REFERENCES`'s finding, decided by the predicate that check
@@ -19,6 +23,14 @@ applies to content links.
 #### Scenario: an external page behind a bot wall
 - **WHEN** a post links to an external page that answers 403
 - **THEN** the link is not reported, and does not count as checked
+
+#### Scenario: the site's own pages refuse the crawler
+- **WHEN** an internal link answers 429 because of the crawl's own pace
+- **THEN** the link is not reported, and does not count as checked
+
+#### Scenario: a channel behind a consent wall
+- **WHEN** an external link redirects through `consent.youtube.com` and ends on a 404
+- **THEN** the link is not reported
 
 #### Scenario: an external page removed
 - **WHEN** a post links to an external page that answers 410
