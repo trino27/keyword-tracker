@@ -122,6 +122,23 @@ describe('evaluateChecks', () => {
     ]);
   });
 
+  // Length and content are two facts (plan D35): no step-aside between the two.
+  it('a 40-character copy of the title fails both META_DESCRIPTION_REPEATS_TITLE and META_DESCRIPTION_LENGTH', () => {
+    const title = 'A complete guide to link building today';
+    const codes = evaluateChecks(
+      makeRunInput([
+        runPage('a', { parsed: { title, metaDescription: title } }),
+      ]),
+    )[0].issues.map(({ code }) => code);
+
+    expect(codes).toEqual(
+      expect.arrayContaining([
+        'META_DESCRIPTION_REPEATS_TITLE',
+        'META_DESCRIPTION_LENGTH',
+      ]),
+    );
+  });
+
   it('drops every conditional check together on a bare page in a run of one', () => {
     const { checksApplicable, checksJudged, checksNotApplicable } =
       evaluateChecks(

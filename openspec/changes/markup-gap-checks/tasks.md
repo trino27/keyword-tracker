@@ -88,7 +88,7 @@ Each code gets one commit containing:
 - [ ] 2.6 Phase acceptance for 1b, run after 2.7–2.9. Verify: `pnpm --filter be test:ci --
   src/modules/page-analysis && pnpm --filter @app/contracts test:ci && pnpm --filter fe test:ci --
   describeIssue PageSchemas ChecksSection && pnpm lint && pnpm typecheck && pnpm test`.
-- [ ] 2.7 The http twin is reported once (plan D32) — ANALYSIS-015.
+- [x] 2.7 The http twin is reported once (plan D32) — ANALYSIS-015.
   - Write first:
     - `canonical-to-http.check.spec.ts` → "fails an https page whose canonical is its own
       http:// twin", "is not applicable to an http canonical naming another address — that is
@@ -102,13 +102,13 @@ Each code gets one commit containing:
   Verify: `pnpm --filter be test:ci -- canonical && pnpm --filter @app/contracts test:ci`.
   Before closing, `git grep -n "CANONICAL_MISMATCH" be/src fe/src` lists every reader of
   that code's findings. Each is re-read; the sitemap check is task 5a.
-- [ ] 2.8 `OG_URL_MISMATCH` steps aside for a development host (plan D36) — ANALYSIS-016. Write
+- [x] 2.8 `OG_URL_MISMATCH` steps aside for a development host (plan D36) — ANALYSIS-016. Write
   first in `og-url-mismatch.check.spec.ts`: "is not applicable to a development-host og:url —
   that is DEVELOPMENT_HOST_REFERENCES's", using `staging.a.example`. Then the check reads
   `isDevelopmentHost`, the predicate `development-host-references.check.ts:35-39` applies to
   what names the page itself. Verify: `pnpm --filter be test:ci -- og-url-mismatch
   development-host-references`.
-- [ ] 2.9 `META_DESCRIPTION_REPEATS_TITLE` and `META_DESCRIPTION_LENGTH` both judge a copied
+- [x] 2.9 `META_DESCRIPTION_REPEATS_TITLE` and `META_DESCRIPTION_LENGTH` both judge a copied
   short title (plan D35) — ANALYSIS-017. Add `checks.registry.spec.ts` → "a 40-character copy of
   the title fails both META_DESCRIPTION_REPEATS_TITLE and META_DESCRIPTION_LENGTH". It passes on
   first run. What makes it fail is a step-aside added later between the two, which D35 forbids.
@@ -116,17 +116,17 @@ Each code gets one commit containing:
 
 ## 3. A title still selling last year, in the owner's year (1c) — ANALYSIS-019
 
-- [ ] 3.1 Write first in `be/src/modules/clients/repositories/crawl-runs/crawl-runs.queue.int-spec.ts`,
+- [x] 3.1 Write first in `be/src/modules/clients/repositories/crawl-runs/crawl-runs.queue.int-spec.ts`,
   the spec of the worker-side methods: "the run target carries its owner's time zone". It fails:
   no field. Verify: `pnpm --filter be test:db -- crawl-runs` fails on it.
-- [ ] 3.2 Make the case pass:
+- [x] 3.2 Make the case pass:
   - `IRunTarget.timeZone: string`;
   - `getRunTargetForWorker` (`crawl-runs.repository.ts:277`) joins `users` for `time_zone`;
   - `ICheckInput.timeZone`, with `make-check-input.ts` defaulting to `'America/Toronto'`;
   - `crawl-run-executor.service.ts` passes `target.timeZone` into every analysis input.
 
   Verify: `pnpm --filter be test:db -- crawl-runs && pnpm --filter be test:ci -- src/modules/crawl`.
-- [ ] 3.3 Write first `title-year-outdated.check.spec.ts` with plan §10.8's cases:
+- [x] 3.3 Write first `title-year-outdated.check.spec.ts` with plan §10.8's cases:
   - "Guide 2026" on Jan 1 00:30 Toronto is current;
   - "SEO guide 2026" at 2027-01-01T04:30Z for a Toronto owner is current;
   - "Best SEO tools for 2025 | Acme" fetched in 2026 fails;
@@ -134,13 +134,18 @@ Each code gets one commit containing:
   - "is not applicable without a title".
 
   They fail: no module.
-- [ ] 3.4 Add the check and `title-year-outdated.constant.ts` (prepositions, end punctuation, each
+- [x] 3.4 Add the check and `title-year-outdated.constant.ts` (prepositions, end punctuation, each
   with its reason), the catalogue entry (notice, Ahrefs source; VERIFY the URL) and the
   `DESCRIBE` sentence. Verify: `pnpm --filter be test:ci -- title-year-outdated &&
   pnpm --filter @app/contracts test:ci && pnpm typecheck`.
-- [ ] 3.5 Commits: `feat(clients): a run target carries its owner's time zone` ·
+- [x] 3.5 Commits: `feat(clients): a run target carries its owner's time zone` ·
   `feat(page-analysis): a title that names a past year as current`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test && pnpm test:db`.
+
+  AMENDED during implementation: 3.1–3.4 landed as one commit, `feat(page-analysis): a title
+  that names a past year as current` — the run target's zone has no reader but this check, so
+  the plumbing alone would be a field nobody reads. The spec also pins a Russian preposition
+  ("в 2025 году") and a year in the site name after the separator, which is not read.
 
 ## 4. The missing self-reference is its own finding, reported once (1d) — ANALYSIS-020
 
@@ -201,20 +206,25 @@ Each code gets one commit containing:
 Moved here from the dropped `canonical-change-tracking` (plan D33). It is done after task 2.7
 and before 6.
 
-- [ ] 5a.1 The behaviour is already built for `CANONICAL_MISMATCH`: `sitemap-checks.ts:45-47`, and
+- [x] 5a.1 The behaviour is already built for `CANONICAL_MISMATCH`: `sitemap-checks.ts:45-47`, and
   the catalogue explanation already names it (plan D15). Add `site-checks.registry.spec.ts` →
   "names an entry whose page names another URL as canonical". It passes on its first run. Delete
   the branch at `sitemap-checks.ts:45-47` locally once, watch the test fail, then restore the
   branch. Close this task as `VERIFIED, NOT BUILT`, naming the test. Verify: `pnpm --filter be
   test:ci -- site-checks`.
-- [ ] 5a.2 Write first `site-checks.registry.spec.ts` → "names an entry whose canonical is its
+- [x] 5a.2 Write first `site-checks.registry.spec.ts` → "names an entry whose canonical is its
   http twin" (an entry whose page carries `CANONICAL_TO_HTTP` and no `CANONICAL_MISMATCH`). It
   fails after 2.7: `contradictionOf` reads `CANONICAL_MISMATCH` alone. Then `contradictionOf`
   reads a `CANONICAL_TO_HTTP` finding's canonical as it reads `CANONICAL_MISMATCH`'s (plan D37,
   derived, not yet confirmed by the user). Verify: `pnpm --filter be test:ci -- site-checks`.
-- [ ] 5a.3 Commits: `test(site-checks): the sitemap's canonical contradiction is pinned` ·
+- [x] 5a.3 Commits: `test(site-checks): the sitemap's canonical contradiction is pinned` ·
   `fix(site-checks): an http-twin canonical still contradicts the sitemap`. Verify:
   `pnpm lint && pnpm typecheck && pnpm test`.
+  AMENDED during implementation: one test pins both branches ("names an entry whose page names
+  another canonical, the http twin included") and lands with the fix in one commit. 5a.1 is
+  VERIFIED, NOT BUILT: with the CANONICAL_MISMATCH branch removed the test failed, and passed
+  again once it was restored. Every other reader of CANONICAL_MISMATCH findings was listed by
+  `git grep` (2.7): the sitemap check is the only one.
 
 ## 6. Field audit of the markup checks, and its record (1f) — plan D12
 

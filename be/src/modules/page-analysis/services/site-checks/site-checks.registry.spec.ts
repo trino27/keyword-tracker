@@ -263,6 +263,46 @@ describe('sitemap checks', () => {
     ]);
   });
 
+  // A canonical contradiction is named whichever check carries it: CANONICAL_MISMATCH,
+  // or CANONICAL_TO_HTTP, which it steps aside for on the page's http:// twin (plan D37).
+  it('names an entry whose page names another canonical, the http twin included', () => {
+    const page = (url: string, code: string, canonical: string) => ({
+      url,
+      status: 'crawled' as const,
+      httpStatus: 200,
+      reason: null,
+      page: {
+        finalUrl: url,
+        dateModified: null,
+        issues: [{ code, details: { canonical } }],
+      },
+    });
+
+    expect(
+      evidenceOf(
+        'SITEMAP_LISTS_NON_INDEXABLE',
+        healthySite({
+          fetched: [
+            page(
+              `${SERVED}/copy/`,
+              'CANONICAL_MISMATCH',
+              `${SERVED}/original/`,
+            ),
+            page(
+              `${SERVED}/twin/`,
+              'CANONICAL_TO_HTTP',
+              'http://a.example/twin/',
+            ),
+          ],
+        }),
+      ),
+    ).toEqual([
+      '2 of the 2 sitemap entries this crawl fetched:',
+      `${SERVED}/copy/ — names ${SERVED}/original/ as canonical`,
+      `${SERVED}/twin/ — names http://a.example/twin/ as canonical`,
+    ]);
+  });
+
   it('reports sitemap URLs on another scheme or host variant', () => {
     expect(
       evidenceOf(
