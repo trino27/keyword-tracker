@@ -329,22 +329,32 @@ switches in group 4.
 
 ## 5. Live: both devices drain and agree with Google (4e)
 
-- [ ] 5.1 With a key, re-crawl a seed client. Verify: `docker compose exec postgres psql -U tracker
+- [x] 5.1 With a key, re-crawl a seed client. Verify: `docker compose exec postgres psql -U tracker
   -d seo_tracker -c "select strategy, status, count(*), count(measured_at) from page_speed group by
   1, 2"` shows `done` desktop rows, and `… -c "select count(*) from page_speed where strategy =
   'desktop' and (lighthouse_judged is not null or seo_score is not null)"` prints 0.
-- [ ] 5.2 Compare one URL's stored desktop LCP, INP and CLS with pagespeed.web.dev's Desktop tab.
+  Done 2026-10-11: run 208 (semrush.com) and seven clients another session added put desktop
+  rows on the stack. 22 were `done` when counted, and 0 desktop rows carry a Lighthouse column.
+- [x] 5.2 Compare one URL's stored desktop LCP, INP and CLS with pagespeed.web.dev's Desktop tab.
   Field values must match for the same CrUX window; lab values only close. Verify: the comparison
   is written here, naming each value's source.
-- [ ] 5.3 Check that a desktop measurement left a page's Lighthouse findings alone, and the key did
+  Done: `semrush.com/blog/how-to-reply-to-google-reviews/` desktop, stored at 15:41 as LCP 3056
+  ms, INP 255 ms and CLS 0.1, all `origin`. A live PSI desktop answer at 15:57 gave the same
+  three, from the site's data (`origin_fallback: true`). The lab performance score was 64
+  against the stored 65.
+- [x] 5.3 Check that a desktop measurement left a page's Lighthouse findings alone, and the key did
   not leak. Verify: `select count(*) from seo_issues where page_id = <id> and code like 'LH\_%'`
   is the same before and after that page's desktop row turns `done`, and `docker compose logs be
   | grep -c AIza` prints 0.
-- [ ] 5.4 Record in `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`: the strategy per row, the
+  Done: page 2118 held `LH_IMAGE_ALT` before its desktop row was measured and after.
+  `docker compose logs be | grep -c AIza` prints 0.
+- [x] 5.4 Record in `be/src/modules/page-speed/PAGE_SPEED_MODULE.md`: the strategy per row, the
   two-step migration, Lighthouse on mobile only, the claim order (turns, mobile first within a
   client), calls per crawl (two per page), and the drain time of the backlog with both
   strategies. Commit: `docs(page-speed): desktop measured live — calls, drain time and claim
   order`. Verify: `git grep -n "strategy" be/src/modules/page-speed/PAGE_SPEED_MODULE.md`.
+  Done. The drain time was measured from `measured_at` per minute: 4–5 measurements a minute
+  whatever the device, so a 15-post crawl measures in 6–7 minutes instead of 3–4.
 
 ## 6. Change acceptance
 

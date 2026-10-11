@@ -1,25 +1,49 @@
 # Page-speed module
 
-Measures queued pages with Google PageSpeed Insights (mobile: performance, and Lighthouse's SEO
-and accessibility categories, in one request) and writes what Google said. Owns no table: the pages module owns `page_speed` and `seo_issues`; this module only
+Measures queued pages with Google PageSpeed Insights, on mobile (performance, and Lighthouse's
+SEO and accessibility categories, in one request) and on desktop (performance only), and writes
+what Google said. Owns no table: the pages module owns `page_speed` and `seo_issues`; this module only
 executes, the way the crawl module executes runs the clients module queues; the queue's shapes
 (`IClaimedPageSpeed`, `IPageSpeedJobWrite`, `IPageSpeedMeasurementWrite`) are the pages
 module's, in `be/src/modules/pages/interfaces/page-speed.interface.ts`, and nothing here
 imports its repository. Imported by `AppModule` only — the seed process must never hold a
 worker it would exit under mid-call.
 
-- **The queue is `page_speed`, one row per page.** A finished crawl queues its pages inside its
-  finalize transaction (`PageSpeedQueueService.enqueueForWorker`) when a page has no row, failed
-  last time, or was measured at least 24 h ago (`PAGE_SPEED_FRESH_FOR_MS`); the seed queues
-  current pages that never had a row. There is no scheduler and no per-page button.
+- **The queue is `page_speed`, one row per page and device** (`strategy`, keyed
+  `(page_id, strategy)`). A finished crawl queues both devices of its pages inside its finalize
+  transaction (`PageSpeedQueueService.enqueueForWorker`) when a device's row is missing, failed
+  last time, or was measured at least 24 h ago (`PAGE_SPEED_FRESH_FOR_MS`) — each device on its
+  own; the seed queues current pages missing a device's row. There is no scheduler and no
+  per-page button.
+- **Two devices, one queue** (desktop-core-web-vitals). A row's job, fence and measurement are
+  its device's: the claim returns the strategy, every fence matches page, strategy and attempt,
+  and a measurement replaces only its own device's CWV codes (`PAGE_SPEED_CODES_BY_STRATEGY`).
+  Lighthouse speaks for mobile alone (lighthouse-checks D16): the desktop request asks for
+  `category=performance` only, a desktop completion carries no Lighthouse record and never runs
+  the Lighthouse replace, and `page_speed_lighthouse_mobile_only` refuses a desktop row with any
+  Lighthouse column — otherwise every desktop answer would erase the page's `LH_*` findings and
+  move its score. The list, its badges, the score and Lighthouse's checks read the mobile row;
+  the detail carries both (`pageSpeedByStrategy`) and the report dates each finding by its own
+  device. The key became composite in three generated migrations — `0016` the column (default
+  `'mobile'`, which every existing row was), `0017` the key swap (its one hand edit uncomments
+  drizzle-kit's own `DROP CONSTRAINT "page_speed_pkey"`, which it cannot name itself), `0018`
+  the default dropped — so a forgotten strategy is refused, not silently mobile.
+- **What desktop costs, measured live 2026-10-11:** two PageSpeed calls per page per crawl
+  instead of one. The worker drains 4–5 measurements a minute whatever the device, so a
+  15-post crawl now takes 6–7 minutes to measure instead of 3–4 (semrush.com's 15 desktop rows:
+  15:38:05–15:41:03). A desktop measurement's field values matched Google's live answer for the
+  same URL (LCP 3056 ms, INP 255 ms, CLS 0.10, site data); the lab score was 65 against 64.
 - **The worker** (`PageSpeedWorker`) starts only with `CRAWL_WORKER_ENABLED=true` AND a key. Two
   slots take turns from an in-process rate limiter (≥ 1 s apart), then claim one row with
   `SKIP LOCKED` under a 3-minute lease, only for pages still on their client's current run —
   "current" spelled by `CURRENT_RUN_STATUSES_SQL` (`be/src/persistence/sql/current-run-statuses.ts`),
   the same fragment the list, the detail and the report read, so the worker never measures a page
   the screens no longer show. The queue is fair, not FIFO: the user served longest ago first,
-  then that user's client served longest ago, then the oldest row — a client added behind
-  another user's hundreds of pages is measured within minutes, not after them.
+  then that user's client served longest ago, then — within that client — its mobile rows
+  before its desktop rows (the `psi_strategy_enum` order), then the oldest row. A claim of
+  either device serves its client. A client added behind another user's hundreds of pages is
+  measured within minutes, not after them; observed live, each audit client's desktop rows
+  started only once its mobile rows were done.
 - **Deleting a client aborts its measurements.** The delete cascades to its `page_speed` rows,
   so nothing of it is claimed again; a call already in flight finishes, and its completion,
   fenced on the row, writes nothing.
@@ -42,8 +66,9 @@ worker it would exit under mid-call.
 
   Every failure path writes job columns only, so the last good measurement survives.
 
-- **Findings** (`cwvIssuesOf`): a metric outside the good band yields exactly its one code —
-  `CWV_*_POOR` (Important) or `CWV_*_NEEDS_IMPROVEMENT` (Improvement) — with `{value, max,
+- **Findings** (`cwvIssuesOf(strategy, …)`): a metric outside the good band yields exactly its
+  one code on its device — `CWV_*_POOR` (Important) or `CWV_*_NEEDS_IMPROVEMENT` (Improvement),
+  with a `_DESKTOP` twin of the same level and bound for desktop — with `{value, max,
 source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree. Speed never
   enters the SEO score.
 - **Lighthouse's verdicts** (`extractLighthouse`, lighthouse-checks). The same answer carries
