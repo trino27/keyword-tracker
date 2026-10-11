@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { eq } from 'drizzle-orm';
+import { and, eq, like } from 'drizzle-orm';
 import request from 'supertest';
 import { PageSpeedRuntimeState } from '../../src/infrastructure/config/page-speed-settings/page-speed-runtime-state';
 import {
@@ -13,6 +13,7 @@ import { PsiClient } from '../../src/modules/page-speed/services/psi-client/psi-
 import { PageSpeedWorker } from '../../src/modules/page-speed/workers/page-speed-worker/page-speed-worker';
 import { pageSpeed } from '../../src/persistence/schema/tables/page-speed/page-speed.schema';
 import { pages } from '../../src/persistence/schema/tables/pages/pages.schema';
+import { seoIssues } from '../../src/persistence/schema/tables/seo-issues/seo-issues.schema';
 import { createTestApp } from '../support/create-test-app';
 import { seedTestUser, signIn } from '../support/sign-in';
 import { createTestDatabase } from '../support/test-database';
@@ -58,19 +59,51 @@ async function crawlYoast({ app, cookie }: ITestStack): Promise<number[]> {
   return rows.map(({ id }) => id);
 }
 
-/** Every page's PageSpeed request answers with the same recorded fixture. */
+/**
+ * Every page's PageSpeed requests answer with recorded fixtures: the mobile one with
+ * `fixture`, the desktop one with the recorded desktop answer — or, for an error, the same
+ * error, since Google refuses a key or a page on either device alike. An unanswered URL
+ * would be a 404 from the fixture transport and fail the row, so both devices are named.
+ */
 async function answerEveryPage(
   transport: FixtureHttpTransport,
   status: number,
   fixture: string,
+  desktopFixture = status === 200 ? 'url-field.desktop.json' : fixture,
 ) {
   const rows = await testDb.db.select({ finalUrl: pages.finalUrl }).from(pages);
-  for (const { finalUrl } of rows)
+  for (const { finalUrl } of rows) {
     transport.override(
-      PsiClient.requestUrl(finalUrl),
+      PsiClient.requestUrl(finalUrl, 'mobile'),
       psiAnswer(status, fixture),
     );
+    transport.override(
+      PsiClient.requestUrl(finalUrl, 'desktop'),
+      psiAnswer(status, desktopFixture),
+    );
+  }
 }
+
+/** Every stored Lighthouse finding, as page and code, sorted. */
+const lighthouseCodes = async () =>
+  (
+    await testDb.db
+      .select({ pageId: seoIssues.pageId, code: seoIssues.code })
+      .from(seoIssues)
+      .where(like(seoIssues.code, 'LH\\_%'))
+  )
+    .map(({ pageId, code }) => `${pageId}:${code}`)
+    .sort();
+
+/** The page ids and devices of the rows, sorted, for comparing queues. */
+const queueOf = async () =>
+  (
+    await testDb.db
+      .select({ pageId: pageSpeed.pageId, strategy: pageSpeed.strategy })
+      .from(pageSpeed)
+  )
+    .map(({ pageId, strategy }) => `${pageId}:${strategy}`)
+    .sort();
 
 async function drain(app: NestExpressApplication): Promise<number> {
   let measured = 0;
@@ -123,19 +156,88 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
     });
     afterEach(() => s.app.close());
 
-    it('a crawl queues its pages', async () => {
+    it('a crawl queues both strategies of each page', async () => {
       const pageIds = await crawlYoast(s);
 
       const rows = await testDb.db.select().from(pageSpeed);
-      expect(rows.map((row) => row.pageId).sort()).toEqual([...pageIds].sort());
+      expect(await queueOf()).toEqual(
+        pageIds.flatMap((id) => [`${id}:mobile`, `${id}:desktop`]).sort(),
+      );
       expect(rows.every((row) => row.status === 'queued')).toBe(true);
+    });
+
+    it('a crawl queues both strategies; each measured row has its findings', async () => {
+      const [pageId] = await crawlYoast(s);
+      await answerEveryPage(s.transport, 200, 'url-field.json');
+
+      expect(await drain(s.app)).toBe(30);
+
+      const rows = await testDb.db.select().from(pageSpeed);
+      expect(rows.every((row) => row.status === 'done')).toBe(true);
+      const [desktop] = rows.filter(
+        (row) => row.pageId === pageId && row.strategy === 'desktop',
+      );
+      // The recorded desktop answer: LCP 2530 ms and CLS 0.18 need improvement.
+      expect(desktop).toMatchObject({
+        lcpMs: 2530,
+        lighthouseJudged: null,
+        seoScore: null,
+        accessibilityScore: null,
+      });
+      const codes = (
+        await testDb.db
+          .select({ code: seoIssues.code })
+          .from(seoIssues)
+          .where(eq(seoIssues.pageId, pageId))
+      )
+        .map(({ code }) => code)
+        .filter((code) => code.startsWith('CWV_'))
+        .sort();
+      expect(codes).toEqual([
+        'CWV_CLS_NEEDS_IMPROVEMENT_DESKTOP',
+        'CWV_INP_NEEDS_IMPROVEMENT',
+        'CWV_LCP_NEEDS_IMPROVEMENT',
+        'CWV_LCP_NEEDS_IMPROVEMENT_DESKTOP',
+      ]);
+    });
+
+    /**
+     * Lighthouse speaks for mobile alone (lighthouse-checks D16): a desktop measurement,
+     * whose answer has no Lighthouse categories, must not clear the page's Lighthouse
+     * findings, nor move its score or its place in the list.
+     */
+    it("a desktop measurement leaves the page's Lighthouse findings, its score and its place in the list", async () => {
+      await crawlYoast(s);
+      await answerEveryPage(s.transport, 200, 'lighthouse-url-field.json');
+      // Mobile first: the desktop rows wait until the mobile ones are measured.
+      await testDb.db
+        .update(pageSpeed)
+        .set({ nextAttemptAt: new Date(Date.now() + 3_600_000) })
+        .where(eq(pageSpeed.strategy, 'desktop'));
+      await drain(s.app);
+      const lighthouseBefore = await lighthouseCodes();
+      const before = await listOf(s);
+      expect(lighthouseBefore.length).toBeGreaterThan(0);
+
+      await testDb.db
+        .update(pageSpeed)
+        .set({ nextAttemptAt: new Date(Date.now() - 1_000) })
+        .where(eq(pageSpeed.strategy, 'desktop'));
+      expect(await drain(s.app)).toBe(15);
+
+      expect(await lighthouseCodes()).toEqual(lighthouseBefore);
+      const after = await listOf(s);
+      expect(after.map(({ id }) => id)).toEqual(before.map(({ id }) => id));
+      expect(after.map(({ score }) => score)).toEqual(
+        before.map(({ score }) => score),
+      );
     });
 
     it('a measured page has its speed findings in the detail', async () => {
       const [pageId] = await crawlYoast(s);
       await answerEveryPage(s.transport, 200, 'url-field.json');
 
-      expect(await drain(s.app)).toBe(15);
+      expect(await drain(s.app)).toBe(30);
 
       const detail = (
         await request(s.app.getHttpServer())
@@ -168,7 +270,9 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       const [row] = await testDb.db
         .select()
         .from(pageSpeed)
-        .where(eq(pageSpeed.pageId, pageId));
+        .where(
+          and(eq(pageSpeed.pageId, pageId), eq(pageSpeed.strategy, 'mobile')),
+        );
       expect(row).toMatchObject({
         status: 'done',
         lcpMs: 3025,
@@ -188,10 +292,11 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       expect(after.map(({ score }) => score)).toEqual(
         before.map(({ score }) => score),
       );
-      // The recorded answer: LCP 3025 ms and INP 212 ms need improvement, CLS is good.
+      // The recorded answers: on mobile LCP 3025 ms and INP 212 ms need improvement; on
+      // desktop LCP 2530 ms and CLS 0.18 do. Four notices, none in the score.
       after.forEach((item, i) => {
-        expect(item.issues.total).toBe(before[i].issues.total + 2);
-        expect(item.issues.notice).toBe(before[i].issues.notice + 2);
+        expect(item.issues.total).toBe(before[i].issues.total + 4);
+        expect(item.issues.notice).toBe(before[i].issues.notice + 4);
       });
     });
 
@@ -209,11 +314,12 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
 
       after.forEach((item) => {
         const was = before.find(({ id }) => id === item.id)!;
-        // The recorded answer: LCP and INP need improvement (two notices); Lighthouse
-        // fails robots-txt (a notice). Its color-contrast and link-name failures are
-        // accessibility audits, retired from the checks (lighthouse-checks D24).
-        expect(item.issues.total).toBe(was.issues.total + 3);
-        expect(item.issues.notice).toBe(was.issues.notice + 3);
+        // The recorded mobile answer: LCP and INP need improvement (two notices);
+        // Lighthouse fails robots-txt (a notice). Its color-contrast and link-name failures
+        // are accessibility audits, retired from the checks (lighthouse-checks D24). The
+        // desktop answer adds LCP and CLS needing improvement (two notices).
+        expect(item.issues.total).toBe(was.issues.total + 5);
+        expect(item.issues.notice).toBe(was.issues.notice + 5);
         expect(item.issues.warning).toBe(was.issues.warning);
         const lighthouse = item.score.byOwner.lighthouse!;
         expect(lighthouse.failed).toBe(1);
@@ -252,12 +358,16 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         .from(pages);
       // Three different answers, so good, needs-improvement and poor all occur.
       const fixtures = ['url-field.json', 'origin-only.json', 'lab-only.json'];
-      rows.forEach(({ finalUrl }, i) =>
+      rows.forEach(({ finalUrl }, i) => {
         s.transport.override(
-          PsiClient.requestUrl(finalUrl),
+          PsiClient.requestUrl(finalUrl, 'mobile'),
           psiAnswer(200, fixtures[i % fixtures.length]),
-        ),
-      );
+        );
+        s.transport.override(
+          PsiClient.requestUrl(finalUrl, 'desktop'),
+          psiAnswer(200, 'url-field.desktop.json'),
+        );
+      });
       await drain(s.app);
 
       for (const item of await listOf(s)) {
@@ -267,9 +377,12 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
             .set('Cookie', s.cookie)
             .expect(200)
         ).body as { issues: { code: string }[] };
+        // The list's badges are mobile; so are the codes they must agree with.
         const speedCodes = detail.issues
           .map(({ code }) => code)
-          .filter((code) => code.startsWith('CWV_'))
+          .filter(
+            (code) => code.startsWith('CWV_') && !code.endsWith('_DESKTOP'),
+          )
           .sort();
         const expected = (['lcp', 'inp', 'cls'] as const)
           .flatMap((metric) => {
@@ -369,7 +482,7 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
         await crawlYoast(s);
 
         const rows = await testDb.db.select().from(pageSpeed);
-        expect(rows).toHaveLength(15);
+        expect(rows).toHaveLength(30);
         expect(rows.every((row) => row.status === 'queued')).toBe(true);
         expect(s.transport.requests.filter(isGoogle)).toEqual([]);
         expect((await listBodyOf(s)).pageSpeedAvailability).toEqual({

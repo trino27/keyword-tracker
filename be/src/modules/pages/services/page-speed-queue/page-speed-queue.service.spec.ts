@@ -1,5 +1,5 @@
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
-import { PAGE_SPEED_QUEUED_STRATEGIES } from '@shared/page-speed-queue/page-speed-queue.constant';
+import { PSI_STRATEGIES } from '@app/contracts';
 import type { PageSpeedRepository } from '../../repositories/page-speed/page-speed.repository';
 import { PageSpeedQueueService } from './page-speed-queue.service';
 
@@ -27,30 +27,27 @@ describe('PageSpeedQueueService', () => {
     expect(repository.enqueueForWorker).toHaveBeenCalledWith(
       tx,
       [1, 2],
-      PAGE_SPEED_QUEUED_STRATEGIES,
+      PSI_STRATEGIES,
       new Date('2026-10-09T12:00:00Z'),
     );
     expect(repository.notifyQueued).toHaveBeenCalledWith(tx);
   });
 
-  /**
-   * Until Google is asked for desktop, a desktop row would be measured as mobile and
-   * stored as the desktop measurement (D45): the crawl and the seed queue what the
-   * constant names, and today it names mobile alone.
-   */
-  it('queues only the strategies PAGE_SPEED_QUEUED_STRATEGIES names', async () => {
+  /** Every page is measured on both devices: the crawl and the seed queue each. */
+  it('queues every strategy', async () => {
     const { service, repository } = setup(1);
 
     await service.enqueueForWorker(tx, [1], new Date());
     await service.backfillForWorker();
 
-    expect(PAGE_SPEED_QUEUED_STRATEGIES).toEqual(['mobile']);
-    expect(repository.enqueueForWorker.mock.calls[0][2]).toBe(
-      PAGE_SPEED_QUEUED_STRATEGIES,
-    );
-    expect(repository.backfillCurrentForWorker).toHaveBeenCalledWith(
-      PAGE_SPEED_QUEUED_STRATEGIES,
-    );
+    expect(repository.enqueueForWorker.mock.calls[0][2]).toEqual([
+      'mobile',
+      'desktop',
+    ]);
+    expect(repository.backfillCurrentForWorker).toHaveBeenCalledWith([
+      'mobile',
+      'desktop',
+    ]);
   });
 
   it('wakes nobody when nothing was queued', async () => {

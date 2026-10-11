@@ -1,5 +1,6 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import type { TPsiStrategy } from '@app/contracts';
 import {
   HTTP_TRANSPORT,
   type IHttpTransport,
@@ -17,7 +18,9 @@ import {
 import type { TPsiCallResult } from '../classify-psi-response/classify-psi-response';
 
 /**
- * Google PageSpeed Insights, mobile: performance, and Lighthouse's SEO and accessibility.
+ * Google PageSpeed Insights, per device. Mobile asks for performance and Lighthouse's SEO
+ * and accessibility; desktop for performance only, because Lighthouse's verdicts are taken
+ * from mobile alone (lighthouse-checks D16).
  * One request per call — no retries inside it: the queue owns the retry schedule, in
  * minutes, not milliseconds.
  *
@@ -36,22 +39,28 @@ export class PsiClient extends RemoteApiCore {
   }
 
   /**
-   * The request URL for a page, parameters in a fixed order so fixtures can key on it.
-   * Lighthouse's SEO and accessibility categories ride on the same request: one call, one
-   * unit of quota, every verdict (SPEED-016).
+   * The request URL for a page and device, parameters in a fixed order (`url`, `strategy`,
+   * `category`) so fixtures can key on it. On mobile, Lighthouse's SEO and accessibility
+   * categories ride on the same request: one call, one unit of quota, every verdict
+   * (SPEED-016). On desktop, performance alone.
    */
-  static requestUrl(pageUrl: string): string {
-    return `${PSI_ENDPOINT}?url=${encodeURIComponent(pageUrl)}&strategy=mobile&category=performance&category=seo&category=accessibility`;
+  static requestUrl(pageUrl: string, strategy: TPsiStrategy): string {
+    const categories =
+      strategy === 'mobile'
+        ? '&category=performance&category=seo&category=accessibility'
+        : '&category=performance';
+    return `${PSI_ENDPOINT}?url=${encodeURIComponent(pageUrl)}&strategy=${strategy}${categories}`;
   }
 
   /** Never throws for what Google or the network did; the caller classifies the result. */
   async runPagespeed(
     pageUrl: string,
+    strategy: TPsiStrategy,
     apiKey: string,
     signal?: AbortSignal,
   ): Promise<TPsiCallResult> {
     try {
-      const response = await this.get(PsiClient.requestUrl(pageUrl), {
+      const response = await this.get(PsiClient.requestUrl(pageUrl, strategy), {
         maxBytes: PAGE_SPEED_MAX_BYTES,
         accept: 'application/json',
         headers: { 'x-goog-api-key': apiKey },

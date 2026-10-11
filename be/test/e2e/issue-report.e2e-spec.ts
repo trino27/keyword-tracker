@@ -86,7 +86,7 @@ describe('issue report (e2e)', () => {
       .from(pages);
     const body = readFileSync(join(FIXTURES_ROOT, 'pagespeed', answer), 'utf8');
     for (const { finalUrl } of rows)
-      transport.override(PsiClient.requestUrl(finalUrl), {
+      transport.override(PsiClient.requestUrl(finalUrl, 'mobile'), {
         status: 200,
         headers: { 'content-type': 'application/json' },
         body,

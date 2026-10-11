@@ -100,9 +100,9 @@ export function UsingTracker() {
 					>
 						<Text c="dimmed" size="sm">
 							When the crawl finishes, its pages join a queue for Google PageSpeed
-							Insights (mobile). A page measured in the last 24 hours is not measured
-							again. Results arrive within minutes and the badges fill in on their
-							own.
+							Insights, once for mobile and once for desktop. A page measured on a
+							device in the last 24 hours is not measured on it again. Results arrive
+							within minutes and the badges fill in on their own.
 						</Text>
 					</Timeline.Item>
 					<Timeline.Item

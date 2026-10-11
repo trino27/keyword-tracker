@@ -138,8 +138,8 @@ export function IssuesScreen() {
 			) : (
 				anyReport && (
 					<Text size="xs" c="dimmed">
-						Speed figures are Google's mobile measurements; pages are re-measured at
-						most once a day.
+						Speed figures are Google's mobile and desktop measurements; pages are
+						re-measured at most once a day.
 					</Text>
 				)
 			)}

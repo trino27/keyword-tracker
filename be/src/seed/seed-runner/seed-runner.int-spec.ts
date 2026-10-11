@@ -58,9 +58,10 @@ describe('SeedRunner (postgres, recorded sites)', () => {
       await testDb.db.$count(crawlRuns, eq(crawlRuns.trigger, 'seed')),
     ).toBe(2);
     expect(report.positions.total).toBeGreaterThanOrEqual(50_000);
-    // Each crawl queued its own pages for PageSpeed; the backfill had nothing left.
+    // Each crawl queued its own pages for PageSpeed, once per device; the backfill had
+    // nothing left.
     expect(await testDb.db.$count(pageSpeed)).toBe(
-      await testDb.db.$count(pages),
+      2 * (await testDb.db.$count(pages)),
     );
     expect(report.pageSpeedQueued).toBe(0);
     expect(
@@ -82,13 +83,13 @@ describe('SeedRunner (postgres, recorded sites)', () => {
   });
 
   /** A database crawled before PageSpeed existed is repaired by one seed run. */
-  it('the backfill queues each current page once, and a second run queues none', async () => {
+  it('the backfill queues each current page once per strategy, and a second run queues none', async () => {
     await testDb.db.delete(pageSpeed);
 
     const first = await seed();
     const second = await seed();
 
-    expect(first.pageSpeedQueued).toBe(await testDb.db.$count(pages));
+    expect(first.pageSpeedQueued).toBe(2 * (await testDb.db.$count(pages)));
     expect(second.pageSpeedQueued).toBe(0);
   });
 

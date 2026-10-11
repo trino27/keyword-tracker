@@ -208,7 +208,7 @@ product behaves as before.
 After this group desktop findings appear among the issues and in the report; the Speed block
 switches in group 4.
 
-- [ ] 3.1 Record a desktop answer. `be/test/fixtures/record-pagespeed-fixtures.ts`: a target's
+- [x] 3.1 Record a desktop answer. `be/test/fixtures/record-pagespeed-fixtures.ts`: a target's
   `strategy?: 'desktop'`, recorded with `strategy=desktop&category=performance`. Record with
   `node be/test/fixtures/record-pagespeed-fixtures.ts url-field.desktop` so no pinned answer is
   re-recorded; the recorder refuses a file echoing the key. `page-speed-fixtures.spec.ts` pins the
@@ -216,7 +216,10 @@ switches in group 4.
   confirms, and the session never prints `.env`. Verify: `git grep -n -E "key=|AIza" --
   be/test/fixtures/pagespeed` prints nothing, and `pnpm --filter be test:ci --
   page-speed-fixtures` passes.
-- [ ] 3.2 Write first:
+  Done: 329fa17. yoast.com/ on desktop: its own field data, LCP 2530 ms and CLS 0.18 need
+  improvement, INP 62 ms good; categories `performance` only. The key came from `.env` and was
+  never printed.
+- [x] 3.2 Write first:
   - `psi-client.spec.ts` → "a desktop request asks for strategy=desktop and category=performance
     only, the key only in the header" (SPEED-016's desktop scenario);
   - `page-speed-queue.service.spec.ts` → "queues every strategy", replacing 2.1's case.
@@ -227,7 +230,8 @@ switches in group 4.
   delete `PAGE_SPEED_QUEUED_STRATEGIES`. Verify: `pnpm --filter be test:ci --
   src/modules/page-speed src/modules/pages && git grep -n "PAGE_SPEED_QUEUED_STRATEGIES" -- be`
   (prints nothing).
-- [ ] 3.3 Write first in `be/test/e2e/page-speed.e2e-spec.ts`, with every
+  Done: the specs failed on the missing parameter and on the constant; the constant is gone.
+- [x] 3.3 Write first in `be/test/e2e/page-speed.e2e-spec.ts`, with every
   `transport.override(PsiClient.requestUrl(…))` (`:69`, `:255`) naming its strategy and the
   desktop URL answered by `url-field.desktop.json`:
   - "a crawl queues both strategies of each page";
@@ -239,21 +243,31 @@ switches in group 4.
   once, and a second run queues none" becomes "… once per strategy …" with its count doubled.
   They fail before 3.2 lands: no desktop row is queued. Verify: `pnpm --filter be test:db --
   page-speed seed-runner`.
-- [ ] 3.4 `fe/src/Modules/Issues/IssuesScreen.tsx:141`: the `active` line reads "Speed figures are
+  Done. AMENDED during implementation: the e2e helper answers both devices, the desktop one with
+  `url-field.desktop.json` (an error fixture answers both alike). So the existing counts gained
+  the desktop findings: the speed case +4 notices, the Lighthouse case +5. The badge case
+  compares mobile codes only, because the list's badges are mobile. `issue-report.e2e-spec.ts`
+  names its mobile URL. Its desktop rows fail as unanswered (404) and add no finding.
+- [x] 3.4 `fe/src/Modules/Issues/IssuesScreen.tsx:141`: the `active` line reads "Speed figures are
   Google's mobile and desktop measurements; pages are re-measured at most once a day.", with its
   `IssuesScreen.test.tsx` case written first. If the Info guide (`fe/src/Modules/Info/`,
   `fe/src/ViewModels/InfoGuideViewModel/`) is committed by now, its "mobile strategy" sentences
   (`speedAndSite.ts:8`, `CoreWebVitalsGuide.tsx:246`, `UsingTracker.tsx:103`) name both devices
   too. VERIFY: those files were untracked at `adc8887`. Verify: `pnpm --filter fe test:ci --
   IssuesScreen`.
-- [ ] 3.5 Check the worker and its neighbours are unchanged. Verify: `pnpm --filter be test:ci --
+  Done. The three Info sentences name both devices; `speedAndSite.ts`'s CWV_SOURCE stays
+  mobile because it describes the mobile codes, and the desktop codes have their own
+  (65c7272).
+- [x] 3.5 Check the worker and its neighbours are unchanged. Verify: `pnpm --filter be test:ci --
   classify-psi-response page-speed-rate-limiter page-speed-worker psi-client`.
+  Done: in the full run below.
 - [ ] 3.6 Check the stack queues both devices. Verify: `docker compose up -d --build`, re-crawl a
   seed client, then `docker compose exec postgres psql -U tracker -d seo_tracker -c "select
   strategy, status, count(*) from page_speed group by 1, 2"` shows `desktop` rows.
-- [ ] 3.7 Commits: `test(fixtures): a desktop PageSpeed answer, recorded` · `feat(page-speed): ask
+- [x] 3.7 Commits: `test(fixtures): a desktop PageSpeed answer, recorded` · `feat(page-speed): ask
   Google for desktop, and queue both devices`. Verify: `pnpm lint && pnpm typecheck && pnpm test
   && pnpm test:db`.
+  Done: lint and typecheck clean; contracts 789, be 1327, fe 436, db/e2e 223 tests green.
 
 ## 4. The page shows both devices (4d) — PAGES-014, PAGEDETAIL-011
 

@@ -38,7 +38,7 @@ describe('PsiClient', () => {
   it('sends the key in a header and never in the URL', async () => {
     const { client, requests, logger } = makeClient(() => ok());
 
-    await client.runPagespeed('https://yoast.com/a/', KEY);
+    await client.runPagespeed('https://yoast.com/a/', 'mobile', KEY);
 
     expect(requests[0].headers['x-goog-api-key']).toBe(KEY);
     expect(requests[0].url).not.toContain(KEY);
@@ -53,7 +53,7 @@ describe('PsiClient', () => {
   it('asks for mobile performance, SEO and accessibility in one request, with the page URL encoded', async () => {
     const { client, requests } = makeClient(() => ok());
 
-    await client.runPagespeed('https://yoast.com/a b/?x=1', KEY);
+    await client.runPagespeed('https://yoast.com/a b/?x=1', 'mobile', KEY);
 
     expect(requests).toHaveLength(1);
     expect(requests[0].url).toBe(
@@ -61,11 +61,32 @@ describe('PsiClient', () => {
     );
   });
 
+  /**
+   * SPEED-016's desktop scenario: Lighthouse's verdicts come from mobile alone
+   * (lighthouse-checks D16), so a desktop request asks for performance only — and, like
+   * the mobile one, carries the key in its header alone.
+   */
+  it('a desktop request asks for strategy=desktop and category=performance only, the key only in the header', async () => {
+    const { client, requests } = makeClient(() => ok());
+
+    await client.runPagespeed('https://yoast.com/a/', 'desktop', KEY);
+
+    expect(requests[0].url).toBe(
+      'https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=https%3A%2F%2Fyoast.com%2Fa%2F&strategy=desktop&category=performance',
+    );
+    expect(requests[0].url).not.toContain(KEY);
+    expect(requests[0].headers['x-goog-api-key']).toBe(KEY);
+  });
+
   it('one request, no retry, 90 s timeout', async () => {
     const timeout = jest.spyOn(AbortSignal, 'timeout');
     const { client, requests } = makeClient(() => ok(503));
 
-    const result = await client.runPagespeed('https://yoast.com/a/', KEY);
+    const result = await client.runPagespeed(
+      'https://yoast.com/a/',
+      'mobile',
+      KEY,
+    );
 
     expect(requests).toHaveLength(1);
     expect(timeout).toHaveBeenCalledWith(90_000);
@@ -76,7 +97,11 @@ describe('PsiClient', () => {
   it('hands a network failure back instead of throwing it', async () => {
     const { client } = makeClient(() => new RemoteApiTimeoutError('u'));
 
-    const result = await client.runPagespeed('https://yoast.com/a/', KEY);
+    const result = await client.runPagespeed(
+      'https://yoast.com/a/',
+      'mobile',
+      KEY,
+    );
 
     expect('error' in result && result.error).toBeInstanceOf(
       RemoteApiTimeoutError,

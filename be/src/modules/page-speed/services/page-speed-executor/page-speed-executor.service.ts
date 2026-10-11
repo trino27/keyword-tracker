@@ -65,7 +65,12 @@ export class PageSpeedExecutorService {
       await this.results.releaseForWorker(claim, new Date());
       return;
     }
-    const result = await this.psi.runPagespeed(claim.url, apiKey, signal);
+    const result = await this.psi.runPagespeed(
+      claim.url,
+      claim.strategy,
+      apiKey,
+      signal,
+    );
     if (signal.aborted) {
       // Shutting down: not the page's failure, so it keeps its attempt.
       await this.results.releaseForWorker(claim, new Date());

@@ -58,6 +58,7 @@ describe('PageSpeedExecutorService', () => {
 
     expect(psi.runPagespeed).toHaveBeenCalledWith(
       'https://yoast.com/a/',
+      'mobile',
       KEY,
       expect.any(AbortSignal),
     );
@@ -308,7 +309,7 @@ describe('PageSpeedExecutorService', () => {
    * own Core Web Vitals codes and no Lighthouse record, whatever the answer holds.
    */
   it('a desktop claim completes the desktop arm with no Lighthouse record', async () => {
-    const { run, results, claim } = setup(
+    const { run, results, psi, claim } = setup(
       answer(200, 'lighthouse-url-field.json'),
       1,
       'desktop',
@@ -324,6 +325,12 @@ describe('PageSpeedExecutorService', () => {
         speedFindings: { code: string }[];
       },
     ];
+    expect(psi.runPagespeed).toHaveBeenCalledWith(
+      'https://yoast.com/a/',
+      'desktop',
+      KEY,
+      expect.any(AbortSignal),
+    );
     expect(claimed).toBe(claim);
     expect(completion.strategy).toBe('desktop');
     expect(completion).not.toHaveProperty('lighthouseFindings');

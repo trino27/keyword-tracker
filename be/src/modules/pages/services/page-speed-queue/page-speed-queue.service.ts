@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Transaction } from '@persistence/connections/postgres/types/transaction.type';
-import {
-  PAGE_SPEED_FRESH_FOR_MS,
-  PAGE_SPEED_QUEUED_STRATEGIES,
-} from '@shared/page-speed-queue/page-speed-queue.constant';
+import { PSI_STRATEGIES } from '@app/contracts';
+import { PAGE_SPEED_FRESH_FOR_MS } from '@shared/page-speed-queue/page-speed-queue.constant';
 import { PageSpeedRepository } from '../../repositories/page-speed/page-speed.repository';
 
 /**
@@ -28,7 +26,7 @@ export class PageSpeedQueueService {
     const queued = await this.pageSpeed.enqueueForWorker(
       tx,
       pageIds,
-      PAGE_SPEED_QUEUED_STRATEGIES,
+      PSI_STRATEGIES,
       staleBefore,
     );
     if (queued > 0) await this.pageSpeed.notifyQueued(tx);
@@ -37,9 +35,8 @@ export class PageSpeedQueueService {
 
   /** Every current page, per device, that has never been queued; idempotent. */
   async backfillForWorker(): Promise<number> {
-    const queued = await this.pageSpeed.backfillCurrentForWorker(
-      PAGE_SPEED_QUEUED_STRATEGIES,
-    );
+    const queued =
+      await this.pageSpeed.backfillCurrentForWorker(PSI_STRATEGIES);
     if (queued > 0) await this.pageSpeed.notifyQueued();
     return queued;
   }

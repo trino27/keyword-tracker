@@ -127,6 +127,21 @@ describe("IssuesScreen", () => {
 		expect(await screen.findByText(/no PageSpeed key is configured/)).toBeInTheDocument();
 	});
 
+	it("says speed figures are Google's mobile and desktop measurements", async () => {
+		vi.spyOn(IssueReportGateway.prototype, "get").mockResolvedValue({
+			kind: "report",
+			report: { ...REPORT, pageSpeedAvailability: { state: "active" } },
+		});
+
+		await renderAt("/issues?clientId=7");
+
+		expect(
+			await screen.findByText(
+				"Speed figures are Google's mobile and desktop measurements; pages are re-measured at most once a day.",
+			),
+		).toBeInTheDocument();
+	});
+
 	it("says, in red, that Google rejected the key", async () => {
 		vi.spyOn(IssueReportGateway.prototype, "get").mockResolvedValue({
 			kind: "report",

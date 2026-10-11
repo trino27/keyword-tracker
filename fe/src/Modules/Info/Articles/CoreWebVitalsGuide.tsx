@@ -242,9 +242,10 @@ export function CoreWebVitalsGuide() {
 				sources={[SRC.pageSpeedInsights, SRC.coreWebVitals]}
 			>
 				<Text>
-					After each crawl, every page is measured with Google PageSpeed Insights, for{" "}
-					<b>mobile</b>, at most once every 24 hours. For each metric the tracker keeps
-					the best evidence Google has, and says whose it is:
+					After each crawl, every page is measured with Google PageSpeed Insights twice,
+					for <b>mobile</b> and for <b>desktop</b>, each at most once every 24 hours. The
+					list's badges and the score read mobile. For each metric the tracker keeps the
+					best evidence Google has, and says whose it is:
 				</Text>
 				<Table withTableBorder withColumnBorders verticalSpacing={6} fz="sm">
 					<Table.Tbody>
