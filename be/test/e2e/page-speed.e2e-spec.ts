@@ -210,16 +210,17 @@ describe('PageSpeed (e2e, recorded sites and answers)', () => {
       after.forEach((item) => {
         const was = before.find(({ id }) => id === item.id)!;
         // The recorded answer: LCP and INP need improvement (two notices); Lighthouse
-        // fails robots-txt (a notice), color-contrast and link-name (two warnings).
-        expect(item.issues.total).toBe(was.issues.total + 5);
+        // fails robots-txt (a notice). Its color-contrast and link-name failures are
+        // accessibility audits, retired from the checks (lighthouse-checks D24).
+        expect(item.issues.total).toBe(was.issues.total + 3);
         expect(item.issues.notice).toBe(was.issues.notice + 3);
-        expect(item.issues.warning).toBe(was.issues.warning + 2);
+        expect(item.issues.warning).toBe(was.issues.warning);
         const lighthouse = item.score.byOwner.lighthouse!;
-        expect(lighthouse.failed).toBe(3);
+        expect(lighthouse.failed).toBe(1);
         expect(item.score.applicable).toBe(
           was.score.applicable + lighthouse.applicable,
         );
-        expect(item.score.failed).toBe(was.score.failed + 3);
+        expect(item.score.failed).toBe(was.score.failed + 1);
       });
 
       const detail = (
