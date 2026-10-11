@@ -23,7 +23,7 @@ function CompactIssue({ row }: { row: TReportIssue }) {
 				</Text>
 			</Group>
 			<IssueLocation row={row} withPage={false} />
-			<Text size="sm">{copy.plain.fix}</Text>
+			{copy.plain.fix && <Text size="sm">{copy.plain.fix}</Text>}
 			<TechnicalDetails copy={copy} />
 		</Stack>
 	);

@@ -86,7 +86,7 @@ export const SITE_CHECK_CATALOGUE = {
     plain: {
       what: "The site's sitemap lists pages that aren't meant to be in search results",
       why: 'Some listed pages redirect, show errors, are hidden from search or point to another main version. Each contradicts the sitemap, and search engines learn to trust such a sitemap less. Based on a sample of the sitemap.',
-      fix: "Ask your developer, or check your sitemap plugin's settings, so the sitemap lists only live pages that are meant to appear in search.",
+      // No `fix`: removed at the user's request (plan D33); the why already says what is wrong.
     },
     hint: 'List only URLs that answer 200, are indexable and name themselves as canonical.',
     explanation:

@@ -56,6 +56,37 @@ describe("IssueCard", () => {
 		expect(screen.getByText(SEO_ISSUE_CATALOGUE.TITLE_LENGTH.label)).toBeInTheDocument();
 	});
 
+	/** One check is shown without advice, by decision (plan D33). */
+	it("leaves out What to do for a check that has no advice", async () => {
+		renderWithProviders(() => (
+			<IssueCard
+				card={{
+					code: "SITEMAP_LISTS_NON_INDEXABLE",
+					severity: "warning",
+					affectedPages: 15,
+					wholeSite: true,
+					rows: [
+						{
+							code: "SITEMAP_LISTS_NON_INDEXABLE",
+							severity: "warning",
+							details: {},
+							location: { kind: "site" },
+						},
+					],
+				}}
+			/>
+		));
+
+		expect(
+			await screen.findByText(
+				"The site's sitemap lists pages that aren't meant to be in search results",
+			),
+		).toBeInTheDocument();
+		expect(screen.getByText("Why it matters")).toBeInTheDocument();
+		expect(screen.queryByText("What to do")).not.toBeInTheDocument();
+		expect(screen.queryByText(/check your sitemap plugin's settings/)).not.toBeInTheDocument();
+	});
+
 	it("says Whole site for a site check", async () => {
 		renderWithProviders(() => (
 			<IssueCard

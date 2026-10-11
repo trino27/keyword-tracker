@@ -38,12 +38,14 @@ export function IssueCard({ card }: { card: IIssueCardView }) {
 					</Text>
 					<Text size="sm">{copy.plain.why}</Text>
 				</Stack>
-				<Stack gap={2}>
-					<Text size="xs" c="dimmed" fw={600} tt="uppercase">
-						What to do
-					</Text>
-					<Text size="sm">{copy.plain.fix}</Text>
-				</Stack>
+				{copy.plain.fix && (
+					<Stack gap={2}>
+						<Text size="xs" c="dimmed" fw={600} tt="uppercase">
+							What to do
+						</Text>
+						<Text size="sm">{copy.plain.fix}</Text>
+					</Stack>
+				)}
 				<TechnicalDetails copy={copy} />
 				<Divider />
 				<Stack gap="xs">

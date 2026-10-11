@@ -9,8 +9,12 @@ export interface IPlainCopy {
   what: string;
   /** Why it matters, in traffic, clicks, visibility or visitors — never in markup terms. */
   why: string;
-  /** What to do, naming who does it: the CMS editor, the developer, the hosting provider… */
-  fix: string;
+  /**
+   * What to do, naming who does it: the CMS editor, the developer, the hosting provider…
+   * Absent only where the product decided a card reads better without it; the copy test
+   * names each such entry, so a forgotten `fix` still fails.
+   */
+  fix?: string;
 }
 
 /** Bounds the plain copy is held to, so a card stays a card. */
