@@ -43,7 +43,7 @@ stopping every polling timer.
 
 ### Requirement [SHELL-004]: one shell, one status vocabulary
 
-Every screen MUST render inside the AppShell (product name, Pages, Issues and Clients navigation, a
+Every screen MUST render inside the AppShell (product name, Pages, Issues, Clients and Info navigation, a
 user menu with the email and Sign out) and open with a page header; crawl statuses MUST be coloured
 from one `Record` over the status set: queued grey, running blue with a loader, succeeded green,
 partial yellow, failed red; issue severities MUST be named and coloured from one `Record` over the
@@ -66,7 +66,7 @@ scales.
 
 #### Scenario: the navigation
 - **WHEN** a signed-in user looks at the header
-- **THEN** it offers Pages, Issues and Clients in that order
+- **THEN** it offers Pages, Issues, Clients and Info in that order
 
 #### Scenario: leaving a filtered screen and coming back
 - **WHEN** the user filters Issues to Critical, grouped by page, opens Pages, then Issues again
