@@ -3,11 +3,12 @@ import { SEO_ISSUE_CATALOGUE } from './seo-issue-catalogue.constant';
 import { MEASURED_ISSUE_CODES } from './measured-issue-codes.constant';
 
 describe('MEASURED_ISSUE_CODES', () => {
-  it('is exactly the five bounded codes', () => {
+  it('is exactly the six bounded codes', () => {
     expect([...MEASURED_ISSUE_CODES].sort()).toEqual([
       'DOM_SIZE_LARGE',
       'LARGE_PAGE',
       'META_DESCRIPTION_LENGTH',
+      'PREVIEW_IMAGE_TOO_SMALL',
       'THIN_CONTENT',
       'TITLE_LENGTH',
     ]);

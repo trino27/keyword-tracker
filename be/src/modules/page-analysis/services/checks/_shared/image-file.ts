@@ -1,0 +1,43 @@
+import type { IPageImage } from '../../../interfaces/parsed-page.interface';
+
+/**
+ * The file an image address names, decoded, without its directory, query or fragment —
+ * `IMG_1234.JPG` from `https://a.example/wp-content/uploads/IMG_1234.JPG?w=800`. Null
+ * for a `data:` URI or an address with no file name in it.
+ */
+export function fileNameOf(url: string): string | null {
+  if (/^\s*data:/i.test(url)) return null;
+  const path = url.split(/[?#]/)[0];
+  const last = path.split('/').pop() ?? '';
+  let name: string;
+  try {
+    name = decodeURIComponent(last);
+  } catch {
+    name = last;
+  }
+  return name.trim() || null;
+}
+
+/** The extension, lower-cased and without its dot; null when the name has none. */
+export function extensionOf(fileName: string): string | null {
+  const match = /\.([a-z0-9]{2,5})$/i.exec(fileName);
+  return match ? match[1].toLowerCase() : null;
+}
+
+/**
+ * The name without its extension or the size suffix a CMS adds to resized copies —
+ * `IMG_1234-1024x768.jpg` → `IMG_1234` — so a copy is judged by the name its author gave.
+ */
+export const stemOf = (fileName: string) =>
+  fileName.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/-\d+x\d+$/, '');
+
+/**
+ * The address an image is shown from, as the author wrote it: `src`, or else the first
+ * `srcset` candidate. A `data:` placeholder in `src` defers to the srcset.
+ */
+export function shownUrlOf(image: IPageImage): string | null {
+  const src = image.src?.trim();
+  if (src && !/^data:/i.test(src)) return src;
+  const candidate = image.srcset?.split(',')[0]?.trim().split(/\s+/)[0];
+  return candidate || src || null;
+}

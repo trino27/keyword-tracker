@@ -139,14 +139,22 @@ describe('classifyPsiResponse', () => {
   );
 
   it('names a page Google could not load', () => {
-    expect(classify(answer(500, 'failed-document.synthesized.json'))).toEqual({
+    expect(classify(answer(400, 'failed-document.json'))).toEqual({
       kind: 'permanent',
       error: 'PAGE_LOAD_FAILED',
     });
   });
 
   it('names a page that answered Google with an error', () => {
-    expect(classify(answer(500, 'errored-document.synthesized.json'))).toEqual({
+    expect(classify(answer(400, 'errored-document.synthesized.json'))).toEqual({
+      kind: 'permanent',
+      error: 'PAGE_ERRORED',
+    });
+  });
+
+  /** What Google really answers for an empty error page (a bare 500 or 404). */
+  it('names a page that painted nothing as a page answering with an error', () => {
+    expect(classify(answer(400, 'no-fcp.json'))).toEqual({
       kind: 'permanent',
       error: 'PAGE_ERRORED',
     });
@@ -180,9 +188,9 @@ describe('classifyPsiResponse', () => {
   });
 
   it('a 200 is a measurement', () => {
-    expect(classify(answer(200, 'url-field.synthesized.json'))).toMatchObject({
+    expect(classify(answer(200, 'url-field.json'))).toMatchObject({
       kind: 'measured',
-      measurement: { lcp: { value: 3100, source: 'url' } },
+      measurement: { lcp: { value: 3025, source: 'url' } },
     });
   });
 
@@ -203,8 +211,8 @@ describe('classifyPsiResponse', () => {
     (code) => {
       const inputs: Parameters<typeof classifyPsiResponse>[0][] = [
         { error: new RemoteApiTimeoutError('u') },
-        answer(500, 'failed-document.synthesized.json'),
-        answer(500, 'errored-document.synthesized.json'),
+        answer(400, 'failed-document.json'),
+        answer(400, 'errored-document.synthesized.json'),
         raw(400, '{"error":{"message":"Invalid url"}}'),
         raw(200, '{}'),
       ];

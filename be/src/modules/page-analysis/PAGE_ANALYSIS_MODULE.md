@@ -7,7 +7,7 @@ registry is typed over `TCrawlIssueCode`, so a check for a speed code — or a c
 one — does not compile. The six `CWV_*` codes are written by the PageSpeed worker from Google's
 measurement and are never in `checks_judged`, the score or the checks list. Each entry also
 carries `plain` — what / why / fix for a marketer — beside the technical label, hint and
-explanation; `issue-plain-copy.test.ts` holds all 68 entries (page, speed and site) to it.
+explanation; `issue-plain-copy.test.ts` holds all 82 entries (page, speed and site) to it.
 The speed codes therefore have no `<code>.check.spec.ts`: they are pinned where they are written,
 by `be/src/modules/page-speed/services/cwv-issues/cwv-issues-of.spec.ts`. The five HTML Core Web
 Vitals risk checks below stay crawl checks at notice — measured speed did not replace them — and
@@ -82,9 +82,8 @@ files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
   The first two produce no issue and differ only in the score's denominator, which is the whole
   reason the third outcome exists: one `null` return meant either "the title is 45 characters" or
   "there is no title", and a page with no title was rewarded for passing a check that never ran.
-  Twenty-seven of the fifty-three checks always apply; twenty-six are conditional.
-  Twenty-two of those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the
-  field existing,
+  Twenty-eight of the sixty-four checks always apply; thirty-six are conditional. Thirty-two
+  of those are page-scoped — TITLE_LENGTH and META_DESCRIPTION_LENGTH on the field existing,
   CANONICAL_MISMATCH, CANONICAL_CONFLICT and CANONICAL_RELATIVE on there being a canonical,
   STRUCTURED_DATA_INVALID on there being any JSON-LD, DATES_INCONSISTENT on a publication
   date,
@@ -95,10 +94,15 @@ files them under SEO, not Speed (`issueTypeOf.test.ts` pins that on purpose).
   site, ROBOTS_BLOCKS_GOOGLEBOT and ROBOTS_BLOCKS_AI_SEARCH on the robots.txt governing the
   page's host, ROBOTS_BLOCKS_RESOURCES on the page loading a script or stylesheet from such a
   host, DATE_BUMPED_WITHOUT_CHANGES on an earlier crawl having recorded the page,
-  LCP_IMAGE_LAZY_LOADED on the page showing a featured image, NO_SUBHEADINGS, NO_IMAGES and
-  NO_EXTERNAL_SOURCES on the text running to THIN_CONTENT's 300 words — and four are
-  run-scoped, skipped when the run holds one page or the page has no value to compare. So
-  `27 <= checks_applicable <= 53`, which
+  LCP_IMAGE_LAZY_LOADED on the page showing a featured image, TITLE_SCRIPT_MISMATCH on a title
+  over enough text in one script, IMAGES_NOT_INDEXABLE and IMAGE_FILENAMES_GENERIC on there
+  being an image (with a file name), VIDEO_WITHOUT_METADATA on an embedded video,
+  PREVIEW_IMAGE_TOO_SMALL on the page's own image having been measured, PREVIEW_IMAGE_IS_LOGO on
+  the page naming an image for itself, AUTHOR_MARKUP_INCOMPLETE, ARTICLE_DATE_FORMAT_INVALID and
+  ARTICLE_HEADLINE_MISMATCH on the article markup giving an author, a date or a headline,
+  BREADCRUMB_INVALID on a BreadcrumbList, NO_SUBHEADINGS, NO_IMAGES and NO_EXTERNAL_SOURCES on
+  the text running to THIN_CONTENT's 300 words — and four are run-scoped, skipped when the run
+  holds one page or the page has no value to compare. So `28 <= checks_applicable <= 64`, which
   `checks.registry.spec.ts` asserts over every recorded fixture post, and which is why a page's
   score can never rest on a denominator too small to mean anything. Applicability is counted HERE, at crawl time, because the stored
   `pages` row holds no canonical, no Open Graph and no JSON-LD and cannot answer it later.
@@ -225,7 +229,8 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   example Google's JavaScript guide gives of links it cannot resolve; another site's hashbang
   URL is its own routing and stays an ordinary link — the one recorded case, semrush linking to
   the old Google product forums. Both fire 0 times on the recorded posts.
-  The SITE is judged too, by `services/site-checks/`: nine pure checks over what discovery read,
+  The SITE is judged too, by `services/site-checks/`: nine pure checks (twelve since 2026-10-11,
+  below) over what discovery read,
   what selection fetched and four extra requests (`SiteProbeService`: the home page at the other
   scheme and www-variants, and an address that cannot exist). Robots.txt past 500 KiB, rules
   Google never supported (`noindex:`, `nofollow:`, `host:`), a Googlebot group that leaves the
@@ -302,6 +307,50 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
   `HREFLANG_INVALID`, `META_REFRESH` (lefigaro's and indianexpress's refreshes reload the
   page and rightly pass), `NOINDEX`, `ROBOTS_BLOCKS_GOOGLEBOT`, `SNIPPET_RESTRICTED`,
   `TITLE_MISSING`, `UNCRAWLABLE_LINKS`, `ROBOTS_TXT_TRUNCATED`, `SITEMAP_LISTS_OTHER_HOST_VARIANTS`.
+- **Checks from Google's Search Appearance guides (2026-10-11).** Every guide under
+  developers.google.com/search/docs/appearance was read against the catalogue, and what HTML
+  answers and Google states was added; each was measured on the 45 recorded pages and on 58
+  live posts from 30 sites (habr, vc.ru, cossa, gazeta.uz, lifehacker.ru, tproger among them) and
+  every firing read against the page. Page checks, all notices unless named:
+  `TITLE_SCRIPT_MISMATCH` (a title with no letter of the main text's script; a Latin brand
+  beside Cyrillic passes — fired on none of the Russian and Uzbek pages);
+  `IMAGE_PREVIEW_NOT_LARGE` (no robots rule allows `max-image-preview:large`, which Discover
+  needs for a large card — 24 of 58: semrush, moz, ahrefs, ghost, cloudflare, habr, vc.ru);
+  `IMAGES_NOT_INDEXABLE` (warning: srcset with no src, HEIC/TIFF/JPEG XL — 0 live);
+  `IMAGE_FILENAMES_GENERIC` (IMG_0203, Screen-Shot-…, image-3, download (50) — 6, all right; a bare
+  number is NOT one, moz numbers its authors' photos `/user/photo/10.jpg`); `VIDEO_WITHOUT_METADATA`
+  (a YouTube/Vimeo/VK embed or a playable `<video>` with no VideoObject or og:video — 10; a muted
+  `<video>` without controls is a background, semrush's home page loops one);
+  `PREVIEW_IMAGE_TOO_SMALL` (the page's own image under 1,200 px, READ FROM THE FILE: the crawl
+  fetches the first 64 KiB of og:image per post. Declared sizes were tried first and are not the
+  image's — moz declares 1,050 px for an image it serves at 1,200, vc.ru declares 600 for a file
+  of 1,200 or more. Measured: 4, a resized 683-px portrait copy on minimalistbaker, an 800×450
+  preview on smashing, a 400×400 avatar); `PREVIEW_IMAGE_IS_LOGO` (og:image is the declared logo
+  or a file named logo — 0); `AUTHOR_MARKUP_INCOMPLETE` (author as a bare string — gazeta.uz; a
+  Person with `name: null` — habr; no url or sameAs — common, github.blog and blog.google among
+  them; every url a home page; a prefix, the publisher — "Dana @ Minimalist Baker" — or several
+  names in `name`. A sameAs list that OPENS with the site and then names the author passes: yoast
+  writes exactly that, and reading only its first entry reported 11 yoast posts wrongly);
+  `ARTICLE_DATE_FORMAT_INVALID` (not ISO 8601, or a time without a zone — 0);
+  `ARTICLE_HEADLINE_MISMATCH` (under half the headline's words in the title or h1 — 0);
+  `BREADCRUMB_INVALID` (warning: a step without position, name, or item before the last — 0; a
+  trail of ONE step is not reported, Yoast writes a lone "Home" on every home page).
+  `SNIPPET_RESTRICTED` also fails a `data-nosnippet` element holding most of the article. The
+  extractor reads Microdata as Google does — types, the article item's properties and its
+  author — so a Microdata article is no longer reported as missing structured data; RDFa is not
+  read. Site checks, from the SERVED host's home page (one request, since a blog on a subdomain
+  is another hostname to Google) and its icon (one more): `FAVICON_INVALID` (warning: none, an
+  SVG-only icon, blocked for Googlebot-Image, not answered, not square, under 8 px — read from
+  the file. A page declaring no icon is judged by `/favicon.ico`, which ghost.org and moz.com
+  serve with no link at all; a WebP or AVIF answer is a CDN negotiating, as dev.to's does, and
+  no finding. Live: 1 of 30, blog.cloudflare.com's 99×96 favicon.ico); `SITE_NAME_NOT_DECLARED`
+  (no WebSite name — 17 of 30); `SITE_NAME_INCONSISTENT` (WebSite name against og:site_name,
+  neither among the alternate names — 1: blog.google, "News from Google" and "blog.google").
+  Not built, for want of HTML that answers it or a line Google draws: CSS background images,
+  keyword stuffing in titles and alt text (see the keyword-stuffing note above), meta
+  descriptions written as keyword lists, title against h1, content hidden in tabs, interstitials,
+  ad density, mobile usability beyond the viewport, image and video sitemaps, the Organization
+  logo's size.
 - **Three content checks from an agency's audit guidance (2026-10-11).** Asked for by the user
   after reading Productive Shop's enterprise audit checklist, content audit and AI-search
   study. All three are notices and judge only a text of THIN_CONTENT's 300 words or more, read
@@ -383,7 +432,7 @@ named, the requirement lives in `openspec/specs/be/src/modules/page-analysis/spe
 **Issues come only from the shared catalogue: one check per crawl-owned code and none for a speed code, one issue per code on a page, and the code decides both the check’s shape and its return shape.** Pinned by `services/checks/checks.registry.spec.ts` -> "has exactly one check per crawl-owned code", "has no check for a pageSpeed-owned code", "registers every check under the code it carries", "gives a check the shape its catalogue scope calls for" and "emits only catalogued codes over every recorded page"; the unique index `seo_issues_page_id_code_uq`. The return-shape half is `pnpm typecheck` over the mapped type, not a test.
 
 <!-- invariant: ANALYSIS-002 -->
-**The fifty-three checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
+**The sixty-four checks, their thresholds and their severities, each finding saying exactly what is wrong and quoting the evidence for it.** Pinned by the per-check specs under `services/checks/` (one `<code>.check.spec.ts` per crawl-owned code, except the five HTML Core Web Vitals risks, which share `cwv-risks.check.spec.ts`; the six speed codes have no check and are pinned by `cwv-issues-of.spec.ts`), `checks.registry.spec.ts` -> "reports catalogue severity, with a run finding in its catalogue place" and "lets every check fail, and every failure carry evidence", and `packages/contracts/src/domain/seo/seo-issue-catalogue.test.ts` -> "explains every check in more than one sentence" and "backs every check with at least one https source".
 
 <!-- invariant: ANALYSIS-003 -->
 **The page title is `head > title` only; a `<title>` inside an SVG in the body is not the page title.** Pinned by `services/html-extraction/extract-page.spec.ts` -> "reads the title from <head>, never from an SVG in the body (semrush)".

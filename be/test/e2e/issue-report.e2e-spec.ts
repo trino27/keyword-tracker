@@ -83,7 +83,7 @@ describe('issue report (e2e)', () => {
       .select({ finalUrl: pages.finalUrl })
       .from(pages);
     const body = readFileSync(
-      join(FIXTURES_ROOT, 'pagespeed', 'origin-only.synthesized.json'),
+      join(FIXTURES_ROOT, 'pagespeed', 'origin-only.json'),
       'utf8',
     );
     for (const { finalUrl } of rows)
@@ -123,16 +123,16 @@ describe('issue report (e2e)', () => {
       .filter(({ code }) => code.startsWith('CWV_'))
       .sort((a, b) => a.code.localeCompare(b.code));
 
-    // The fixture's site figures: LCP 2.9 s and INP 210 ms need improvement, CLS is good.
+    // The recorded site figures: LCP 3.8 s and INP 231 ms need improvement, CLS is good.
     expect(speedRows).toEqual([
       expect.objectContaining({
         code: 'CWV_INP_NEEDS_IMPROVEMENT',
-        details: { value: 210, max: 200, source: 'origin' },
+        details: { value: 231, max: 200, source: 'origin' },
         location: { kind: 'allPages', pageCount: 15 },
       }),
       expect.objectContaining({
         code: 'CWV_LCP_NEEDS_IMPROVEMENT',
-        details: { value: 2900, max: 2500, source: 'origin' },
+        details: { value: 3824, max: 2500, source: 'origin' },
         location: { kind: 'allPages', pageCount: 15 },
       }),
     ]);

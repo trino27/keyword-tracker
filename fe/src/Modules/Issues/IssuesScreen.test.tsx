@@ -169,6 +169,37 @@ describe("IssuesScreen", () => {
 		expect(router.state.location.search.clientId).toBeUndefined();
 	});
 
+	it("in All clients, one client's failed read leaves the others shown, with Try again for it", async () => {
+		vi.spyOn(ClientGateway.prototype, "list").mockResolvedValue([
+			CLIENT,
+			{ id: 8, name: "Ahrefs" } as TClient,
+		]);
+		const get = vi.spyOn(IssueReportGateway.prototype, "get").mockImplementation((clientId) =>
+			clientId === 8
+				? Promise.reject(new Error("offline"))
+				: Promise.resolve({
+						kind: "report",
+						report: { ...REPORT, pageSpeedAvailability: { state: "keyRejected" } },
+					}),
+		);
+
+		await renderAt("/issues");
+
+		const ahrefs = await screen.findByRole("region", { name: "Ahrefs" });
+		const retry = await within(ahrefs).findByRole("button", { name: "Try again" });
+		const yoast = screen.getByRole("region", { name: "Yoast" });
+		expect(
+			await within(yoast).findByText("This page has no title for search results"),
+		).toBeInTheDocument();
+		// The key is the deployment's: any client's report tells the state.
+		expect(screen.getByText(/Google rejected the PageSpeed key/)).toBeInTheDocument();
+
+		get.mockClear();
+		fireEvent.click(retry);
+		await waitFor(() => expect(get).toHaveBeenCalledWith(8));
+		expect(get).not.toHaveBeenCalledWith(7);
+	});
+
 	it("a client's name narrows the report to that client", async () => {
 		vi.spyOn(IssueReportGateway.prototype, "get").mockResolvedValue({
 			kind: "report",

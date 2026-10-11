@@ -4,11 +4,23 @@ import { load, type CheerioAPI } from 'cheerio';
 import { ARTICLE_TYPES } from '../../constants/article-types.constant';
 import type {
   IAlternateLink,
+  IArticleMarkup,
   IHeading,
+  IIconLink,
   IPageImage,
   IParsedPage,
 } from '../../interfaces/parsed-page.interface';
 import { parseJsonLd } from './parse-json-ld';
+import { readMicrodata } from './read-microdata';
+import {
+  authorsOf,
+  breadcrumbItemsOf,
+  imagesOf,
+  logosOf,
+  typesOf,
+  websiteNameOf,
+  type TNode,
+} from './structured-data-nodes';
 
 /**
  * Removed from the main content before anything is read from it.
@@ -298,6 +310,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     const image = $(element);
     images.push({
       src: image.attr('src') ?? null,
+      srcset: orNull(image.attr('srcset')),
       alt: image.attr('alt') ?? null,
       loading: image.attr('loading')?.trim().toLowerCase() || null,
       sized: isSized(image),
@@ -306,7 +319,10 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
   });
 
   const canonicals = canonicalsOf($, 'head', baseUrl);
-  const { jsonLd, jsonLdErrors, authors, dates } = structuredDataOf($);
+  const structured = structuredDataOf($, baseUrl);
+  const { jsonLd, jsonLdErrors, authors, dates } = structured;
+  const microdata = readMicrodata($, baseUrl);
+  const wordCount = countWords(mainText);
 
   return {
     title: orNull($('head > title').first().text()),
@@ -329,6 +345,17 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
       .filter(Boolean),
     jsonLd,
     jsonLdErrors,
+    microdata: {
+      types: microdata.types,
+      articleFields: microdata.articleFields,
+    },
+    articleMarkup: structured.article ?? microdata.article,
+    breadcrumbs: structured.breadcrumbs,
+    logos: structured.logos,
+    websiteNames: [...structured.websiteNames, ...microdata.websiteNames],
+    icons: iconsOf($, baseUrl),
+    videos: videosOf($),
+    contentNosnippet: contentNosnippetOf($, wordCount),
     lang: orNull($('html').attr('lang')),
     h1s: $('body h1')
       .map((_, element) => collapse($(element).text()))
@@ -351,7 +378,7 @@ export function extractPage(html: string, pageUrl: string): IParsedPage {
     renderResources: urlsOf($, RENDER_RESOURCE_ATTRIBUTES, baseUrl),
     clientRendered,
     blocks,
-    wordCount: countWords(mainText),
+    wordCount,
     authors: [...authors, ...authorsInMarkup($, baseUrl)],
     datePublished:
       dates.published ??
@@ -890,11 +917,18 @@ function openGraphOf($: CheerioAPI): Record<string, string> {
  * `"image": []` for fields nobody filled in, and treating a present-but-empty key as the
  * field being there would pass every page a CMS half-populated.
  */
-function structuredDataOf($: CheerioAPI): {
+function structuredDataOf(
+  $: CheerioAPI,
+  baseUrl: string,
+): {
   jsonLd: IParsedPage['jsonLd'];
   jsonLdErrors: string[];
   authors: string[];
   dates: { published: string | null; modified: string | null };
+  article: IArticleMarkup | null;
+  breadcrumbs: IParsedPage['breadcrumbs'];
+  logos: string[];
+  websiteNames: IParsedPage['websiteNames'];
 } {
   const types = new Set<string>();
   const keywords = new Set<string>();
@@ -902,6 +936,8 @@ function structuredDataOf($: CheerioAPI): {
   // Authors are often a reference into the graph — `"author": {"@id": "#person"}` — so
   // names are resolved after every block is read, against the nodes that carry an @id.
   const namesById = new Map<string, string>();
+  const nodesById = new Map<string, TNode>();
+  const nodes: TNode[] = [];
   const authorRefs: unknown[] = [];
   const jsonLdErrors: string[] = [];
   const dates = {
@@ -915,12 +951,16 @@ function structuredDataOf($: CheerioAPI): {
     }
     if (!node || typeof node !== 'object') return;
     const record = node as Record<string, unknown>;
+    nodes.push(record);
     const nodeTypes = [record['@type']].flat();
     for (const type of nodeTypes) {
       if (typeof type === 'string') types.add(type);
     }
-    if (typeof record['@id'] === 'string' && typeof record.name === 'string')
-      namesById.set(record['@id'], collapse(record.name));
+    if (typeof record['@id'] === 'string') {
+      if (!nodesById.has(record['@id'])) nodesById.set(record['@id'], record);
+      if (typeof record.name === 'string')
+        namesById.set(record['@id'], collapse(record.name));
+    }
     if (
       nodeTypes.some(
         (type) => typeof type === 'string' && ARTICLE_TYPES.has(type),
@@ -970,6 +1010,9 @@ function structuredDataOf($: CheerioAPI): {
     if (name) names.add(name);
   };
   authorRefs.forEach(resolve);
+  const articleNode = nodes.find((node) =>
+    typesOf(node).some((type) => ARTICLE_TYPES.has(type)),
+  );
   return {
     jsonLd: {
       types: [...types],
@@ -979,7 +1022,114 @@ function structuredDataOf($: CheerioAPI): {
     jsonLdErrors,
     authors: [...names].map((name) => `JSON-LD author: ${name}`),
     dates,
+    article: articleNode
+      ? {
+          source: 'json-ld',
+          type: typesOf(articleNode).find((type) => ARTICLE_TYPES.has(type))!,
+          headline: orNull(
+            typeof articleNode.headline === 'string'
+              ? articleNode.headline
+              : undefined,
+          ),
+          datePublished: dateOf(articleNode.datePublished),
+          dateModified: dateOf(articleNode.dateModified),
+          authors: authorsOf(articleNode.author, nodesById),
+          images: imagesOf(articleNode.image, nodesById, baseUrl),
+        }
+      : null,
+    breadcrumbs: nodes
+      .filter((node) => typesOf(node).includes('BreadcrumbList'))
+      .map((node) => breadcrumbItemsOf(node, nodesById, baseUrl)),
+    logos: [
+      ...new Set(nodes.flatMap((node) => logosOf(node, nodesById, baseUrl))),
+    ],
+    websiteNames: nodes
+      .filter((node) => typesOf(node).includes('WebSite'))
+      .map(websiteNameOf)
+      .filter((names) => names !== null),
   };
+}
+
+/** The rel tokens that name a site icon Google reads for the favicon. */
+const ICON_RELS = ['icon', 'apple-touch-icon', 'apple-touch-icon-precomposed'];
+
+/**
+ * Icons the document declares, in order: `shortcut icon` is an `icon` too. Read from the
+ * whole document, not `<head>` alone: neilpatel.com writes its icon link after an
+ * element that ends the head for a parser (2026-10), and the icon is still the site's.
+ */
+function iconsOf($: CheerioAPI, baseUrl: string): IIconLink[] {
+  const icons: IIconLink[] = [];
+  $('link[rel][href]').each((_, element) => {
+    const rel = relTokens($(element).attr('rel')).find((token) =>
+      ICON_RELS.includes(token),
+    );
+    const href = absolute($(element).attr('href'), baseUrl);
+    if (!rel || !href) return;
+    icons.push({
+      rel,
+      href,
+      type: $(element).attr('type')?.trim().toLowerCase() || null,
+      sizes: orNull($(element).attr('sizes')),
+    });
+  });
+  return icons;
+}
+
+/** The video players whose iframe is a video on the page, by the address it loads. */
+const VIDEO_PLAYER =
+  /^https?:\/\/(?:[a-z0-9-]+\.)*(?:youtube\.com\/embed|youtube-nocookie\.com\/embed|player\.vimeo\.com\/video|fast\.wistia\.(?:net|com)\/embed|(?:[a-z0-9-]+\.)?wistia\.com\/medias|dailymotion\.com\/embed|geo\.dailymotion\.com\/player|rutube\.ru\/play\/embed|vk\.com\/video_ext|vkvideo\.ru\/video_ext|loom\.com\/embed|play\.vidyard\.com|players\.brightcove\.net|embed\.ted\.com)/i;
+
+/**
+ * Videos a reader can watch, outside the site's navigation and footer. A muted `<video>`
+ * with no controls is a moving background, not a video anyone came for — semrush.com's
+ * home page loops one, started by a script rather than `autoplay` (2026-10).
+ */
+function videosOf($: CheerioAPI): string[] {
+  const outsideFurniture = (element: TSelection) =>
+    element.closest('nav, header, footer, aside').length === 0;
+  const found: string[] = [];
+  $('body video').each((_, node) => {
+    const video = $(node);
+    const decorative =
+      video.attr('muted') !== undefined && video.attr('controls') === undefined;
+    if (!decorative && outsideFurniture(video))
+      found.push(quoteMarkup($, video));
+  });
+  $('body iframe').each((_, node) => {
+    const frame = $(node);
+    const src = (frame.attr('src') || frame.attr('data-src') || '').trim();
+    const url = src.startsWith('//') ? `https:${src}` : src;
+    if (VIDEO_PLAYER.test(url) && outsideFurniture(frame))
+      found.push(quoteMarkup($, frame));
+  });
+  return found;
+}
+
+/**
+ * Share of the main content a `data-nosnippet` element must hold to be the article
+ * rather than a passage in it. A passage kept out of the snippet is an editor's choice;
+ * the whole text kept out is a page Google can quote nothing from.
+ */
+const NOSNIPPET_MIN_SHARE = 0.5;
+
+/** The `data-nosnippet` element holding most of the main content, or null. */
+function contentNosnippetOf($: CheerioAPI, wordCount: number): string | null {
+  if (wordCount === 0) return null;
+  // Google honours the attribute on span, div and section only.
+  const holder = $(
+    'span[data-nosnippet], div[data-nosnippet], section[data-nosnippet]',
+  )
+    .toArray()
+    .map((element) => $(element))
+    .find((element) => {
+      const clone = element.clone();
+      clone.find(NEVER_CONTENT).remove();
+      return wordsIn($, clone) >= wordCount * NOSNIPPET_MIN_SHARE;
+    });
+  if (!holder) return null;
+  const opening = /^<[^>]*>/.exec(quoteMarkup($, holder.clone().empty()));
+  return opening ? opening[0] : quoteMarkup($, holder);
 }
 
 /** Why strict JSON refuses the text, in the parser's words: they name the position. */

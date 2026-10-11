@@ -67,6 +67,8 @@ const KEY_REASONS = new Set([
 const LIGHTHOUSE_ERRORS: Record<string, TPsiOutcome & { kind: 'permanent' }> = {
   FAILED_DOCUMENT_REQUEST: { kind: 'permanent', error: 'PAGE_LOAD_FAILED' },
   ERRORED_DOCUMENT_REQUEST: { kind: 'permanent', error: 'PAGE_ERRORED' },
+  // What Google answers, live, for an empty error page — not ERRORED_DOCUMENT_REQUEST.
+  NO_FCP: { kind: 'permanent', error: 'PAGE_ERRORED' },
 };
 
 const googleErrorSchema = z.object({

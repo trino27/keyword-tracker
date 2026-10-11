@@ -25,13 +25,19 @@ export function makeCheckInput(
     headers: { 'content-type': 'text/html', 'content-encoding': 'br' },
     htmlBytes: 50_000,
     fetchedAt: new Date('2026-10-09T12:00:00Z'),
+    previewImage: {
+      url: 'https://a.example/i.png',
+      status: 200,
+      width: 1200,
+      height: 675,
+    },
     previous: null,
     ...rest,
     parsed: {
       title: 'A complete guide to link building for small sites',
       metaDescription:
         'Learn link building step by step: what works, what to avoid, and how to measure the links you earn.',
-      metaRobots: null,
+      metaRobots: 'max-image-preview:large',
       metaGooglebot: null,
       metaRefresh: null,
       viewport: 'width=device-width, initial-scale=1',
@@ -49,10 +55,11 @@ export function makeCheckInput(
         'og:title': 'Link building',
         'og:description': 'A guide',
         'og:image': 'https://a.example/i.png',
+        'og:image:width': '1200',
       },
       articleTags: [],
       jsonLd: {
-        types: ['Article'],
+        types: ['Article', 'VideoObject'],
         keywords: [],
         articleFields: [
           'headline',
@@ -63,6 +70,35 @@ export function makeCheckInput(
           'publisher',
         ],
       },
+      microdata: { types: [], articleFields: [] },
+      articleMarkup: {
+        source: 'json-ld',
+        type: 'Article',
+        headline: 'A complete guide to link building',
+        datePublished: '2026-01-10T09:00:00Z',
+        dateModified: '2026-02-01T09:00:00Z',
+        authors: [
+          {
+            name: 'Jane Doe',
+            type: 'Person',
+            urls: ['https://a.example/author/jane-doe/'],
+            asText: false,
+          },
+        ],
+        images: [{ url: 'https://a.example/i.png', width: 1200, height: 675 }],
+      },
+      breadcrumbs: [
+        [
+          { position: 1, name: 'Home', item: 'https://a.example/' },
+          { position: 2, name: 'Link building', item: null },
+        ],
+      ],
+      logos: ['https://a.example/logo.png'],
+      websiteNames: [],
+      icons: [],
+      // A video with its metadata, so the video check applies and passes.
+      videos: ['<iframe src="https://www.youtube.com/embed/abc"></iframe>'],
+      contentNosnippet: null,
       lang: 'en',
       h1s: ['A complete guide to link building'],
       headings: [
@@ -73,6 +109,7 @@ export function makeCheckInput(
       images: [
         {
           src: 'a.png',
+          srcset: null,
           alt: 'A chart',
           loading: null,
           sized: true,

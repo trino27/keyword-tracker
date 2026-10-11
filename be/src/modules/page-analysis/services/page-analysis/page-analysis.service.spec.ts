@@ -24,6 +24,10 @@ describe('PageAnalysisService', () => {
           canonicals: ['https://a.example/widget-pricing/'],
           title: 'Our company news for this month, in brief',
           h1s: ['Widget pricing'],
+          articleMarkup: {
+            ...makeCheckInput().parsed.articleMarkup!,
+            headline: 'Widget pricing',
+          },
           headings: [{ level: 1, text: 'Widget pricing' }],
           metaDescription:
             'Widget pricing explained: what a widget costs, why volume matters and how the tiers work.',

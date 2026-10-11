@@ -43,6 +43,7 @@ const crawledItem = (position: number): ISelectedItem => {
     responseMs: 100,
     htmlBytes: 1000,
     parsed: makeCheckInput().parsed,
+    previewImage: null,
   };
   return {
     sitemapPosition: position,

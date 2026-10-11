@@ -94,10 +94,10 @@ catalogue by type rather than kept beside it. One pass produces the issues, both
 the score, and the record of which codes were judged and which were not — the only account there
 will ever be of how the catalogue looked at that crawl.
 
-**A page's score is the share of the checks that could apply to it.** Twenty-six of the fifty-three
+**A page's score is the share of the checks that could apply to it.** Thirty-six of the sixty-four
 are conditional — a page with no images is not judged on alt text, a page with no description is
 not judged on its length — so the denominator is counted at crawl time, while the parsed page is
-still in hand, and shown beside the number: 100 out of 27 and 100 out of 53 are not the same
+still in hand, and shown beside the number: 100 out of 28 and 100 out of 64 are not the same
 claim. Every check weighs the same; weighting by severity would invent a model of ranking nobody
 can justify, and Lighthouse does the same and says so — "each SEO audit is weighted equally in
 the Lighthouse SEO Score"

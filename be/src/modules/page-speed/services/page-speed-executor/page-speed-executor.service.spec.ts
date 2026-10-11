@@ -47,9 +47,7 @@ const setup = (result: TPsiCallResult, attempt = 1) => {
 
 describe('PageSpeedExecutorService', () => {
   it("measures the page's final URL with the key, and writes the measurement with its findings", async () => {
-    const { run, results, psi, claim } = setup(
-      answer(200, 'url-field.synthesized.json'),
-    );
+    const { run, results, psi, claim } = setup(answer(200, 'url-field.json'));
 
     await run();
 
@@ -61,19 +59,24 @@ describe('PageSpeedExecutorService', () => {
     expect(results.completeForWorker).toHaveBeenCalledWith(
       claim,
       expect.objectContaining({
-        lcpMs: 3100,
+        lcpMs: 3025,
         lcpSource: 'url',
-        inpMs: 180,
+        inpMs: 212,
         inpSource: 'url',
-        cls: 0.02,
+        cls: 0.01,
         clsSource: 'url',
-        performanceScore: 72,
+        performanceScore: 46,
       }),
       [
         {
           code: 'CWV_LCP_NEEDS_IMPROVEMENT',
           severity: 'notice',
-          details: { value: 3100, max: 2500, source: 'url' },
+          details: { value: 3025, max: 2500, source: 'url' },
+        },
+        {
+          code: 'CWV_INP_NEEDS_IMPROVEMENT',
+          severity: 'notice',
+          details: { value: 212, max: 200, source: 'url' },
         },
       ],
     );
@@ -120,9 +123,7 @@ describe('PageSpeedExecutorService', () => {
   });
 
   it('a permanent failure fails the page with its reason', async () => {
-    const { run, results, claim } = setup(
-      answer(500, 'failed-document.synthesized.json'),
-    );
+    const { run, results, claim } = setup(answer(400, 'failed-document.json'));
 
     await run();
 
@@ -130,6 +131,69 @@ describe('PageSpeedExecutorService', () => {
       status: 'failed',
       lastError: 'PAGE_LOAD_FAILED',
     });
+  });
+
+  /** Google's live answer for an empty error page. */
+  it('a page that painted nothing fails as a page answering with an error', async () => {
+    const { run, results, claim } = setup(answer(400, 'no-fcp.json'));
+
+    await run();
+
+    expect(results.recordFailureForWorker).toHaveBeenCalledWith(claim, {
+      status: 'failed',
+      lastError: 'PAGE_ERRORED',
+    });
+  });
+
+  it("writes the site's figures as the whole site's, with findings saying so", async () => {
+    const { run, results, claim } = setup(answer(200, 'origin-only.json'));
+
+    await run();
+
+    expect(results.completeForWorker).toHaveBeenCalledWith(
+      claim,
+      expect.objectContaining({
+        lcpMs: 3824,
+        lcpSource: 'origin',
+        inpMs: 231,
+        inpSource: 'origin',
+        cls: 0,
+        clsSource: 'origin',
+        performanceScore: 59,
+      }),
+      [
+        {
+          code: 'CWV_LCP_NEEDS_IMPROVEMENT',
+          severity: 'notice',
+          details: { value: 3824, max: 2500, source: 'origin' },
+        },
+        {
+          code: 'CWV_INP_NEEDS_IMPROVEMENT',
+          severity: 'notice',
+          details: { value: 231, max: 200, source: 'origin' },
+        },
+      ],
+    );
+  });
+
+  it('writes a lab-only page without INP and, when its lab figures are good, no findings', async () => {
+    const { run, results, claim } = setup(answer(200, 'lab-only.json'));
+
+    await run();
+
+    expect(results.completeForWorker).toHaveBeenCalledWith(
+      claim,
+      expect.objectContaining({
+        lcpMs: 809,
+        lcpSource: 'lab',
+        inpMs: null,
+        inpSource: null,
+        cls: 0,
+        clsSource: 'lab',
+        performanceScore: 100,
+      }),
+      [],
+    );
   });
 
   it('a 429 pauses every slot and releases the row without spending an attempt', async () => {
@@ -168,10 +232,7 @@ describe('PageSpeedExecutorService', () => {
     ['a timeout', { error: new RemoteApiTimeoutError('u') }],
     ['a 429', answer(429, 'rate-limited.json')],
     ['a rejected key', answer(400, 'key-invalid.json')],
-    [
-      'a page Google could not load',
-      answer(500, 'failed-document.synthesized.json'),
-    ],
+    ['a page Google could not load', answer(400, 'failed-document.json')],
   ] as const)(
     'a failure never calls completeForWorker (%s)',
     async (_, result) => {
@@ -185,7 +246,7 @@ describe('PageSpeedExecutorService', () => {
 
   it('no log line and no stored error contains the key', async () => {
     for (const result of [
-      answer(200, 'url-field.synthesized.json'),
+      answer(200, 'url-field.json'),
       answer(400, 'key-invalid.json'),
       answer(429, 'rate-limited.json'),
       { error: new RemoteApiTimeoutError('u') },
@@ -205,9 +266,7 @@ describe('PageSpeedExecutorService', () => {
   });
 
   it('a shutdown mid-call gives the row back with its attempt', async () => {
-    const { results, psi, claim } = setup(
-      answer(200, 'url-field.synthesized.json'),
-    );
+    const { results, psi, claim } = setup(answer(200, 'url-field.json'));
     const controller = new AbortController();
     psi.runPagespeed.mockImplementation(() => {
       controller.abort();
@@ -235,7 +294,7 @@ describe('PageSpeedExecutorService', () => {
   /** A bug or a database blip must not leave the row running until its lease expires. */
   it('an unexpected error is a failed attempt, never a row left running', async () => {
     const { run, results, claim, logger } = setup(
-      answer(200, 'url-field.synthesized.json'),
+      answer(200, 'url-field.json'),
       2,
     );
     results.completeForWorker.mockRejectedValue(new Error('connection reset'));

@@ -3,55 +3,51 @@ import { extractMeasurement } from './extract-measurement';
 
 describe('extractMeasurement', () => {
   it('takes URL field data when Google has it', () => {
-    expect(
-      extractMeasurement(readPageSpeedFixture('url-field.synthesized.json')),
-    ).toEqual({
-      lcp: { value: 3100, source: 'url' },
-      inp: { value: 180, source: 'url' },
-      // CrUX reports CLS × 100; the distributions' bounds (10, 25) say so.
-      cls: { value: 0.02, source: 'url' },
-      performanceScore: 72,
+    expect(extractMeasurement(readPageSpeedFixture('url-field.json'))).toEqual({
+      lcp: { value: 3025, source: 'url' },
+      inp: { value: 212, source: 'url' },
+      // CrUX reports CLS × 100 (the answer says 1); the distributions' bounds (10, 25) say so.
+      cls: { value: 0.01, source: 'url' },
+      performanceScore: 46,
     });
   });
 
   /** PSI marks page data that is really the site's with origin_fallback. */
   it('reads an origin fallback as the whole site, not as the page', () => {
     expect(
-      extractMeasurement(readPageSpeedFixture('origin-only.synthesized.json')),
+      extractMeasurement(readPageSpeedFixture('origin-only.json')),
     ).toEqual({
-      lcp: { value: 2900, source: 'origin' },
-      inp: { value: 210, source: 'origin' },
-      cls: { value: 0.03, source: 'origin' },
-      performanceScore: 48,
+      lcp: { value: 3824, source: 'origin' },
+      inp: { value: 231, source: 'origin' },
+      cls: { value: 0, source: 'origin' },
+      performanceScore: 59,
     });
   });
 
   it('falls back to the origin per metric', () => {
-    const body = readPageSpeedFixture('url-field.synthesized.json') as {
+    const body = readPageSpeedFixture('url-field.json') as {
       loadingExperience: { metrics: Record<string, unknown> };
     };
     delete body.loadingExperience.metrics.INTERACTION_TO_NEXT_PAINT;
 
     expect(extractMeasurement(body)?.inp).toEqual({
-      value: 210,
+      value: 231,
       source: 'origin',
     });
     expect(extractMeasurement(body)?.lcp.source).toBe('url');
   });
 
   it('falls back to the lab for LCP and CLS, never for INP', () => {
-    expect(
-      extractMeasurement(readPageSpeedFixture('lab-only.synthesized.json')),
-    ).toEqual({
-      lcp: { value: 5210, source: 'lab' },
+    expect(extractMeasurement(readPageSpeedFixture('lab-only.json'))).toEqual({
+      lcp: { value: 809, source: 'lab' },
       inp: null,
-      cls: { value: 0.18, source: 'lab' },
-      performanceScore: 41,
+      cls: { value: 0, source: 'lab' },
+      performanceScore: 100,
     });
   });
 
   it('returns null without LCP or CLS from any source', () => {
-    const body = readPageSpeedFixture('lab-only.synthesized.json') as {
+    const body = readPageSpeedFixture('lab-only.json') as {
       lighthouseResult: { audits: Record<string, unknown> };
     };
     delete body.lighthouseResult.audits['cumulative-layout-shift'];
@@ -66,7 +62,7 @@ describe('extractMeasurement', () => {
 
   /** Should Google ever report CLS unscaled, the distributions would say 0.1 and 0.25. */
   it('reads CLS as is when its distribution bounds are unscaled', () => {
-    const body = readPageSpeedFixture('url-field.synthesized.json') as {
+    const body = readPageSpeedFixture('url-field.json') as {
       loadingExperience: {
         metrics: {
           CUMULATIVE_LAYOUT_SHIFT_SCORE: {

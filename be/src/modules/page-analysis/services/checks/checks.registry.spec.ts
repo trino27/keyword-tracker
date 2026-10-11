@@ -95,9 +95,9 @@ describe('evaluateChecks', () => {
   });
 
   it('does not count against a page a check that could not be judged', () => {
-    // No title: TITLE_LENGTH has nothing to measure, and TITLE_DUPLICATE has nothing to
-    // compare. Passing either would reward the page for the very thing TITLE_MISSING is
-    // failing it for.
+    // No title: TITLE_LENGTH has nothing to measure, TITLE_SCRIPT_MISMATCH no script to
+    // read and TITLE_DUPLICATE nothing to compare. Passing any would reward the page for
+    // the very thing TITLE_MISSING is failing it for.
     const run = twoUnrelatedPages();
     const { issues, checksApplicable, checksFailed, checksNotApplicable } =
       evaluateChecks(
@@ -107,12 +107,16 @@ describe('evaluateChecks', () => {
         ),
       )[0];
 
-    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 2);
+    expect(checksApplicable).toBe(ACTIVE_ISSUE_CODES.length - 3);
     expect(issues.map(({ code }) => code)).toEqual(['TITLE_MISSING']);
     expect(checksFailed).toBe(1);
     // Named, not counted: the screen quotes this code's reason back to the reader, so
     // the wrong code here would show "no title to measure" against the wrong check.
-    expect(checksNotApplicable).toEqual(['TITLE_LENGTH', 'TITLE_DUPLICATE']);
+    expect(checksNotApplicable).toEqual([
+      'TITLE_LENGTH',
+      'TITLE_SCRIPT_MISMATCH',
+      'TITLE_DUPLICATE',
+    ]);
   });
 
   it('drops every conditional check together on a bare page in a run of one', () => {
@@ -137,7 +141,14 @@ describe('evaluateChecks', () => {
               featuredImage: null,
               // And too short a text to be asked for sections, images or sources.
               wordCount: 120,
+              // No article markup, trail, video or image of its own to judge.
+              articleMarkup: null,
+              breadcrumbs: [],
+              videos: [],
+              openGraph: {},
             },
+            // No image of its own was measured.
+            previewImage: null,
             // A robots.txt that governs no host this page touches: neither robots
             // check has a rule to read.
             robots: { allows: () => null, matchingRule: () => null },
@@ -249,11 +260,12 @@ describe('evaluateChecks', () => {
         new URL(url).hostname === 'a.example' ? false : null,
       matchingRule: () => 'line 2: Disallow: /',
     };
-    // Thirty different words, ten times over: enough text for two copies to be compared.
+    // Thirty different words, ten times over: enough text for two copies to be compared
+    // — in Cyrillic, under a Latin title.
     const sameText = Array.from(
       { length: 10 },
       (_, n) =>
-        Array.from({ length: 30 }, (_, k) => `word${n}x${k}`).join(' ') + '.',
+        Array.from({ length: 30 }, (_, k) => `слово${n}х${k}`).join(' ') + '.',
     );
     const broken = (path: string) =>
       runPage(path, {
@@ -264,6 +276,12 @@ describe('evaluateChecks', () => {
         },
         redirected: true,
         redirects: [{ url: `https://a.example/${path}-old/`, status: 302 }],
+        previewImage: {
+          url: 'https://a.example/logo.png',
+          status: 200,
+          width: 600,
+          height: 60,
+        },
         robots: blocked,
         headers: { 'content-type': 'text/html', 'cache-control': 'no-store' },
         htmlBytes: 2_000_000,
@@ -300,13 +318,31 @@ describe('evaluateChecks', () => {
           alternates: [{ lang: 'english', href: 'https://a.example/en/' }],
           openGraph: { 'og:url': 'https://staging.a.example/post/' },
           jsonLd: { types: [], keywords: [], articleFields: [] },
+          articleMarkup: {
+            source: 'json-ld',
+            type: 'Article',
+            headline: 'Something else entirely',
+            datePublished: 'October 3, 2026',
+            dateModified: null,
+            authors: [{ name: 'By Jane', type: null, urls: [], asText: true }],
+            images: [
+              { url: 'https://a.example/logo.png', width: 600, height: 60 },
+            ],
+          },
+          logos: ['https://a.example/logo.png'],
+          breadcrumbs: [
+            [
+              { position: null, name: 'Home', item: null },
+              { position: 2, name: 'Post', item: null },
+            ],
+          ],
           lang: null,
           h1s: ['One', 'Two'],
           headings: [
             { level: 1, text: 'One' },
             { level: 3, text: 'Three' },
           ],
-          images: [makeImage({ src: 'a.png', alt: null })],
+          images: [makeImage({ src: 'IMG_1234.heic', alt: null })],
           resourceUrls: ['http://a.example/i.png'],
           renderResources: ['https://a.example/app.js'],
           links: ['http://a.example/other/?utm_source=x'],

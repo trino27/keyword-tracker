@@ -11,7 +11,11 @@ import {
   RemoteApiTooLargeError,
   RemoteApiTooManyRedirectsError,
 } from '@infrastructure/remote-api/remote-api.errors';
-import type { IParsedPage } from '@modules/page-analysis/interfaces/parsed-page.interface';
+import type {
+  IParsedPage,
+  IPreviewImage,
+} from '@modules/page-analysis/interfaces/parsed-page.interface';
+import { readImageHeader } from '@modules/page-analysis/services/checks/_shared/image-header';
 import { extractPage } from '@modules/page-analysis/services/html-extraction/extract-page';
 import {
   ARTICLE_SCHEMA_TYPES,
@@ -206,8 +210,50 @@ export class PostSelectionService {
         responseMs: response.ttfbMs,
         htmlBytes: response.bytes,
         parsed,
+        previewImage: await this.measurePreviewImage(
+          parsed,
+          response.finalUrl,
+          input,
+        ),
       },
     };
+  }
+
+  /**
+   * The first bytes of the image the page names for itself — og:image, or else its
+   * article markup's first image — whose header carries the pixel size. One request per
+   * post, cut at the probe cap; the size a page declares for the image is often not the
+   * file's, so the check reads the file.
+   */
+  private async measurePreviewImage(
+    parsed: IParsedPage,
+    pageUrl: string,
+    input: IPostSelectionInput,
+  ): Promise<IPreviewImage | null> {
+    const named =
+      parsed.openGraph['og:image'] ?? parsed.articleMarkup?.images[0]?.url;
+    let url: string;
+    try {
+      url = new URL(named ?? '', pageUrl).href;
+    } catch {
+      return null;
+    }
+    if (!named || !/^https?:/.test(url) || !input.robots.isAllowed(url))
+      return null;
+    try {
+      const response = await this.http.getImageHead(url, input.signal);
+      const header =
+        response.status === 200 ? readImageHeader(response.body) : null;
+      return {
+        url,
+        status: response.status,
+        width: header?.width ?? null,
+        height: header?.height ?? null,
+      };
+    } catch (error) {
+      if (!(error instanceof RemoteApiError)) throw error;
+      return { url, status: null, width: null, height: null };
+    }
   }
 
   private checkBeforeFetch(

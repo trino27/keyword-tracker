@@ -4,6 +4,11 @@ import {
   type ISiteCheckResult,
 } from '@app/contracts';
 import {
+  faviconInvalid,
+  siteNameInconsistent,
+  siteNameNotDeclared,
+} from './home-checks';
+import {
   hostRedirectChain,
   hostVariantServesContent,
   soft404,
@@ -34,6 +39,9 @@ export const SITE_CHECKS: TSiteCheckRegistry = {
   HOST_VARIANT_SERVES_CONTENT: hostVariantServesContent,
   HOST_REDIRECT_CHAIN: hostRedirectChain,
   SOFT_404: soft404,
+  FAVICON_INVALID: faviconInvalid,
+  SITE_NAME_NOT_DECLARED: siteNameNotDeclared,
+  SITE_NAME_INCONSISTENT: siteNameInconsistent,
 };
 
 /**
