@@ -44,9 +44,9 @@ one, and passed or skipped site checks MUST NOT appear.
 
 ### Requirement [REPORT-003]: a speed figure Google only has for the whole site appears once
 
-Speed findings whose source is the site's origin MUST be returned as one finding per code located
-at all pages, with the number of current pages that carry it and the details of the most recently
-measured of them; speed findings from the page's own data or from the lab MUST stay located at
+Speed findings whose source is the site's origin MUST be returned as one finding per metric and
+device located at all pages — the code, level and details of the most recently measured of them,
+with the number of current pages that carry either band of that metric; speed findings from the page's own data or from the lab MUST stay located at
 their page. Only a speed finding MAY be located at all pages.
 
 #### Scenario: the same origin INP on fifteen pages
@@ -58,6 +58,11 @@ their page. Only a speed finding MAY be located at all pages.
 - **WHEN** two pages carry `CWV_LCP_POOR` from their own data and thirteen from the origin
 - **THEN** the report holds two page-located `CWV_LCP_POOR` findings and one located at all pages
   with a page count of 13
+
+#### Scenario: the site's figure measured on two days, in two bands
+- **WHEN** one page carries `CWV_INP_NEEDS_IMPROVEMENT` from the origin measured Oct 8 and fourteen
+  carry `CWV_INP_POOR` from the origin measured Oct 9
+- **THEN** the report holds one `CWV_INP_POOR` finding located at all pages with a page count of 15
 
 ### Requirement [REPORT-004]: the report never calls PageSpeed and never writes
 

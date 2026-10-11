@@ -48,6 +48,33 @@ describe('collapseOriginFindings', () => {
     ]);
   });
 
+  /** Pages measured on different days can hold the site's one figure in two bands. */
+  it("folds both bands of one metric into one row, at the newest measurement's band", () => {
+    const poor = (id: number, measuredAt: Date): IPageFinding => ({
+      issue: {
+        code: 'CWV_INP_POOR',
+        severity: 'warning',
+        details: { value: 540, max: 500, source: 'origin' },
+      },
+      page: page(id),
+      measuredAt,
+    });
+    const rows = collapseOriginFindings([
+      speed(1, 'origin', 320, new Date('2026-10-08T12:00:00Z')),
+      poor(2, new Date('2026-10-09T12:00:00Z')),
+      poor(3, new Date('2026-10-09T12:00:00Z')),
+    ]);
+
+    expect(rows).toEqual([
+      {
+        code: 'CWV_INP_POOR',
+        severity: 'warning',
+        details: { value: 540, max: 500, source: 'origin' },
+        location: { kind: 'allPages', pageCount: 3 },
+      },
+    ]);
+  });
+
   it('keeps url and lab findings per page', () => {
     const rows = collapseOriginFindings([speed(1, 'url'), speed(2, 'lab')]);
 

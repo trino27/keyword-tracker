@@ -1,5 +1,5 @@
 import {
-  CWV_CODES,
+  CWV_ISSUE_CODES,
   type TCwvSeoIssue,
   type TReportIssue,
   type TSeoIssue,
@@ -8,20 +8,33 @@ import type { IPageFinding } from '../../interfaces/page-finding.interface';
 
 export type { IPageFinding };
 
-const CWV = new Set<string>(CWV_CODES);
+/**
+ * Each Core Web Vitals code's device and metric: the site has ONE figure per metric and
+ * device, so its two bands' codes are one row's.
+ */
+const METRIC_OF = new Map<string, string>(
+  Object.entries(CWV_ISSUE_CODES).flatMap(([strategy, byMetric]) =>
+    Object.entries(byMetric).flatMap(([metric, byBand]) =>
+      Object.values(byBand).map((code) => [code, `${strategy}:${metric}`]),
+    ),
+  ),
+);
 
 /**
  * A Core Web Vitals finding: the only kind whose value may be the site's. Image delivery
  * is a speed finding too, but a lab estimate about one page, and stays at it (plan D47).
  */
-const isCwv = (issue: TSeoIssue): issue is TCwvSeoIssue => CWV.has(issue.code);
+const isCwv = (issue: TSeoIssue): issue is TCwvSeoIssue =>
+  METRIC_OF.has(issue.code);
 
 /**
  * Page findings as report rows, with every Core Web Vitals finding whose value is the WHOLE SITE's
- * folded into one row per code (plan D8): "INP needs improvement — whole site (15 pages)"
- * once, rather than the same sentence on fifteen pages. The row keeps the details of the
- * most recently measured page in the group. URL- and lab-sourced findings stay per page,
- * so one code can appear both ways — some pages have figures of their own.
+ * folded into one row per metric and device (plan D8): "INP needs improvement — whole site
+ * (15 pages)" once, rather than the same sentence on fifteen pages. The row is the most
+ * recently measured page's finding — code, level and figure — and counts every page in the
+ * group: pages measured on different days can hold the site's figure in two bands, and
+ * the site is in only one. URL- and lab-sourced findings stay per page, so one code can
+ * appear both ways — some pages have figures of their own.
  */
 export function collapseOriginFindings(
   findings: readonly IPageFinding[],
@@ -32,9 +45,10 @@ export function collapseOriginFindings(
   for (const finding of findings) {
     const { issue } = finding;
     if (isCwv(issue) && issue.details.source === 'origin') {
-      const group = origin.get(issue.code) ?? [];
+      const key = METRIC_OF.get(issue.code)!;
+      const group = origin.get(key) ?? [];
       group.push(finding);
-      origin.set(issue.code, group);
+      origin.set(key, group);
     } else {
       rows.push({ ...issue, location: { kind: 'page', page: finding.page } });
     }
