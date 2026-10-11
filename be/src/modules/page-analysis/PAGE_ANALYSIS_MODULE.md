@@ -534,6 +534,16 @@ Specified in `openspec/specs/be/src/modules/page-analysis/spec.md`.
 
   Because `CANONICAL_TARGET_BROKEN` never fired, its step-aside removed no
   `CANONICAL_MISMATCH`. The two silent checks are held by their specs' failing cases.
+- **Field audit of the image-delivery finding (2026-10-11).** `IMAGE_DELIVERY_INEFFICIENT` is a
+  PageSpeed code, not a crawl check, but it was held to the same bar. 104 mobile pages were
+  measured live: nine clients, 89–96 and semrush.com. The finding fired on 32 (ahrefs.com 6,
+  moz.com 11, semrush.com 8, troyhunt.com 3, css-tricks.com 2, backlinko.com 1,
+  smashingmagazine.com 1). Each was compared with a fresh PageSpeed answer for the same URL on
+  mobile, the report pagespeed.web.dev shows. 32 fired, 0 wrong: every one failed the audit again
+  with at least 100 KiB to save. 31 gave the same savings to the byte. One
+  (ahrefs.com/blog/how-to-optimize-for-ai-search/) gave 377 418 bytes instead of 438 781, still
+  over the bar, a lab estimate moving between runs. Two listed images were fetched as a check:
+  troyhunt.com's 2.4 MB PNG and ahrefs.com's 158 KB PNG really are that heavy.
 - **Two checks are deliberately absent.** `SLOW_RESPONSE` measured the crawler's network position
   rather than the page, and `KEYWORD_NOT_IN_TITLE` could not fail by construction. The
   measurements are in `practices/search-engines/references/field-study-2026-10.md`, findings 3 and

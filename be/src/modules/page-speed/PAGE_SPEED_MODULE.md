@@ -93,6 +93,20 @@ source}`. The badge uses the same `cwvBandOf`, so a badge and its finding agree.
   every audit that did not apply: they are Lighthouse's configuration, snapshotted in
   `packages/contracts/src/domain/seo/catalogue/lighthouse/lighthouse-audits.fixture.json`.
 
+- **Images that could be lighter** (`extractImageDelivery`, `speedIssuesOf`; image-delivery-finding).
+  The mobile answer carries Lighthouse 13's `image-delivery-insight` audit (id read from live
+  answers on 2026-10-11): it fails when its `score` is below 1, its total savings is
+  `details.debugData.wastedBytes` (what its own "Est savings of … KiB" rounds), and each image is
+  a `details.items[]` row with `url` and `wastedBytes`. `IMAGE_DELIVERY_INEFFICIENT` is raised
+  when the audit fails with at least the catalogue's `min`, 102 400 bytes, and lists up to ten
+  images, the largest saving first. The classifier reads it beside the measurement with its own
+  schema. An answer without the audit, or with one that does not parse, is still a measurement,
+  just without this finding, and `extractMeasurement` never reads it. It is mobile's alone: the
+  desktop overload of `speedIssuesOf` takes no image input. It is a pageSpeed code, unscored, and
+  not a Lighthouse one, because Lighthouse's owner is scored and a performance opportunity in the
+  score would contradict "speed never enters the score". It is a lab estimate about one page, so
+  the report never folds it into a whole-site row. Audited live on 2026-10-11: 32 firings on 104 pages, every one
+  confirmed by a fresh PageSpeed answer for the same URL (tally in `PAGE_ANALYSIS_MODULE.md`).
 - **Diagnostics** (`extractDiagnostics`): real visitors' TTFB (`EXPERIMENTAL_TIME_TO_FIRST_BYTE`,
   page else site, never lab), the good and poor share of visits per metric from the SAME data as
   the metric's value (none for a lab value), and the LCP breakdown from `lcp-breakdown-insight` —
